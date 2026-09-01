@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Teleport v-if="isLoaded" to="#wrapper">
-        <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit">
+        <form v-if="isOpen" ref="form" class="container" :class="{ scrim: isBaseModal }" @submit.prevent="onSubmit">
             <Panel id="modal" class="modal-panel" v-bind="$attrs">
                 <template #header>
                     <div class="title">
@@ -41,6 +41,7 @@ import { nextTick, onMounted, Ref, ref, toRef, watch } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import { audioApi } from "@renderer/audio/audio";
 import { onKeyDown } from "@vueuse/core";
+import { useModalStack } from "@renderer/composables/useModalStack";
 
 export type PanelProps = InstanceType<typeof Panel>["$props"];
 export interface ModalProps extends /* @vue-ignore */ PanelProps {
@@ -69,6 +70,7 @@ const emits = defineEmits<{
 
 const form: Ref<HTMLFormElement | null> = ref(null);
 const isOpen = toRef(props, "modelValue");
+const isBaseModal = useModalStack(isOpen);
 
 defineExpose({
     open: () => emits("update:modelValue", true),
@@ -133,8 +135,10 @@ function sound() {
     z-index: 5;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(5px);
+    &.scrim {
+        background-color: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(2px);
+    }
 }
 .modal-panel {
     flex-grow: 0;

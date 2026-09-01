@@ -119,23 +119,6 @@ SPDX-License-Identifier: MIT
             </template>
         </div>
     </Modal>
-
-    <!-- Outside the settings modal, so closing that mid-countdown still reverts.
-    Dismissing this counts as reverting. -->
-    <Modal
-        :modelValue="displayGuard.awaitingConfirmation.value"
-        :title="t('lobby.navbar.settings.displayConfirmTitle')"
-        :style="{ width: '400px' }"
-        @update:modelValue="displayGuard.revert()"
-    >
-        <div class="confirm-body">
-            <span>{{ t("lobby.navbar.settings.displayRevertingIn", { seconds: displayGuard.secondsLeft.value }) }}</span>
-            <div class="confirm-actions">
-                <Button class="green" @click="displayGuard.keep()">{{ t("lobby.navbar.settings.displayKeep") }}</Button>
-                <Button @click="displayGuard.revert()">{{ t("lobby.navbar.settings.displayRevert") }}</Button>
-            </div>
-        </div>
-    </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -167,7 +150,6 @@ import { useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
-import { useDisplaySettingsGuard } from "@renderer/composables/useDisplaySettingsGuard";
 import type { Locale } from "@renderer/locales";
 const { t, locale } = useTypedI18n();
 const { localeOptions } = useLocaleOptions();
@@ -304,21 +286,20 @@ const displayMode = computed<string>({
 
         return sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
     },
-    set: (value) =>
-        displayGuard.apply(() => {
-            settingsStore.fullscreen = value === "fullscreen";
-            settingsStore.maximized = value === "maximized";
-            if (value === "fullscreen" || value === "maximized") return;
+    set: (value) => {
+        settingsStore.fullscreen = value === "fullscreen";
+        settingsStore.maximized = value === "maximized";
+        if (value === "fullscreen" || value === "maximized") return;
 
-            const [width, height] = value.split("x").map(Number);
-            settingsStore.windowWidth = width;
-            settingsStore.windowHeight = height;
-        }),
+        const [width, height] = value.split("x").map(Number);
+        settingsStore.windowWidth = width;
+        settingsStore.windowHeight = height;
+    },
 });
 
 const selectedDisplay = computed<number>({
     get: () => settingsStore.displayIndex,
-    set: (index) => displayGuard.apply(() => (settingsStore.displayIndex = index)),
+    set: (index) => (settingsStore.displayIndex = index),
 });
 
 const scaleRange = ref({ min: 1, max: 1, os: 1 });
@@ -332,7 +313,6 @@ onMounted(async () => {
 // Null means the user has never set one, and the OS scale is what to start them at.
 const uiScalePercent = computed(() => Math.round((settingsStore.uiScale ?? scaleRange.value.os) * 100));
 
-// Applying mid-drag reflows the interface under the handle.
 const draggedScalePercent = ref<number | null>(null);
 const shownScalePercent = computed(() => draggedScalePercent.value ?? uiScalePercent.value);
 
@@ -343,10 +323,8 @@ function commitScalePercent(value: number | number[]) {
     // Against what the slider showed, not the stored value, which is null until first set.
     if (percent === uiScalePercent.value) return;
 
-    displayGuard.apply(() => (settingsStore.uiScale = percent / 100));
+    settingsStore.uiScale = percent / 100;
 }
-
-const displayGuard = useDisplaySettingsGuard();
 
 // Same source as the move and the size list, so a detached monitor cannot be offered.
 const displayOptions = computed(() =>
@@ -398,20 +376,6 @@ watch(
     opacity: 0.5;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     padding-bottom: 4px;
-}
-
-.confirm-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    padding: 15px 10px;
-}
-
-.confirm-actions {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
 }
 
 .path-row {
