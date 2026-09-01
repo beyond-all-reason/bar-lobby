@@ -2037,6 +2037,20 @@
                 "faction": "Faction",
                 "difficulty": "Difficulty",
                 "launch": "Launch"
+            },
+            "campaigns": {
+                "title": "Campaign",
+                "back": "Back",
+                "authors": "By {authors}",
+                "locked": "Locked",
+                "noCampaigns": "No campaigns available for the selected game version.",
+                "briefing": "Briefing",
+                "objectives": "Objectives",
+                "alliesPresent": "Allies present",
+                "knownHostiles": "Known hostiles",
+                "newUnits": "New units",
+                "difficulty": "Difficulty",
+                "launch": "Launch"
             }
         },
         "navbar": {

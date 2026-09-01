@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { contentAPI } from "@main/content/content-api";
+import { getCampaigns } from "@main/content/game/game-campaigns";
 import { getScenarios } from "@main/content/game/game-scenarios";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
@@ -17,6 +18,11 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         const installed = contentAPI.gameVersion(version);
 
         return installed ? getScenarios(installed.packageMd5) : [];
+    });
+    ipcMain.handle("game:getCampaigns", (_, version: string) => {
+        const installed = contentAPI.gameVersion(version);
+
+        return installed ? getCampaigns(installed.packageMd5) : [];
     });
     ipcMain.handle("game:getInstalledVersions", () => contentAPI.gameVersions());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => contentAPI.isPresent({ type: "game", id }));

@@ -4153,6 +4153,20 @@
                 "faction": null,
                 "difficulty": null,
                 "launch": null
+            },
+            "campaigns": {
+                "title": null,
+                "back": null,
+                "authors": null,
+                "locked": null,
+                "noCampaigns": null,
+                "briefing": null,
+                "objectives": null,
+                "alliesPresent": null,
+                "knownHostiles": null,
+                "newUnits": null,
+                "difficulty": null,
+                "launch": null
             }
         },
         "navbar": {

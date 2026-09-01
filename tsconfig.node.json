@@ -5,6 +5,7 @@
         "electron-builder.config.*",
         "src/main/**/*",
         "src/preload/**/*",
+        "tools/**/*",
         "vendor/**/*",
         "tests/**/main/**/*.ts",
         "tests/**/shared/**/*.ts",

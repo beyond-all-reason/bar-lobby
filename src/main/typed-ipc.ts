@@ -74,6 +74,7 @@ export type IPCCommands = {
     "engine:listAvailableVersions": () => EngineVersion[];
     "engine:uninstallVersion": (version: EngineVersion) => void;
     "game:downloadGame": (version: string) => void;
+    "game:getCampaigns": (version: string) => import("@main/content/game/campaign-model").CampaignModel[];
     "game:getInstalledVersions": () => GameVersion[];
     "game:getScenarios": (version: string) => Scenario[];
     "game:isVersionInstalled": (version: string) => boolean;

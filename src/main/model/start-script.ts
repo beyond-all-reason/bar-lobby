@@ -37,6 +37,7 @@ export interface Game {
 }
 
 export interface ModOptions {
+    [key: string]: unknown;
     startmetal?: number;
     startenergy?: number;
     maxunits?: number;
