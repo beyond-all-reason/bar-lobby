@@ -27,7 +27,7 @@ import {
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
 import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest } from "@renderer/api/tachyon";
+import { tachyonRequest, isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import { Lobby } from "@renderer/model/lobby";
 import { setupI18n } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
@@ -330,22 +330,34 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
  * Sends a request to leave the currently active lobby.
  */
 async function requestLeaveLobby() {
+    let removedFromLobby = false;
     try {
         const response = await tachyonRequest("lobby/leave");
         console.log("Tachyon: lobby/leave:", response.status);
+        removedFromLobby = true;
     } catch (error) {
         console.error("Error with request lobby/leave", error);
-        notificationsApi.alert({
-            text: "Error with request lobby/leave",
-            severity: "error",
-        });
+        if (isTachyonErrorForCommand(error, "lobby/leave")) {
+            if (error.reason === "not_in_lobby") removedFromLobby = true; // treat not_in_lobby as a successful leave.
+        } else {
+            console.error("Error with request lobby/leave", error);
+            notificationsApi.alert({
+                text: "Error with request lobby/leave",
+                severity: "error",
+            });
+        }
     }
-    // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
-    clearUserSubscriptions();
-    lobbyStore.activeLobby = undefined;
-    // Can't rejoin a battle tied to a lobby we're no longer in.
-    tachyonStore.springConnectionDetails = undefined;
-    tachyonStore.rejoinModalOpen = false;
+    if (removedFromLobby) {
+        if (router.currentRoute.value.path == "/play/lobby") {
+            // We use replace instead of push so the user can't use "back".
+            router.replace("/play/customLobbies");
+        }
+        clearUserSubscriptions();
+        lobbyStore.activeLobby = undefined;
+        // Can't rejoin a battle tied to a lobby we're no longer in.
+        tachyonStore.springConnectionDetails = undefined;
+        tachyonStore.rejoinModalOpen = false;
+    }
 }
 
 /**

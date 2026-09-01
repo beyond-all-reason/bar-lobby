@@ -104,7 +104,6 @@ async function serverChanged() {
 // TODO tidy this up: the row is a snapshot of the whole reactive object, written
 // in two steps that aren't in one transaction, and nothing reads isMe any more.
 async function onUserSelfEvent(data: UserSelfEventData) {
-    // window.tachyon.onEvent("user/self", async (event) => {
     console.debug(`Received user/self event: ${JSON.stringify(data)}`);
     if (data && data.user) {
         await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
