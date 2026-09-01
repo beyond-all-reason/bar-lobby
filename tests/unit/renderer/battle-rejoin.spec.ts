@@ -42,7 +42,7 @@ describe("battle rejoin state", () => {
             data: { id: "lobby-1", players: {}, spectators: {}, bots: {}, currentBattle: { id: "battle-1" } },
         } satisfies Awaited<ReturnType<typeof window.tachyon.requestStructured>>;
         vi.mocked(window.tachyon.requestStructured).mockResolvedValue(joinResponse);
-        await lobby.requestJoinLobby("lobby-1");
+        await lobby.requestJoinLobby({ id: "lobby-1", pushLobbyView: true });
         tachyonStore.springConnectionDetails = {
             username: "player",
             password: "secret",

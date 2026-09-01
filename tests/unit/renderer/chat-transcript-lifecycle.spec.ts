@@ -52,14 +52,14 @@ describe("chat transcript lifecycle", () => {
         it("keeps another lobby's chat when joining a new one", async () => {
             vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
 
-            await lobby.requestJoinLobby("lobby-2");
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
 
             expect(chatStore.lobbyChats.get("lobby-1")).toEqual([{ message: "said in the last lobby" }]);
         });
 
         it("keeps the chat on leaving", async () => {
             vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
-            await lobby.requestJoinLobby("lobby-2");
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
             chatStore.lobbyChats.set("lobby-2", [{ message: "said in this lobby" } as never]);
 
             await lobby.requestLeaveLobby();
@@ -69,7 +69,7 @@ describe("chat transcript lifecycle", () => {
 
         it("keeps the chat on being dropped from the lobby", async () => {
             vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
-            await lobby.requestJoinLobby("lobby-2");
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
             chatStore.lobbyChats.set("lobby-2", [{ message: "said in this lobby" } as never]);
 
             emit("lobby/left", { id: "lobby-2" });
@@ -81,7 +81,7 @@ describe("chat transcript lifecycle", () => {
         // in, so treating one as an entry would wipe the chat constantly.
         it("leaves the chat alone on an update to the lobby it is already in", async () => {
             vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
-            await lobby.requestJoinLobby("lobby-2");
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
             chatStore.lobbyChats.set("lobby-2", [{ message: "said in this lobby" } as never]);
 
             emit("lobby/updated", { ...lobbyPayload("lobby-2").data, name: "renamed" });

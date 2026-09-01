@@ -83,7 +83,7 @@ export async function initLobbyStore() {
 function onUserSelfEventLobby(lobbyId: PrivateUser["currentLobby"]) {
     if (lobbyId) {
         // join is idempotent, so we can call it even if we're already in the lobby.
-        requestJoinLobby(lobbyId, false);
+        requestJoinLobby({ id: lobbyId, pushLobbyView: false });
     } else {
         // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
         if (router.currentRoute.value.path == "/play/lobby") {
@@ -168,15 +168,15 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
 /**
  * Sends a request to join an existing lobby with the provided ID.
  * @param id The ID of the lobby to join.
- * @param pushRoute Whether to push the route to the lobby view. Optional; defaults to true.
+ * @param pushLobbyView Whether to push the route to the lobby view. Optional; defaults to true.
  */
-async function requestJoinLobby(id: string, pushRoute?: boolean) {
+async function requestJoinLobby({ id, pushLobbyView }: { id: string; pushLobbyView: boolean }) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         const response = await tachyonRequest("lobby/join", { id: id });
         console.log("Tachyon: lobby/join:", response.status, response.data);
         parseLobbyResponseData(response.data, false);
-        if (pushRoute ?? true) {
+        if (pushLobbyView ?? true) {
             router.push("/play/lobby");
         }
     } catch (error) {
