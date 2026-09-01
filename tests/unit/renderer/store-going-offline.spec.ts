@@ -49,8 +49,8 @@ function populateOnlineState() {
     lobbyStore.activeLobby = { id: "lobby-1" } as never;
     lobbyStore.wantsListSubscription = true;
 
-    chatStore.lobbyChat.splice(0, chatStore.lobbyChat.length, { userId: "1", text: "in lobby" } as never);
-    chatStore.partyChat.splice(0, chatStore.partyChat.length, { userId: "1", text: "in party" } as never);
+    chatStore.lobbyChats.set("lobby-1", [{ userId: "1", text: "in lobby" } as never]);
+    chatStore.partyChats.set("party-1", [{ userId: "1", text: "in party" } as never]);
     chatStore.userChats.set("1", [{ userId: "1", text: "dm" } as never]);
 }
 
@@ -115,8 +115,8 @@ describe("going offline", () => {
         it("keeps chat", () => {
             simulateClose();
 
-            expect(chatStore.lobbyChat).toHaveLength(1);
-            expect(chatStore.partyChat).toHaveLength(1);
+            expect(chatStore.lobbyChats.get("lobby-1")).toHaveLength(1);
+            expect(chatStore.partyChats.get("party-1")).toHaveLength(1);
         });
     });
 
@@ -140,8 +140,8 @@ describe("going offline", () => {
         it("keeps the chat transcript the server can no longer send us", async () => {
             await tachyon.goOffline();
 
-            expect(chatStore.lobbyChat).toHaveLength(1);
-            expect(chatStore.partyChat).toHaveLength(1);
+            expect(chatStore.lobbyChats.get("lobby-1")).toHaveLength(1);
+            expect(chatStore.partyChats.get("party-1")).toHaveLength(1);
         });
 
         it("drops the marker, which the ended session leaves pointing at nothing", async () => {

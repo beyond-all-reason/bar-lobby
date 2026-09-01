@@ -21,7 +21,6 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
-import { chat } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const partySymbol = Symbol("party.store");
@@ -168,7 +167,6 @@ async function requestLeave() {
         console.log("Tachyon: party/leave:", response);
         partyStore.parties.delete(partyStore.activeParty ?? "");
         parseAllPartyData();
-        chat.clearPartyChat();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
@@ -186,7 +184,6 @@ function onRemovedEvent(data: PartyRemovedEventData) {
     // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     partyStore.parties.delete(data.partyId);
     parseAllPartyData();
-    chat.clearPartyChat();
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
@@ -214,7 +211,6 @@ function onUserSelfEventParty({ party, invites }: { party: PrivateUser["party"];
 
 // We might be invited, or member, have to check to know.
 function parseAllPartyData() {
-    const previousParty = partyStore.activeParty;
     // Reset active party in case we are no longer in a party.
     partyStore.activeParty = undefined;
     const bools = {
@@ -236,13 +232,6 @@ function parseAllPartyData() {
         }
     });
     subsManager.setList(users, partySymbol);
-
-    // Leaving clears the transcript, but going offline keeps it and sends no
-    // leave, so entering the next party has to clear that one. Comparing ids keeps
-    // a re-parse of the same party, which happens on every update, from wiping it.
-    if (partyStore.activeParty && partyStore.activeParty !== previousParty) {
-        chat.clearPartyChat();
-    }
 
     if (bools.joined) {
         if (bools.invited) {

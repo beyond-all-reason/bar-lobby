@@ -31,7 +31,6 @@ import { tachyonRequest } from "@renderer/api/tachyon";
 import { Lobby } from "@renderer/model/lobby";
 import { setupI18n } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
-import { chat } from "@renderer/store/chat.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
@@ -56,7 +55,6 @@ export const lobbyStore: {
     selectedLobby: undefined,
     activeLobby: undefined,
     wantsListSubscription: false,
-    preserveChat: false,
 });
 
 export async function initLobbyStore() {
@@ -85,11 +83,6 @@ export async function initLobbyStore() {
 function onUserSelfEventLobby(lobbyId: PrivateUser["currentLobby"]) {
     if (lobbyId) {
         // join is idempotent, so we can call it even if we're already in the lobby.
-        // However, if the lobby matched the previous one, we don't want to clear chat too.
-        if (lobbyStore.activeLobby && lobbyStore.activeLobby.id == lobbyId) {
-            // User was previously in this lobby, so we will preserve chat.
-            lobbyStore.preserveChat = true;
-        }
         requestJoinLobby(lobbyId, false);
     } else {
         // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
@@ -98,7 +91,6 @@ function onUserSelfEventLobby(lobbyId: PrivateUser["currentLobby"]) {
         }
         clearUserSubscriptions();
         lobbyStore.activeLobby = undefined;
-        lobbyStore.preserveChat = false;
     }
 }
 
@@ -159,7 +151,6 @@ async function requestUnsubscribeList() {
  */
 async function requestCreateLobby(data: LobbyCreateRequestData) {
     try {
-        lobbyStore.preserveChat = false;
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         const response = await tachyonRequest("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
@@ -277,9 +268,6 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     } else {
         //Apply the patch for a join/create response
         lobbyStore.activeLobby = applyPatch({}, data);
-        if (!lobbyStore.preserveChat) {
-            chat.clearLobbyChat();
-        }
     }
     if (!lobbyStore.activeLobby) {
         console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
@@ -355,8 +343,6 @@ async function requestLeaveLobby() {
     // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
-    lobbyStore.preserveChat = false;
-    chat.clearLobbyChat();
     // Can't rejoin a battle tied to a lobby we're no longer in.
     tachyonStore.springConnectionDetails = undefined;
     tachyonStore.rejoinModalOpen = false;
@@ -464,8 +450,6 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     if (!lobbyStore.activeLobby || lobbyStore.activeLobby.id != data.id) return;
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
-    lobbyStore.preserveChat = false;
-    chat.clearLobbyChat();
     // Can't rejoin a battle tied to a lobby we've been removed from (e.g. kick/ban).
     tachyonStore.springConnectionDetails = undefined;
     tachyonStore.rejoinModalOpen = false;
@@ -592,7 +576,6 @@ export function clearOnlineState() {
     lobbyStore.lobbies = {};
     lobbyStore.selectedLobby = undefined;
     lobbyStore.activeLobby = undefined;
-    lobbyStore.preserveChat = false;
 }
 
 export const lobby = {

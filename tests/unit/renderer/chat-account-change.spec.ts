@@ -39,8 +39,10 @@ describe("chat across an account change", () => {
     beforeEach(() => {
         chatStore.userChats.clear();
         chatStore.userChats.set("42", [{ message: "theirs" } as never]);
-        chatStore.lobbyChat.splice(0, chatStore.lobbyChat.length, { message: "in lobby" } as never);
-        chatStore.partyChat.splice(0, chatStore.partyChat.length, { message: "in party" } as never);
+        chatStore.lobbyChats.clear();
+        chatStore.lobbyChats.set("lobby1", [{ message: "in lobby" } as never]);
+        chatStore.partyChats.clear();
+        chatStore.partyChats.set("party1", [{ message: "in party" } as never]);
     });
 
     it("drops direct message history when the account signs out", () => {
@@ -52,8 +54,8 @@ describe("chat across an account change", () => {
     it("drops the lobby and party transcripts too", () => {
         signOut();
 
-        expect(chatStore.lobbyChat).toEqual([]);
-        expect(chatStore.partyChat).toEqual([]);
+        expect(chatStore.lobbyChats.size).toBe(0);
+        expect(chatStore.partyChats.size).toBe(0);
     });
 
     // Left attached, the next account keeps a subscription to someone it never spoke to.
@@ -79,6 +81,6 @@ describe("chat across an account change", () => {
         authHandlers.forEach((handler) => handler({ authenticated: true }));
 
         expect(chatStore.userChats.size).toBe(1);
-        expect(chatStore.lobbyChat).toHaveLength(1);
+        expect(chatStore.lobbyChats.size).toBe(1);
     });
 });

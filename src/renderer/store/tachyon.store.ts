@@ -10,8 +10,8 @@ import { subsManager } from "@renderer/store/users.store";
 import { UserId, PrivateUser } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
-import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onTachyonConnected } from "@renderer/utils/connection-signal";
 import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
 
 type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
@@ -175,10 +175,7 @@ export async function initTachyonStore() {
             matchmaking.sendListRequest();
         }
 
-        // Subscribe to messages (all sources) when connected
-        if (chatStore.isInitialized) {
-            chat.requestSubscribeReceived();
-        }
+        onTachyonConnected.dispatch();
     });
 
     window.tachyon.onDisconnected(() => {

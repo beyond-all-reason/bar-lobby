@@ -4,12 +4,15 @@
 
 import { reactive } from "vue";
 import { subsManager } from "@renderer/store/users.store";
-import { HistoryMarker, MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
+import { HistoryMarker, MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId, PartyId, LobbyId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onTachyonConnected } from "@renderer/utils/connection-signal";
+import { lobbyStore } from "@renderer/store/lobby.store";
+import { partyStore } from "@renderer/store/party.store";
 // import { setupI18n } from "@renderer/i18n";
 
 // const i18n = setupI18n();
@@ -25,15 +28,15 @@ let subscribeAttempts = 0;
 export const chatStore: {
     isInitialized: boolean;
     lastMarker: HistoryMarker | null;
-    lobbyChat: Message[];
-    partyChat: Message[];
+    lobbyChats: Map<LobbyId, Message[]>;
+    partyChats: Map<PartyId, Message[]>;
     userChats: Map<UserId, Message[]>;
 } = reactive({
     isInitialized: false,
     lastMarker: null,
-    lobbyChat: [],
-    partyChat: [],
-    userChats: new Map<UserId, Message[]>(), // Messages.vue will turn each of these Map elements into a TabPanel for the chat history with that user
+    lobbyChats: new Map<LobbyId, Message[]>(),
+    partyChats: new Map<PartyId, Message[]>(),
+    userChats: new Map<UserId, Message[]>(),
 });
 
 export async function initChatStore() {
@@ -48,12 +51,14 @@ export async function initChatStore() {
         if (!authenticated) clearAccountState();
     });
     window.tachyon.onEvent("messaging/received", onMessagingReceivedEvent);
+    // Subscribe to messages (all sources) once connected.
+    onTachyonConnected.add(() => requestSubscribeReceived());
     chatStore.isInitialized = true;
 }
 
 const chatDestinations = {
-    lobby: chatStore.lobbyChat,
-    party: chatStore.partyChat,
+    lobby: chatStore.lobbyChats,
+    party: chatStore.partyChats,
     player: chatStore.userChats,
 };
 
@@ -95,7 +100,7 @@ function resumePoint(): MessagingSubscribeReceivedRequestData["since"] {
 }
 
 function hasStoredMessages(): boolean {
-    return chatStore.lobbyChat.length > 0 || chatStore.partyChat.length > 0 || [...chatStore.userChats.values()].some((chat) => chat.length > 0);
+    return chatStore.lobbyChats.size > 0 || chatStore.partyChats.size > 0 || [...chatStore.userChats.values()].some((chat) => chat.length > 0);
 }
 
 /**
@@ -169,22 +174,21 @@ function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
  * @param requestData Payload of data already sent to the Tachyon server for this client's message request
  */
 function insertSelfMessage(requestData: MessagingSendRequestData) {
-    insertMessage(
-        // data:
-        {
-            message: requestData.message,
-            source: {
-                type: requestData.target.type,
-                userId: me.userId,
-                lobbyId: "", // We are not preserving lobby/party chat based on an ID, so these are irrelevant and can be empty strings
-                partyId: "",
-            },
-            timestamp: Date.now() * 1000,
-            marker: "",
-        },
-        // destination:
-        requestData.target
-    );
+    if (requestData.target.type === "player") {
+        insertMessage({ ...requestData, source: { type: "player", userId: me.userId }, timestamp: Date.now() * 1000, marker: "" }, requestData.target);
+    }
+    if (requestData.target.type === "lobby") {
+        insertMessage(
+            { ...requestData, source: { type: "lobby", lobbyId: lobbyStore.activeLobby?.id ?? "", userId: me.userId }, timestamp: Date.now() * 1000, marker: "" },
+            { type: "lobby", lobbyId: lobbyStore.activeLobby?.id ?? "", userId: me.userId }
+        );
+    }
+    if (requestData.target.type === "party") {
+        insertMessage(
+            { ...requestData, source: { type: "party", partyId: partyStore.activeParty ?? "", userId: me.userId }, timestamp: Date.now() * 1000, marker: "" },
+            { type: "party", partyId: partyStore.activeParty ?? "", userId: me.userId }
+        );
+    }
 }
 
 /**
@@ -192,32 +196,54 @@ function insertSelfMessage(requestData: MessagingSendRequestData) {
  * @param data Payload of message data
  * @param destination The targets chat that will store the message event
  */
-function insertMessage(data: MessagingReceivedEventData, destination: MessagingSendRequestData["target"]) {
+function insertMessage(data: MessagingReceivedEventData, destination: MessagingReceivedEventData["source"]) {
     const msg = { ...data, seen: false };
-    if (destination.type === "player") {
-        const userChat = chatDestinations["player"].get(destination.userId);
-        if (!userChat) {
-            chatDestinations["player"].set(destination.userId, [msg]);
-        } else {
-            userChat.push(msg);
-        }
+    const destId = destination.type === "lobby" ? destination.lobbyId : destination.type === "party" ? destination.partyId : destination.userId;
+    // if (destination.type === "player") {
+    const chat = chatDestinations[destination.type].get(destId);
+    if (!chat) {
+        chatDestinations[destination.type].set(destId, [msg]);
     } else {
-        chatDestinations[destination.type].push(msg);
+        chat.push(msg);
     }
+    // }
+    // if (destination.type === "lobby") {
+    //     const lobbyChat = chatDestinations[destination.type].get(dId);
+    //     if (!lobbyChat) {
+    //         chatDestinations[destination.type].set(dId, [msg]);
+    //     } else {
+    //         lobbyChat.push(msg);
+    //     }
+    // }
+    // if (destination.type === "party") {
+    //     const partyChat = chatDestinations[destination.type].get(dId);
+    //     if (!partyChat) {
+    //         chatDestinations[destination.type].set(dId, [msg]);
+    //     } else {
+    //         partyChat.push(msg);
+    //     }
+    // }
 }
 
 /**
- * Deletes all stored history in chatStore.lobbyChat
+ * Deletes all stored history in chatStore.lobbyChats
  */
 function clearLobbyChat() {
-    chatStore.lobbyChat.length = 0;
+    chatStore.lobbyChats.clear();
 }
 
 /**
- * Deletes all stored history in chatStore.partyChat
+ * Deletes all stored history in chatStore.partyChats
  */
 function clearPartyChat() {
-    chatStore.partyChat.length = 0;
+    chatStore.partyChats.clear();
+}
+
+/**
+ * Deletes all stored history in chatStore.userChats
+ */
+function clearAllUserChats() {
+    chatStore.userChats.clear();
 }
 
 /**
@@ -256,7 +282,7 @@ function clearOnlineState() {
 // may be left for whoever signs in next.
 function clearAccountState() {
     subsManager.clearAllFromList(chatSymbol);
-    chatStore.userChats.clear();
+    clearAllUserChats();
     clearLobbyChat();
     clearPartyChat();
 }
@@ -267,6 +293,7 @@ export const chat = {
     clearLobbyChat,
     clearPartyChat,
     clearUserChat,
+    clearAllUserChats,
     addNewUserChat,
     clearOnlineState,
     clearAccountState,

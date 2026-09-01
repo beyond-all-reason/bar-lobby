@@ -203,8 +203,9 @@ if (!settingsStore.devMode) {
 
 function unseenPartyMessages() {
     if (!partyStore.activeParty) return false;
-    if (chatStore.partyChat.length <= 0) return false;
-    return !chatStore.partyChat.at(-1)?.seen;
+    const messages = chatStore.partyChats.get(partyStore.activeParty);
+    if (!messages || messages.length <= 0) return false;
+    return !messages.at(-1)?.seen;
 }
 function getPartyIcon() {
     if (unseenPartyMessages()) return bellAlert;

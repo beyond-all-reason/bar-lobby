@@ -48,8 +48,8 @@ describe("chat history marker", () => {
 
     beforeEach(() => {
         chatStore.lastMarker = null;
-        chatStore.lobbyChat.length = 0;
-        chatStore.partyChat.length = 0;
+        chatStore.lobbyChats.clear();
+        chatStore.partyChats.clear();
         chatStore.userChats.clear();
         vi.mocked(notificationsApi.alert).mockClear();
         vi.mocked(window.tachyon.requestStructured).mockReset();
@@ -146,7 +146,7 @@ describe("chat history marker", () => {
             receive({ source: { type: "lobby", lobbyId: "lobby-1", userId: "7" }, message: "missed two", marker: "-576460745790000" });
 
             expect(chatStore.userChats.get("42")?.map((m) => m.message)).toEqual(["hi", "missed one"]);
-            expect(chatStore.lobbyChat.map((m) => m.message)).toEqual(["missed two"]);
+            expect(chatStore.lobbyChats.get("lobby-1")?.map((m) => m.message)).toEqual(["missed two"]);
             expect(chatStore.lastMarker).toBe("-576460745790000");
         });
 
