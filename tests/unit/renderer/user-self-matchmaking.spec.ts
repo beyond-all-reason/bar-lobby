@@ -54,6 +54,16 @@ describe("user/self matchmaking state", () => {
         expect(matchmakingStore.selectedQueue).toBe("2v2");
     });
 
+    it("syncs the selected queue when user/self reports a found match", async () => {
+        await emitUserSelf({
+            state: "found",
+            queue: { id: "2v2", version: "1", timeoutAt: (Date.now() + 5000) * 1000, hasAlreadyReadied: false },
+            otherQueues: [],
+        });
+
+        expect(matchmakingStore.selectedQueue).toBe("2v2");
+    });
+
     it("opens the matchmaking view and starts the ready countdown when user/self reports found", async () => {
         const timeoutAt = (Date.now() + 5000) * 1000;
 
@@ -71,6 +81,9 @@ describe("user/self matchmaking state", () => {
     });
 
     it("returns to idle and clears the ready countdown when user/self reports no matchmaking", async () => {
+        matchmakingStore.playersQueued = 5;
+        matchmakingStore.playersReady = 3;
+
         await emitUserSelf({
             state: "found",
             queue: { id: "1v1", version: "1", timeoutAt: (Date.now() + 5000) * 1000, hasAlreadyReadied: false },
@@ -83,5 +96,29 @@ describe("user/self matchmaking state", () => {
         expect(matchmakingStore.readySecondsRemaining).toBeUndefined();
         expect(matchmakingStore.readyCountdownInterval).toBeUndefined();
         expect(matchmakingStore.queueTimeout).toBeUndefined();
+        expect(matchmakingStore.playersQueued).toBe(0);
+        expect(matchmakingStore.playersReady).toBe(0);
+    });
+
+    it("clears readiness but keeps the queue count when matchmaking is lost", () => {
+        matchmakingStore.playersQueued = 5;
+        matchmakingStore.playersReady = 3;
+
+        eventHandlers.get("matchmaking/lost")?.(undefined);
+
+        expect(matchmakingStore.status).toBe(MatchmakingStatus.Searching);
+        expect(matchmakingStore.playersQueued).toBe(5);
+        expect(matchmakingStore.playersReady).toBe(0);
+    });
+
+    it("clears matchmaking counters when the match is cancelled", () => {
+        matchmakingStore.playersQueued = 5;
+        matchmakingStore.playersReady = 3;
+
+        eventHandlers.get("matchmaking/cancelled")?.({ reason: "user_cancelled" });
+
+        expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
+        expect(matchmakingStore.playersQueued).toBe(0);
+        expect(matchmakingStore.playersReady).toBe(0);
     });
 });

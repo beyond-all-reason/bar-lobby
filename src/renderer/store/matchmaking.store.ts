@@ -90,6 +90,7 @@ function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
 function onLostEvent() {
     console.log("Tachyon event: matchmaking/lost: no data");
     clearReadyTimers();
+    matchmakingStore.playersReady = 0;
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
@@ -101,6 +102,8 @@ function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
 function onCancelledEvent(data: MatchmakingCancelledEventData) {
     console.log("Tachyon event: matchmaking/cancelled:", data);
     clearReadyTimers();
+    matchmakingStore.playersReady = 0;
+    matchmakingStore.playersQueued = 0;
     matchmakingStore.status = MatchmakingStatus.Idle;
     if (data.reason === "version_changed") {
         sendListRequest();
@@ -126,6 +129,7 @@ function onFoundEvent(data: MatchmakingFoundEventData) {
 function onSelfUpdateFoundSignal(data: Extract<PrivateUser["matchmaking"], { state: "found" }>) {
     console.log("User/self update: matchmaking/found state:", data);
     clearReadyTimers();
+    matchmakingStore.selectedQueue = data.queue.id;
     if (data.queue.hasAlreadyReadied) {
         matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     } else {
@@ -148,20 +152,18 @@ function onUserSelfEventMatchmaking(data: PrivateUser["matchmaking"]) {
     switch (data.state) {
         case "no_matchmaking":
             clearReadyTimers();
+            matchmakingStore.playersReady = 0;
+            matchmakingStore.playersQueued = 0;
             matchmakingStore.status = MatchmakingStatus.Idle;
             break;
         case "queuing":
             clearReadyTimers();
             matchmakingStore.status = MatchmakingStatus.Searching;
-            // We try to match to their selected queue, but if it is not available (or none was selected) we pick the first.
-            if (matchmakingStore.selectedQueue && data.queues.some((q) => q.id === matchmakingStore.selectedQueue)) {
-                // Keep the selected queue as-is, since it is valid and available.
-                break;
-            } else {
-                // They did not have a valid selected queue, so we pick the first for them or fallback to default value?
+            // We try to match to their selected queue, if it's available, or reset it if not.
+            if (!matchmakingStore.selectedQueue || !data.queues.some((q) => q.id === matchmakingStore.selectedQueue)) {
                 matchmakingStore.selectedQueue = data.queues[0]?.id ?? "1v1";
-                break;
             }
+            break;
         case "found":
             onSelfUpdateFoundSignal(data);
             break;
