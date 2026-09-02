@@ -119,13 +119,14 @@ describe("connection intent", () => {
 
     it("stores and immediately launches a server-started battle", () => {
         const battle = {
-            ip: "127.0.0.1",
+            ips: ["127.0.0.1"],
             port: 8452,
             username: "player",
             password: "secret",
             engine: { version: "engine-version" },
             game: { springName: "game-version" },
             map: { springName: "map-version" },
+            battleId: "battle-1",
         } satisfies BattleStartRequestData;
 
         battleStartHandlers.forEach((handler) => handler(battle));
@@ -141,13 +142,14 @@ describe("connection intent", () => {
 
     it("stores a user/self currentBattle signal and opens the rejoin prompt without launching", () => {
         const battle = {
-            ip: "127.0.0.1",
+            ips: ["127.0.0.1"],
             port: 8452,
             username: "player",
             password: "secret",
             engine: { version: "engine-version" },
             game: { springName: "game-version" },
             map: { springName: "map-version" },
+            battleId: "battle-1",
         } satisfies PrivateBattle;
 
         const data = { user: { currentBattle: battle } as PrivateUser } satisfies UserSelfEventData;
@@ -168,12 +170,13 @@ describe("connection intent", () => {
 
     it("clears spring connection details when a battle/ended event is received", () => {
         tachyonStore.springConnectionDetails = {
-            ip: "127.0.0.1",
+            ips: ["127.0.0.1"],
             port: 8452,
             username: "player",
             password: "secret",
             engine: { version: "engine-version" },
             game: { springName: "game-version" },
+            battleId: "battle-1",
         };
 
         simulateBattleEnded();

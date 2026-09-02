@@ -40,7 +40,8 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
             "battle/start",
             createTypedTachyonRequestHandler<"battle/start">()(async (data: BattleStartRequestData) => {
                 // data carries the join password, so it is summarised rather than dumped.
-                log.info(`Received battle start request for ${data.ip}:${data.port}`);
+                // Note, data.ips[string] values are either ipv4 or ipv6, but we only use the first (only) for now.
+                log.info(`Received battle start request for ${data.ips[0]}:${data.port}`);
                 const missing = contentAPI.missing([
                     { type: "game", id: data.game.springName },
                     { type: "map", id: data.map.springName },

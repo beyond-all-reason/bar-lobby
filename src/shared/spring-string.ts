@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 export interface SpringConnectionDetails {
-    ip: string;
+    ips: string[];
     port: number;
     username: string;
     password: string;
+    battleId: string;
 }
 
-export function createSpringString({ ip, port, username, password }: SpringConnectionDetails): string {
-    return `spring://${username}:${password}@${ip}:${port}`;
+export function createSpringString({ ips, port, username, password }: SpringConnectionDetails): string {
+    // Note, data.ips[string] values are either ipv4 or ipv6, but we only use the first (only) for now.
+    return `spring://${username}:${password}@${ips[0]}:${port}`;
 }

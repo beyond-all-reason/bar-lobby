@@ -218,7 +218,7 @@ export async function initTachyonStore() {
     });
 
     window.tachyon.onBattleStart((data) => {
-        console.debug("Received battle start event", data.ip, data.port);
+        console.debug("Received battle start event", data.ips[0], data.port);
         // tachyon.service.ts checks assets before sending this request here.
         tachyonStore.springConnectionDetails = data;
         launchMultiplayerBattle(data);
