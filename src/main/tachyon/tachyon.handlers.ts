@@ -40,7 +40,16 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
             "battle/start",
             createTypedTachyonRequestHandler<"battle/start">()(async (data: BattleStartRequestData) => {
                 // data carries the join password, so it is summarised rather than dumped.
-                log.info(`Received battle start request for ${data.ip}:${data.port}`);
+                // Note, data.ips[string] values are either ipv4 or ipv6, but we only use the first (only) for now.
+                if (data.ips && data.ips.length > 0) log.info(`Received battle start request for ${data.ips[0]}:${data.port}`);
+                else {
+                    // @ts-expect-error ip is not part of BattleStartRequestData but is used for backward server compatibility
+                    if (data.ip) {
+                        // @ts-expect-error ip is not part of BattleStartRequestData but is used for backward server compatibility
+                        data.ips = [data.ip];
+                    }
+                    log.debug(data);
+                }
                 const missing = contentAPI.missing([
                     { type: "game", id: data.game.springName },
                     { type: "map", id: data.map.springName },
@@ -53,9 +62,7 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
                     });
                     return { status: "failed", reason: "internal_error" };
                 } else {
-                    const { ip, port, username, password } = data;
-                    const springString = `spring://${username}:${password}@${ip}:${port}`;
-                    webContents.send("tachyon:battleStart", springString, data);
+                    webContents.send("tachyon:battleStart", data);
                     return {
                         status: "success",
                     };

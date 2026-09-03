@@ -10,7 +10,7 @@ vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn
 const handlers = new Map<string, (data: unknown) => void>();
 
 Object.assign(window.tachyon, {
-    request: vi.fn(),
+    requestStructured: vi.fn(),
     onConnected: vi.fn(),
     onDisconnected: vi.fn(),
     onEvent: (command: string, callback: (data: unknown) => void) => void handlers.set(command, callback),
@@ -24,13 +24,13 @@ const { me } = await import("@renderer/store/me.store");
 
 const emit = (command: string, data: unknown) => handlers.get(command)?.(data);
 
-const lobbyPayload = (id: string) => ({ id, players: {}, spectators: {}, bots: {} });
+const lobbyPayload = (id: string) => ({ status: "success" as const, data: { id, players: {}, spectators: {}, bots: {} } });
 
 const partyPayload = (id: string) => ({ id, members: [{ userId: me.userId }], invited: [] });
 
-// Neither transcript is held per lobby or party, so entering the next one is what
-// has to clear it. Going offline no longer does, because the server session
-// holding the only other copy ends with it.
+// Each transcript is keyed by its own lobby/party id, so entering or leaving one
+// no longer has to clear anything: history for an id is simply there again if we
+// come back to it, and untouched while we're elsewhere.
 describe("chat transcript lifecycle", () => {
     beforeAll(async () => {
         me.userId = "1";
@@ -38,70 +38,72 @@ describe("chat transcript lifecycle", () => {
     });
 
     beforeEach(() => {
-        chatStore.lobbyChat.splice(0, chatStore.lobbyChat.length, { message: "said in the last lobby" } as never);
-        chatStore.partyChat.splice(0, chatStore.partyChat.length, { message: "said in the last party" } as never);
+        chatStore.lobbyChats.clear();
+        chatStore.lobbyChats.set("lobby-1", [{ message: "said in the last lobby" } as never]);
+        chatStore.partyChats.clear();
+        chatStore.partyChats.set("party-1", [{ message: "said in the last party" } as never]);
         lobbyStore.activeLobby = undefined;
         partyStore.parties.clear();
         partyStore.activeParty = undefined;
-        vi.mocked(window.tachyon.request).mockReset();
+        vi.mocked(window.tachyon.requestStructured).mockReset();
     });
 
     describe("lobbies", () => {
-        it("clears the previous lobby's chat on joining another", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+        it("keeps another lobby's chat when joining a new one", async () => {
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
 
-            await lobby.requestJoinLobby("lobby-2");
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
 
-            expect(chatStore.lobbyChat).toEqual([]);
+            expect(chatStore.lobbyChats.get("lobby-1")).toEqual([{ message: "said in the last lobby" }]);
         });
 
-        it("clears the chat on leaving", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
-            await lobby.requestJoinLobby("lobby-2");
-            chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
+        it("keeps the chat on leaving", async () => {
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
+            chatStore.lobbyChats.set("lobby-2", [{ message: "said in this lobby" } as never]);
 
             await lobby.requestLeaveLobby();
 
-            expect(chatStore.lobbyChat).toEqual([]);
+            expect(chatStore.lobbyChats.get("lobby-2")).toEqual([{ message: "said in this lobby" }]);
         });
 
-        it("clears the chat on being dropped from the lobby", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
-            await lobby.requestJoinLobby("lobby-2");
-            chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
+        it("keeps the chat on being dropped from the lobby", async () => {
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
+            chatStore.lobbyChats.set("lobby-2", [{ message: "said in this lobby" } as never]);
 
             emit("lobby/left", { id: "lobby-2" });
 
-            expect(chatStore.lobbyChat).toEqual([]);
+            expect(chatStore.lobbyChats.get("lobby-2")).toEqual([{ message: "said in this lobby" }]);
         });
 
         // A lobby/updated event arrives on any change to the lobby we are already
         // in, so treating one as an entry would wipe the chat constantly.
         it("leaves the chat alone on an update to the lobby it is already in", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
-            await lobby.requestJoinLobby("lobby-2");
-            chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
+            await lobby.requestJoinLobby({ id: "lobby-2", pushLobbyView: true });
+            chatStore.lobbyChats.set("lobby-2", [{ message: "said in this lobby" } as never]);
 
-            emit("lobby/updated", { ...lobbyPayload("lobby-2"), name: "renamed" });
+            emit("lobby/updated", { ...lobbyPayload("lobby-2").data, name: "renamed" });
 
-            expect(chatStore.lobbyChat).toHaveLength(1);
+            expect(chatStore.lobbyChats.get("lobby-2")).toHaveLength(1);
         });
     });
 
     describe("parties", () => {
-        it("clears the previous party's chat on joining another", () => {
+        it("keeps another party's chat when a new one becomes active", () => {
             emit("party/updated", partyPayload("party-2"));
 
-            expect(chatStore.partyChat).toEqual([]);
+            expect(chatStore.partyChats.get("party-1")).toEqual([{ message: "said in the last party" }]);
         });
 
         it("leaves the chat alone on an update to the party it is already in", () => {
             emit("party/updated", partyPayload("party-2"));
-            chatStore.partyChat.push({ message: "said in this party" } as never);
+            chatStore.partyChats.set("party-2", [{ message: "said in this party" } as never]);
 
             emit("party/updated", partyPayload("party-2"));
 
-            expect(chatStore.partyChat).toHaveLength(1);
+            expect(chatStore.partyChats.get("party-2")).toHaveLength(1);
         });
     });
 });

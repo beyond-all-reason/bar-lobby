@@ -2553,6 +2553,13 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": null,
                     "close": null
+                },
+                "rejoinBattleModal": {
+                    "title": null,
+                    "description1": null,
+                    "description2": null,
+                    "rejoinButton": null,
+                    "ignoreButton": null
                 }
             },
             "controls": {

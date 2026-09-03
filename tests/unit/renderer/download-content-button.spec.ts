@@ -13,10 +13,13 @@ const { missing, ensure } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn(
 vi.mock("@renderer/i18n", () => ({
     useTypedI18n: () => ({ t: (key: string) => key }),
 }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 vi.mock("@renderer/api/notifications", () => ({
     notificationsApi: { alert: vi.fn() },
 }));
+// Cuts off the chat -> lobby -> battle store chain pulled in transitively, which this component has nothing to do with.
+vi.mock("@renderer/store/lobby.store", () => ({ lobbyStore: { activeLobby: undefined } }));
 
 vi.stubGlobal("window", Object.assign(window, { content: { missing, ensure } }));
 

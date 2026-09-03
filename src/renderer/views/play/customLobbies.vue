@@ -120,13 +120,14 @@ function sendLobbyJoinRequest(data) {
     //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
     if (lobbyStore.activeLobby == undefined) {
         // No active lobby so we can freely join without worrying about a leave needed first.
-        lobby.requestJoinLobby(data.id);
+        lobby.requestJoinLobby({ id: data.id, pushLobbyView: true });
         return;
-    } else if (lobbyStore.activeLobby.id == data.id) {
+    } else if (lobbyStore.activeLobby.id === data.id) {
         //We are trying to join a lobby we are already in, just open the view, no request needed.
         router.push("/play/lobby");
         return;
     }
+    // TODO: Get user confirmation that they want to leave a current lobby? Or do we just allow them to bounce?
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.

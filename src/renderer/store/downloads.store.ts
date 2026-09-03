@@ -15,6 +15,10 @@ export const downloadsStore: {
 });
 
 export function initDownloadsStore() {
+    if (downloadsStore.isInitialized) {
+        console.warn("Downloads store is already initialized. Skipping initialization.");
+        return;
+    }
     window.autoUpdater.onDownloadUpdateProgress((downloadInfo) => {
         downloadsStore.updateDownloads = downloadInfo ? [downloadInfo] : [];
     });

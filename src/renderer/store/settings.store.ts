@@ -18,7 +18,6 @@ export async function initSettingsStore() {
     }
     const currentSettings = await window.settings.getSettings();
     Object.assign(settingsStore, currentSettings);
-    settingsStore.isInitialized = true;
     watch(
         settingsStore,
         () => {
@@ -38,4 +37,5 @@ export async function initSettingsStore() {
             window.mainWindow.setSize(settingsStore.size);
         }
     );
+    settingsStore.isInitialized = true;
 }

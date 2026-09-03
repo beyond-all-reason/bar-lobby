@@ -7,15 +7,24 @@ import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
 import { subsManager } from "@renderer/store/users.store";
-import { UserId } from "tachyon-protocol/types";
+import { UserId, PrivateUser } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
-import { chat, chatStore } from "@renderer/store/chat.store";
+import { tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onTachyonConnected } from "@renderer/utils/connection-signal";
+import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
+
+type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
+    engine: { version: string };
+    game: { springName: string };
+};
 
 export const tachyonStore = reactive({
     isInitialized: false,
     isConnected: false,
     wantsConnection: false,
+    rejoinModalOpen: false,
+    springConnectionDetails: undefined,
     serverStats: undefined,
     error: undefined,
 } as {
@@ -25,6 +34,8 @@ export const tachyonStore = reactive({
     // close while this is false is deliberate, so it isn't worth complaining
     // about and shouldn't be retried.
     wantsConnection: boolean;
+    rejoinModalOpen: boolean;
+    springConnectionDetails?: MultiplayerBattleConnectionDetails;
     serverStats?: SystemServerStatsOkResponseData;
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
@@ -76,6 +87,8 @@ async function goOffline() {
     tachyonStore.isConnected = false;
     tachyonStore.error = undefined;
     stopFetchingServerStats();
+    tachyonStore.springConnectionDetails = undefined;
+    tachyonStore.rejoinModalOpen = false;
 
     onWentOffline.dispatch();
 }
@@ -105,7 +118,7 @@ function startReconnecting() {
 async function fetchServerStats() {
     try {
         tachyonStore.error = undefined;
-        const response = await window.tachyon.request("system/serverStats");
+        const response = await tachyonRequest("system/serverStats");
         tachyonStore.serverStats = response.data;
     } catch (error) {
         console.error("Error fetching server stats:", error);
@@ -114,7 +127,29 @@ async function fetchServerStats() {
     }
 }
 
+function launchMultiplayerBattle(connectionDetails: MultiplayerBattleConnectionDetails) {
+    window.game.launchMultiplayer({
+        engineVersion: connectionDetails.engine.version,
+        gameVersion: connectionDetails.game.springName,
+        springString: createSpringString(connectionDetails),
+    });
+}
+
+function onUserSelfEventBattle(battle: PrivateUser["currentBattle"]) {
+    if (!battle) {
+        tachyonStore.springConnectionDetails = undefined;
+        tachyonStore.rejoinModalOpen = false;
+        return;
+    }
+    tachyonStore.springConnectionDetails = battle;
+    tachyonStore.rejoinModalOpen = true;
+}
+
 export async function initTachyonStore() {
+    if (tachyonStore.isInitialized) {
+        console.warn("Tachyon store is already initialized. Skipping initialization.");
+        return;
+    }
     tachyonStore.isConnected = await window.tachyon.isConnected();
     if (tachyonStore.isConnected) {
         fetchServerStats();
@@ -140,10 +175,7 @@ export async function initTachyonStore() {
             matchmaking.sendListRequest();
         }
 
-        // Subscribe to messages (all sources) when connected
-        if (chatStore.isInitialized) {
-            chat.requestSubscribeReceived();
-        }
+        onTachyonConnected.dispatch();
     });
 
     window.tachyon.onDisconnected(() => {
@@ -185,21 +217,26 @@ export async function initTachyonStore() {
         stopReconnecting();
     });
 
-    window.tachyon.onBattleStart((springString, data) => {
-        console.debug("Received battle start event", springString);
+    window.tachyon.onBattleStart((data) => {
+        console.debug("Received battle start event", data.ips[0], data.port);
         // tachyon.service.ts checks assets before sending this request here.
-        window.game.launchMultiplayer({
-            engineVersion: data.engine.version,
-            gameVersion: data.game.springName,
-            springString,
-        });
+        tachyonStore.springConnectionDetails = data;
+        launchMultiplayerBattle(data);
     });
+
+    window.tachyon.onBattleEnded((data) => {
+        console.debug("Received battle ended event", data);
+        tachyonStore.springConnectionDetails = undefined;
+        tachyonStore.rejoinModalOpen = false;
+    });
+
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventBattle(data.user.currentBattle));
 
     subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
         if (!tachyonStore.isConnected) return;
 
         try {
-            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: users });
+            const response = await tachyonRequest("user/subscribeUpdates", { userIds: users });
             console.log("Tachyon: user/subscribeUpdates", response);
         } catch (error) {
             console.error("Tachyon error: 'user/subscribeUpdates'", error);
@@ -212,7 +249,7 @@ export async function initTachyonStore() {
         if (!tachyonStore.isConnected) return;
 
         try {
-            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
+            const response = await tachyonRequest("user/unsubscribeUpdates", { userIds: users });
             console.log("Tachyon: user/unsubscribeUpdates", response);
         } catch (error) {
             console.error("Tachyon error: 'user/unsubscribeUpdates'", error);
@@ -225,4 +262,4 @@ export async function initTachyonStore() {
 
 // tachyonStore.reconnectInterval doubles as "are we still retrying", so a caller
 // can show that and call goOffline to give up.
-export const tachyon = { connect, goOffline };
+export const tachyon = { connect, goOffline, launchMultiplayerBattle };

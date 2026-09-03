@@ -43,6 +43,7 @@ export function createWindow() {
             preload: path.join(__dirname, "../build/preload.js"),
             zoomFactor: 1,
             spellcheck: false,
+            autoplayPolicy: "no-user-gesture-required",
         },
     });
 

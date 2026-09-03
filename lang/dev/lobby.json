@@ -570,6 +570,13 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": "Reest all to dfauelt",
                     "close": "Csole"
+                },
+                "rejoinBattleModal": {
+                    "title": "Reojin Blatte?",
+                    "description1": "The sveerr idecatind that you were in an avctie btalte.",
+                    "description2": "Wulod you like to atemtpt to rejoin the btalte?",
+                    "rejoinButton": "Reojin",
+                    "ignoreButton": "Ingroe"
                 }
             },
             "controls": {

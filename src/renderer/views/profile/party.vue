@@ -339,7 +339,8 @@ function displayInvites() {
 }
 
 function hasUnseenMessage() {
-    return chatStore.partyChat.at(-1)?.seen === false;
+    if (!partyStore.activeParty) return false;
+    return chatStore.partyChats.get(partyStore.activeParty)?.at(-1)?.seen === false;
 }
 
 function hasUnseenInvites() {

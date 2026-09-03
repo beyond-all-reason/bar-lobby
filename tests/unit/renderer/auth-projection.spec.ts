@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const settings = vi.hoisted(() => ({ devMode: true, loginAutomatically: true }));
 
 vi.mock("@renderer/store/settings.store", () => ({ settingsStore: settings }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 vi.mock("@renderer/store/users.store", () => ({
     subsManager: {
@@ -31,7 +32,7 @@ const authApi = {
     }),
 };
 
-const emptyFriendList = { data: { friends: [], outgoingPendingRequests: [], incomingPendingRequests: [] } };
+const emptyFriendList = { status: "success", data: { friends: [], outgoingPendingRequests: [], incomingPendingRequests: [] } };
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -48,7 +49,7 @@ beforeEach(() => {
     Object.assign(window.tachyon as any, {
         connect: vi.fn().mockResolvedValue(undefined),
         disconnect: vi.fn().mockResolvedValue(undefined),
-        request: vi.fn().mockResolvedValue(emptyFriendList),
+        requestStructured: vi.fn().mockResolvedValue(emptyFriendList),
         onConnected: vi.fn(),
         onDisconnected: vi.fn(),
     });

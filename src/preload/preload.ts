@@ -16,7 +16,7 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
-import type { BattleStartRequestData } from "tachyon-protocol/types";
+import type { BattleStartRequestData, BattleEndedEventData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
@@ -248,7 +248,8 @@ const tachyonApi = {
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
     onEvent,
-    onBattleStart: (callback: (springString: string, data: BattleStartRequestData) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString, data) => callback(springString, data)),
+    onBattleStart: (callback: (data: BattleStartRequestData) => void) => ipcRenderer.on("tachyon:battleStart", (_event, data) => callback(data)),
+    onBattleEnded: (callback: (data: BattleEndedEventData) => void) => ipcRenderer.on("tachyon:battleEnded", (_event, data) => callback(data)),
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);
