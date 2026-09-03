@@ -2401,6 +2401,13 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": "Reset all to default",
                     "close": "Close"
+                },
+                "rejoinBattleModal": {
+                    "title": "Rejoin Battle?",
+                    "description1": "The server indicated that you were in an active battle.",
+                    "description2": "Would you like to attempt to rejoin the battle?",
+                    "rejoinButton": "Rejoin",
+                    "ignoreButton": "Ignore"
                 }
             },
             "controls": {

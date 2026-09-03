@@ -22,6 +22,7 @@ const stubs = vi.hoisted(() => ({
 
 vi.mock("@renderer/i18n", () => ({ useTypedI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("vue-router", () => ({ useRouter: () => ({ currentRoute: { value: { path: "/play" } } }) }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 vi.mock("@renderer/composables/useLogInConfirmation", () => ({
     useLogInConfirmation: () => ({ openLogInConfirmation: stubs.openLogInConfirmation }),
 }));

@@ -14,6 +14,7 @@ vi.mock("@renderer/store/chat.store", () => ({
 }));
 
 vi.mock("@renderer/store/tachyon.store", () => ({ tachyonStore: { isConnected: false } }));
+vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
 vi.mock("@renderer/composables/useDexieLiveQuery", () => ({
     useDexieLiveQueryWithDeps: () => ({ value: new Map() }),

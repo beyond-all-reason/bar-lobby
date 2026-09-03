@@ -16,6 +16,7 @@ vi.mock("@renderer/store/tachyon.store", () => ({
     tachyon: { goOffline: stubs.goOffline },
 }));
 vi.mock("@renderer/i18n", () => ({ useTypedI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 function mountWith(reconnectInterval?: NodeJS.Timeout) {
     stubs.store.reconnectInterval = reconnectInterval;

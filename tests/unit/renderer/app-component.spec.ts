@@ -76,6 +76,7 @@ vi.mock("vue-router", () => ({
         afterEach: vi.fn(),
     }),
 }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 describe("App.vue", () => {
     it("renders the App root and lobby version", () => {

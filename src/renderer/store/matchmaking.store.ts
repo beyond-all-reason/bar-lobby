@@ -10,11 +10,13 @@ import {
     MatchmakingListOkResponseData,
     MatchmakingQueuesJoinedEventData,
     MatchmakingQueueUpdateEventData,
+    PrivateUser,
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { router } from "@renderer/router";
 
 // The server is the authority on the real ready-up deadline and will send its own
 // matchmaking/cancelled event if we miss it; this margin just narrows the window
@@ -88,6 +90,7 @@ function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
 function onLostEvent() {
     console.log("Tachyon event: matchmaking/lost: no data");
     clearReadyTimers();
+    matchmakingStore.playersReady = 0;
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
@@ -99,6 +102,8 @@ function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
 function onCancelledEvent(data: MatchmakingCancelledEventData) {
     console.log("Tachyon event: matchmaking/cancelled:", data);
     clearReadyTimers();
+    matchmakingStore.playersReady = 0;
+    matchmakingStore.playersQueued = 0;
     matchmakingStore.status = MatchmakingStatus.Idle;
     if (data.reason === "version_changed") {
         sendListRequest();
@@ -121,6 +126,50 @@ function onFoundEvent(data: MatchmakingFoundEventData) {
     }, deadline - Date.now());
 }
 
+function onSelfUpdateFoundSignal(data: Extract<PrivateUser["matchmaking"], { state: "found" }>) {
+    console.log("User/self update: matchmaking/found state:", data);
+    clearReadyTimers();
+    matchmakingStore.selectedQueue = data.queue.id;
+    if (data.queue.hasAlreadyReadied) {
+        matchmakingStore.status = MatchmakingStatus.MatchAccepted;
+    } else {
+        matchmakingStore.status = MatchmakingStatus.MatchFound;
+        const deadline = data.queue.timeoutAt / 1000 - READY_TIMEOUT_SAFETY_MARGIN_MS; // Convert Unix timestamp from microseconds to milliseconds
+        matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        matchmakingStore.readyCountdownInterval = window.setInterval(() => {
+            matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        }, 1000);
+        matchmakingStore.queueTimeout = window.setTimeout(() => {
+            clearReadyTimers();
+            matchmakingStore.status = MatchmakingStatus.Idle;
+        }, deadline - Date.now());
+    }
+    router.push("/play/matchmaking");
+}
+
+function onUserSelfEventMatchmaking(data: PrivateUser["matchmaking"]) {
+    console.log("User/self update: matchmaking:", data);
+    switch (data.state) {
+        case "no_matchmaking":
+            clearReadyTimers();
+            matchmakingStore.playersReady = 0;
+            matchmakingStore.playersQueued = 0;
+            matchmakingStore.status = MatchmakingStatus.Idle;
+            break;
+        case "queuing":
+            clearReadyTimers();
+            matchmakingStore.status = MatchmakingStatus.Searching;
+            // We try to match to their selected queue, if it's available, or reset it if not.
+            if (!matchmakingStore.selectedQueue || !data.queues.some((q) => q.id === matchmakingStore.selectedQueue)) {
+                matchmakingStore.selectedQueue = data.queues[0]?.id ?? "1v1";
+            }
+            break;
+        case "found":
+            onSelfUpdateFoundSignal(data);
+            break;
+    }
+}
+
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     console.log("Tachyon event: matchmaking/queuesJoined:", data);
     // Current design is a single queue joined at a time. If the user has a *different* queue selected when their party joins, we switch so they match their party's selection.
@@ -136,7 +185,7 @@ async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
     try {
-        const response = await window.tachyon.request("matchmaking/list");
+        const response = await tachyonRequest("matchmaking/list");
         console.log("Tachyon: matchmaking/list:", response.data);
         matchmakingStore.playlists = response.data.playlists;
 
@@ -247,7 +296,7 @@ async function sendCancelRequest() {
     clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.Idle;
     try {
-        const response = await window.tachyon.request("matchmaking/cancel");
+        const response = await tachyonRequest("matchmaking/cancel");
         console.log("Tachyon: matchmaking/cancel:", response.status);
     } catch (error) {
         console.error("Tachyon: matchmaking/cancel:", error);
@@ -263,7 +312,7 @@ async function sendReadyRequest() {
     clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     try {
-        const response = await window.tachyon.request("matchmaking/ready");
+        const response = await tachyonRequest("matchmaking/ready");
         console.log("Tachyon: matchmaking/ready:", response.status);
     } catch (error) {
         matchmakingStore.status = MatchmakingStatus.Idle;
@@ -274,7 +323,10 @@ async function sendReadyRequest() {
 }
 
 export async function initializeMatchmakingStore() {
-    if (matchmakingStore.isInitialized) return;
+    if (matchmakingStore.isInitialized) {
+        console.warn("Matchmaking store is already initialized. Skipping initialization.");
+        return;
+    }
 
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("matchmaking/queueUpdate", onQueueUpdateEvent);
@@ -288,6 +340,8 @@ export async function initializeMatchmakingStore() {
     window.tachyon.onEvent("matchmaking/found", onFoundEvent);
 
     window.tachyon.onEvent("matchmaking/queuesJoined", onQueuesJoinedEvent);
+
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventMatchmaking(data.user.matchmaking));
 
     if (tachyonStore.isConnected) {
         await sendListRequest();

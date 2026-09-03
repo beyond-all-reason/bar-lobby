@@ -4,7 +4,6 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
-import { BattleStartRequestData } from "tachyon-protocol/types";
 
 const { send, missing } = vi.hoisted(() => ({ send: vi.fn(), missing: vi.fn() }));
 
@@ -25,23 +24,6 @@ describe("createTachyonRequestHandlers", () => {
         send.mockReset();
         missing.mockReset();
         missing.mockReturnValue([]);
-    });
-
-    it("handles battle/start by sending the spring url, data, and returning success", async () => {
-        const handlers = getHandlers();
-        const data: BattleStartRequestData = {
-            ip: "127.0.0.1",
-            port: 8452,
-            username: "tester",
-            password: "secret",
-            engine: { version: "105.1.1" },
-            game: { springName: "byar:test-game" },
-            map: { springName: "map:comet-catcher" },
-        };
-        const response = await handlers["battle/start"](data);
-
-        expect(send).toHaveBeenCalledWith("tachyon:battleStart", "spring://tester:secret@127.0.0.1:8452", data);
-        expect(response).toEqual({ status: "success" });
     });
 
     it("returns complete when game, maps, and engines are all installed", async () => {

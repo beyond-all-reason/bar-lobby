@@ -2,11 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { effectScope, nextTick, type EffectScope, type Ref } from "vue";
 import { partyStore } from "@renderer/store/party.store";
 import { matchmakingStore } from "@renderer/store/matchmaking.store";
 import { usePartySizeMatchmaking, getPartySize } from "@renderer/composables/usePartySizeMatchmaking";
+
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 function makePlaylist(id: string, teamSize: number) {
     return {

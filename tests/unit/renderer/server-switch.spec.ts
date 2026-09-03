@@ -9,6 +9,7 @@ import { flushPromises } from "@vue/test-utils";
 vi.mock("@renderer/store/db", () => ({
     db: { users: { where: () => ({ first: async () => undefined, modify: async () => undefined }), put: vi.fn() } },
 }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 const disconnect = vi.fn(async () => {});
 const onConnected = vi.fn(async () => {});

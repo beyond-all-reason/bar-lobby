@@ -96,7 +96,10 @@ export async function watchReplay(replay: Replay) {
 }
 
 export async function initGameStore() {
-    if (gameStore.isInitialized) return;
+    if (gameStore.isInitialized) {
+        console.warn("Game store is already initialized. Skipping initialization.");
+        return;
+    }
     await refreshStore();
     onContentSettled(async (refs) => {
         if (refs.some((ref) => ref.type === "game")) {

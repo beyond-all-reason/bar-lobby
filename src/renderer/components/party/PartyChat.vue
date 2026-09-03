@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
             <div class="messages">
                 <div class="flex-col gap-sm">
                     <div
-                        v-for="(message, i) in chatStore.partyChat"
+                        v-for="(message, i) in partyMessages"
                         :key="i"
                         v-in-view.once="() => (message.seen = true)"
                         :class="['message', { fromMe: message.source.userId === me.userId }]"
@@ -36,8 +36,9 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { chatStore, chat } from "@renderer/store/chat.store";
+import { partyStore } from "@renderer/store/party.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { UserId } from "tachyon-protocol/types";
@@ -55,7 +56,9 @@ function focusTextbox(el: HTMLElement) {
         el.firstElementChild.focus();
     }
 }
-const displayNames = useDexieLiveQueryWithDeps(chatStore.partyChat, async () => {
+const partyMessages = computed(() => (partyStore.activeParty ? (chatStore.partyChats.get(partyStore.activeParty) ?? []) : []));
+
+const displayNames = useDexieLiveQueryWithDeps(partyMessages, async () => {
     const map = new Map<UserId, string>();
     await db.users.each(function (user) {
         map.set(user.userId, user.username);

@@ -14,12 +14,13 @@ import {
     PartyInviteRequestData,
     PartyKickMemberRequestData,
     UserId,
+    PrivateUser,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
-import { chat } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const partySymbol = Symbol("party.store");
@@ -54,7 +55,7 @@ async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
         currentParty = partyStore.activeParty;
     }
     try {
-        const response = await window.tachyon.request("party/acceptInvite", data);
+        const response = await tachyonRequest("party/acceptInvite", data);
         console.log("Tachyon: party/acceptInvite response:", response);
         // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
         // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
@@ -75,7 +76,7 @@ async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
  */
 async function requestCancelInvite(data: PartyCancelInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/cancelInvite", data);
+        const response = await tachyonRequest("party/cancelInvite", data);
         console.log("Tachyon: party/cancelInvite:", response);
     } catch (error) {
         console.error("Tachyon error: party/cancelInvite:", error);
@@ -88,7 +89,7 @@ async function requestCancelInvite(data: PartyCancelInviteRequestData) {
  */
 async function requestCreate() {
     try {
-        const response = await window.tachyon.request("party/create");
+        const response = await tachyonRequest("party/create");
         console.log("Tachyon: party/create:", response);
         partyStore.parties.set(response.data.party.id, { ...response.data.party, seen: false });
         parseAllPartyData();
@@ -117,7 +118,7 @@ async function requestCreateAndInvite(userId: UserId) {
  */
 async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/declineInvite", data);
+        const response = await tachyonRequest("party/declineInvite", data);
         console.log("Tachyon: party/declineInvite:", response);
         // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
         partyStore.parties.delete(data.partyId);
@@ -134,7 +135,7 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
  */
 async function requestInvite(data: PartyInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/invite", data);
+        const response = await tachyonRequest("party/invite", data);
         console.log("Tachyon: party/invite:", response);
         // Reminder; success is not "user joined party", but is instead "pending invite created".
     } catch (error) {
@@ -149,7 +150,7 @@ async function requestInvite(data: PartyInviteRequestData) {
  */
 async function requestKickMember(data: PartyKickMemberRequestData) {
     try {
-        const response = await window.tachyon.request("party/kickMember", data);
+        const response = await tachyonRequest("party/kickMember", data);
         console.log("Tachyon: party/kickMember:", response);
     } catch (error) {
         console.error("Tachyon error: party/kickMember:", error);
@@ -162,11 +163,10 @@ async function requestKickMember(data: PartyKickMemberRequestData) {
  */
 async function requestLeave() {
     try {
-        const response = await window.tachyon.request("party/leave");
+        const response = await tachyonRequest("party/leave");
         console.log("Tachyon: party/leave:", response);
         partyStore.parties.delete(partyStore.activeParty ?? "");
         parseAllPartyData();
-        chat.clearPartyChat();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
@@ -184,7 +184,6 @@ function onRemovedEvent(data: PartyRemovedEventData) {
     // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     partyStore.parties.delete(data.partyId);
     parseAllPartyData();
-    chat.clearPartyChat();
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
@@ -193,9 +192,25 @@ function onUpdatedEvent(data: PartyUpdatedEventData) {
     parseAllPartyData();
 }
 
+function onUserSelfEventParty({ party, invites }: { party: PrivateUser["party"]; invites: PrivateUser["invitedToParties"] }) {
+    if (party && party.id === partyStore.activeParty) {
+        // This is the only case where we want to preserve the chat history, so we keep activeParty
+        // The rest will be reset by parseAllPartyData().
+        subsManager.clearAllFromList(partySymbol);
+        partyStore.parties.clear();
+        partyStore.state = PlayersPartyState.None;
+    } else {
+        clearOnlineState();
+    }
+    const allParties = [...(party ? [party] : []), ...(invites || [])];
+    for (const partyState of allParties) {
+        partyStore.parties.set(partyState.id, { ...partyState, seen: false });
+    }
+    parseAllPartyData();
+}
+
 // We might be invited, or member, have to check to know.
 function parseAllPartyData() {
-    const previousParty = partyStore.activeParty;
     // Reset active party in case we are no longer in a party.
     partyStore.activeParty = undefined;
     const bools = {
@@ -217,13 +232,6 @@ function parseAllPartyData() {
         }
     });
     subsManager.setList(users, partySymbol);
-
-    // Leaving clears the transcript, but going offline keeps it and sends no
-    // leave, so entering the next party has to clear that one. Comparing ids keeps
-    // a re-parse of the same party, which happens on every update, from wiping it.
-    if (partyStore.activeParty && partyStore.activeParty !== previousParty) {
-        chat.clearPartyChat();
-    }
 
     if (bools.joined) {
         if (bools.invited) {
@@ -250,12 +258,16 @@ export function onLogout() {
 }
 
 export async function initPartyStore() {
-    if (partyStore.isInitialized) return;
+    if (partyStore.isInitialized) {
+        console.warn("Party store is already initialized. Skipping initialization.");
+        return;
+    }
 
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("party/invited", onInvitedEvent);
     window.tachyon.onEvent("party/removed", onRemovedEvent);
     window.tachyon.onEvent("party/updated", onUpdatedEvent);
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventParty({ party: data.user.party, invites: data.user.invitedToParties }));
 
     partyStore.isInitialized = true;
 }

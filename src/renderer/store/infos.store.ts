@@ -12,6 +12,10 @@ export const infosStore = reactive({
 } & Info);
 
 export async function initInfosStore() {
+    if (infosStore.isInitialized) {
+        console.warn("Infos store is already initialized. Skipping initialization.");
+        return;
+    }
     const currentInfos = await window.info.getInfo();
     Object.assign(infosStore, currentInfos);
     infosStore.isInitialized = true;

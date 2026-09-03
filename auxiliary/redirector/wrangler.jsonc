@@ -1,0 +1,20 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "lobby-redirector",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-08-28",
+    "account_id": "5e015123d861c65819b733acb27db18e",
+    "observability": {
+        "enabled": true,
+    },
+    "routes": [
+        {
+            "custom_domain": true,
+            "pattern": "barrts.app",
+        },
+    ],
+}

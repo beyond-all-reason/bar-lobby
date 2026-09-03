@@ -56,6 +56,10 @@ export async function downloadEngine(engineString: string) {
 }
 
 export async function initEnginesStore() {
+    if (enginesStore.isInitialized) {
+        console.warn("Engines store is already initialized. Skipping initialization.");
+        return;
+    }
     onContentSettled(async (refs) => {
         if (refs.some((ref) => ref.type === "engine")) {
             await refreshEnginesStore();
