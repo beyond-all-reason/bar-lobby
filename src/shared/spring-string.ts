@@ -21,7 +21,6 @@ export function createSpringString({ ip, ips, port, username, password }: Spring
     } else {
         effectiveIp = ips[0];
     }
-    console.log(effectiveIp);
     // We only use the first provided IP for now, it will typically be the only one provided.
     return `spring://${username}:${password}@${effectiveIp}:${port}`;
 }
