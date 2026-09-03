@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: Redirector CI
+on:
+    push:
+        branches:
+            - master
+        paths:
+            - "auxiliary/redirector/**"
+            - ".github/workflows/redirector-test.yml"
+    pull_request:
+        paths:
+            - "auxiliary/redirector/**"
+            - ".github/workflows/redirector-test.yml"
+    workflow_dispatch:
+permissions:
+    contents: read
+jobs:
+    test-redirector:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: auxiliary/redirector
+        steps:
+            - name: Checkout Git repository
+              uses: actions/checkout@v7
+            - name: Setup node
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: auxiliary/redirector/package-lock.json
+            - name: Install deps
+              run: npm ci
+            - name: Typecheck
+              run: npm run typecheck
