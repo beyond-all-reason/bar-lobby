@@ -48,7 +48,7 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
                         // @ts-expect-error ip is not part of BattleStartRequestData but is used for backward server compatibility
                         data.ips = [data.ip];
                     }
-                    log.info(data);
+                    log.debug(data);
                 }
                 const missing = contentAPI.missing([
                     { type: "game", id: data.game.springName },
