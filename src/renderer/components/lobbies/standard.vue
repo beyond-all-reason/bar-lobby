@@ -8,42 +8,41 @@ SPDX-License-Identifier: MIT
  By doing so, the parent view (lobby.vue typically) can simply pass along relevant components to their appropriate slots. -->
 
 <template>
-    <Panel>
-        <header>
-            <h1>
-                <slot name="header" />
-            </h1>
-        </header>
+    <header>
+        <h1>
+            <slot name="header" />
+        </h1>
+    </header>
+    <div class="flex-row">
         <div class="main-content">
-            <div class="flex-row">
-                <div class="player-list">
-                    <Playerlist />
-                </div>
-                <div class="map-preview">
-                    <MapBattlePreview />
-                </div>
+            <div class="player-list">
+                <Playerlist />
             </div>
-            <main>
-                <slot name="main" />
-            </main>
+            <div class="chat-container">
+                <LobbyChat />
+            </div>
+            <div class="map-preview">
+                <MapBattlePreview />
+            </div>
         </div>
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts" setup>
-import Panel from "@renderer/components/common/Panel.vue";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
+import LobbyChat from "@renderer/components/lobbies/LobbyChat.vue";
 </script>
 
 <style scoped lang="scss">
 .map-preview {
-    width: 50%;
-    max-height: 200px;
+    max-width: 25%;
 }
 .main-content {
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    flex-grow: 1;
     gap: 10px;
     height: 100%;
 }
@@ -51,6 +50,11 @@ import Playerlist from "@renderer/components/battle/Playerlist.vue";
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+}
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 2;
     gap: 10px;
     height: 100%;
 }

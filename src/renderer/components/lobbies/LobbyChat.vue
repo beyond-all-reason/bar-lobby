@@ -91,7 +91,7 @@ function sendLobbyMessage(messageText: string) {
     overflow-y: scroll;
     padding: 10px;
     // flex: 1 1 auto;
-    height: 600px;
+    height: 600px; //FIX: this probably shouldn't be a fixed value?
 }
 .message {
     word-break: break-word;

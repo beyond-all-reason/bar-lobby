@@ -16,8 +16,14 @@ SPDX-License-Identifier: MIT
             <Button class="slim black" @click="addBotClicked(teamId)">
                 {{ t("lobby.components.battle.teamComponent.addBot") }}
             </Button>
+            <div class="collapse-team">
+                <div @click="toggleCollapse">
+                    <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
+                    <Icon v-else :icon="chevronUp" :height="24" />
+                </div>
+            </div>
         </div>
-        <div>
+        <div v-show="!collapsed">
             <div v-for="(member, key) in allyMembers" :key="key" class="participant">
                 <LobbyParticipant :player="member" />
             </div>
@@ -25,7 +31,7 @@ SPDX-License-Identifier: MIT
                 <LobbyBotParticipant :bot="bot" :team-id="bot.allyTeam" :host-id="bot.hostUserId" :bot-id="bot.id" />
             </div>
         </div>
-        <div>
+        <div v-show="!collapsed">
             <div v-for="(_, i) in getAmountOfJoinButtons(maxMembersPerAllyTeam, memberCount)" :key="i">
                 <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">
                     {{ t("lobby.components.battle.teamComponent.join") }}
@@ -36,7 +42,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import LobbyBotParticipant from "@renderer/components/lobbies/LobbyBotParticipant.vue";
 import LobbyParticipant from "@renderer/components/lobbies/LobbyParticipant.vue";
@@ -44,12 +50,22 @@ import Button from "@renderer/components/controls/Button.vue";
 import { battleWithMetadataStore, battleStore } from "@renderer/store/battle.store";
 import { lobbyStore } from "@renderer/store/lobby.store";
 import { UserId } from "tachyon-protocol/types";
+import chevronDown from "@iconify-icons/mdi/chevron-down";
+import chevronUp from "@iconify-icons/mdi/chevron-up";
+import { Icon } from "@iconify/vue";
 
 const { t } = useTypedI18n();
 
 const props = defineProps<{
     teamId: string;
 }>();
+
+const collapsed = ref(false);
+
+function toggleCollapse() {
+    console.log("Toggling collapse state:", !collapsed.value);
+    collapsed.value = !collapsed.value;
+}
 
 const title = computed(() => t("lobby.components.battle.teamComponent.teamId", { id: Number(props.teamId) + 1 }));
 
@@ -160,7 +176,7 @@ function onJoinClicked(teamId: string) {
 .group {
     border: 1px inset rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.5);
-    min-height: 100px;
+    // min-height: 100px;
     padding: 10px;
     position: relative;
     display: flex;
@@ -268,5 +284,10 @@ function onJoinClicked(teamId: string) {
         background-color: rgba(255, 255, 255, 0.05);
         border-color: rgba(255, 255, 255, 0.2);
     }
+}
+.collapse-team {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
 }
 </style>
