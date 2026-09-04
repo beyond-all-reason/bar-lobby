@@ -9,85 +9,83 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="map-details-container">
-            <Panel class="flex-grow">
-                <div v-if="map" class="gap-md page">
-                    <div class="gridform">
-                        <div class="flex-right">
-                            <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="routerBack">
-                                <Icon :icon="arrow_back" :height="40" />
-                            </Button>
-                        </div>
-                        <h1>{{ map.displayName }}</h1>
+    <div class="map-details-container">
+        <Panel class="flex-grow">
+            <div v-if="map" class="gap-md page">
+                <div class="gridform">
+                    <div class="flex-right">
+                        <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="routerBack">
+                            <Icon :icon="arrow_back" :height="40" />
+                        </Button>
                     </div>
-                    <div class="container">
-                        <MapSimplePreview :map="map" />
-                        <div class="flex-row flex-space-between">
-                            <div class="flex-row gap-lg flex-center-items"></div>
-                            <div class="flex-row flex-justify-end">
-                                <div class="flex-row flex-center-items gap-sm"></div>
+                    <h1>{{ map.displayName }}</h1>
+                </div>
+                <div class="container">
+                    <MapSimplePreview :map="map" />
+                    <div class="flex-row flex-space-between">
+                        <div class="flex-row gap-lg flex-center-items"></div>
+                        <div class="flex-row flex-justify-end">
+                            <div class="flex-row flex-center-items gap-sm"></div>
+                        </div>
+                    </div>
+                    <div class="info flex-col fullheight">
+                        <div class="details">
+                            <h3>{{ t("lobby.library.maps.properties") }}</h3>
+                            <div class="detail-text">
+                                {{ map.description }}
+                            </div>
+                            <div class="padding-lg"></div>
+                            <div class="flex-row flex-center-items gap-sm">
+                                <Icon :icon="windPower" width="25" height="25" />{{ map.windMin }} - {{ map.windMax }}
+                            </div>
+                            <div class="flex-row flex-center-items gap-sm">
+                                <Icon :icon="waves" width="25" height="25" />{{ map.tidalStrength }}
+                            </div>
+                            <div class="flex-row flex-center-items gap-sm">
+                                <Icon :icon="personIcon" width="25" height="25" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+                            </div>
+                            <div class="flex-row flex-center-items gap-sm">
+                                <Icon :icon="gridIcon" width="25" height="25" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+                            </div>
+                            <div class="mt-5">
+                                <div class="detail-text flex-row gap-sm">
+                                    <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
+                                </div>
+                            </div>
+                            <div class="padding-lg"></div>
+                            <div v-if="map.author" class="item-title">
+                                <p>
+                                    {{ t("lobby.library.maps.author") }} <b class="padding-md item">{{ map.author }}</b>
+                                </p>
                             </div>
                         </div>
-                        <div class="info flex-col fullheight">
-                            <div class="details">
-                                <h3>{{ t("lobby.library.maps.properties") }}</h3>
-                                <div class="detail-text">
-                                    {{ map.description }}
-                                </div>
-                                <div class="padding-lg"></div>
-                                <div class="flex-row flex-center-items gap-sm">
-                                    <Icon :icon="windPower" width="25" height="25" />{{ map.windMin }} - {{ map.windMax }}
-                                </div>
-                                <div class="flex-row flex-center-items gap-sm">
-                                    <Icon :icon="waves" width="25" height="25" />{{ map.tidalStrength }}
-                                </div>
-                                <div class="flex-row flex-center-items gap-sm">
-                                    <Icon :icon="personIcon" width="25" height="25" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
-                                </div>
-                                <div class="flex-row flex-center-items gap-sm">
-                                    <Icon :icon="gridIcon" width="25" height="25" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
-                                </div>
-                                <div class="mt-5">
-                                    <div class="detail-text flex-row gap-sm">
-                                        <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
-                                    </div>
-                                </div>
-                                <div class="padding-lg"></div>
-                                <div v-if="map.author" class="item-title">
-                                    <p>
-                                        {{ t("lobby.library.maps.author") }} <b class="padding-md item">{{ map.author }}</b>
-                                    </p>
-                                </div>
-                            </div>
-                            <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
-                            <div class="gridform flex-bottom">
-                                <Button
-                                    @click="toggleMapFavorite"
-                                    v-if="!map.isFavorite"
-                                    class="icon"
-                                    v-tooltip.bottom="t('lobby.library.maps.addToFavorites')"
-                                >
-                                    <Icon :icon="heart_plus" :height="33" />
-                                </Button>
-                                <Button
-                                    @click="toggleMapFavorite"
-                                    v-if="map.isFavorite"
-                                    class="icon"
-                                    v-tooltip.bottom="t('lobby.library.maps.removeFromFavorites')"
-                                >
-                                    <Icon :icon="heart_minus" :height="33" />
-                                </Button>
-                                <DownloadContentButton v-if="map" :maps="[map.springName]" class="fullwidth green" @click="play">{{
-                                    t("lobby.buttons.quickPlay")
-                                }}</DownloadContentButton>
-                                <Button v-else class="fullwidth green" disabled>{{ t("lobby.buttons.quickPlay") }}</Button>
-                            </div>
+                        <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
+                        <div class="gridform flex-bottom">
+                            <Button
+                                @click="toggleMapFavorite"
+                                v-if="!map.isFavorite"
+                                class="icon"
+                                v-tooltip.bottom="t('lobby.library.maps.addToFavorites')"
+                            >
+                                <Icon :icon="heart_plus" :height="33" />
+                            </Button>
+                            <Button
+                                @click="toggleMapFavorite"
+                                v-if="map.isFavorite"
+                                class="icon"
+                                v-tooltip.bottom="t('lobby.library.maps.removeFromFavorites')"
+                            >
+                                <Icon :icon="heart_minus" :height="33" />
+                            </Button>
+                            <DownloadContentButton v-if="map" :maps="[map.springName]" class="fullwidth green" @click="play">{{
+                                t("lobby.buttons.quickPlay")
+                            }}</DownloadContentButton>
+                            <Button v-else class="fullwidth green" disabled>{{ t("lobby.buttons.quickPlay") }}</Button>
                         </div>
                     </div>
                 </div>
-            </Panel>
-        </div>
+            </div>
+        </Panel>
     </div>
 </template>
 
@@ -149,9 +147,7 @@ function routerBack() {
 <style lang="scss" scoped>
 .map-details-container {
     display: flex;
-    align-self: center;
     height: 100%;
-    width: 1600px;
 }
 
 .page {

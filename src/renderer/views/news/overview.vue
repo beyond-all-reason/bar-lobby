@@ -9,31 +9,29 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="overview-container">
-            <div class="columns">
-                <div class="left-column">
-                    <Suspense>
-                        <NewsFeed />
-                        <template #fallback><Loader class="column-loader" :absolutePosition="false" /></template>
-                    </Suspense>
+    <div class="overview-container">
+        <div class="columns">
+            <div class="left-column">
+                <Suspense>
+                    <NewsFeed />
+                    <template #fallback><Loader class="column-loader" :absolutePosition="false" /></template>
+                </Suspense>
+            </div>
+            <div class="center-column">
+                <img class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
+                <div class="new-lobby-alpha">{{ t("lobby.overview.newLobbyAlpha") }}</div>
+                <div class="new-lobby-subtext txt-multiline">{{ t("lobby.overview.newLobbySubtext") }}</div>
+                <div class="button-container">
+                    <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
+                        {{ t("lobby.buttons.quickPlay") }}
+                    </button>
                 </div>
-                <div class="center-column">
-                    <img class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
-                    <div class="new-lobby-alpha">{{ t("lobby.overview.newLobbyAlpha") }}</div>
-                    <div class="new-lobby-subtext txt-multiline">{{ t("lobby.overview.newLobbySubtext") }}</div>
-                    <div class="button-container">
-                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
-                            {{ t("lobby.buttons.quickPlay") }}
-                        </button>
-                    </div>
-                </div>
-                <div class="right-column">
-                    <Suspense>
-                        <DevlogFeed />
-                        <template #fallback><Loader class="column-loader" :absolutePosition="false" /></template>
-                    </Suspense>
-                </div>
+            </div>
+            <div class="right-column">
+                <Suspense>
+                    <DevlogFeed />
+                    <template #fallback><Loader class="column-loader" :absolutePosition="false" /></template>
+                </Suspense>
             </div>
         </div>
     </div>

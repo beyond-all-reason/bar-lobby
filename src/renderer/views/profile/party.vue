@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 { props: true, meta: { title: "Party", hide: true, transition: { name: "slide-left" } } }
 </route>
 <template>
-    <div class="view">
+    <div>
         <div class="party-container">
             <div class="view-title">
                 <h1>{{ t("lobby.views.party.title") }}</h1>
@@ -383,8 +383,6 @@ function getTeamSize(queue: string) {
     display: flex;
     flex-direction: column;
     height: 100%;
-    width: 1600px;
-    align-self: center;
 }
 .mode-select {
     display: flex;

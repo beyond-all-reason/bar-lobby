@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 { props: true, meta: { title: "Profile", hide: true, transition: { name: "slide-left" } } }
 </route>
 <template>
-    <div class="view">
+    <div>
         <Panel class="profile-container" v-if="user">
             <div class="profile-header">
                 <img ref="logo" class="avatar" src="/src/renderer/assets/images/BARLogoFull.png" />
@@ -58,8 +58,6 @@ const user = useDexieLiveQueryWithDeps([() => props.userId], () => {
 .profile-container {
     display: flex;
     height: 100%;
-    width: 1600px;
-    align-self: center;
 }
 
 .profile-header {
