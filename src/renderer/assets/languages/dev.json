@@ -518,7 +518,8 @@
                 "spectatorsComponent": {
                     "spectators": "Setptacros",
                     "memberCount": "0 Mrembes | 1 Meembr | {n} Mrembes",
-                    "join": "Jion"
+                    "join": "Jion",
+                    "queue": "Quuee"
                 },
                 "battlePreview": {
                     "preview": "Pevierw",

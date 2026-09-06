@@ -50,6 +50,7 @@ import LobbyChat from "@renderer/components/lobbies/LobbyChat.vue";
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    min-width: 25%;
 }
 .chat-container {
     display: flex;

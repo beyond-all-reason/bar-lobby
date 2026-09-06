@@ -4354,7 +4354,8 @@
                 "spectatorsComponent": {
                     "spectators": null,
                     "memberCount": null,
-                    "join": null
+                    "join": null,
+                    "queue": null
                 },
                 "battlePreview": {
                     "preview": null,

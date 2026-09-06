@@ -63,7 +63,6 @@ const props = defineProps<{
 const collapsed = ref(false);
 
 function toggleCollapse() {
-    console.log("Toggling collapse state:", !collapsed.value);
     collapsed.value = !collapsed.value;
 }
 

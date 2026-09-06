@@ -15,38 +15,65 @@ SPDX-License-Identifier: MIT
         @bot-selected="onBotSelected"
     />
     <div class="scroll-container padding-right-sm">
-        <div v-if="battleStore.isOnline" class="playerlist">
-            <LobbyTeamComponent
-                v-for="(team, key) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby.allyTeamConfig : {}"
-                :key="key"
-                :teamId="key as string"
-                @add-bot-clicked="openBotList(key as string)"
-                @on-join-clicked="joinTeam(key as string)"
-            />
+        <div v-if="battleStore.isOnline">
+            <div class="playerlist">
+                <LobbyTeamComponent
+                    v-for="(team, key) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby.allyTeamConfig : {}"
+                    :key="key"
+                    :teamId="key as string"
+                    @add-bot-clicked="openBotList(key as string)"
+                    @on-join-clicked="joinTeam(key as string)"
+                />
+            </div>
+            <hr class="margin-top-sm margin-bottom-sm" />
+            <div class="playerlist">
+                <SpectatorsComponent
+                    class="queue"
+                    :queue="true"
+                    @on-join-clicked="joinQueue"
+                    @on-drag-start="dragStart"
+                    @on-drag-end="dragEnd"
+                    @on-drag-enter="dragEnterSpectators"
+                    @on-drop="onDropSpectators"
+                />
+            </div>
+            <div class="playerlist">
+                <SpectatorsComponent
+                    class="spectators"
+                    :queue="false"
+                    @on-join-clicked="joinSpectators"
+                    @on-drag-start="dragStart"
+                    @on-drag-end="dragEnd"
+                    @on-drag-enter="dragEnterSpectators"
+                    @on-drop="onDropSpectators"
+                />
+            </div>
         </div>
-        <div v-else class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
-            <TeamComponent
-                v-for="(team, teamId) in battleWithMetadataStore.teams"
-                :key="teamId"
-                :teamId="String(teamId)"
-                @add-bot-clicked="openBotList"
-                @on-join-clicked="joinTeam"
-                @on-drag-start="dragStart"
-                @on-drag-end="dragEnd"
-                @on-drag-enter="dragEnterTeam"
-                @on-drop="onDropTeam"
-            />
-        </div>
-        <hr class="margin-top-sm margin-bottom-sm" />
-        <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
-            <SpectatorsComponent
-                class="spectators"
-                @on-join-clicked="joinSpectators"
-                @on-drag-start="dragStart"
-                @on-drag-end="dragEnd"
-                @on-drag-enter="dragEnterSpectators"
-                @on-drop="onDropSpectators"
-            />
+        <div v-else>
+            <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
+                <TeamComponent
+                    v-for="(team, teamId) in battleWithMetadataStore.teams"
+                    :key="teamId"
+                    :teamId="String(teamId)"
+                    @add-bot-clicked="openBotList"
+                    @on-join-clicked="joinTeam"
+                    @on-drag-start="dragStart"
+                    @on-drag-end="dragEnd"
+                    @on-drag-enter="dragEnterTeam"
+                    @on-drop="onDropTeam"
+                />
+            </div>
+            <hr class="margin-top-sm margin-bottom-sm" />
+            <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
+                <SpectatorsComponent
+                    class="spectators"
+                    @on-join-clicked="joinSpectators"
+                    @on-drag-start="dragStart"
+                    @on-drag-end="dragEnd"
+                    @on-drag-enter="dragEnterSpectators"
+                    @on-drop="onDropSpectators"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -94,6 +121,11 @@ function joinTeam(teamId: string) {
     } else {
         if (battleStore.me) battleActions.movePlayerToTeam(battleStore.me, teamId);
     }
+}
+
+function joinQueue() {
+    //This only shows up if online
+    lobby.requestJoinQueue();
 }
 
 function joinSpectators() {
