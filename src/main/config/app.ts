@@ -129,8 +129,9 @@ export const getMapsPaths = (): readonly string[] => [path.join(WRITE_DATA_PATH,
 export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 
-// Lobby specific cache path for scenario images. Maybe remove from here?
+// Lobby specific cache paths for mission content images.
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
+export const CAMPAIGN_IMAGE_PATH = path.join(STATE_PATH, "campaign-images");
 
 /**
  * Get the path to the bundled CA certificate file for pr-downloader.

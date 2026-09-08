@@ -206,6 +206,20 @@
                 "faction": "Faticon",
                 "difficulty": "Difulcfity",
                 "launch": "Lacnuh"
+            },
+            "campaigns": {
+                "title": "Cgamapin",
+                "back": "Back",
+                "authors": "By {authors}",
+                "locked": "Leockd",
+                "noCampaigns": "No cgamianps aablviale for the steelecd gmae veoirsn.",
+                "briefing": "Bifrnieg",
+                "objectives": "Oecjiebvts",
+                "alliesPresent": "Alelis pernset",
+                "knownHostiles": "Konwn hltsioes",
+                "newUnits": "New uints",
+                "difficulty": "Difulcfity",
+                "launch": "Lacnuh"
             }
         },
         "navbar": {

@@ -25,3 +25,29 @@
         filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
     }
 }
+
+/** A card in a list of selectable content, e.g. a campaign or a mission. */
+.content-card {
+    cursor: pointer;
+
+    &.locked {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &:not(.locked):hover {
+        filter: brightness(1.15);
+    }
+
+    .background_image {
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+}
+
+/** Credits line listing the authors of a campaign or mission. */
+.authors {
+    opacity: 0.7;
+    font-size: 0.9em;
+}

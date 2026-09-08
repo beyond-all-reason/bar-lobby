@@ -19,7 +19,7 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, SCENARIO_IMAGE_PATH, setAssetsPath } from "./config/app";
+import { APP_NAME, CAMPAIGN_IMAGE_PATH, SCENARIO_IMAGE_PATH, setAssetsPath } from "./config/app";
 import { shellService } from "@main/services/shell.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
@@ -68,7 +68,7 @@ function registerBarFileProtocol() {
             const filePath = decodedUrl.slice("bar://".length);
             // Security Check: Ensure the file is within the content folder
             const resolvedFilePath = path.resolve(filePath);
-            const whitelistedPaths = [SCENARIO_IMAGE_PATH];
+            const whitelistedPaths = [SCENARIO_IMAGE_PATH, CAMPAIGN_IMAGE_PATH];
             if (!whitelistedPaths.some((p) => resolvedFilePath.startsWith(p + path.sep))) {
                 log.error(`Attempt to access file outside whitelisted paths: ${resolvedFilePath}`);
                 return new Response();

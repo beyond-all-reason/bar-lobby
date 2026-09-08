@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 import { contentAPI } from "@main/content/content-api";
+import { getCampaigns } from "@main/content/game/game-campaigns";
 import { getScenarios } from "@main/content/game/game-scenarios";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
-import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
+import { BarIpcWebContents, ipcMain } from "@main/typed-ipc";
 import { Replay } from "@main/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { replaysAPI } from "@main/replays/replays";
+import { settingsService } from "@main/services/settings.service";
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
@@ -17,6 +19,12 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         const installed = contentAPI.gameVersion(version);
 
         return installed ? getScenarios(installed.packageMd5) : [];
+    });
+    ipcMain.handle("game:getCampaigns", (_, version: string) => {
+        const installed = contentAPI.gameVersion(version);
+
+        // Campaign text is resolved in the main process, so the loader needs the selected language.
+        return installed ? getCampaigns(installed.packageMd5, settingsService.getSettings().language) : [];
     });
     ipcMain.handle("game:getInstalledVersions", () => contentAPI.gameVersions());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => contentAPI.isPresent({ type: "game", id }));

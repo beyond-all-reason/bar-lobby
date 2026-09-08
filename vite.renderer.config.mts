@@ -6,6 +6,11 @@ import vueDevTools from "vite-plugin-vue-devtools";
 
 // https://vitejs.dev/config
 export default defineConfig({
+    server: {
+        watch: {
+            ignored: ["**/state/**", "**/assets/**"],
+        },
+    },
     resolve: {
         alias: {
             "@main": path.join(__dirname, "src/main"),
