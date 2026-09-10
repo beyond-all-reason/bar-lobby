@@ -25,6 +25,85 @@ SPDX-License-Identifier: MIT
         <div v-if="lobbyStore.activeLobby">
             <component :is="switchTemplate ? FFALobby : StandardLobby" :lobby="lobbyStore.activeLobby">
                 <template #header>{{ lobbyStore.activeLobby.name }}</template>
+                <template #player-list><Playerlist /></template>
+                <template #chat><LobbyChat /></template>
+                <template #map-and-options>
+                    <div class="options">
+                        <MapBattlePreview />
+                        <div class="flex-row flex-space-between">
+                            <div class="flex-row gap-lg flex-center-items">
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+                                </div>
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="gridIcon" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+                                </div>
+                            </div>
+                            <div class="flex-row flex-justify-end">
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-row gap-md">
+                            <Select
+                                :modelValue="battleStore.battleOptions.map"
+                                :options="mapListOptions"
+                                data-key="springName"
+                                :label="t(`lobby.multiplayer.custom.lobby.map`)"
+                                optionLabel="springName"
+                                :filter="true"
+                                class="fullwidth"
+                                @update:model-value="onMapSelected"
+                                :disabled="online"
+                            />
+                            <Button
+                                v-tooltip.left="t('lobby.components.battle.mapOptionsModal.openMapSelector')"
+                                @click="online ? null : openMapList()"
+                            >
+                                <Icon :icon="listIcon" height="23" />
+                            </Button>
+                            <Button
+                                v-tooltip.left="t('lobby.components.battle.mapOptionsModal.mapOptionsTitle')"
+                                @click="online ? null : openMapOptions()"
+                            >
+                                <Icon :icon="cogIcon" height="23" />
+                            </Button>
+                            <MapListModal
+                                v-model="mapListOpen"
+                                :title="t(`lobby.multiplayer.custom.lobby.maps`)"
+                                @map-selected="onMapSelected"
+                            />
+                            <MapOptionsModal v-if="battleStore.battleOptions.map" v-model="mapOptionsOpen" />
+                        </div>
+                        <GameModeComponent />
+                        <div v-if="settingsStore.devMode">
+                            <Select
+                                :modelValue="battleStore.battleOptions.gameVersion"
+                                :options="gameListOptions"
+                                optionLabel="gameVersion"
+                                optionValue="gameVersion"
+                                :label="t(`lobby.multiplayer.custom.lobby.gameVersion`)"
+                                :filter="true"
+                                :placeholder="battleStore.battleOptions.gameVersion"
+                                @update:model-value="onGameSelected"
+                                :disabled="battleStore.isOnline"
+                            />
+                        </div>
+                        <div v-if="settingsStore.devMode">
+                            <Select
+                                :modelValue="enginesStore.selectedEngineVersion"
+                                @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+                                :options="enginesStore.availableEngineVersions"
+                                data-key="id"
+                                optionLabel="id"
+                                :label="t(`lobby.multiplayer.custom.lobby.engineVersion`)"
+                                :filter="true"
+                                class="fullwidth"
+                                :disabled="battleStore.isOnline"
+                            />
+                        </div></div
+                ></template>
                 <template #main>
                     <div>
                         <div v-for="(item, name, index) in lobbyStore.activeLobby" :key="index" :class="getStripeResult(index)">
@@ -65,6 +144,30 @@ import { router } from "@renderer/router";
 import { mapsStore, downloadMap } from "@renderer/store/maps.store";
 import StandardLobby from "@renderer/components/lobbies/standard.vue";
 import FFALobby from "@renderer/components/lobbies/ffa.vue";
+import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
+import Playerlist from "@renderer/components/battle/Playerlist.vue";
+import LobbyChat from "@renderer/components/lobbies/LobbyChat.vue";
+import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
+import personIcon from "@iconify-icons/mdi/person-multiple";
+import gridIcon from "@iconify-icons/mdi/grid";
+import { Icon } from "@iconify/vue";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
+import { battleStore } from "@renderer/store/battle.store";
+import { settingsStore } from "@renderer/store/settings.store";
+import listIcon from "@iconify-icons/mdi/format-list-bulleted";
+import cogIcon from "@iconify-icons/mdi/cog";
+import pencilIcon from "@iconify-icons/mdi/pencil";
+import arrowBackIcon from "@iconify-icons/mdi/arrow-back";
+import hammerIcon from "@iconify-icons/mdi/hammer";
+import { MapData } from "@main/content/maps/map-data";
+import { db } from "@renderer/store/db";
+import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
+import MapListModal from "@renderer/components/battle/MapListModal.vue";
+import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
+import { useTypedI18n } from "@renderer/i18n";
+import Select from "@renderer/components/controls/Select.vue";
 
 const switchTemplate = ref(false);
 
@@ -80,6 +183,7 @@ function fetchMap() {
 }
 
 function leaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
     lobby.requestLeaveLobby();
     router.push("/play/customLobbies");
 }
@@ -100,6 +204,53 @@ function updateReadiness(isReady: boolean) {
 const isMapNeeded = computed(() => {
     return lobbyStore.activeLobby ? !mapsStore.availableMapNames.has(lobbyStore.activeLobby.mapName) : false;
 });
+
+const { t } = useTypedI18n();
+
+const mapListOpen = ref(false);
+const mapOptionsOpen = ref(false);
+const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+const leaveConfirmModalIsOpen = ref(false);
+const updateLobbyModalIsOpen = ref<boolean>(false);
+
+defineProps<{
+    online: boolean;
+}>();
+
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
+
+const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
+    if (!battleStore.battleOptions.map) return;
+    return db.maps.get(battleStore.battleOptions.map.springName);
+});
+
+function openMapList() {
+    mapListOpen.value = true;
+}
+
+function openMapOptions() {
+    mapOptionsOpen.value = true;
+}
+
+function cancelLeaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+}
+
+async function onGameSelected(gameVersion: string) {
+    if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
+    //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
+    //It looks like it's because in offline battles we select from available versions?
+    //gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+    gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
+    battleStore.battleOptions.gameVersion = gameVersion;
+}
+
+function onMapSelected(map: MapData) {
+    battleStore.battleOptions.map = map;
+    mapListOpen.value = false;
+}
 </script>
 
 <style>
@@ -110,5 +261,11 @@ const isMapNeeded = computed(() => {
 }
 .datagridstripe {
     background-color: #00000033;
+}
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
 }
 </style>

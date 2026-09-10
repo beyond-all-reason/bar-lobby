@@ -193,6 +193,13 @@
                     "players": "Plyreas",
                     "runningFor": "Rnuinng for",
                     "join": "Jion"
+                },
+                "lobby": {
+                    "title": "Lbboy",
+                    "gameVersion": "Gmae Vosiren",
+                    "engineVersion": "Egnnie Vosiren",
+                    "maps": "Maps",
+                    "map": "Map"
                 }
             }
         },

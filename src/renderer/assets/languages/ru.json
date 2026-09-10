@@ -3998,6 +3998,13 @@
                     "players": null,
                     "runningFor": null,
                     "join": null
+                },
+                "lobby": {
+                    "title": null,
+                    "gameVersion": null,
+                    "engineVersion": null,
+                    "maps": null,
+                    "map": null
                 }
             }
         },

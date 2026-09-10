@@ -16,26 +16,22 @@ SPDX-License-Identifier: MIT
     <div class="flex-row">
         <div class="main-content">
             <div class="player-list">
-                <Playerlist />
+                <slot name="player-list" />
             </div>
             <div class="chat-container">
-                <LobbyChat />
+                <slot name="chat" />
             </div>
-            <div class="map-preview">
-                <MapBattlePreview />
+            <div class="map-and-options">
+                <slot name="map-and-options" />
             </div>
         </div>
     </div>
 </template>
 
-<script lang="ts" setup>
-import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
-import Playerlist from "@renderer/components/battle/Playerlist.vue";
-import LobbyChat from "@renderer/components/lobbies/LobbyChat.vue";
-</script>
+<script lang="ts" setup></script>
 
 <style scoped lang="scss">
-.map-preview {
+.map-and-options {
     width: 25%;
 }
 .main-content {

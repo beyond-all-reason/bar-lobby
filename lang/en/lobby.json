@@ -193,6 +193,13 @@
                     "players": "Players",
                     "runningFor": "Running for",
                     "join": "Join"
+                },
+                "lobby": {
+                    "title": "Lobby",
+                    "gameVersion": "Game Version",
+                    "engineVersion": "Engine Version",
+                    "maps": "Maps",
+                    "map": "Map"
                 }
             }
         },
