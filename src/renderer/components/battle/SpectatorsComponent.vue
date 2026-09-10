@@ -24,12 +24,12 @@ SPDX-License-Identifier: MIT
             <div v-if="battleStore.isOnline" class="participants">
                 <div v-if="queue">
                     <div v-for="member in queueArray" :key="member.id" draggable="false">
-                        <SpectatorParticipant :member="member" class="spectators" />
+                        <SpectatorParticipant :member="member" class="spectators" :isBoss="isBoss(member)" />
                     </div>
                 </div>
                 <div v-else>
                     <div v-for="member in spectatorArray" :key="member.id" draggable="false">
-                        <SpectatorParticipant :member="member" class="spectators" />
+                        <SpectatorParticipant :member="member" class="spectators" :isBoss="isBoss(member)" />
                     </div>
                 </div>
             </div>
@@ -147,6 +147,13 @@ function onDragEnter(event: DragEvent) {
 }
 function onDrop(event: DragEvent) {
     emit("onDrop", event);
+}
+
+function isBoss(member: Member): boolean {
+    if (lobbyStore.activeLobby && lobbyStore.activeLobby.bosses) {
+        return Object.keys(lobbyStore.activeLobby.bosses).includes(member.id);
+    }
+    return false;
 }
 </script>
 

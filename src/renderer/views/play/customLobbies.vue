@@ -32,7 +32,7 @@ SPDX-License-Identifier: MIT
                 <Panel class="flex-col fullheight" :no-padding="true">
                     <div class="margin-md fullheight">
                         <div class="flex-col flex-grow fullheight flex-top">
-                            <HostBattle v-model="createLobbyModalIsOpen" />
+                            <HostBattle v-model="createLobbyModalIsOpen" :update="false" />
                             <div class="scroll-container">
                                 <DataTable
                                     v-model:selection="lobbyStore.selectedLobby"

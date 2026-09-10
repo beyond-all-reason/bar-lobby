@@ -9,9 +9,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <header>
-        <h1>
-            <slot name="header" />
-        </h1>
+        <slot name="header" />
     </header>
     <div class="flex-row">
         <div class="main-content">

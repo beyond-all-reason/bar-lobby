@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div @contextmenu="onRightClick">
         <TeamParticipant>
+            <Icon v-if="isBoss" :icon="hammerIcon" class="boss-icon" />
             <div>{{ displayName }}</div>
             <div class="flex-row flex-right flex-center">
                 <div class="flex-row flex-center gap-sm">
@@ -27,7 +28,6 @@ import { delay } from "$/jaz-ts-utils/delay";
 import type { Member } from "@renderer/components/lobbies/lobby.types";
 import { computed, inject, Ref, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
-
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import ContextMenu from "primevue/contextmenu";
 import { useRouter } from "vue-router";
@@ -37,12 +37,14 @@ import { User } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { lobby } from "@renderer/store/lobby.store";
 import { friends } from "@renderer/store/me.store";
+import hammerIcon from "@iconify-icons/mdi/hammer";
 
 const { t } = useTypedI18n();
 const router = useRouter();
 
 const props = defineProps<{
     player: Member;
+    isBoss: boolean;
 }>();
 
 const displayName = computedAsync(async () => {
@@ -129,5 +131,9 @@ async function addFriend() {
     &.isReady {
         color: rgb(121, 226, 0);
     }
+}
+.boss-icon {
+    color: gold;
+    size: 24px;
 }
 </style>

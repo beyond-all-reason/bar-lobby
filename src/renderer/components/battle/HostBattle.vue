@@ -72,7 +72,7 @@ SPDX-License-Identifier: MIT
                         <MapOptionsModal v-if="map" v-model="isMapOptionsOpen" />
                     </div>
                 </div>
-                <Select
+                <!-- <Select
                     v-model="selectedRegion"
                     :options="regions"
                     :label="t('lobby.components.battle.hostBattle.region')"
@@ -93,26 +93,37 @@ SPDX-License-Identifier: MIT
                             <div>{{ slotProps.option.name }}</div>
                         </div>
                     </template>
-                </Select>
-                <Button class="blue" @click="hostBattle()" :disabled="!canSendHostRequest">{{
+                </Select> -->
+                <div class="flex-row gap-sm" v-if="!props.update">
+                    <Checkbox v-model="areBossesEnabled" :disabled="props.update" />
+                    <b
+                        ><p>{{ t("lobby.components.battle.hostBattle.areBossesEnabled") }}</p></b
+                    >
+                </div>
+                <Button v-if="!props.update" class="blue" @click="hostBattle()" :disabled="!canSendHostRequest">{{
                     t("lobby.components.battle.hostBattle.hostButton")
                 }}</Button>
+                <div v-else class="flex-row margin-top-md">
+                    <Button class="red fullwidth margin-right-md" @click="onClose">{{ t("lobby.components.prompts.cancel") }}</Button>
+                    <Button class="blue fullwidth margin-left-md" @click="updateBattle">{{
+                        t("lobby.components.battle.hostBattle.updateButton")
+                    }}</Button>
+                </div>
             </template>
         </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref, useTemplateRef } from "vue";
+import { Ref, ref, useTemplateRef } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
-
 import Loader from "@renderer/components/common/Loader.vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
-import Flag from "@renderer/components/misc/Flag.vue";
-import { lobby } from "@renderer/store/lobby.store";
-import { LobbyCreateRequestData, StartBox } from "tachyon-protocol/types";
+// import Flag from "@renderer/components/misc/Flag.vue";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
+import { LobbyCreateRequestData, StartBox, LobbyUpdateRequestData } from "tachyon-protocol/types";
 import { rand } from "@vueuse/core";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { MapData } from "@main/content/maps/map-data";
@@ -129,20 +140,18 @@ import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
 
 const { t } = useTypedI18n();
 
-const regions = ref([
-    { name: "Europe", code: "EU" },
-    { name: "United States", code: "US" },
-    { name: "Australia", code: "AU" },
-]);
+const props = defineProps<{
+    update: boolean;
+}>();
+
 const lobbyName = ref("New Lobby " + rand(0, 1000).toString());
 const allyTeamCount = ref(2);
 const playersPerAllyTeam = ref(1);
 const map = ref();
-const selectedRegion = ref(regions.value[0].code);
-const selectedRegionName = computed(() => regions.value.find((r) => r.code === selectedRegion.value)?.name);
 const hostLobbyModal = useTemplateRef("hostLobbyModal");
 const hostedBattleData: Ref<{ name: string; password: string } | undefined> = ref();
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
@@ -150,6 +159,7 @@ const waitingForBattleCreation = ref(false);
 const isMapListOpen = ref(false);
 const isMapOptionsOpen = ref(false);
 const canSendHostRequest = ref(false);
+const areBossesEnabled = ref(false);
 
 function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
     const boxes: Array<StartBox> = battleActions.getCurrentStartBoxes().map((box) => ({ ...box }));
@@ -158,6 +168,7 @@ function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
         name: lobbyName.value,
         mapName: map.value.springName,
         allyTeamConfig: [],
+        areBossesEnabled: areBossesEnabled.value,
     };
     if (boxes.length < allyTeamCount.value) {
         console.warn(`Insufficient number of startboxes provided for number of Allyteams, this will add full-map startbox!`);
@@ -194,6 +205,8 @@ async function onOpen() {
 
 function onClose() {
     hostedBattleData.value = undefined;
+    resetBattleSettings();
+    if (hostLobbyModal.value) hostLobbyModal.value.close();
 }
 
 function onMapSelected(mapData: MapData) {
@@ -211,6 +224,20 @@ function openMapList() {
 function openMapOptions() {
     isMapOptionsOpen.value = true;
 }
+
+function updateBattle() {
+    const data = getGeneratedLobbyRequestData() as LobbyUpdateRequestData;
+    if (data.name === lobbyStore.activeLobby!.name) {
+        delete data.name;
+    }
+    if (data.mapName === lobbyStore.activeLobby!.mapName) {
+        delete data.mapName;
+    }
+    lobby.requestLobbyUpdate(data);
+    onClose();
+}
+
+function resetBattleSettings() {}
 </script>
 
 <style lang="scss" scoped>

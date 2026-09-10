@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
         </div>
         <div v-show="!collapsed">
             <div v-for="(member, key) in allyMembers" :key="key" class="participant">
-                <LobbyParticipant :player="member" />
+                <LobbyParticipant :player="member" :isBoss="isBoss(member)" />
             </div>
             <div v-for="(bot, key) in allyBots" :key="key" class="participant">
                 <LobbyBotParticipant :bot="bot" :team-id="bot.allyTeam" :host-id="bot.hostUserId" :bot-id="bot.id" />
@@ -168,6 +168,13 @@ function addBotClicked(teamId: string) {
 
 function onJoinClicked(teamId: string) {
     emit("onJoinClicked", teamId);
+}
+
+function isBoss(member: Member): boolean {
+    if (lobbyStore.activeLobby && lobbyStore.activeLobby.bosses) {
+        return Object.keys(lobbyStore.activeLobby.bosses).includes(member.id);
+    }
+    return false;
 }
 </script>
 

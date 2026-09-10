@@ -6,20 +6,11 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Panel>
-        <h1>
-            <slot name="header" />
-        </h1>
+        <slot name="header" />
         <div class="main-content">
             <div class="flex-row">
-                <!-- <div class="map-preview">
-                    <MapBattlePreview />
-                </div> -->
-                <!-- <div class="lobby-chat">
-                    <LobbyChat />
-                </div> -->
                 <div class="player-list">
-                    <p>We could replace the player list with a FFA version instead of the standard one.</p>
-                    <Playerlist />
+                    <slot name="player-list" />
                 </div>
             </div>
             <main>
@@ -31,9 +22,6 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import Panel from "@renderer/components/common/Panel.vue";
-// import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
-import Playerlist from "@renderer/components/battle/Playerlist.vue";
-// import LobbyChat from "@renderer/components/lobbies/LobbyChat.vue";
 </script>
 
 <style scoped lang="scss">

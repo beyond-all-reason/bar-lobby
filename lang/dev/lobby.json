@@ -487,7 +487,8 @@
                     "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
-                    "map": "Map"
+                    "map": "Map",
+                    "areBossesEnabled": "Eblnae Bosses? Tihs caonnt be cngeahd letar."
                 },
                 "votePanel": {
                     "vote": "Vtoe:",

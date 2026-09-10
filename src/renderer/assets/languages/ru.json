@@ -4292,7 +4292,8 @@
                     "startBoxes3": null,
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
-                    "map": null
+                    "map": null,
+                    "areBossesEnabled": null
                 },
                 "votePanel": {
                     "vote": null,

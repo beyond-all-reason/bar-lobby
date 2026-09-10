@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div>
         <TeamParticipant @contextmenu="onRightClick">
+            <Icon v-if="isBoss" :icon="hammerIcon" class="boss-icon" />
             <div>{{ displayName }}</div>
         </TeamParticipant>
         <ContextMenu ref="menu" :model="onlineActions" />
@@ -26,6 +27,8 @@ import { User } from "@main/model/user";
 import { UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
 import { db } from "@renderer/store/db";
+import { Icon } from "@iconify/vue";
+import hammerIcon from "@iconify-icons/mdi/hammer";
 
 const { t } = useTypedI18n();
 
@@ -33,6 +36,7 @@ const router = useRouter();
 
 const props = defineProps<{
     member: Member;
+    isBoss: boolean;
 }>();
 
 interface Member {
@@ -101,4 +105,9 @@ async function makeBoss() {}
 async function addFriend() {}
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.boss-icon {
+    color: gold;
+    size: 24px;
+}
+</style>

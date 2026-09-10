@@ -487,7 +487,8 @@
                     "startBoxes3": "AllyTeams without one are full-map startboxes.",
                     "allyTeamCount": "AllyTeam Count: ",
                     "teamsPerAllyTeam": "Teams per AllyTeam: ",
-                    "map": "Map"
+                    "map": "Map",
+                    "areBossesEnabled": "Enable Bosses? This cannot be changed later."
                 },
                 "votePanel": {
                     "vote": "Vote:",
