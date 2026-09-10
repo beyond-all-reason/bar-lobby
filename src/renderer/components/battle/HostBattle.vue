@@ -195,6 +195,7 @@ async function hostBattle() {
 
 async function onOpen() {
     waitingForBattleCreation.value = false;
+    if (props.update) return; // Don't randomly change the map on updates
     const mapData = await getRandomMap();
     if (mapData) {
         map.value = mapData;

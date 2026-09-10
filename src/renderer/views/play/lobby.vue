@@ -42,7 +42,7 @@ SPDX-License-Identifier: MIT
                 <template #chat><LobbyChat /></template>
                 <template #map-and-options>
                     <div class="options">
-                        <MapBattlePreview />
+                        <MapBattlePreview :disable-startboxes="true" />
                         <div class="flex-row flex-space-between">
                             <div class="flex-row gap-lg flex-center-items">
                                 <div class="flex-row flex-center-items gap-sm">

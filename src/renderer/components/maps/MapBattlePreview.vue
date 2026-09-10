@@ -21,7 +21,14 @@ SPDX-License-Identifier: MIT
                 v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive"
                 class="boxes"
             >
-                <MapBattlePreviewStartBox v-for="(box, i) in boxes" v-startBox="box" :key="`box${i}`" :id="i" :box="box" />
+                <MapBattlePreviewStartBox
+                    v-for="(box, i) in boxes"
+                    v-startBox="box"
+                    :key="`box${i}`"
+                    :id="i"
+                    :box="box"
+                    :disabled="props.disableStartboxes"
+                />
             </div>
             <svg
                 v-if="
@@ -98,6 +105,10 @@ defineComponent({
         setPlayerColor: vSetPlayerColor,
     },
 });
+
+const props = defineProps<{
+    disableStartboxes?: boolean;
+}>();
 
 const { get } = useImageBlobUrlCache();
 const mapTextureUrl = computed(() => {

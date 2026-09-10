@@ -5,7 +5,12 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div ref="boxElement" class="box-container box highlight" :style="boxStyles" :class="{ dragging: isDragging, resizing: isResizing }">
+    <div
+        ref="boxElement"
+        class="box-container box highlight"
+        :style="boxStyles"
+        :class="{ dragging: isDragging, resizing: isResizing, disabled: props.disabled }"
+    >
         <div class="box-tooltip" @mousedown="startDrag">
             <div class="box-tooltip-side n-side" @mousedown.stop="startResize('n', null, $event)"></div>
             <div class="box-tooltip-side e-side" @mousedown.stop="startResize(null, 'e', $event)"></div>
@@ -35,6 +40,11 @@ const props = defineProps({
         type: Object as () => StartBox,
         required: true,
     },
+    disabled: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
 });
 
 defineEmits(["update:box"]);
@@ -62,6 +72,7 @@ const boxStyles = computed(() => {
 
 // Main box drag handler
 function startDrag(event: MouseEvent) {
+    if (props.disabled) return;
     // Ignore if clicked on resize handles
     if (
         (event.target as HTMLElement).classList.contains("box-tooltip-side") ||
@@ -94,6 +105,7 @@ function startDrag(event: MouseEvent) {
 }
 
 function handleDrag(event: MouseEvent) {
+    if (props.disabled) return;
     if (!isDragging.value || !startBox.value || !parentRect.value || !boxElement.value) return;
 
     // Calculate the drag delta in normalized coordinates (0-1)
@@ -114,6 +126,7 @@ function handleDrag(event: MouseEvent) {
 }
 
 function endDrag() {
+    if (props.disabled) return;
     if (!isDragging.value || !startBox.value || !parentRect.value || !boxElement.value) {
         resetDrag();
         return;
@@ -151,6 +164,7 @@ function resetDrag() {
 
 // Resize handlers
 function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, event: MouseEvent) {
+    if (props.disabled) return;
     event.preventDefault();
     event.stopPropagation();
     isResizing.value = true;
@@ -201,6 +215,7 @@ function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, e
 }
 
 function handleResize(event: MouseEvent) {
+    if (props.disabled) return;
     if (!isResizing.value || !startBox.value || !parentRect.value || !activeHandle.value || !boxElement.value) return;
 
     // Calculate the movement in normalized coordinates (0-1)
@@ -246,6 +261,7 @@ function handleResize(event: MouseEvent) {
 }
 
 function endResize() {
+    if (props.disabled) return;
     if (!isResizing.value || !boxElement.value) {
         resetResize();
         return;
@@ -382,6 +398,14 @@ function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number
     background-color: rgba(200, 200, 200, 0.6);
 }
 
+.box.disabled .box-tooltip-side:hover,
+.box.disabled .box-tooltip-corner:hover,
+.box.disabled .box-tooltip-side:active,
+.box.disabled .box-tooltip-corner:active {
+    box-shadow: none;
+    background-color: transparent;
+}
+
 $centerOffset: -5px;
 $sideWidth: 10px;
 $sideLength: calc(100% - $sideWidth);
@@ -460,6 +484,13 @@ $sideLength: calc(100% - $sideWidth);
     cursor:
         url("/src/renderer/assets/images/uiresized2_0.png") 16 16,
         nesw-resize !important;
+}
+
+.box.disabled,
+.box.disabled .box-tooltip,
+.box.disabled .box-tooltip-side,
+.box.disabled .box-tooltip-corner {
+    cursor: url("/src/renderer/assets/images/cursor_default.png"), auto !important;
 }
 
 @keyframes subtleGlow {
