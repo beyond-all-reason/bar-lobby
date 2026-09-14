@@ -358,7 +358,6 @@ async function requestLeaveLobby() {
         tachyonStore.springConnectionDetails = undefined;
         tachyonStore.rejoinModalOpen = false;
     }
-    // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
     battleActions.resetToDefaultBattle();
