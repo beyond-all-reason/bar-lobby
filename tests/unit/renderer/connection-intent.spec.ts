@@ -28,8 +28,12 @@ Object.assign(window.tachyon, {
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
     onBattleStart: (callback: (battle: BattleStartRequestData) => void) => void battleStartHandlers.push(callback),
-    onBattleEnded: (callback: (data: BattleEndedEventData) => void) => void battleEndedHandlers.push(callback),
-    onEvent: (command: string, callback: (data: unknown) => void) => void eventHandlers.set(command, callback),
+    onEvent: (command: string, callback: (data: unknown) => void) => {
+        if (command === "battle/ended") {
+            battleEndedHandlers.push(callback as (data: BattleEndedEventData) => void);
+        }
+        eventHandlers.set(command, callback);
+    },
 });
 
 Object.defineProperty(window, "auth", {

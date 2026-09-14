@@ -224,7 +224,7 @@ export async function initTachyonStore() {
         launchMultiplayerBattle(data);
     });
 
-    window.tachyon.onBattleEnded((data) => {
+    window.tachyon.onEvent("battle/ended", (data) => {
         console.debug("Received battle ended event", data);
         tachyonStore.springConnectionDetails = undefined;
         tachyonStore.rejoinModalOpen = false;
