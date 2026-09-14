@@ -5,8 +5,45 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal :title="t('lobby.navbar.settings.title')">
+    <Modal
+        :modelValue="modelValue"
+        :title="t('lobby.navbar.settings.title')"
+        @update:modelValue="(open: boolean) => emit('update:modelValue', open)"
+    >
         <div class="gridform">
+            <div class="section-header">{{ t("lobby.navbar.settings.sectionDisplay") }}</div>
+
+            <div>{{ t("lobby.navbar.settings.resolution") }}</div>
+            <Select v-model="displayMode" :options="resolutionOptions" optionLabel="label" optionValue="value" />
+
+            <div>{{ t("lobby.navbar.settings.display") }}</div>
+            <Select v-model="selectedDisplay" :options="displayOptions" optionLabel="label" optionValue="value" />
+
+            <div>{{ t("lobby.navbar.settings.uiScale") }}</div>
+            <!-- Wrapped so the cell, not the slider, takes gridform's positional rule for
+            the label column. See #716. -->
+            <div>
+                <Range
+                    :modelValue="shownScalePercent"
+                    commitOnRelease
+                    :min="UI_SCALE_MIN * 100"
+                    :max="UI_SCALE_MAX * 100"
+                    :step="UI_SCALE_STEP * 100"
+                    @preview="(value: number | number[]) => (draggedScalePercent = value as number)"
+                    @update:modelValue="commitScalePercent"
+                />
+            </div>
+
+            <div class="section-header">{{ t("lobby.navbar.settings.sectionSound") }}</div>
+
+            <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
+            <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
+
+            <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
+            <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
+
+            <div class="section-header">{{ t("lobby.navbar.settings.sectionGeneral") }}</div>
+
             <div>
                 <span>
                     <Icon :icon="language" />
@@ -14,20 +51,6 @@ SPDX-License-Identifier: MIT
                 </span>
             </div>
             <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
-            <div>{{ t("lobby.navbar.settings.fullscreen") }}</div>
-            <Checkbox v-model="settingsStore.fullscreen" />
-
-            <div>{{ t("lobby.navbar.settings.windowSize") }}</div>
-            <Select
-                v-model="settingsStore.size"
-                :options="sizeOptions"
-                optionLabel="label"
-                optionValue="value"
-                :disabled="settingsStore.fullscreen"
-            />
-
-            <div>{{ t("lobby.navbar.settings.display") }}</div>
-            <Select v-model="settingsStore.displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
 
             <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
             <Checkbox v-model="settingsStore.skipIntro" />
@@ -36,12 +59,6 @@ SPDX-License-Identifier: MIT
                 <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
                 <Checkbox v-model="settingsStore.loginAutomatically" />
             </template>
-
-            <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
-            <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
-
-            <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
-            <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
 
             <div>{{ t("lobby.navbar.settings.devMode") }}</div>
             <Checkbox v-model="settingsStore.devMode" />
@@ -105,7 +122,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, useAttrs, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
@@ -115,7 +132,14 @@ import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
-import { infosStore } from "@renderer/store/infos.store";
+import {
+    MIN_WINDOW_SIZE,
+    SUPPORTED_ASPECT_RATIOS,
+    UI_SCALE_MAX,
+    UI_SCALE_MIN,
+    UI_SCALE_STEP,
+    WINDOW_HEIGHT_STEPS,
+} from "@main/config/window";
 import { contentsStore } from "@renderer/store/contents.store";
 import { isUnsettled } from "@main/content/content-state";
 import { refreshEnginesStore } from "@renderer/store/engine.store";
@@ -146,9 +170,13 @@ const isBusy = computed(() => isTransferring.value || isChanging.value || hasAct
 
 let cleanupCopyProgress: (() => void) | undefined;
 
-const attrs = useAttrs();
+// Declared rather than left to fall through: the confirmation modal makes this a second
+// root, and Vue only inherits attributes onto a single one.
+const props = defineProps<{ modelValue?: boolean }>();
+const emit = defineEmits<{ (event: "update:modelValue", open: boolean): void }>();
+
 watch(
-    () => attrs.modelValue as boolean,
+    () => props.modelValue,
     async (isOpen) => {
         if (isOpen) {
             currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
@@ -206,19 +234,102 @@ async function applyPathChange() {
 const op = ref();
 const tooltipMessage = ref("");
 
-const sizeOptions = [
-    { label: t("lobby.navbar.settings.labelLg"), value: 900 },
-    { label: t("lobby.navbar.settings.labelMd"), value: 720 },
-    { label: t("lobby.navbar.settings.labelSm"), value: 540 },
-];
+const displays = asyncComputed(() => window.mainWindow.getDisplays(), []);
 
-const displayOptions = asyncComputed(async () => {
-    return Array(infosStore.hardware.numOfDisplays)
-        .fill(0)
-        .map((_, i) => {
-            return { label: t("lobby.navbar.settings.labelDisplay", { id: i + 1 }), value: i };
-        });
+const targetDisplay = computed(() => displays.value.find((d) => d.index === settingsStore.displayIndex) ?? displays.value[0]);
+
+const sizeKey = (width: number, height: number) => `${width}x${height}`;
+
+// Only the monitor's own shape is offered. Snapped to the nearest supported ratio so the
+// labels stay meaningful on unusual displays.
+const displayRatio = computed(() => {
+    const display = targetDisplay.value;
+    if (!display) return SUPPORTED_ASPECT_RATIOS[0];
+
+    const actual = display.size.width / display.size.height;
+
+    return SUPPORTED_ASPECT_RATIOS.reduce((closest, candidate) =>
+        Math.abs(candidate.ratio - actual) < Math.abs(closest.ratio - actual) ? candidate : closest
+    );
 });
+
+const resolutionOptions = computed(() => {
+    const fullscreen = { label: t("lobby.navbar.settings.fullscreenOption"), value: "fullscreen" as const };
+    const maximized = { label: t("lobby.navbar.settings.maximizedOption"), value: "maximized" as const };
+    const display = targetDisplay.value;
+    if (!display) return [fullscreen, maximized];
+
+    const { label: ratioLabel, ratio } = displayRatio.value;
+    const windowed = WINDOW_HEIGHT_STEPS.map((height) => ({ width: Math.round((height * ratio) / 2) * 2, height }))
+        .filter(
+            ({ width, height }) =>
+                width >= MIN_WINDOW_SIZE.width &&
+                height >= MIN_WINDOW_SIZE.height &&
+                width <= display.workArea.width &&
+                height <= display.workArea.height
+        )
+        .map(({ width, height }) => ({ label: `${width} x ${height} (${ratioLabel})`, value: sizeKey(width, height) }));
+
+    // The window can be dragged to any size, so its current one may be none of these.
+    const stored = sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
+    if (!settingsStore.fullscreen && !settingsStore.maximized && !windowed.some((option) => option.value === stored)) {
+        windowed.unshift({ label: `${settingsStore.windowWidth} x ${settingsStore.windowHeight}`, value: stored });
+    }
+
+    return [fullscreen, maximized, ...windowed];
+});
+
+const displayMode = computed<string>({
+    get: () => {
+        if (settingsStore.fullscreen) return "fullscreen";
+        if (settingsStore.maximized) return "maximized";
+
+        return sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
+    },
+    set: (value) => {
+        settingsStore.fullscreen = value === "fullscreen";
+        settingsStore.maximized = value === "maximized";
+        if (value === "fullscreen" || value === "maximized") return;
+
+        const [width, height] = value.split("x").map(Number);
+        settingsStore.windowWidth = width;
+        settingsStore.windowHeight = height;
+    },
+});
+
+const selectedDisplay = computed<number>({
+    get: () => settingsStore.displayIndex,
+    set: (index) => (settingsStore.displayIndex = index),
+});
+
+const scaleRange = ref({ min: 1, max: 1, os: 1 });
+
+onMounted(async () => {
+    scaleRange.value = await window.mainWindow.getScaleRange();
+    // The achievable range moves with the window, so the control has to follow it.
+    window.mainWindow.onScaleRangeChanged((range) => (scaleRange.value = range));
+});
+
+// Null means the user has never set one, and the OS scale is what to start them at.
+const uiScalePercent = computed(() => Math.round((settingsStore.uiScale ?? scaleRange.value.os) * 100));
+
+const draggedScalePercent = ref<number | null>(null);
+const shownScalePercent = computed(() => draggedScalePercent.value ?? uiScalePercent.value);
+
+function commitScalePercent(value: number | number[]) {
+    const percent = Math.round(value as number);
+
+    draggedScalePercent.value = null;
+    // Against what the slider showed, not the stored value, which is null until first set.
+    if (percent === uiScalePercent.value) return;
+
+    settingsStore.uiScale = percent / 100;
+}
+
+// Same source as the move and the size list, so a detached monitor cannot be offered.
+const displayOptions = computed(() =>
+    displays.value.map(({ index }) => ({ label: t("lobby.navbar.settings.labelDisplay", { id: index + 1 }), value: index }))
+);
 
 async function uploadLogsCommand(event) {
     // Store off event and target to avoid async issue

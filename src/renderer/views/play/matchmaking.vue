@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
+    <div>
         <div class="ranked-container">
             <div class="view-title">
                 <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
@@ -187,7 +187,8 @@ function getTeamSize(queue: string) {
     align-self: center;
     gap: 20px;
     height: 100%;
-    width: 1000px;
+    width: 100%;
+    max-width: 1000px;
     overflow: visible;
 }
 
