@@ -4,6 +4,7 @@
 
 import { MapData } from "@main/content/maps/map-data";
 import { StartPosType } from "@main/game/battle/battle-types";
+import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
@@ -95,5 +96,17 @@ describe("getCurrentStartBoxes", () => {
         await nextTick();
 
         expect(battleStore.battleOptions.mapOptions.startBoxesIndex).toBe(0);
+    });
+
+    it("resolves boxes without depending on the battle store", () => {
+        expect(
+            getCurrentStartBoxes(mapWith(twoBoxPreset), {
+                startPosType: StartPosType.Boxes,
+                startBoxesIndex: 0,
+            })
+        ).toEqual([
+            { left: 0, top: 0, right: 0.2, bottom: 1 },
+            { left: 0.8, top: 0, right: 1, bottom: 1 },
+        ]);
     });
 });

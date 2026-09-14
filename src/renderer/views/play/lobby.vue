@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <Button @click="startGame()" class="green" :disabled="isMapNeeded">Start Game</Button>
+            <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
             <Button @click="joinQueue()" class="green">Join Queue</Button>
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
             <Button @click="updateReadiness(true)" class="green">Ready</Button>
@@ -30,19 +31,19 @@ SPDX-License-Identifier: MIT
                         </Button>
                         <p class="title flex-left">{{ lobbyStore.activeLobby?.name }}</p>
                         <div>
-                            <Button @click="updateLobbyModalIsOpen = true" :title="'Edit Lobby'"
+                            <Button @click="editLobbyModalIsOpen = true" :title="'Edit Lobby'"
                                 ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
                             /></Button>
                         </div>
                         <Button @click="leaveLobby()" class="red flex">Leave</Button>
-                        <HostBattle v-model="updateLobbyModalIsOpen" :update="true" />
+                        <HostBattle v-model="editLobbyModalIsOpen" mode="update" :active-lobby="lobbyStore.activeLobby" />
                     </div>
                 </template>
                 <template #player-list><Playerlist /></template>
                 <template #chat><LobbyChat /></template>
                 <template #map-and-options>
                     <div class="options">
-                        <MapBattlePreview :disable-startboxes="true" />
+                        <MapBattlePreview :map="map" :map-options="mapOptions" />
                         <div class="flex-row flex-space-between">
                             <div class="flex-row gap-lg flex-center-items">
                                 <div class="flex-row flex-center-items gap-sm">
@@ -60,14 +61,13 @@ SPDX-License-Identifier: MIT
                         </div>
                         <div class="flex-row gap-md">
                             <Select
-                                :modelValue="battleStore.battleOptions.map"
+                                :modelValue="map"
                                 :options="mapListOptions"
                                 data-key="springName"
                                 :label="t(`lobby.multiplayer.custom.lobby.map`)"
                                 optionLabel="springName"
                                 :filter="true"
                                 class="fullwidth"
-                                @update:model-value="onMapSelected"
                                 :disabled="true"
                             />
                         </div>
@@ -130,7 +130,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
@@ -153,11 +153,14 @@ import { settingsStore } from "@renderer/store/settings.store";
 import pencilIcon from "@iconify-icons/mdi/pencil";
 import arrowBackIcon from "@iconify-icons/mdi/arrow-back";
 import { MapData } from "@main/content/maps/map-data";
+import { StartPosType } from "@main/game/battle/battle-types";
 import { db } from "@renderer/store/db";
-import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { useTypedI18n } from "@renderer/i18n";
 import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
+
+const editLobbyModalIsOpen = ref(false);
 
 const switchTemplate = ref(false);
 
@@ -200,19 +203,33 @@ const isMapNeeded = computed(() => {
 
 const { t } = useTypedI18n();
 
-const mapListOpen = ref(false);
-
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
-const updateLobbyModalIsOpen = ref<boolean>(false);
 
 const gameListOptions = computed(() => {
     return Array.from(gameStore.availableGameVersions.values());
 });
 
-const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
-    if (!battleStore.battleOptions.map) return;
-    return db.maps.get(battleStore.battleOptions.map.springName);
-});
+const map = ref<MapData>();
+
+watch(
+    () => lobbyStore.activeLobby?.mapName,
+    async (mapName) => {
+        const loadedMap = mapName ? await db.maps.get(mapName) : undefined;
+        if (lobbyStore.activeLobby?.mapName === mapName) {
+            map.value = loadedMap;
+        }
+    },
+    { immediate: true }
+);
+
+const mapOptions = computed(() => ({
+    startPosType: StartPosType.Boxes,
+    customStartBoxes: lobbyStore.activeLobby
+        ? Object.keys(lobbyStore.activeLobby.allyTeamConfig)
+              .sort()
+              .map((key) => lobbyStore.activeLobby!.allyTeamConfig[key].startBox)
+        : [],
+}));
 
 async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
@@ -221,11 +238,6 @@ async function onGameSelected(gameVersion: string) {
     //gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
     gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
-}
-
-function onMapSelected(map: MapData) {
-    battleStore.battleOptions.map = map;
-    mapListOpen.value = false;
 }
 </script>
 

@@ -11,7 +11,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
-import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { eastVsWestStartBoxes, getCurrentStartBoxes as getCurrentStartBoxesFromOptions } from "@renderer/utils/battle-map-options";
 import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
@@ -290,40 +290,11 @@ function updateTeams() {
     }
 }
 
-function eastVsWestStartBoxes(): Array<StartBox> {
-    return [
-        {
-            top: 0,
-            bottom: 1,
-            left: 0,
-            right: 0.25,
-        },
-        {
-            top: 0,
-            bottom: 1,
-            left: 0.75,
-            right: 1,
-        },
-    ];
-}
-
 // Read-only: this runs inside render-time computeds, so it must never write back
 // to mapOptions. Latching the battle into custom boxes for a map with no presets
 // is the map watcher's job.
 function getCurrentStartBoxes(): Array<StartBox> {
-    const mapOptions = battleStore.battleOptions.mapOptions;
-    const startBoxesIndex = mapOptions.startBoxesIndex;
-
-    if (startBoxesIndex == undefined) {
-        return mapOptions.customStartBoxes ?? [];
-    }
-
-    const preset = battleStore.battleOptions.map?.startboxesSet?.at(startBoxesIndex);
-    if (preset) {
-        return preset.startboxes.map((box) => spadsBoxToStartBox(box.poly));
-    }
-
-    return mapOptions.customStartBoxes ?? eastVsWestStartBoxes();
+    return getCurrentStartBoxesFromOptions(battleStore.battleOptions.map, battleStore.battleOptions.mapOptions);
 }
 
 function addCustomStartBox() {

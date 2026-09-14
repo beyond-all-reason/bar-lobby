@@ -28,8 +28,6 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { StartBox } from "tachyon-protocol/types";
-import { battleStore } from "@renderer/store/battle.store";
-import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 
 const props = defineProps({
     id: {
@@ -47,7 +45,9 @@ const props = defineProps({
     },
 });
 
-defineEmits(["update:box"]);
+const emit = defineEmits<{
+    (event: "update:box", box: StartBox): void;
+}>();
 
 // Reference to the box element
 const boxElement = ref<HTMLElement | null>(null);
@@ -150,7 +150,7 @@ function endDrag() {
     boxElement.value.classList.remove("dragging");
 
     // Emit the update
-    updateBoxInStore(newBox);
+    emit("update:box", { ...newBox });
 
     resetDrag();
 }
@@ -289,7 +289,7 @@ function endResize() {
     boxElement.value.classList.remove("resizing");
 
     // Update the store
-    updateBoxInStore(newBox);
+    emit("update:box", { ...newBox });
 
     resetResize();
 }
@@ -302,42 +302,6 @@ function resetResize() {
     document.removeEventListener("mousemove", handleResize);
     document.removeEventListener("mouseup", endResize);
 }
-
-// Update the store with the new box values
-function updateBoxInStore(newBox: StartBox) {
-    // Clone the current boxes array from the store to ensure reactivity
-    const customBoxes = [...(battleStore.battleOptions.mapOptions.customStartBoxes || [])];
-
-    if (battleStore.battleOptions.mapOptions.startBoxesIndex != undefined) {
-        changeFromPresetToCustomBoxes(newBox, battleStore.battleOptions.mapOptions.startBoxesIndex);
-        return;
-    }
-
-    // Make sure we're working with valid data
-    if (!customBoxes || props.id < 0 || props.id >= customBoxes.length) {
-        console.error("Invalid box data or index:", props.id, customBoxes);
-        return;
-    }
-
-    // Update the current box
-    customBoxes[props.id] = { ...newBox };
-
-    // Save back to the store with a new array reference to trigger reactivity
-    battleStore.battleOptions.mapOptions.customStartBoxes = customBoxes;
-}
-
-function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number) {
-    const currentStartBoxes =
-        battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-
-    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-    delete battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    currentStartBoxes[props.id] = newBox;
-
-    // Save back to the store with a new array reference to trigger reactivity
-    battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
-}
 </script>
 
 <style lang="scss" scoped>
@@ -346,6 +310,7 @@ function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number
     box-sizing: border-box;
     transition: all 0.1s ease;
     will-change: transform, width, height, top, left;
+    border: 2px dashed rgba(255, 255, 255, 0.8);
 
     &.dragging,
     &.resizing {
