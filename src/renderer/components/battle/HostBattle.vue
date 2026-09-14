@@ -196,7 +196,7 @@ SPDX-License-Identifier: MIT
                             :label="t('lobby.components.battle.hostBattle.region')"
                             optionLabel="name"
                             optionValue="code"
-                            class="fullwidth"
+                            class="fullwidth disabled"
                         >
                             <template #value>
                                 <div class="flex-row gap-md">
@@ -212,12 +212,16 @@ SPDX-License-Identifier: MIT
                             </template>
                         </Select>
                         <div v-if="props.mode === 'update' && settingsDraft.conflicts.length > 0" class="conflicts">
-                            <div class="conflict-warning">Server changes conflict with your local draft.</div>
+                            <div class="conflict-warning">{{ t("lobby.components.battle.hostBattle.conflictWarning") }}</div>
                             <div v-for="conflict in settingsDraft.conflicts" :key="conflict.field" class="conflict">
                                 <span>{{ conflictLabel(conflict.field) }}</span>
                                 <div class="flex-row gap-sm">
-                                    <Button class="red" @click="() => settingsDraft.useServer(conflict.field)">Use server</Button>
-                                    <Button class="blue" @click="() => settingsDraft.keepMine(conflict.field)">Keep mine</Button>
+                                    <Button class="red" @click="() => settingsDraft.useServer(conflict.field)">{{
+                                        t("lobby.components.battle.hostBattle.useServer")
+                                    }}</Button>
+                                    <Button class="blue" @click="() => settingsDraft.keepMine(conflict.field)">{{
+                                        t("lobby.components.battle.hostBattle.keepMine")
+                                    }}</Button>
                                 </div>
                             </div>
                         </div>
@@ -349,11 +353,11 @@ watch(
 function conflictLabel(field: "name" | "mapName" | "allyTeamConfig") {
     switch (field) {
         case "name":
-            return "Lobby name changed on the server";
+            return t("lobby.components.battle.hostBattle.lobbyNameChanged");
         case "mapName":
-            return "Map changed on the server";
+            return t("lobby.components.battle.hostBattle.mapNameChanged");
         case "allyTeamConfig":
-            return "Team setup changed on the server";
+            return t("lobby.components.battle.hostBattle.allyTeamConfigChanged");
     }
 }
 

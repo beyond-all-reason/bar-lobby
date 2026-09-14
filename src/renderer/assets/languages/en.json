@@ -2319,7 +2319,13 @@
                     "allyTeamCount": "AllyTeam Count: ",
                     "teamsPerAllyTeam": "Teams per AllyTeam: ",
                     "map": "Map",
-                    "areBossesEnabled": "Enable Bosses? This cannot be changed later."
+                    "areBossesEnabled": "Enable Bosses? This cannot be changed later.",
+                    "conflictWarning": "Server changes conflict with your local draft.",
+                    "useServer": "Use server",
+                    "keepMine": "Keep mine",
+                    "lobbyNameChanged": "Lobby name changed on the server.",
+                    "mapNameChanged": "Map changed on the server.",
+                    "allyTeamConfigChanged": "Team setup changed on the server."
                 },
                 "votePanel": {
                     "vote": "Vote:",

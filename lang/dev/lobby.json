@@ -488,7 +488,13 @@
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
                     "map": "Map",
-                    "areBossesEnabled": "Eblnae Bosses? Tihs caonnt be cngeahd letar."
+                    "areBossesEnabled": "Eblnae Bosses? Tihs caonnt be cngeahd letar.",
+                    "conflictWarning": "Seevrr cngaehs cilnocft wtih your lcoal dafrt.",
+                    "useServer": "Use sveerr",
+                    "keepMine": "Keep mine",
+                    "lobbyNameChanged": "Lbboy name cngeahd on the sveerr.",
+                    "mapNameChanged": "Map cngeahd on the sveerr.",
+                    "allyTeamConfigChanged": "Team stuep cngeahd on the sveerr."
                 },
                 "votePanel": {
                     "vote": "Vtoe:",

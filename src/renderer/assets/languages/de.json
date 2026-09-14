@@ -2342,7 +2342,13 @@
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
                     "map": null,
-                    "areBossesEnabled": null
+                    "areBossesEnabled": null,
+                    "conflictWarning": null,
+                    "useServer": null,
+                    "keepMine": null,
+                    "lobbyNameChanged": null,
+                    "mapNameChanged": null,
+                    "allyTeamConfigChanged": null
                 },
                 "votePanel": {
                     "vote": null,
