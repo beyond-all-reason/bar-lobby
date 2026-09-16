@@ -226,7 +226,7 @@ const mapOptions = computed(() => ({
     startPosType: StartPosType.Boxes,
     customStartBoxes: lobbyStore.activeLobby
         ? Object.keys(lobbyStore.activeLobby.allyTeamConfig)
-              .sort()
+              .sort((a, b) => Number(a) - Number(b))
               .map((key) => lobbyStore.activeLobby!.allyTeamConfig[key].startBox)
         : [],
 }));

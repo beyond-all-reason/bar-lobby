@@ -52,14 +52,14 @@ function clone<T>(value: T): T {
 
 function configRecordToArray(config: Lobby["allyTeamConfig"]): AllyTeam[] {
     return Object.keys(config)
-        .sort()
+        .sort((a, b) => Number(a) - Number(b))
         .map((allyTeam) => {
             const value = config[allyTeam];
             return {
                 maxTeams: value.maxTeams,
                 startBox: clone(value.startBox),
                 teams: Object.keys(value.teams)
-                    .sort()
+                    .sort((a, b) => Number(a) - Number(b))
                     .map((team) => ({ maxPlayers: value.teams[team].maxPlayers })),
             };
         });
