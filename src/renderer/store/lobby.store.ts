@@ -338,7 +338,7 @@ async function requestLeaveLobby() {
     } catch (error) {
         console.error("Error with request lobby/leave", error);
         if (isTachyonErrorForCommand(error, "lobby/leave")) {
-            if (error.reason === "not_in_lobby") removedFromLobby = true; // treat not_in_lobby as a successful leave.
+            if (error.reason === "not_in_lobby" || error.reason === "invalid_request") removedFromLobby = true; // treat not_in_lobby as a successful leave.
         } else {
             console.error("Error with request lobby/leave", error);
             notificationsApi.alert({
@@ -357,10 +357,8 @@ async function requestLeaveLobby() {
         // Can't rejoin a battle tied to a lobby we're no longer in.
         tachyonStore.springConnectionDetails = undefined;
         tachyonStore.rejoinModalOpen = false;
+        battleActions.resetToDefaultBattle();
     }
-    clearUserSubscriptions();
-    lobbyStore.activeLobby = undefined;
-    battleActions.resetToDefaultBattle();
 }
 
 /**
