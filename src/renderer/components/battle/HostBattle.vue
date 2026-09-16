@@ -216,7 +216,7 @@ SPDX-License-Identifier: MIT
                             <div v-for="conflict in settingsDraft.conflicts" :key="conflict.field" class="conflict">
                                 <span>{{ conflictLabel(conflict.field) }}</span>
                                 <div class="flex-row gap-sm">
-                                    <Button class="red" @click="() => settingsDraft.useServer(conflict.field)">{{
+                                    <Button class="red" @click="() => onUseServer(conflict.field)">{{
                                         t("lobby.components.battle.hostBattle.useServer")
                                     }}</Button>
                                     <Button class="blue" @click="() => settingsDraft.keepMine(conflict.field)">{{
@@ -361,6 +361,11 @@ function conflictLabel(field: "name" | "mapName" | "allyTeamConfig") {
     }
 }
 
+function onUseServer(field: "name" | "mapName" | "allyTeamConfig") {
+    settingsDraft.useServer(field);
+    if (field === "mapName") map.value = draft.value?.map;
+}
+
 async function hostBattle() {
     if (!draft.value) return;
     if (props.mode === "update" && settingsDraft.dirtyFields.value.size === 0) return;
@@ -414,27 +419,13 @@ function onClose() {
 
 function onMapSelected(mapData: MapData) {
     settingsDraft.setMap(mapData);
-    settingsDraft.setTeamCounts(allyTeamCount.value, playersPerAllyTeam.value);
     map.value = mapData;
     isMapListOpen.value = false;
     canSendHostRequest.value = true;
 }
 
 function onMapOptionsUpdated(mapOptions: BattleOptions["mapOptions"]) {
-    if (!draft.value) return;
-    settingsDraft.updateDraft({ mapOptions });
-    const boxes = getCurrentStartBoxes(draft.value.map, mapOptions);
-    if (mapOptions.startPosType === StartPosType.Boxes) {
-        settingsDraft.setTeamCounts(boxes.length, playersPerAllyTeam.value);
-    }
-    if (draft.value) {
-        settingsDraft.updateDraft({
-            allyTeamConfig: draft.value.allyTeamConfig.map((allyTeam, index) => ({
-                ...allyTeam,
-                startBox: { ...(boxes[index] ?? allyTeam.startBox) },
-            })),
-        });
-    }
+    settingsDraft.setMapOptions(mapOptions);
 }
 
 function onAddTeam() {
@@ -442,35 +433,13 @@ function onAddTeam() {
 }
 
 function onRemoveTeam(teamId: number) {
-    if (allyTeamCount.value <= 1 || !draft.value) return;
-    const allyTeamConfig = draft.value.allyTeamConfig.filter((_, index) => index !== teamId);
-    const customStartBoxes = allyTeamConfig.map((allyTeam) => ({ ...allyTeam.startBox }));
-    allyTeamCount.value = allyTeamConfig.length;
-    settingsDraft.updateDraft({
-        allyTeamConfig,
-        mapOptions: {
-            ...draft.value.mapOptions,
-            startBoxesIndex: undefined,
-            customStartBoxes,
-        },
-    });
+    settingsDraft.removeAllyTeam(teamId);
 }
 
 function updateBox(index: number, box: StartBox) {
-    if (!draft.value) return;
     const boxes = getCurrentStartBoxes(draftMap.value, draftMapOptions.value).map((currentBox) => ({ ...currentBox }));
     boxes[index] = { ...box };
-    settingsDraft.updateDraft({
-        mapOptions: {
-            ...draftMapOptions.value,
-            startBoxesIndex: undefined,
-            customStartBoxes: boxes,
-        },
-        allyTeamConfig: draft.value.allyTeamConfig.map((allyTeam, allyTeamIndex) => ({
-            ...allyTeam,
-            startBox: { ...(boxes[allyTeamIndex] ?? allyTeam.startBox) },
-        })),
-    });
+    settingsDraft.setCustomStartBoxes(boxes);
 }
 
 function setPresetStartBoxes(startBoxIndex: number) {

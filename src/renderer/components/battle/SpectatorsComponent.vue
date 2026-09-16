@@ -87,7 +87,7 @@ function toggleCollapse() {
 
 interface Member {
     id: UserId;
-    joinQueuePostion?: number;
+    joinQueuePosition?: number;
 }
 
 const spectatorArray = computed(() => {
@@ -96,7 +96,7 @@ const spectatorArray = computed(() => {
     for (const memberKey in lobbyStore.activeLobby.spectators) {
         const member = lobbyStore.activeLobby.spectators[memberKey];
         // Collect spectators without a queue position
-        if (!member.joinQueuePosition) {
+        if (member.joinQueuePosition !== undefined) {
             arr.push(member);
         }
     }
