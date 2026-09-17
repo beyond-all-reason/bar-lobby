@@ -96,7 +96,7 @@ const spectatorArray = computed(() => {
     for (const memberKey in lobbyStore.activeLobby.spectators) {
         const member = lobbyStore.activeLobby.spectators[memberKey];
         // Collect spectators without a queue position
-        if (member.joinQueuePosition !== undefined) {
+        if (member.joinQueuePosition === undefined) {
             arr.push(member);
         }
     }
@@ -109,7 +109,8 @@ const queueArray = computed(() => {
     if (!lobbyStore.activeLobby) return arr;
     if (!lobbyStore.activeLobby.playerQueue) return arr;
     for (const value of lobbyStore.activeLobby.playerQueue.values()) {
-        arr.push(lobbyStore.activeLobby.spectators[value]);
+        const member = lobbyStore.activeLobby.spectators[value];
+        if (member) arr.push(member);
     }
     return arr;
 });

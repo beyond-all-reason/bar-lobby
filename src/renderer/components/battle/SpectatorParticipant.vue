@@ -41,7 +41,7 @@ const props = defineProps<{
 
 interface Member {
     id: UserId;
-    joinQueuePostion?: number;
+    joinQueuePosition?: number;
 }
 
 const displayName = computedAsync(async () => {
