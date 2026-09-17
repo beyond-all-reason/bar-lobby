@@ -155,7 +155,7 @@ SPDX-License-Identifier: MIT
                                         <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
                                     </div>
                                 </div>
-                                <PartyChat />
+                                <ChatPanel type="party" :id="partyStore.activeParty" />
                             </div>
                         </div>
                     </TabPanel>
@@ -207,7 +207,7 @@ SPDX-License-Identifier: MIT
 import { useTypedI18n } from "@renderer/i18n";
 import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
 import { computed, ref, watch, toRaw } from "vue";
-import PartyChat from "@renderer/components/party/PartyChat.vue";
+import ChatPanel from "@renderer/components/common/ChatPanel.vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import { PartyId } from "tachyon-protocol/types";
 import Button from "@renderer/components/controls/Button.vue";

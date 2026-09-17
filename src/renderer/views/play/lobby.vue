@@ -40,7 +40,7 @@ SPDX-License-Identifier: MIT
                     </div>
                 </template>
                 <template #player-list><Playerlist /></template>
-                <template #chat><LobbyChat /></template>
+                <template #chat><ChatPanel type="lobby" :id="lobbyStore.activeLobby?.id" /></template>
                 <template #map-and-options>
                     <div class="options">
                         <MapBattlePreview :map="map" :map-options="mapOptions" />
@@ -141,7 +141,7 @@ import StandardLobby from "@renderer/components/lobbies/standard.vue";
 import FFALobby from "@renderer/components/lobbies/ffa.vue";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
-import LobbyChat from "@renderer/components/lobbies/LobbyChat.vue";
+import ChatPanel from "@renderer/components/common/ChatPanel.vue";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
