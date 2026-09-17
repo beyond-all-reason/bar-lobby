@@ -47,7 +47,7 @@ const { t } = useTypedI18n();
 
 const props = defineProps<{
     bot: Bot;
-    teamId: number;
+    teamId: string;
 }>();
 
 const botOptions: Ref<LuaOptionSection[]> = ref([]);

@@ -2047,6 +2047,13 @@
                     "players": null,
                     "runningFor": null,
                     "join": null
+                },
+                "lobby": {
+                    "title": null,
+                    "gameVersion": null,
+                    "engineVersion": null,
+                    "maps": null,
+                    "map": null
                 }
             }
         },
@@ -2146,7 +2153,8 @@
                 "message": null,
                 "userID": null,
                 "userIDPlaceholder": null,
-                "send": null
+                "send": null,
+                "noMessages": null
             },
             "settings": {
                 "title": null,
@@ -2336,7 +2344,14 @@
                     "startBoxes3": null,
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
-                    "map": null
+                    "map": null,
+                    "areBossesEnabled": null,
+                    "conflictWarning": null,
+                    "useServer": null,
+                    "keepMine": null,
+                    "lobbyNameChanged": null,
+                    "mapNameChanged": null,
+                    "allyTeamConfigChanged": null
                 },
                 "votePanel": {
                     "vote": null,
@@ -2374,7 +2389,8 @@
                 "spectatorsComponent": {
                     "spectators": null,
                     "memberCount": null,
-                    "join": null
+                    "join": null,
+                    "queue": null
                 },
                 "battlePreview": {
                     "preview": null,

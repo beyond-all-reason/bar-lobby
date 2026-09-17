@@ -8,17 +8,17 @@ SPDX-License-Identifier: MIT
     <Modal ref="modal" :title="t('lobby.components.battle.mapOptionsModal.mapOptionsTitle')">
         <div class="container">
             <div class="map-preview-container">
-                <MapBattlePreview />
+                <EditableMapBattlePreview :map="map" :map-options="mapOptions" @update:map-options="onMapOptionsUpdated" />
             </div>
             <div class="options flex-col gap-md">
-                <div v-if="battleStore.battleOptions.map?.startboxesSet">
+                <div v-if="map?.startboxesSet">
                     <h4>{{ t("lobby.components.battle.mapOptionsModal.boxesPresets") }}</h4>
                     <div class="box-buttons">
                         <Button
-                            v-for="(boxSet, i) in battleStore.battleOptions.map.startboxesSet"
+                            v-for="(boxSet, i) in map.startboxesSet"
                             :key="i"
                             @click="() => setPresetStartBoxes(i)"
-                            :disabled="battleStore.battleOptions.mapOptions.startBoxesIndex === i"
+                            :disabled="mapOptions.startBoxesIndex === i"
                         >
                             <span>{{ i + 1 }}</span>
                         </Button>
@@ -51,7 +51,7 @@ SPDX-License-Identifier: MIT
                             :disabled="!canDeleteTeamBox(teamBox)"
                             :class="{ red: canDeleteTeamBox(teamBox) }"
                             class="fullwidth"
-                            @click="() => battleActions.removeTeam(teamBoxId)"
+                            @click="() => emit('remove-team', teamBoxId)"
                         >
                             <span v-if="canDeleteTeamBox(teamBox)"
                                 >{{ t("lobby.components.battle.mapOptionsModal.deleteTeam") }} {{ teamBoxId + 1 }}</span
@@ -87,7 +87,7 @@ SPDX-License-Identifier: MIT
                         </Button>
                     </div>
 
-                    <Button class="green fullwidth" @click="() => battleActions.addTeam()">{{
+                    <Button class="green fullwidth" @click="emit('add-team')">{{
                         t("lobby.components.battle.mapOptionsModal.addTeam")
                     }}</Button>
                 </div>
@@ -98,21 +98,18 @@ SPDX-License-Identifier: MIT
                         }}</Button>
                     </div>
                 </div>
-                <div v-if="battleStore.battleOptions.map?.startPos">
+                <div v-if="map?.startPos">
                     <h4>{{ t("lobby.components.battle.mapOptionsModal.fixedPositions") }}</h4>
                     <div class="box-buttons">
                         <Button
-                            v-for="(teamSet, i) in battleStore.battleOptions.map.startPos?.team"
+                            v-for="(teamSet, i) in map.startPos?.team"
                             :key="`team${i}`"
                             @click="() => setFixedStartBoxes(i)"
-                            :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed"
+                            :disabled="mapOptions.startPosType === StartPosType.Fixed"
                         >
                             <span>{{ i + 1 }}</span>
                         </Button>
-                        <Button
-                            @click="setRandomStartBoxes"
-                            :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Random"
-                        >
+                        <Button @click="setRandomStartBoxes" :disabled="mapOptions.startPosType === StartPosType.Random">
                             <span>{{ t("lobby.components.battle.mapOptionsModal.random") }}</span>
                         </Button>
                     </div>
@@ -126,15 +123,17 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, watch, computed } from "vue";
+import { Ref, ref, watch, computed, toRefs } from "vue";
 
+import { MapData } from "@main/content/maps/map-data";
+import { BattleOptions } from "@main/game/battle/battle-types";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
-import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { isPlayer, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
-import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
+import EditableMapBattlePreview from "@renderer/components/maps/EditableMapBattlePreview.vue";
 import { getBoxes } from "@renderer/utils/start-boxes";
+import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
 import { StartBox } from "tachyon-protocol/types";
 import { pluralize } from "@renderer/utils/i18n";
 import { Icon } from "@iconify/vue";
@@ -142,27 +141,41 @@ import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
+const props = defineProps<{
+    map?: MapData;
+    mapOptions: BattleOptions["mapOptions"];
+    teams: Team[];
+}>();
+
+const emit = defineEmits<{
+    (event: "update:mapOptions", mapOptions: BattleOptions["mapOptions"]): void;
+    (event: "add-team"): void;
+    (event: "remove-team", teamId: number): void;
+}>();
+
+const { map, mapOptions, teams } = toRefs(props);
+
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
 const customBoxRange = ref(25);
 
-watch(
-    () => battleStore.battleOptions.map,
-    () => {
-        customBoxRange.value = 25;
-    }
-);
+function onMapOptionsUpdated(updatedMapOptions: BattleOptions["mapOptions"]) {
+    emit("update:mapOptions", updatedMapOptions);
+}
+
+watch(map, () => {
+    customBoxRange.value = 25;
+});
 
 // merged boxes with teams for displaying team info
 // and team based logic for start boxes
 const teamBoxes = computed<Array<StartBox & Team>>(() => {
-    const teams = battleStore.teams;
-    const boxes = battleActions.getCurrentStartBoxes();
+    const boxes = getCurrentStartBoxes(map.value, mapOptions.value);
 
     const teamBoxes: Array<StartBox & Team> = [];
 
-    for (let i = 0; i < teams.length; i++) {
-        teamBoxes.push({ ...teams[i], ...boxes[i] });
+    for (let i = 0; i < teams.value.length; i++) {
+        teamBoxes.push({ ...teams.value[i], ...boxes[i] });
     }
 
     return teamBoxes;
@@ -182,8 +195,8 @@ const participantCounts = computed(() => {
 const canDeleteTeamBox = (teamBox: StartBox & Team) => teamBoxes.value.length >= 3 && teamBox.participants.length == 0;
 
 const hasCustomStartBoxes = computed(() => {
-    const customStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    const customStartBoxes = mapOptions.value.customStartBoxes;
+    const startBoxesIndex = mapOptions.value.startBoxesIndex;
 
     if (customStartBoxes == undefined || startBoxesIndex != undefined) return false;
 
@@ -201,50 +214,62 @@ watch(customBoxRange, () => {
 function setPresetStartBoxes(startBoxIndex: number) {
     lastSelectedCustomPresetBoxes.value = null;
 
-    delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
-    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
-    battleStore.battleOptions.mapOptions.startBoxesIndex = startBoxIndex;
+    emit("update:mapOptions", {
+        ...mapOptions.value,
+        fixedPositionsIndex: undefined,
+        startPosType: StartPosType.Boxes,
+        startBoxesIndex: startBoxIndex,
+    });
 }
 
 function setCustomStartBoxes(orientation: StartBoxOrientation) {
     lastSelectedCustomPresetBoxes.value = orientation;
 
     const customStartBoxes = getBoxes(orientation, customBoxRange.value);
-    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
-    battleStore.battleOptions.mapOptions.customStartBoxes = customStartBoxes;
+    emit("update:mapOptions", {
+        ...mapOptions.value,
+        startBoxesIndex: undefined,
+        startPosType: StartPosType.Boxes,
+        customStartBoxes,
+    });
 }
 
 function setFixedStartBoxes(index: number) {
     lastSelectedCustomPresetBoxes.value = null;
 
-    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Fixed;
-    battleStore.battleOptions.mapOptions.fixedPositionsIndex = index;
+    emit("update:mapOptions", {
+        ...mapOptions.value,
+        startBoxesIndex: undefined,
+        startPosType: StartPosType.Fixed,
+        fixedPositionsIndex: index,
+    });
 }
 function setRandomStartBoxes() {
     lastSelectedCustomPresetBoxes.value = null;
 
-    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-    delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
-    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Random;
+    emit("update:mapOptions", {
+        ...mapOptions.value,
+        startBoxesIndex: undefined,
+        fixedPositionsIndex: undefined,
+        startPosType: StartPosType.Random,
+    });
 }
 
 function setCustomBoxesFromPresetBoxes() {
     lastSelectedCustomPresetBoxes.value = null;
 
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    const startBoxesIndex = mapOptions.value.startBoxesIndex;
 
     if (startBoxesIndex == undefined) {
         return;
     }
 
-    const currentStartBoxes = battleActions.getCurrentStartBoxes();
-
-    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-    delete battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
+    const currentStartBoxes = getCurrentStartBoxes(map.value, mapOptions.value);
+    emit("update:mapOptions", {
+        ...mapOptions.value,
+        startBoxesIndex: undefined,
+        customStartBoxes: currentStartBoxes,
+    });
 }
 
 function close() {

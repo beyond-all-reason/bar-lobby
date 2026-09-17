@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <Button @click="startGame()" class="green" :disabled="isMapNeeded">Start Game</Button>
+            <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
             <Button @click="joinQueue()" class="green">Join Queue</Button>
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
             <Button @click="updateReadiness(true)" class="green">Ready</Button>
@@ -19,43 +20,153 @@ SPDX-License-Identifier: MIT
             <Button @click="fetchMap()" class="red flex-right" :disabled="!isMapNeeded || contentsStore.isPathChanging"
                 >Download Map</Button
             >
-            <Button @click="leaveLobby()" class="flex-right">Tachyon:Leave Lobby</Button>
+            <Button @click="switchLobbyTemplate()" class="flex-right">Switch Template</Button>
         </div>
         <div v-if="lobbyStore.activeLobby">
-            <div>
-                <div v-for="(item, name, index) in lobbyStore.activeLobby" :key="index" :class="getStripeResult(index)">
-                    <div class="margin-left-sm padding-top-sm padding-bottom-sm">
-                        <p class="txt-md">
-                            <b>{{ name }}</b>
-                        </p>
+            <component :is="switchTemplate ? FFALobby : StandardLobby">
+                <template #header>
+                    <div class="flex flex-row fullwidth margin-top-md margin-bottom-md gap-md">
+                        <Button v-tooltip.bottom="'Back'" class="icon close" @click="goBack">
+                            <Icon :icon="arrowBackIcon" :height="24" />
+                        </Button>
+                        <p class="title flex-left">{{ lobbyStore.activeLobby?.name }}</p>
+                        <div>
+                            <Button @click="editLobbyModalIsOpen = true" :title="'Edit Lobby'"
+                                ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
+                            /></Button>
+                        </div>
+                        <Button @click="leaveLobby()" class="red flex">Leave</Button>
+                        <HostBattle v-model="editLobbyModalIsOpen" mode="update" :active-lobby="lobbyStore.activeLobby" />
                     </div>
-                    <div class="margin-right-sm padding-top-sm padding-bottom-sm txt-right">
-                        <div v-if="name == 'allyTeamConfig' || name == 'players' || name == 'spectators' || name == 'currentBattle'">
-                            <ul>
-                                <div v-for="(i, n, x) in item" :key="x">
-                                    <li>{{ n }} - {{ i }}</li>
+                </template>
+                <template #player-list><Playerlist /></template>
+                <template #chat><ChatPanel type="lobby" :id="lobbyStore.activeLobby?.id" /></template>
+                <template #map-and-options>
+                    <div class="options">
+                        <MapBattlePreview :map="map" :map-options="mapOptions" />
+                        <div class="flex-row flex-space-between">
+                            <div class="flex-row gap-lg flex-center-items">
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
                                 </div>
-                            </ul>
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="gridIcon" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+                                </div>
+                            </div>
+                            <div class="flex-row flex-justify-end">
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
+                                </div>
+                            </div>
                         </div>
-                        <div v-else>
-                            <p class="txt-md">{{ item }}</p>
+                        <div class="flex-row gap-md">
+                            <Select
+                                :modelValue="map"
+                                :options="mapListOptions"
+                                data-key="springName"
+                                :label="t(`lobby.multiplayer.custom.lobby.map`)"
+                                optionLabel="springName"
+                                :filter="true"
+                                class="fullwidth"
+                                :disabled="true"
+                            />
+                        </div>
+                        <div v-if="settingsStore.devMode">
+                            <Select
+                                :modelValue="battleStore.battleOptions.gameVersion"
+                                :options="gameListOptions"
+                                optionLabel="gameVersion"
+                                optionValue="gameVersion"
+                                :label="t(`lobby.multiplayer.custom.lobby.gameVersion`)"
+                                :filter="true"
+                                :placeholder="battleStore.battleOptions.gameVersion"
+                                @update:model-value="onGameSelected"
+                                :disabled="battleStore.isOnline"
+                            />
+                        </div>
+                        <div v-if="settingsStore.devMode">
+                            <Select
+                                :modelValue="enginesStore.selectedEngineVersion"
+                                @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+                                :options="enginesStore.availableEngineVersions"
+                                data-key="id"
+                                optionLabel="id"
+                                :label="t(`lobby.multiplayer.custom.lobby.engineVersion`)"
+                                :filter="true"
+                                class="fullwidth"
+                                :disabled="battleStore.isOnline"
+                            />
                         </div>
                     </div>
-                </div>
-            </div>
+                </template>
+                <template #main>
+                    <div>
+                        <div v-for="(item, name, index) in lobbyStore.activeLobby" :key="index" :class="getStripeResult(index)">
+                            <div class="margin-left-sm padding-top-sm padding-bottom-sm">
+                                <p class="txt-md">
+                                    <b>{{ name }}</b>
+                                </p>
+                            </div>
+                            <div class="margin-right-sm padding-top-sm padding-bottom-sm txt-right">
+                                <div
+                                    v-if="name == 'allyTeamConfig' || name == 'players' || name == 'spectators' || name == 'currentBattle'"
+                                >
+                                    <ul>
+                                        <div v-for="(i, n, x) in item" :key="x">
+                                            <li>{{ n }} - {{ i }}</li>
+                                        </div>
+                                    </ul>
+                                </div>
+                                <div v-else>
+                                    <p class="txt-md">{{ item }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </component>
         </div>
     </Panel>
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { contentsStore } from "@renderer/store/contents.store";
 import { router } from "@renderer/router";
 import { mapsStore, downloadMap } from "@renderer/store/maps.store";
+import StandardLobby from "@renderer/components/lobbies/standard.vue";
+import FFALobby from "@renderer/components/lobbies/ffa.vue";
+import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
+import Playerlist from "@renderer/components/battle/Playerlist.vue";
+import ChatPanel from "@renderer/components/common/ChatPanel.vue";
+import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
+import personIcon from "@iconify-icons/mdi/person-multiple";
+import gridIcon from "@iconify-icons/mdi/grid";
+import { Icon } from "@iconify/vue";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
+import { battleStore } from "@renderer/store/battle.store";
+import { settingsStore } from "@renderer/store/settings.store";
+import pencilIcon from "@iconify-icons/mdi/pencil";
+import arrowBackIcon from "@iconify-icons/mdi/arrow-back";
+import { MapData } from "@main/content/maps/map-data";
+import { StartPosType } from "@main/game/battle/battle-types";
+import { db } from "@renderer/store/db";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
+import { useTypedI18n } from "@renderer/i18n";
+import Select from "@renderer/components/controls/Select.vue";
+import HostBattle from "@renderer/components/battle/HostBattle.vue";
 
+const editLobbyModalIsOpen = ref(false);
+
+const switchTemplate = ref(false);
+
+function switchLobbyTemplate() {
+    switchTemplate.value = !switchTemplate.value;
+}
 function getStripeResult(index: number) {
     return index & 1 ? "datagrid" : "datagrid datagridstripe";
 }
@@ -66,6 +177,10 @@ function fetchMap() {
 
 function leaveLobby() {
     lobby.requestLeaveLobby();
+    router.push("/play/customLobbies");
+}
+
+function goBack() {
     router.push("/play/customLobbies");
 }
 
@@ -85,6 +200,45 @@ function updateReadiness(isReady: boolean) {
 const isMapNeeded = computed(() => {
     return lobbyStore.activeLobby ? !mapsStore.availableMapNames.has(lobbyStore.activeLobby.mapName) : false;
 });
+
+const { t } = useTypedI18n();
+
+const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
+
+const map = ref<MapData>();
+
+watch(
+    () => lobbyStore.activeLobby?.mapName,
+    async (mapName) => {
+        const loadedMap = mapName ? await db.maps.get(mapName) : undefined;
+        if (lobbyStore.activeLobby?.mapName === mapName) {
+            map.value = loadedMap;
+        }
+    },
+    { immediate: true }
+);
+
+const mapOptions = computed(() => ({
+    startPosType: StartPosType.Boxes,
+    customStartBoxes: lobbyStore.activeLobby
+        ? Object.keys(lobbyStore.activeLobby.allyTeamConfig)
+              .sort((a, b) => Number(a) - Number(b))
+              .map((key) => lobbyStore.activeLobby!.allyTeamConfig[key].startBox)
+        : [],
+}));
+
+async function onGameSelected(gameVersion: string) {
+    if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
+    //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
+    //It looks like it's because in offline battles we select from available versions?
+    //gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+    gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
+    battleStore.battleOptions.gameVersion = gameVersion;
+}
 </script>
 
 <style>
@@ -95,5 +249,20 @@ const isMapNeeded = computed(() => {
 }
 .datagridstripe {
     background-color: #00000033;
+}
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+}
+.title {
+    font-size: 28px;
+    line-height: 1.2em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    overflow-y: visible;
+    scrollbar-width: none;
 }
 </style>

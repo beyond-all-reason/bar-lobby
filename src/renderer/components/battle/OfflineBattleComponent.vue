@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
                 <Playerlist />
             </div>
             <div class="options">
-                <MapBattlePreview />
+                <MapBattlePreview :map="battleStore.battleOptions.map" :map-options="battleStore.battleOptions.mapOptions" />
                 <div class="flex-row flex-space-between">
                     <div class="flex-row gap-lg flex-center-items">
                         <div class="flex-row flex-center-items gap-sm">
@@ -49,7 +49,16 @@ SPDX-License-Identifier: MIT
                         :title="t('lobby.components.battle.offlineBattleComponent.maps')"
                         @map-selected="onMapSelected"
                     />
-                    <MapOptionsModal v-if="battleStore.battleOptions.map" v-model="mapOptionsOpen" />
+                    <MapOptionsModal
+                        v-if="battleStore.battleOptions.map"
+                        v-model="mapOptionsOpen"
+                        :map="battleStore.battleOptions.map"
+                        :map-options="battleStore.battleOptions.mapOptions"
+                        :teams="battleStore.teams"
+                        @update:map-options="battleStore.battleOptions.mapOptions = $event"
+                        @add-team="battleActions.addTeam"
+                        @remove-team="battleActions.removeTeam"
+                    />
                 </div>
                 <GameModeComponent />
                 <div v-if="settingsStore.devMode">

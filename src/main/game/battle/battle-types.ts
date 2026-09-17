@@ -109,7 +109,7 @@ export type Restriction = {
 };
 
 export type Player = {
-    id: number;
+    id: string;
     name: string;
     user: User;
     contentSyncState: {
@@ -128,8 +128,8 @@ export type Player = {
 };
 
 export type Bot = {
-    id: number;
-    host: number;
+    id: string;
+    host: string;
     aiShortName: string;
     name: string;
     aiOptions: Record<string, unknown>;

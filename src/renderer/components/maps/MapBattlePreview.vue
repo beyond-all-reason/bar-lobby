@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="map-container">
-        <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
+        <div v-if="props.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
             <!--
             When the active preset has polygon-shaped startboxes (3+ vertex
@@ -17,18 +17,15 @@ SPDX-License-Identifier: MIT
             For pure-rectangle presets (or custom mode), the existing rect
             divs render with full drag/resize affordance unchanged.
             -->
-            <div
-                v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive"
-                class="boxes"
-            >
-                <MapBattlePreviewStartBox v-for="(box, i) in boxes" v-startBox="box" :key="`box${i}`" :id="i" :box="box" />
+            <div v-if="props.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive" class="boxes">
+                <slot name="boxes" :boxes="boxes">
+                    <div v-for="(box, i) in boxes" :key="`box${i}`" v-startBox="box" class="box">
+                        <span>{{ i + 1 }}</span>
+                    </div>
+                </slot>
             </div>
             <svg
-                v-if="
-                    battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes &&
-                    polygonPresetActive &&
-                    polygonOverlays.length > 0
-                "
+                v-if="props.mapOptions.startPosType === StartPosType.Boxes && polygonPresetActive && polygonOverlays.length > 0"
                 class="polygon-overlay"
                 viewBox="0 0 200 200"
                 preserveAspectRatio="none"
@@ -44,24 +41,15 @@ SPDX-License-Identifier: MIT
                     vector-effect="non-scaling-stroke"
                 />
             </svg>
-            <div
-                v-if="battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]"
-                class="start-positions"
-            >
+            <div v-if="props.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]" class="start-positions">
                 <div
-                    v-for="(side, sideIndex) in battleStore.battleOptions.map.startPos?.team?.[
-                        battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0
-                    ]?.sides"
+                    v-for="(side, sideIndex) in props.map?.startPos?.team?.[props.mapOptions.fixedPositionsIndex ?? 0]?.sides"
                     :key="`side${sideIndex}`"
                 >
                     <div
                         v-for="(spawnPoint, spIndex) in side.starts"
                         :key="`startPos${spIndex}`"
-                        v-startPos="[
-                            battleStore.battleOptions.map.startPos?.positions[spawnPoint.spawnPoint],
-                            mapWidthElmos,
-                            mapHeightElmos,
-                        ]"
+                        v-startPos="[props.map?.startPos?.positions[spawnPoint.spawnPoint], mapWidthElmos, mapHeightElmos]"
                         v-setPlayerColor="rgbColors[sideIndex]"
                         class="start-pos"
                     >
@@ -79,16 +67,16 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script setup lang="ts">
-import { StartPosType } from "@main/game/battle/battle-types";
+import { BattleOptions, StartPosType } from "@main/game/battle/battle-types";
+import { MapData } from "@main/content/maps/map-data";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
-import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { StartBox } from "tachyon-protocol/types";
-import { computed, defineComponent, ref, watch } from "vue";
-import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
+import { computed, defineComponent } from "vue";
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
+import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
 import { isPolygonShape, tessellateRing } from "@renderer/utils/spline-tessellation";
 
 defineComponent({
@@ -100,28 +88,21 @@ defineComponent({
 });
 
 const { get } = useImageBlobUrlCache();
+const props = defineProps<{
+    map?: MapData;
+    mapOptions: BattleOptions["mapOptions"];
+}>();
+
 const mapTextureUrl = computed(() => {
-    if (!battleStore.battleOptions.map?.images) {
+    if (!props.map?.images) {
         return defaultMiniMap;
     }
-    return get(battleStore.battleOptions.map?.springName, battleStore.battleOptions.map?.imagesBlob?.preview);
+    return get(props.map.springName, props.map.imagesBlob?.preview) ?? defaultMiniMap;
 });
 
-const startBoxes = ref(battleStore.battleOptions.map?.startboxesSet);
-const startPositions = ref(battleStore.battleOptions.map?.startPos);
-const mapWidthElmos = ref(battleStore.battleOptions.map?.mapWidth ? battleStore.battleOptions.map.mapWidth * 512 : null);
-const mapHeightElmos = ref(battleStore.battleOptions.map?.mapHeight ? battleStore.battleOptions.map.mapHeight * 512 : null);
-watch(
-    () => battleStore.battleOptions.map,
-    () => {
-        startBoxes.value = battleStore.battleOptions.map?.startboxesSet;
-        startPositions.value = battleStore.battleOptions.map?.startPos;
-        mapWidthElmos.value = battleStore.battleOptions.map?.mapWidth ? battleStore.battleOptions.map.mapWidth * 512 : null;
-        mapHeightElmos.value = battleStore.battleOptions.map?.mapHeight ? battleStore.battleOptions.map.mapHeight * 512 : null;
-    }
-);
-
-const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes());
+const boxes = computed<StartBox[]>(() => getCurrentStartBoxes(props.map, props.mapOptions));
+const mapWidthElmos = computed(() => (props.map?.mapWidth ? props.map.mapWidth * 512 : null));
+const mapHeightElmos = computed(() => (props.map?.mapHeight ? props.map.mapHeight * 512 : null));
 
 // Active preset is "polygon mode" when the currently-selected map preset
 // (startBoxesIndex) contains at least one 3+ vertex ring. In that mode, the
@@ -130,9 +111,9 @@ const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes());
 // user-editable from the lobby. Switching to a custom preset clears
 // startBoxesIndex and turns this off.
 const polygonPresetActive = computed<boolean>(() => {
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    const startBoxesIndex = props.mapOptions.startBoxesIndex;
     if (startBoxesIndex === undefined) return false;
-    const set = battleStore.battleOptions.map?.startboxesSet?.[startBoxesIndex];
+    const set = props.map?.startboxesSet?.[startBoxesIndex];
     if (!set) return false;
     return set.startboxes.some((box) => isPolygonShape(box.poly));
 });
@@ -143,9 +124,9 @@ const polygonPresetActive = computed<boolean>(() => {
 // Catmull-Rom strength — is preserved through the render. The path uses
 // the [0, 200] coordinate space directly via the parent SVG's viewBox.
 const polygonOverlays = computed<{ index: number; path: string }[]>(() => {
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    const startBoxesIndex = props.mapOptions.startBoxesIndex;
     if (startBoxesIndex === undefined) return [];
-    const set = battleStore.battleOptions.map?.startboxesSet?.[startBoxesIndex];
+    const set = props.map?.startboxesSet?.[startBoxesIndex];
     if (!set) return [];
     const out: { index: number; path: string }[] = [];
     set.startboxes.forEach((box, index) => {
@@ -159,10 +140,13 @@ const polygonOverlays = computed<{ index: number; path: string }[]>(() => {
 });
 
 const aspectRatioDrivenStyle = computed(() => {
-    if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
+    if (!props.map?.mapWidth || !props.map?.mapHeight) {
         return;
     }
-    return battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight > 1 ? "height: auto;" : "height: 100%;";
+    const aspectRatio = `${props.map.mapWidth} / ${props.map.mapHeight}`;
+    return props.map.mapWidth / props.map.mapHeight > 1
+        ? { width: "100%", height: "auto", maxHeight: "100%", aspectRatio }
+        : { width: "auto", height: "100%", maxWidth: "100%", aspectRatio };
 });
 
 const rgbColors = [
@@ -180,7 +164,7 @@ const rgbColors = [
     flex-shrink: 0;
     aspect-ratio: 1;
     overflow: hidden;
-    display: flex;
+    display: grid;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -189,14 +173,20 @@ const rgbColors = [
 
 .map {
     position: relative;
+    flex: none;
     object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     img {
-        max-height: 100%;
+        display: block;
         width: 100%;
+        height: 100%;
+        object-fit: fill;
     }
 }
 .background {
@@ -213,12 +203,26 @@ const rgbColors = [
     height: 100%;
 }
 
+.box {
+    position: absolute;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+    color: white;
+    font-size: 1.5rem;
+}
+
 .polygon-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 1;
     pointer-events: none;
 }
 

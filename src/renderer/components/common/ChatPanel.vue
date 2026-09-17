@@ -8,9 +8,10 @@ SPDX-License-Identifier: MIT
     <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-col flex-grow fullheight">
             <div class="messages">
-                <div class="flex-col gap-sm">
+                <div v-if="messages.length === 0" class="no-messages">{{ t("lobby.navbar.messages.noMessages") }}</div>
+                <div v-else class="flex-col gap-sm">
                     <div
-                        v-for="(message, i) in partyMessages"
+                        v-for="(message, i) in messages"
                         :key="i"
                         v-in-view.once="() => (message.seen = true)"
                         :class="['message', { fromMe: message.source.userId === me.userId }]"
@@ -28,9 +29,9 @@ SPDX-License-Identifier: MIT
                 class="reply"
                 :disabled="!tachyonStore.isConnected"
                 :placeholder="t('lobby.navbar.messages.message')"
-                @keyup.enter.stop="sendPartyMessage(text)"
+                @keyup.enter.stop="sendMessage(text)"
             />
-            <Button :disabled="!tachyonStore.isConnected" @click="sendPartyMessage(text)">{{ t("lobby.navbar.messages.send") }}</Button>
+            <Button :disabled="!tachyonStore.isConnected" @click="sendMessage(text)">{{ t("lobby.navbar.messages.send") }}</Button>
         </div>
     </div>
 </template>
@@ -38,16 +39,20 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { computed, ref } from "vue";
 import { chatStore, chat } from "@renderer/store/chat.store";
-import { partyStore } from "@renderer/store/party.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { UserId } from "tachyon-protocol/types";
+import { LobbyId, PartyId, UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
 import { db } from "@renderer/store/db";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
+
+const props = defineProps<{
+    type: "lobby" | "party";
+    id: LobbyId | PartyId | undefined;
+}>();
 
 const { t } = useTypedI18n();
 
@@ -56,9 +61,14 @@ function focusTextbox(el: HTMLElement) {
         el.firstElementChild.focus();
     }
 }
-const partyMessages = computed(() => (partyStore.activeParty ? (chatStore.partyChats.get(partyStore.activeParty) ?? []) : []));
 
-const displayNames = useDexieLiveQueryWithDeps(partyMessages, async () => {
+const messages = computed(() => {
+    if (!props.id) return [];
+    const chats = props.type === "lobby" ? chatStore.lobbyChats : chatStore.partyChats;
+    return chats.get(props.id) ?? [];
+});
+
+const displayNames = useDexieLiveQueryWithDeps(messages, async () => {
     const map = new Map<UserId, string>();
     await db.users.each(function (user) {
         map.set(user.userId, user.username);
@@ -69,13 +79,13 @@ const displayNames = useDexieLiveQueryWithDeps(partyMessages, async () => {
 const text = ref("");
 const newMessage = ref("");
 
-function sendPartyMessage(messageText: string) {
+function sendMessage(messageText: string) {
     // Button's disabled prop only styles the control, it does not stop the click.
     if (!tachyonStore.isConnected) return;
 
     chat.requestSend({
         target: {
-            type: "party",
+            type: props.type,
         },
         message: messageText,
     });
@@ -91,7 +101,13 @@ function sendPartyMessage(messageText: string) {
     overflow-y: scroll;
     padding: 10px;
     // flex: 1 1 auto;
-    height: 600px;
+    height: 600px; //FIX: this probably shouldn't be a fixed value?
+}
+.no-messages {
+    align-self: center;
+    opacity: 0.5;
+    font-style: italic;
+    padding: 4px 8px;
 }
 .message {
     word-break: break-word;

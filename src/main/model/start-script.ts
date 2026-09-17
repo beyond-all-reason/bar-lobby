@@ -62,7 +62,7 @@ export interface Restriction {
 }
 
 export interface AllyTeam {
-    id: number;
+    id: string;
     numallies?: number;
     startrecttop?: number;
     startrectleft?: number;
@@ -71,9 +71,9 @@ export interface AllyTeam {
 }
 
 export interface Team {
-    id: number;
-    allyteam: number;
-    teamleader: number;
+    id: string;
+    allyteam: string;
+    teamleader: string;
     rgbcolor?: string;
     side?: string;
     handicap?: number;
@@ -85,9 +85,9 @@ export interface Team {
 }
 
 export interface Player {
-    id: number;
+    id: string;
     name: string;
-    team?: number;
+    team?: string;
     password?: string;
     spectator?: number;
     isfromdemo?: number;
@@ -97,10 +97,10 @@ export interface Player {
 }
 
 export interface Bot {
-    id: number;
-    team: number;
+    id: string;
+    team: string;
     shortname: string;
-    host: number;
+    host: string;
     name?: string;
     version?: string;
     options?: {

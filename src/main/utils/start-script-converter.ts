@@ -77,7 +77,7 @@ class StartScriptConverter {
         const bots: Bot[] = [];
 
         Object.entries(battle.teams).forEach((entry) => {
-            const teamId = Number(entry[0]);
+            const teamId = entry[0];
             const team = entry[1];
             const allyTeam: AllyTeam = {
                 id: teamId,

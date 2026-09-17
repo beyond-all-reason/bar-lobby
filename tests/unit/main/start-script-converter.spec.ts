@@ -39,8 +39,8 @@ function twoTeamBattle(mapOptions: Record<string, unknown>): BattleWithMetadata 
     return {
         isOnline: false,
         spectators: [],
-        me: { id: 0, user: { username: "p1", userId: 1 } },
-        teams: [{ participants: [{ id: 0, user: { username: "p1", userId: 1 } }] }, { participants: [{ id: 1, user: { username: "p2", userId: 2 } }] }],
+        me: { id: "0", user: { username: "p1", userId: "1" } },
+        teams: [{ participants: [{ id: "0", user: { username: "p1", userId: "1" } }] }, { participants: [{ id: "1", user: { username: "p2", userId: "2" } }] }],
         battleOptions: {
             gameVersion: "test",
             gameMode: { id: GameModeID.CLASSIC, label: "Classic", options: {} },
@@ -65,8 +65,8 @@ describe("start script bot factions", () => {
         const battle = twoTeamBattle({ startPosType: StartPosType.Fixed });
         battle.teams[1].participants = [
             {
-                id: 1,
-                host: 0,
+                id: "1",
+                host: "0",
                 aiShortName: "BARb",
                 name: "Armada bot",
                 aiOptions: {},
@@ -83,8 +83,8 @@ describe("start script bot factions", () => {
         const battle = twoTeamBattle({ startPosType: StartPosType.Fixed });
         battle.teams[1].participants = [
             {
-                id: 1,
-                host: 0,
+                id: "1",
+                host: "0",
                 aiShortName: "BARb",
                 name: "Default bot",
                 aiOptions: {},

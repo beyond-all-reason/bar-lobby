@@ -10,7 +10,7 @@ const requestSend = vi.hoisted(() => vi.fn());
 
 vi.mock("@renderer/store/chat.store", () => ({
     chat: { requestSend, clearUserChat: vi.fn() },
-    chatStore: { partyChat: [], userChats: new Map() },
+    chatStore: { partyChats: new Map(), lobbyChats: new Map(), userChats: new Map() },
 }));
 
 vi.mock("@renderer/store/tachyon.store", () => ({ tachyonStore: { isConnected: false } }));
@@ -23,10 +23,11 @@ vi.mock("@renderer/composables/useDexieLiveQuery", () => ({
 vi.mock("@renderer/store/db", () => ({ db: { users: { each: vi.fn(), filter: () => ({ each: vi.fn() }) } } }));
 
 const { tachyonStore } = await import("@renderer/store/tachyon.store");
-const PartyChat = (await import("@renderer/components/party/PartyChat.vue")).default;
+const ChatPanel = (await import("@renderer/components/common/ChatPanel.vue")).default;
 
 const mountChat = () =>
-    mount(PartyChat, {
+    mount(ChatPanel, {
+        props: { type: "party", id: "party1" },
         global: {
             plugins: [PrimeVue],
             directives: { "in-view": {} },

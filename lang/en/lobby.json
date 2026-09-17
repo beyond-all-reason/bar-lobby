@@ -193,6 +193,13 @@
                     "players": "Players",
                     "runningFor": "Running for",
                     "join": "Join"
+                },
+                "lobby": {
+                    "title": "Lobby",
+                    "gameVersion": "Game Version",
+                    "engineVersion": "Engine Version",
+                    "maps": "Maps",
+                    "map": "Map"
                 }
             }
         },
@@ -292,7 +299,8 @@
                 "message": "Message",
                 "userID": "User {id}",
                 "userIDPlaceholder": "32452",
-                "send": "Send"
+                "send": "Send",
+                "noMessages": "No messages in this chat history."
             },
             "settings": {
                 "title": "settings",
@@ -482,7 +490,14 @@
                     "startBoxes3": "AllyTeams without one are full-map startboxes.",
                     "allyTeamCount": "AllyTeam Count: ",
                     "teamsPerAllyTeam": "Teams per AllyTeam: ",
-                    "map": "Map"
+                    "map": "Map",
+                    "areBossesEnabled": "Enable Bosses? This cannot be changed later.",
+                    "conflictWarning": "Server changes conflict with your local draft.",
+                    "useServer": "Use server",
+                    "keepMine": "Keep mine",
+                    "lobbyNameChanged": "Lobby name changed on the server.",
+                    "mapNameChanged": "Map changed on the server.",
+                    "allyTeamConfigChanged": "Team setup changed on the server."
                 },
                 "votePanel": {
                     "vote": "Vote:",
@@ -520,7 +535,8 @@
                 "spectatorsComponent": {
                     "spectators": "Spectators",
                     "memberCount": "0 Members | 1 Member | {n} Members",
-                    "join": "Join"
+                    "join": "Join",
+                    "queue": "Queue"
                 },
                 "battlePreview": {
                     "preview": "Preview",

@@ -5,7 +5,12 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div ref="boxElement" class="box-container box highlight" :style="boxStyles" :class="{ dragging: isDragging, resizing: isResizing }">
+    <div
+        ref="boxElement"
+        class="box-container box highlight"
+        :style="boxStyles"
+        :class="{ dragging: isDragging, resizing: isResizing, disabled: props.disabled }"
+    >
         <div class="box-tooltip" @mousedown="startDrag">
             <div class="box-tooltip-side n-side" @mousedown.stop="startResize('n', null, $event)"></div>
             <div class="box-tooltip-side e-side" @mousedown.stop="startResize(null, 'e', $event)"></div>
@@ -23,8 +28,6 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { StartBox } from "tachyon-protocol/types";
-import { battleStore } from "@renderer/store/battle.store";
-import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 
 const props = defineProps({
     id: {
@@ -35,9 +38,16 @@ const props = defineProps({
         type: Object as () => StartBox,
         required: true,
     },
+    disabled: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
 });
 
-defineEmits(["update:box"]);
+const emit = defineEmits<{
+    (event: "update:box", box: StartBox): void;
+}>();
 
 // Reference to the box element
 const boxElement = ref<HTMLElement | null>(null);
@@ -62,6 +72,7 @@ const boxStyles = computed(() => {
 
 // Main box drag handler
 function startDrag(event: MouseEvent) {
+    if (props.disabled) return;
     // Ignore if clicked on resize handles
     if (
         (event.target as HTMLElement).classList.contains("box-tooltip-side") ||
@@ -94,6 +105,7 @@ function startDrag(event: MouseEvent) {
 }
 
 function handleDrag(event: MouseEvent) {
+    if (props.disabled) return;
     if (!isDragging.value || !startBox.value || !parentRect.value || !boxElement.value) return;
 
     // Calculate the drag delta in normalized coordinates (0-1)
@@ -114,6 +126,7 @@ function handleDrag(event: MouseEvent) {
 }
 
 function endDrag() {
+    if (props.disabled) return;
     if (!isDragging.value || !startBox.value || !parentRect.value || !boxElement.value) {
         resetDrag();
         return;
@@ -137,7 +150,7 @@ function endDrag() {
     boxElement.value.classList.remove("dragging");
 
     // Emit the update
-    updateBoxInStore(newBox);
+    emit("update:box", { ...newBox });
 
     resetDrag();
 }
@@ -151,6 +164,7 @@ function resetDrag() {
 
 // Resize handlers
 function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, event: MouseEvent) {
+    if (props.disabled) return;
     event.preventDefault();
     event.stopPropagation();
     isResizing.value = true;
@@ -201,6 +215,7 @@ function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, e
 }
 
 function handleResize(event: MouseEvent) {
+    if (props.disabled) return;
     if (!isResizing.value || !startBox.value || !parentRect.value || !activeHandle.value || !boxElement.value) return;
 
     // Calculate the movement in normalized coordinates (0-1)
@@ -246,6 +261,7 @@ function handleResize(event: MouseEvent) {
 }
 
 function endResize() {
+    if (props.disabled) return;
     if (!isResizing.value || !boxElement.value) {
         resetResize();
         return;
@@ -273,7 +289,7 @@ function endResize() {
     boxElement.value.classList.remove("resizing");
 
     // Update the store
-    updateBoxInStore(newBox);
+    emit("update:box", { ...newBox });
 
     resetResize();
 }
@@ -286,42 +302,6 @@ function resetResize() {
     document.removeEventListener("mousemove", handleResize);
     document.removeEventListener("mouseup", endResize);
 }
-
-// Update the store with the new box values
-function updateBoxInStore(newBox: StartBox) {
-    // Clone the current boxes array from the store to ensure reactivity
-    const customBoxes = [...(battleStore.battleOptions.mapOptions.customStartBoxes || [])];
-
-    if (battleStore.battleOptions.mapOptions.startBoxesIndex != undefined) {
-        changeFromPresetToCustomBoxes(newBox, battleStore.battleOptions.mapOptions.startBoxesIndex);
-        return;
-    }
-
-    // Make sure we're working with valid data
-    if (!customBoxes || props.id < 0 || props.id >= customBoxes.length) {
-        console.error("Invalid box data or index:", props.id, customBoxes);
-        return;
-    }
-
-    // Update the current box
-    customBoxes[props.id] = { ...newBox };
-
-    // Save back to the store with a new array reference to trigger reactivity
-    battleStore.battleOptions.mapOptions.customStartBoxes = customBoxes;
-}
-
-function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number) {
-    const currentStartBoxes =
-        battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-
-    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-    delete battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    currentStartBoxes[props.id] = newBox;
-
-    // Save back to the store with a new array reference to trigger reactivity
-    battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
-}
 </script>
 
 <style lang="scss" scoped>
@@ -330,6 +310,7 @@ function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number
     box-sizing: border-box;
     transition: all 0.1s ease;
     will-change: transform, width, height, top, left;
+    border: 2px dashed rgba(255, 255, 255, 0.8);
 
     &.dragging,
     &.resizing {
@@ -380,6 +361,14 @@ function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number
         0 0 8px rgba(200, 200, 200, 0.6),
         0 0 15px rgba(200, 200, 200, 0.5);
     background-color: rgba(200, 200, 200, 0.6);
+}
+
+.box.disabled .box-tooltip-side:hover,
+.box.disabled .box-tooltip-corner:hover,
+.box.disabled .box-tooltip-side:active,
+.box.disabled .box-tooltip-corner:active {
+    box-shadow: none;
+    background-color: transparent;
 }
 
 $centerOffset: -5px;
@@ -460,6 +449,13 @@ $sideLength: calc(100% - $sideWidth);
     cursor:
         url("/src/renderer/assets/images/uiresized2_0.png") 16 16,
         nesw-resize !important;
+}
+
+.box.disabled,
+.box.disabled .box-tooltip,
+.box.disabled .box-tooltip-side,
+.box.disabled .box-tooltip-corner {
+    cursor: url("/src/renderer/assets/images/cursor_default.png"), auto !important;
 }
 
 @keyframes subtleGlow {

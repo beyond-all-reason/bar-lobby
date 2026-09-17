@@ -193,6 +193,13 @@
                     "players": "Plyreas",
                     "runningFor": "Rnuinng for",
                     "join": "Jion"
+                },
+                "lobby": {
+                    "title": "Lbboy",
+                    "gameVersion": "Gmae Vosiren",
+                    "engineVersion": "Egnnie Vosiren",
+                    "maps": "Maps",
+                    "map": "Map"
                 }
             }
         },
@@ -292,7 +299,8 @@
                 "message": "Msaesge",
                 "userID": "User {id}",
                 "userIDPlaceholder": "32452",
-                "send": "Sned"
+                "send": "Sned",
+                "noMessages": "No maegesss in tihs caht htoisry."
             },
             "settings": {
                 "title": "seinttgs",
@@ -482,7 +490,14 @@
                     "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
-                    "map": "Map"
+                    "map": "Map",
+                    "areBossesEnabled": "Eblnae Bosses? Tihs caonnt be cngeahd letar.",
+                    "conflictWarning": "Seevrr cngaehs cilnocft wtih your lcoal dafrt.",
+                    "useServer": "Use sveerr",
+                    "keepMine": "Keep mine",
+                    "lobbyNameChanged": "Lbboy name cngeahd on the sveerr.",
+                    "mapNameChanged": "Map cngeahd on the sveerr.",
+                    "allyTeamConfigChanged": "Team stuep cngeahd on the sveerr."
                 },
                 "votePanel": {
                     "vote": "Vtoe:",
@@ -520,7 +535,8 @@
                 "spectatorsComponent": {
                     "spectators": "Setptacros",
                     "memberCount": "0 Mrembes | 1 Meembr | {n} Mrembes",
-                    "join": "Jion"
+                    "join": "Jion",
+                    "queue": "Quuee"
                 },
                 "battlePreview": {
                     "preview": "Pevierw",

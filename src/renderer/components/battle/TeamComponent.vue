@@ -66,7 +66,7 @@ import { battleActions, battleWithMetadataStore } from "@renderer/store/battle.s
 const { t } = useTypedI18n();
 
 const props = defineProps<{
-    teamId: number;
+    teamId: string;
 }>();
 
 const title = computed(() =>
@@ -86,11 +86,11 @@ const maxPlayersPerTeam = computed(() => {
     return battleActions.getMaxPlayersPerTeam();
 });
 
-function isRaptorTeam(teamId: number) {
-    return battleWithMetadataStore.teams[teamId].participants.some((member) => isBot(member) && isRaptor(member));
+function isRaptorTeam(teamId: string) {
+    return battleWithMetadataStore.teams[Number(teamId)].participants.some((member) => isBot(member) && isRaptor(member));
 }
-function isScavengerTeam(teamId: number) {
-    return battleWithMetadataStore.teams[teamId]?.participants.some((member) => isBot(member) && isScavenger(member));
+function isScavengerTeam(teamId: string) {
+    return battleWithMetadataStore.teams[Number(teamId)]?.participants.some((member) => isBot(member) && isScavenger(member));
 }
 
 function getAmountOfJoinButtons(maxPlayersPerTeam: number | undefined, memberCount: number) {
@@ -110,11 +110,11 @@ function getAmountOfJoinButtons(maxPlayersPerTeam: number | undefined, memberCou
 // });
 
 const emit = defineEmits(["addBotClicked", "onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);
-function addBotClicked(teamId: number) {
+function addBotClicked(teamId: string) {
     emit("addBotClicked", teamId);
 }
 
-function onJoinClicked(teamId: number) {
+function onJoinClicked(teamId: string) {
     emit("onJoinClicked", teamId);
 }
 
@@ -127,12 +127,12 @@ function onDragEnd() {
     emit("onDragEnd");
 }
 
-function onDragEnter(event: DragEvent, teamId: number) {
+function onDragEnter(event: DragEvent, teamId: string) {
     if (isRaptorTeam(props.teamId) || isScavengerTeam(props.teamId)) return;
     emit("onDragEnter", event, teamId);
 }
 
-function onDrop(event: DragEvent, teamId: number) {
+function onDrop(event: DragEvent, teamId: string) {
     if (isRaptorTeam(props.teamId) || isScavengerTeam(props.teamId)) return;
     emit("onDrop", event, teamId);
 }
