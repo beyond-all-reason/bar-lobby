@@ -7,13 +7,25 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import PrimeVue from "primevue/config";
 
 import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import type { User } from "@main/model/user";
+import type { Message } from "@renderer/model/message";
 import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 import type { IpcResult } from "@main/typed-ipc";
 
 const requestReportUsers = vi.hoisted(() => vi.fn());
 const alert = vi.hoisted(() => vi.fn());
+
+// Mocked rather than imported: the real store reaches the router through the stores it pulls in,
+// and the chat step only needs the three maps.
+const chatStore = vi.hoisted(() => ({
+    lobbyChats: new Map<string, Message[]>(),
+    partyChats: new Map<string, Message[]>(),
+    userChats: new Map<string, Message[]>(),
+}));
+
+vi.mock("@renderer/store/chat.store", () => ({ chatStore }));
 
 vi.mock("@renderer/store/users.store", () => ({
     users: { requestReportUsers },
@@ -40,11 +52,20 @@ vi.mock("@renderer/store/config.store", () => {
 
 const searchOnlineByPlayer = vi.fn();
 const getOnline = vi.fn();
+const selectImages = vi.fn();
 
 Object.defineProperty(window, "replays", {
     value: { searchOnlineByPlayer, getOnline },
     writable: true,
 });
+
+Object.defineProperty(window, "paths", {
+    value: { selectImages },
+    writable: true,
+});
+
+const CHAT = "Chat / Communication";
+const ACTIONS = "In-Game Actions";
 
 const reportedUser = {
     userId: "1234",
@@ -79,6 +100,26 @@ const matchDetails = {
     spectators: [],
 } satisfies OnlineReplayDetails;
 
+function lobbyMessage(userId: string, text: string, timestamp: number) {
+    return {
+        message: text,
+        source: { type: "lobby", lobbyId: "lobby-1", userId },
+        timestamp,
+        marker: "",
+        seen: false,
+    } as unknown as Message;
+}
+
+function directMessage(userId: string, text: string, timestamp: number) {
+    return {
+        message: text,
+        source: { type: "player", userId },
+        timestamp,
+        marker: "",
+        seen: false,
+    } as unknown as Message;
+}
+
 const mounted: VueWrapper[] = [];
 
 // The modal submits through its form, and jsdom skips form submission for a form that is not in
@@ -98,13 +139,18 @@ function mountModal() {
 }
 
 function cardLabels(wrapper: VueWrapper) {
-    return wrapper.findAll(".card").map((card) => card.text());
+    return wrapper.findAll(".card-title").map((card) => card.text());
 }
 
 async function clickCard(wrapper: VueWrapper, label: string) {
-    const card = wrapper.findAll(".card").find((candidate) => candidate.text() === label);
+    const card = wrapper.findAll(".card").find((candidate) => candidate.find(".card-title").text() === label);
     if (!card) throw new Error(`No card labelled "${label}"`);
     await card.trigger("click");
+    await flushPromises();
+}
+
+async function action(wrapper: VueWrapper) {
+    await wrapper.find(".step-action button").trigger("click");
     await flushPromises();
 }
 
@@ -119,6 +165,11 @@ describe("ReportUserModal", () => {
         searchOnlineByPlayer.mockResolvedValue({ status: "success", data: [match] });
         getOnline.mockReset();
         getOnline.mockResolvedValue({ status: "success", data: matchDetails });
+        selectImages.mockReset();
+        selectImages.mockResolvedValue([]);
+        chatStore.lobbyChats.clear();
+        chatStore.partyChats.clear();
+        chatStore.userChats.clear();
         isOpen.value = false;
     });
 
@@ -126,14 +177,13 @@ describe("ReportUserModal", () => {
         mounted.splice(0).forEach((wrapper) => wrapper.unmount());
     });
 
-    it("offers the same reasons as the website report form, all on one step", async () => {
+    it("offers a reason per kind of report, with no sub types", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
 
         expect(wrapper.text()).toContain("Report Naughty");
-        expect(wrapper.findAll(".section-header").map((header) => header.text())).toEqual(["Chat / Communication", "In-Game Actions"]);
-        expect(cardLabels(wrapper)).toEqual(["Spam", "Bullying", "Hate speech", "Other", "Noob", "Griefing", "Cheating", "Other"]);
+        expect(cardLabels(wrapper)).toEqual([CHAT, ACTIONS]);
     });
 
     it("titles every step and only offers a way back once there is one", async () => {
@@ -144,7 +194,7 @@ describe("ReportUserModal", () => {
         expect(wrapper.find(".step-title").text()).toBe("Reason for Report");
         expect(wrapper.find(".back").exists()).toBe(false);
 
-        await clickCard(wrapper, "Cheating");
+        await clickCard(wrapper, ACTIONS);
         expect(wrapper.find(".step-title").text()).toBe("Which Match?");
         expect(wrapper.find(".back").exists()).toBe(true);
 
@@ -162,7 +212,7 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Cheating");
+        await clickCard(wrapper, ACTIONS);
 
         expect(searchOnlineByPlayer).toHaveBeenCalledWith("Naughty", 10);
         expect(wrapper.find(".match").text()).toContain("8 vs 8");
@@ -177,15 +227,30 @@ describe("ReportUserModal", () => {
         expect(wrapper.find("textarea").attributes("maxlength")).toBe("212");
 
         await wrapper.find("textarea").setValue("  Full map vision from minute 3  ");
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         expect(requestReportUsers).toHaveBeenCalledWith({
             userIds: ["1234"],
-            reason: { type: "actions/cheating" },
+            reason: { type: "actions" },
             message: "Full map vision from minute 3\nReplay: https://bar-rts.com/replays/abcdef",
         });
-        expect(isOpen.value).toBe(false);
+    });
+
+    it("shows that the report landed instead of closing itself", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, ACTIONS);
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("Kept shooting our own factory");
+        await action(wrapper);
+
+        expect(wrapper.find(".step-title").text()).toBe("Report Submitted");
+        expect(isOpen.value).toBe(true);
+        expect(wrapper.find(".back").exists()).toBe(false);
     });
 
     it("sends a report without a match when none is picked", async () => {
@@ -193,19 +258,18 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
 
         expect(getOnline).not.toHaveBeenCalled();
 
         await wrapper.find("textarea").setValue("Kept repeating the same line in lobby chat");
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         expect(requestReportUsers).toHaveBeenCalledWith({
             userIds: ["1234"],
-            reason: { type: "chat/spam" },
+            reason: { type: "actions" },
             message: "Kept repeating the same line in lobby chat",
         });
     });
@@ -215,17 +279,97 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Bullying");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
 
         expect(wrapper.find("textarea").attributes("maxlength")).toBe("255");
 
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         expect(requestReportUsers).not.toHaveBeenCalled();
         expect(isOpen.value).toBe(true);
+    });
+
+    it("takes a chat report past the messages before it will send", async () => {
+        chatStore.lobbyChats.set("lobby-1", [lobbyMessage("1234", "you are throwing", 1_700_000_000_000_000), lobbyMessage("5678", "leave them alone", 1_700_000_060_000_000)]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, CHAT);
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("Abusive in lobby chat");
+        await action(wrapper);
+
+        expect(requestReportUsers).not.toHaveBeenCalled();
+        expect(wrapper.find(".step-title").text()).toBe("Which messages?");
+
+        await action(wrapper);
+
+        expect(requestReportUsers).toHaveBeenCalledWith({
+            userIds: ["1234"],
+            reason: { type: "chat" },
+            message: "Abusive in lobby chat",
+        });
+    });
+
+    it("only offers messages from the reported user", async () => {
+        chatStore.lobbyChats.set("lobby-1", [lobbyMessage("1234", "you are throwing", 1_700_000_000_000_000), lobbyMessage("5678", "leave them alone", 1_700_000_060_000_000)]);
+        chatStore.userChats.set("1234", [directMessage("1234", "and stay out", 1_700_000_120_000_000)]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, CHAT);
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+        await wrapper.find("textarea").setValue("Abusive everywhere");
+        await action(wrapper);
+
+        const lines = wrapper.findAll(".chat-line").map((line) => line.text());
+        expect(lines.some((line) => line.includes("you are throwing"))).toBe(true);
+        expect(lines.some((line) => line.includes("and stay out"))).toBe(true);
+        expect(lines.some((line) => line.includes("leave them alone"))).toBe(false);
+        expect(wrapper.findAll(".conversation-label").map((label) => label.text())).toContain("Direct messages");
+    });
+
+    it("starts with the message the report was opened from already picked", async () => {
+        const reported = lobbyMessage("1234", "you are throwing", 1_700_000_000_000_000);
+        chatStore.lobbyChats.set("lobby-1", [reported, lobbyMessage("1234", "and again", 1_700_000_060_000_000)]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser, reported);
+        await flushPromises();
+
+        await clickCard(wrapper, CHAT);
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+        await wrapper.find("textarea").setValue("Abusive in lobby chat");
+        await action(wrapper);
+
+        const picked = wrapper.findAll(".chat-line").filter((line) => line.findComponent(Checkbox).props("modelValue"));
+        expect(picked).toHaveLength(1);
+        expect(picked[0].text()).toContain("you are throwing");
+    });
+
+    it("says so when nothing this session can be cited", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, CHAT);
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+        await wrapper.find("textarea").setValue("Abusive in lobby chat");
+        await action(wrapper);
+
+        expect(wrapper.find(".chat-list-message").text()).toContain("not holding any chat");
+        expect(wrapper.findAll(".chat-line")).toHaveLength(0);
     });
 
     it("drops a match search that lands after the modal was reopened on someone else", async () => {
@@ -235,14 +379,14 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
 
         isOpen.value = false;
         await flushPromises();
 
         openReportUser({ ...reportedUser, userId: "5678", username: "SomeoneElse" });
         await flushPromises();
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
 
         resolveFirstSearch!({ status: "success", data: [{ ...match, id: "stale", mapName: "Stale Map" }] });
         await flushPromises();
@@ -258,7 +402,7 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Cheating");
+        await clickCard(wrapper, ACTIONS);
 
         await wrapper.find(".match").trigger("click");
         await flushPromises();
@@ -283,7 +427,7 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
 
         expect(wrapper.find(".match").text()).toContain("Unknown");
     });
@@ -296,7 +440,7 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
 
         expect(wrapper.find(".match-list-message").text()).toContain("Could not load recent matches");
         expect(wrapper.find(".fullwidth button").exists()).toBe(true);
@@ -308,18 +452,17 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Cheating");
+        await clickCard(wrapper, ACTIONS);
 
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
         await wrapper.find("textarea").setValue("Full map vision from minute 3");
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         expect(requestReportUsers).toHaveBeenCalledWith({
             userIds: ["1234"],
-            reason: { type: "actions/cheating" },
+            reason: { type: "actions" },
             message: "Full map vision from minute 3\nReplay: https://bar-rts.com/replays/abcdef",
         });
     });
@@ -330,7 +473,7 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
 
         expect(wrapper.find(".match-list-message").text()).toContain("Could not load recent matches");
         expect(wrapper.text()).not.toContain("No recent matches found");
@@ -342,7 +485,7 @@ describe("ReportUserModal", () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
 
         expect(wrapper.find(".fullwidth button").exists()).toBe(true);
     });
@@ -352,7 +495,7 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
 
@@ -361,8 +504,7 @@ describe("ReportUserModal", () => {
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         const sent = requestReportUsers.mock.calls[0][0] as { message: string };
         expect(sent.message.length).toBe(255);
@@ -376,15 +518,15 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Griefing");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
 
         await wrapper.find("textarea").setValue("Kept shooting our own factory");
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         expect(alert).not.toHaveBeenCalled();
+        expect(wrapper.find(".step-title").text()).toBe("Extra Info");
         expect(isOpen.value).toBe(true);
     });
 
@@ -395,7 +537,7 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Cheating");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
@@ -416,13 +558,12 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Spam");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
 
         await wrapper.find("textarea").setValue("Spammed the lobby");
-        await wrapper.find(".green button").trigger("click");
-        await flushPromises();
+        await action(wrapper);
 
         isOpen.value = false;
         await flushPromises();
@@ -430,7 +571,7 @@ describe("ReportUserModal", () => {
         openReportUser(otherUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Griefing");
+        await clickCard(wrapper, ACTIONS);
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
 

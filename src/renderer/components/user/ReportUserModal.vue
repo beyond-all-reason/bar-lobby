@@ -190,7 +190,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, toRaw, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import arrowLeft from "@iconify-icons/mdi/arrow-left";
 import messageText from "@iconify-icons/mdi/message-text";
@@ -331,10 +331,14 @@ const reportedConversations = computed(() => {
         .filter((conversation) => conversation.lines.length > 0);
 });
 
+// Reading a ref hands back a reactive wrapper, so the raw objects are what can be compared.
+function isReportedMessage(message: Message) {
+    return reportedMessage.value !== null && toRaw(message) === toRaw(reportedMessage.value);
+}
+
 const originConversationKey = computed(
     () =>
-        reportedConversations.value.find((conversation) => conversation.lines.some((line) => line.message === reportedMessage.value))
-            ?.key ?? null
+        reportedConversations.value.find((conversation) => conversation.lines.some((line) => isReportedMessage(line.message)))?.key ?? null
 );
 
 // Whichever conversation the report was opened from leads, since that is the one being complained
@@ -352,7 +356,7 @@ const chatConversations = computed(() => {
 
 const chatLines = computed<ChatLine[]>(() => chatConversations.value.flatMap((conversation) => conversation.lines));
 
-const preselectedChatKey = computed(() => chatLines.value.find((line) => line.message === reportedMessage.value)?.key ?? null);
+const preselectedChatKey = computed(() => chatLines.value.find((line) => isReportedMessage(line.message))?.key ?? null);
 
 const reportedUserSpectated = computed(() =>
     matchDetails.value?.spectators.some((spectator) => spectator.userId?.toString() === reportedUser.value?.userId)
