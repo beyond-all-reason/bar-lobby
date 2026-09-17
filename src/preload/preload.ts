@@ -194,6 +194,7 @@ contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
 
 const pathsApi = {
     selectFolder: (): Promise<string | null> => ipcRenderer.invoke("paths:selectFolder"),
+    selectImages: (): Promise<string[]> => ipcRenderer.invoke("paths:selectImages"),
     moveAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:moveAndChangePath", newPath),
     copyAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:copyAndChangePath", newPath),
     changePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:changePath", newPath),
