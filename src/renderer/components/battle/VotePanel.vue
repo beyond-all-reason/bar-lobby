@@ -7,10 +7,11 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="voting-container">
         <Panel class="voting-panel">
-            <div :class="['remaining-time', { animating: showTimeRemaining }]"></div>
+            <div :class="['remaining-time', { animating: secondsRemaining !== null && secondsRemaining > 0 }]"></div>
 
             <div class="title">
-                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ vote.command }}
+                <!-- TODO Need to parse each type differently because they have additional data -->
+                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ vote?.action?.type }}
             </div>
 
             <div class="actions">
@@ -18,13 +19,13 @@ SPDX-License-Identifier: MIT
                 <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
             </div>
 
-            <div v-if="vote.callerName" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ vote.callerName }}</div>
+            <div v-if="vote?.initiator" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ vote.initiator }}</div>
 
             <div v-if="missingYesVotes" class="vote-display">
-                <div v-for="i in vote.yesVotes" :key="i" class="segment yes"></div>
+                <div v-for="i in yesVotes" :key="i" class="segment yes"></div>
                 <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
                 <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
-                <div v-for="i in vote.noVotes" :key="i" class="segment no"></div>
+                <div v-for="i in noVotes" :key="i" class="segment no"></div>
             </div>
         </Panel>
     </div>
@@ -32,59 +33,94 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { onKeyUp } from "@vueuse/core";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
+import { useNow } from "@vueuse/core";
 import { useTypedI18n } from "@renderer/i18n";
-
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { SpadsVote } from "@main/model/spads/spads-types";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
+import { LobbyUpdatedEventData } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 
-const props = defineProps<{
-    vote: SpadsVote;
-}>();
+const vote = computed(() => {
+    // FIX: Remove these casts once https://github.com/beyond-all-reason/tachyon/pull/156 is added
+    return (lobbyStore.activeLobby?.currentVote as LobbyUpdatedEventData["currentVote"]) ?? null;
+});
 
-const missingYesVotes = computed(() => {
-    if (props.vote.requiredYesVotes === undefined || props.vote.yesVotes === undefined) {
+const yesVotes = computed(() => {
+    if (vote.value?.voters === undefined) {
         return null;
     }
-    return props.vote.requiredYesVotes - props.vote.yesVotes;
+    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "yes").length;
+});
+const noVotes = computed(() => {
+    if (vote.value?.voters === undefined) {
+        return null;
+    }
+    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "no").length;
+});
+const abstainVotes = computed(() => {
+    if (vote.value?.voters === undefined) {
+        return null;
+    }
+    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "abstain").length;
+});
+const pendingVotes = computed(() => {
+    if (vote.value?.voters === undefined) {
+        return null;
+    }
+    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "pending").length;
+});
+const missingYesVotes = computed(() => {
+    if (vote.value?.quorum === undefined || vote.value?.voters === undefined) {
+        return null;
+    }
+    return vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "yes").length;
 });
 const missingNoVotes = computed(() => {
-    if (props.vote.requiredNoVotes === undefined || props.vote.noVotes === undefined) {
+    if (vote.value?.quorum === undefined || vote.value?.voters === undefined) {
         return null;
     }
-    return props.vote.requiredNoVotes - props.vote.noVotes;
+    return vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "no").length;
+});
+const voteMajority = computed(() => {
+    if (vote.value?.majority === undefined) {
+        return null;
+    }
+    return vote.value?.majority;
 });
 
 const remainingTimeDurationCss = ref("60s");
-const showTimeRemaining = ref(false);
-watch(
-    () => props.vote.secondsRemaining,
-    (newValue, oldValue) => {
-        if (newValue && !oldValue) {
-            remainingTimeDurationCss.value = `${newValue}s`;
-            showTimeRemaining.value = true;
-        } else if (!newValue) {
-            showTimeRemaining.value = false;
-        }
-    }
-);
+
+const now = useNow({ interval: 1000 });
+const secondsRemaining = computed(() => {
+    if (!vote.value) return null;
+    const until = vote.value.until;
+    if (!until) return null;
+    const deadlineMs = until / 1000;
+    return Math.max(0, Math.ceil((deadlineMs - now.value.getTime()) / 1000));
+});
 
 onKeyUp("F1", onYes);
 onKeyUp("F2", onNo);
 
 function onYes() {
-    // api.comms.request("c.lobby.message", {
-    //     message: "!vote y",
-    // });
+    if (vote.value) {
+        lobby.requestVoteSubmit({ id: vote.value?.id, vote: "yes" });
+    }
 }
 
 function onNo() {
-    // api.comms.request("c.lobby.message", {
-    //     message: "!vote n",
-    // });
+    if (vote.value) {
+        lobby.requestVoteSubmit({ id: vote.value?.id, vote: "no" });
+    }
+}
+
+function onAbstain() {
+    if (vote.value) {
+        lobby.requestVoteSubmit({ id: vote.value?.id, vote: "abstain" });
+    }
 }
 </script>
 

@@ -17,6 +17,7 @@ SPDX-License-Identifier: MIT
                 <slot name="player-list" />
             </div>
             <div class="chat-container">
+                <slot name="vote-panel" />
                 <slot name="chat" />
             </div>
             <div class="map-and-options">

@@ -40,6 +40,7 @@ SPDX-License-Identifier: MIT
                     </div>
                 </template>
                 <template #player-list><Playerlist /></template>
+                <template #vote-panel><VotePanel /></template>
                 <template #chat><ChatPanel type="lobby" :id="lobbyStore.activeLobby?.id" /></template>
                 <template #map-and-options>
                     <div class="options">
@@ -159,6 +160,7 @@ import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { useTypedI18n } from "@renderer/i18n";
 import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import VotePanel from "@renderer/components/battle/VotePanel.vue";
 
 const editLobbyModalIsOpen = ref(false);
 
