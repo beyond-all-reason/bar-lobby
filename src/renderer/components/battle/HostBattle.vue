@@ -23,17 +23,11 @@ SPDX-License-Identifier: MIT
                 <div class="host-layout">
                     <div class="host-left">
                         <div class="options">
-                            <MapBattlePreview :map="draftMap" :map-options="draftMapOptions">
-                                <template #boxes="{ boxes }">
-                                    <MapBattlePreviewStartBox
-                                        v-for="(box, index) in boxes"
-                                        :key="`box-${index}`"
-                                        :id="index"
-                                        :box="box"
-                                        @update:box="(updatedBox) => updateBox(index, updatedBox)"
-                                    />
-                                </template>
-                            </MapBattlePreview>
+                            <EditableMapBattlePreview
+                                :map="draftMap"
+                                :map-options="draftMapOptions"
+                                @update:map-options="onMapOptionsUpdated"
+                            />
                             <div class="flex-row flex-space-between">
                                 <div class="flex-row gap-lg flex-center-items">
                                     <div class="flex-row flex-center-items gap-sm">
@@ -245,8 +239,7 @@ import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import { battleStore } from "@renderer/store/battle.store";
-import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
-import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
+import EditableMapBattlePreview from "@renderer/components/maps/EditableMapBattlePreview.vue";
 import { createLobbySettingsDraft, useLobbySettingsDraft } from "@renderer/composables/useLobbySettingsDraft";
 import { BattleOptions, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
 import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
@@ -408,12 +401,6 @@ function onAddTeam() {
 
 function onRemoveTeam(teamId: number) {
     settingsDraft.removeAllyTeam(teamId);
-}
-
-function updateBox(index: number, box: StartBox) {
-    const boxes = getCurrentStartBoxes(draftMap.value, draftMapOptions.value).map((currentBox) => ({ ...currentBox }));
-    boxes[index] = { ...box };
-    settingsDraft.setCustomStartBoxes(boxes);
 }
 
 function setPresetStartBoxes(startBoxIndex: number) {
