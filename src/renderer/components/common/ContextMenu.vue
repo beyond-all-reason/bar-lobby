@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <ContextMenu ref="contextMenu" v-bind="$attrs" />
+    <ContextMenu ref="contextMenu" :model="model" v-bind="$attrs" />
 </template>
 
 <script lang="ts" setup>
@@ -14,7 +14,8 @@ SPDX-License-Identifier: MIT
 import ContextMenu, { ContextMenuProps } from "primevue/contextmenu";
 import { ref } from "vue";
 
-defineProps<ContextMenuProps>();
+// model is declared as a prop, so Vue excludes it from $attrs and it must be forwarded explicitly
+const { model } = defineProps<ContextMenuProps>();
 defineEmits<{
     (e: "show", event: Event): void;
     (e: "hide"): void;

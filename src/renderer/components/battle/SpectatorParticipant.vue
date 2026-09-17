@@ -84,7 +84,6 @@ function onRightClick(event: MouseEvent) {
     }
 }
 
-// TODO: Do a lookup from server data if this is an online user
 async function viewProfile() {
     await router.push(`/profile/${props.member.id}`);
 }
