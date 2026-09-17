@@ -37,7 +37,7 @@ import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import robotAngry from "@iconify-icons/mdi/robot-angry";
 import desktopTower from "@iconify-icons/mdi/desktop-tower";
-import { Ref, ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
@@ -61,7 +61,6 @@ const props = defineProps<{
     botId: string;
 }>();
 
-const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
@@ -79,9 +78,15 @@ const actions = [
 ];
 
 // Fill it with options as known to the server.
+const botOptions = computed<LuaOptionSection[]>(
+    () =>
+        [...(enginesStore.selectedEngineVersion?.ais || []), ...(gameStore.selectedGameVersion?.ais || [])].find(
+            (ai) => ai.name === props.bot.name
+        )?.options || []
+);
+
 const convertedOptions = computed(() => {
-    configureBot();
-    /* eslint-disable-next-line */
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     const record: Record<string, any> = {};
     for (const key in props.bot.options) {
         record[key] = props.bot.options[key];
@@ -111,12 +116,6 @@ function kickBot() {
     lobby.requestRemoveBot({ id: props.botId });
 }
 
-async function configureBot() {
-    botOptions.value =
-        [...(enginesStore.selectedEngineVersion?.ais || []), ...(gameStore.selectedGameVersion?.ais || [])].find(
-            (ai) => ai.name === props.bot.name
-        )?.options || [];
-}
 function openConfigureModal() {
     botOptionsOpen.value = true;
 }
