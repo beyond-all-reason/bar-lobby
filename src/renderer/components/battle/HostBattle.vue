@@ -248,12 +248,11 @@ import { battleStore } from "@renderer/store/battle.store";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
 import { createLobbySettingsDraft, useLobbySettingsDraft } from "@renderer/composables/useLobbySettingsDraft";
-import { BattleOptions, isPlayer, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
+import { BattleOptions, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
 import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
 import { getBoxes } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
-import { pluralize } from "@renderer/utils/i18n";
 
 const { t } = useTypedI18n();
 const props = withDefaults(defineProps<{ mode?: "create" | "update"; activeLobby?: Lobby }>(), { mode: "create" });
