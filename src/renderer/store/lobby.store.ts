@@ -388,11 +388,24 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
         const response = await tachyonRequest("lobby/addBot", data);
         console.log("Tachyon lobby/addBot", response);
     } catch (error) {
-        console.error("Error with request lobby/addBot", error);
-        notificationsApi.alert({
-            text: "Error with request lobby/addBot",
-            severity: "error",
-        });
+        let useGenericError = true;
+        if (isTachyonErrorForCommand(error, "lobby/addBot")) {
+            if (error.reason === "ally_team_full") {
+                useGenericError = false;
+                console.error("Tachyon error for lobby/addBot:", error);
+                notificationsApi.alert({
+                    text: "Unable to add bot; team is full",
+                    severity: "info",
+                });
+            }
+        }
+        if (useGenericError) {
+            console.error("Error with request lobby/addBot", error);
+            notificationsApi.alert({
+                text: "Error with request lobby/addBot",
+                severity: "error",
+            });
+        }
     }
 }
 
