@@ -134,26 +134,7 @@ SPDX-License-Identifier: MIT
                                     </span>
                                     <span v-else>
                                         <Icon :icon="lockOutlineIcon" :inline="true" />
-                                        {{ t("lobby.components.battle.mapOptionsModal.team") }} {{ teamBoxId + 1 }} (<span
-                                            v-if="participantCounts[teamBoxId]?.playerCount > 0"
-                                        >
-                                            {{ participantCounts[teamBoxId].playerCount }}
-                                            {{
-                                                pluralize(
-                                                    t("lobby.components.battle.mapOptionsModal.player"),
-                                                    participantCounts[teamBoxId].playerCount
-                                                )
-                                            }}
-                                        </span>
-                                        <span v-if="participantCounts[teamBoxId]?.botCount > 0">
-                                            {{ participantCounts[teamBoxId].botCount }}
-                                            {{
-                                                pluralize(
-                                                    t("lobby.components.battle.mapOptionsModal.ai"),
-                                                    participantCounts[teamBoxId].botCount
-                                                )
-                                            }} </span
-                                        >)
+                                        {{ t("lobby.components.battle.mapOptionsModal.team") }} {{ teamBoxId + 1 }}
                                     </span>
                                 </Button>
                             </div>
@@ -315,12 +296,6 @@ const teamBoxes = computed<Array<StartBox & Team>>(() => {
     const boxes = getCurrentStartBoxes(draftMap.value, draftMapOptions.value);
     return boxes.map((box, index) => ({ ...(draftTeams.value[index] ?? { participants: [] }), ...box }));
 });
-const participantCounts = computed(() =>
-    teamBoxes.value.map((teamBox) => ({
-        playerCount: teamBox.participants.filter(isPlayer).length,
-        botCount: teamBox.participants.filter((participant) => !isPlayer(participant)).length,
-    }))
-);
 const hasCustomStartBoxes = computed(
     () => draftMapOptions.value.customStartBoxes !== undefined && draftMapOptions.value.startBoxesIndex === undefined
 );
