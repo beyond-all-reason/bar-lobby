@@ -694,8 +694,7 @@
                     "chatParty": "Party",
                     "chatDirect": "Dierct maegesss",
                     "noChatAvailable": "Tihs sesosin is not hlnodig any caht form tihs pyaler.",
-                    "attachEvidence": "Atatch up to {max} iaemgs",
-                    "evidenceNotSentYet": "Iamegs are not snet wtih the rpreot yet."
+                    "attachEvidence": "Atatch up to {max} iaemgs"
                 }
             }
         }

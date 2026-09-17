@@ -2525,8 +2525,7 @@
                     "chatParty": "Party",
                     "chatDirect": "Direct messages",
                     "noChatAvailable": "This session is not holding any chat from this player.",
-                    "attachEvidence": "Attach up to {max} images",
-                    "evidenceNotSentYet": "Images are not sent with the report yet."
+                    "attachEvidence": "Attach up to {max} images"
                 }
             }
         }

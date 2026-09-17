@@ -125,7 +125,6 @@ SPDX-License-Identifier: MIT
                             <Icon :icon="cancel" height="16" />
                         </Button>
                     </div>
-                    <div class="note">{{ t("lobby.components.user.reportUser.evidenceNotSentYet") }}</div>
                 </div>
 
                 <div class="step-action">
