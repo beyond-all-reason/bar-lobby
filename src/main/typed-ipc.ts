@@ -5,7 +5,7 @@
 import type { AuthState } from "@main/services/auth.service";
 import type { StoredIdentity } from "@main/model/user";
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
-import type { BattleStartRequestData, BattleEndedEventData } from "tachyon-protocol/types";
+import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { ContentRef } from "@main/content/content-ref";
 import type { ContentPresence, ContentState } from "@main/content/content-state";
 import type { DownloadInfo } from "@main/content/downloads";
@@ -40,6 +40,9 @@ export type IPCEvents = {
     "game:launched": () => void;
     "maps:mapAdded": (filename: string) => void;
     "maps:mapDeleted": (filename: string) => void;
+    "mainWindow:scaleRangeChanged": (range: { min: number; max: number; os: number }) => void;
+    "mainWindow:windowStateChanged": (state: { maximized: boolean; size: { width: number; height: number } | null }) => void;
+    "mainWindow:uiScaleNudged": (scale: number | null) => void;
     "navigation:navigateTo": (target: string) => void;
     "notifications:showAlert": (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void;
     "paths:copyProgress": (progress: { copied: number; total: number }) => void;
@@ -48,7 +51,6 @@ export type IPCEvents = {
     "replays:replayDeleted": (filename: string) => void;
     "replays:highlightOpened": (fileNames: string[]) => void;
     "tachyon:battleStart": (data: BattleStartRequestData) => void;
-    "tachyon:battleEnded": (data: BattleEndedEventData) => void;
     "tachyon:connected": () => void;
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
@@ -90,8 +92,12 @@ export type IPCCommands = {
     "log:upload": () => string;
     "mainWindow:flashFrame": (flag: boolean) => void;
     "mainWindow:setFullscreen": (flag: boolean) => void;
-    "mainWindow:resized": () => void;
-    "mainWindow:setSize": (size: number) => void;
+    "mainWindow:setMaximized": (flag: boolean) => void;
+    "mainWindow:setSize": (width: number, height: number) => void;
+    "mainWindow:setUiScale": (scale: number | null) => void;
+    "mainWindow:getScaleRange": () => { min: number; max: number; os: number };
+    "mainWindow:getDisplays": () => Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>;
+    "mainWindow:setDisplay": (index: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;
     "maps:downloadMap": (springName: string) => void;

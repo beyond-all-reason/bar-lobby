@@ -103,7 +103,7 @@ function playOffline() {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: calc((100vh - 900px) / 2);
+    height: 100%;
     width: 500px;
     margin-left: auto;
     margin-right: auto;

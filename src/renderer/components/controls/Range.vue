@@ -18,7 +18,13 @@ SPDX-License-Identifier: MIT
             mode="decimal"
             :useGrouping="false"
         />
-        <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
+        <Slider
+            v-bind="sliderProps"
+            :modelValue="modelValue"
+            @pointerdown="dragging = true"
+            @update:modelValue="onSlide"
+            @slideend="onSlideEnd"
+        />
         <InputNumber
             v-bind="$attrs"
             :modelValue="typeof modelValue === 'number' ? modelValue : high"
@@ -35,27 +41,35 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 // https://v3.primevue.org/slider/
 import InputNumber from "primevue/inputnumber";
 import Slider, { type SliderProps } from "primevue/slider";
 
 import Control from "@renderer/components/controls/Control.vue";
+import { useEventListener } from "@vueuse/core";
 
-export type Props = SliderProps;
+// commitOnRelease emits `preview` while the handle moves and commits only on release.
+export type Props = SliderProps & { commitOnRelease?: boolean };
 
 const props = defineProps<Props>();
 const emits = defineEmits<{
     (event: "update:modelValue", value: number | number[]): void;
+    (event: "preview", value: number | number[]): void;
 }>();
+
+// Slider has no commitOnRelease of its own, so passing it on would leave it on the element.
+const sliderProps = computed(() => {
+    const forwarded: Record<string, unknown> = { ...props };
+    delete forwarded.commitOnRelease;
+
+    return forwarded as SliderProps;
+});
 
 const low = computed(() => (props.modelValue instanceof Array ? props.modelValue[0] : null));
 const high = computed(() => (props.modelValue instanceof Array ? props.modelValue[1] : null));
 
 const min = computed<number>(() => props?.min ?? 0);
-const minInputWidth = computed(() => `${min.value.toString().length + 1}ch`);
-const max = computed<number>(() => props?.max ?? 100);
-const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
 
 const stepValue = computed(() => props.step ?? 1);
 const maxFractionDigits = computed(() => {
@@ -64,8 +78,23 @@ const maxFractionDigits = computed(() => {
     return decimalIndex === -1 ? 0 : step.length - decimalIndex - 1;
 });
 
+// Slider reports slideend only for a drag, so a track click or an arrow key would otherwise
+// preview a value it never commits.
+const dragging = ref(false);
+useEventListener(document, "pointerup", () => (dragging.value = false));
+useEventListener(document, "pointercancel", () => (dragging.value = false));
+
 function onSlide(input: number | number[]) {
+    emits("preview", input);
+    if (props.commitOnRelease && dragging.value) return;
+
     emits("update:modelValue", input);
+}
+
+function onSlideEnd({ value }: { value: number | number[] }) {
+    if (!props.commitOnRelease) return;
+
+    emits("update:modelValue", value);
 }
 
 function onInput(input: number | number[]) {
@@ -118,18 +147,17 @@ function onInput(input: number | number[]) {
         background-color: #fff;
     }
 }
-.min :deep(.p-inputtext) {
-    width: v-bind(minInputWidth);
-    text-align: center;
-}
+.min :deep(.p-inputtext),
 .max :deep(.p-inputtext) {
-    width: v-bind(maxInputWidth);
+    width: 4ch;
     text-align: center;
 }
 .p-inputwrapper {
     position: relative;
     height: 100%;
     padding: 5px;
+    // Sized by its input, so the slider gets the rest of the row rather than sharing it.
+    flex: 0 0 auto;
     &:before {
         position: absolute;
         height: 100%;

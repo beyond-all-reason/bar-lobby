@@ -62,13 +62,6 @@ SPDX-License-Identifier: MIT
                                                 <div v-if="data.playerCount > 0" class="flex-row flex-center-items" style="gap: 2px">
                                                     <Icon :icon="account" height="17" />{{ data.playerCount }}/{{ data.maxPlayerCount }}
                                                 </div>
-                                                <!-- no protocol support for bot and spec count in the listing. If required, need to add it to tachyon first -->
-                                                <!-- <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px"> -->
-                                                <!--     <Icon :icon="eye" height="17" />{{ 0 }} -->
-                                                <!-- </div> -->
-                                                <!-- <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px"> -->
-                                                <!--     <Icon :icon="robot" height="17" />{{ 0 }} -->
-                                                <!-- </div> -->
                                             </div>
                                         </template>
                                     </Column>

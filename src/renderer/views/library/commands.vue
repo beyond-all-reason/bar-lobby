@@ -9,28 +9,26 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="commands-container">
-            <div class="view-title">
-                <h1>{{ route.meta.title }}</h1>
-            </div>
-            <Panel class="fullheight">
-                <div class="flex-col gap-lg flex-grow fullheight">
-                    <div class="flex-row gap-md">
-                        <SearchBox v-model="searchVal" />
-                        <Select v-model="filterMethod" :options="filterMethods" label="Type" />
-                    </div>
-                    <div class="flex-col flex-grow fullheight">
-                        <div class="scroll-container">
-                            <div v-for="command in filteredCommands" :key="command.cmd" class="command">
-                                <div class="cmd">{{ command.cmd }}</div>
-                                <div class="cmdDescription">{{ command.cmdDescription }}</div>
-                            </div>
+    <div class="commands-container">
+        <div class="view-title">
+            <h1>{{ route.meta.title }}</h1>
+        </div>
+        <Panel class="fullheight">
+            <div class="flex-col gap-lg flex-grow fullheight">
+                <div class="flex-row gap-md">
+                    <SearchBox v-model="searchVal" />
+                    <Select v-model="filterMethod" :options="filterMethods" label="Type" />
+                </div>
+                <div class="flex-col flex-grow fullheight">
+                    <div class="scroll-container">
+                        <div v-for="command in filteredCommands" :key="command.cmd" class="command">
+                            <div class="cmd">{{ command.cmd }}</div>
+                            <div class="cmdDescription">{{ command.cmdDescription }}</div>
                         </div>
                     </div>
                 </div>
-            </Panel>
-        </div>
+            </div>
+        </Panel>
     </div>
 </template>
 
@@ -113,8 +111,6 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     height: 100%;
-    align-self: center;
-    width: 1600px;
 }
 
 .command {
