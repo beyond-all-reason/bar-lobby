@@ -4481,33 +4481,26 @@
                     "extraInfo": null,
                     "sections": {
                         "chat": null,
-                        "actions": null
-                    },
-                    "reasons": {
-                        "chat": {
-                            "spam": null,
-                            "bullying": null,
-                            "hate": null,
-                            "other": null
-                        },
-                        "actions": {
-                            "noob": null,
-                            "griefing": null,
-                            "cheating": null,
-                            "other": null
-                        }
+                        "chatBlurb": null,
+                        "actions": null,
+                        "actionsBlurb": null
                     },
                     "messagePlaceholder": null,
                     "submit": null,
                     "submitted": null,
-                    "relationships": {
-                        "ignore": null,
-                        "ignoreTooltip": null,
-                        "avoid": null,
-                        "avoidTooltip": null,
-                        "block": null,
-                        "blockTooltip": null
-                    }
+                    "submittedFollowUp": null,
+                    "close": null,
+                    "continue": null,
+                    "whichMessages": null,
+                    "reportSubmitted": null,
+                    "chatHint": null,
+                    "chatReportedFrom": null,
+                    "chatLobby": null,
+                    "chatParty": null,
+                    "chatDirect": null,
+                    "noChatAvailable": null,
+                    "attachEvidence": null,
+                    "evidenceNotSentYet": null
                 }
             }
         }

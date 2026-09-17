@@ -676,33 +676,26 @@
                     "extraInfo": "Exrta Ifno",
                     "sections": {
                         "chat": "Caht / Cnituomcimaon",
-                        "actions": "In-Gmae Ancoits"
-                    },
-                    "reasons": {
-                        "chat": {
-                            "spam": "Spam",
-                            "bullying": "Byilnulg",
-                            "hate": "Htae secpeh",
-                            "other": "Otehr"
-                        },
-                        "actions": {
-                            "noob": "Noob",
-                            "griefing": "Ginriefg",
-                            "cheating": "Citheang",
-                            "other": "Otehr"
-                        }
+                        "chatBlurb": "Shmenoitg that was said in caht",
+                        "actions": "In-Gmae Ancoits",
+                        "actionsBlurb": "How soeonme pleyad or bhveead in a mcath"
                     },
                     "messagePlaceholder": "Dercbise waht haepenpd",
                     "submit": "Sned Rperot",
                     "submitted": "Rperot snet to the mdiateoron team.",
-                    "relationships": {
-                        "ignore": "Ingroe",
-                        "ignoreTooltip": "Sotp sieeng tiehr maegesss. Not aablviale in the lobby yet, do it on the wsitebe.",
-                        "avoid": "Aivod",
-                        "avoidTooltip": "Ask not to be put in a gmae wtih tehm. Not aablviale in the lobby yet, do it on the wsitebe.",
-                        "block": "Bolck",
-                        "blockTooltip": "Sotp sieeng tehm at all. Not aablviale in the lobby yet, do it on the wsitebe."
-                    }
+                    "submittedFollowUp": "Mdaorteros rvieew rptroes in tiehr own time, so you may not haer back dectlriy.",
+                    "close": "Csole",
+                    "continue": "Contuine",
+                    "whichMessages": "Wichh maegesss?",
+                    "reportSubmitted": "Rperot Seittmubd",
+                    "chatHint": "Pick the maegesss you wnat the meadorrtos to look at.",
+                    "chatReportedFrom": "werhe you reeortpd form",
+                    "chatLobby": "Lbboy",
+                    "chatParty": "Party",
+                    "chatDirect": "Dierct maegesss",
+                    "noChatAvailable": "Tihs sesosin is not hlnodig any caht form tihs pyaler.",
+                    "attachEvidence": "Atatch up to {max} iaemgs",
+                    "evidenceNotSentYet": "Iamegs are not snet wtih the rpreot yet."
                 }
             }
         }
