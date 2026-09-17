@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-col flex-grow fullheight">
             <div class="messages">
-                <div v-if="messages.length === 0" class="no-messages">No messages in this chat history.</div>
+                <div v-if="messages.length === 0" class="no-messages">{{ t("lobby.navbar.messages.noMessages") }}</div>
                 <div v-else class="flex-col gap-sm">
                     <div
                         v-for="(message, i) in messages"

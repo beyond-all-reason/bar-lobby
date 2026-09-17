@@ -4246,7 +4246,8 @@
                 "message": null,
                 "userID": null,
                 "userIDPlaceholder": null,
-                "send": null
+                "send": null,
+                "noMessages": null
             },
             "settings": {
                 "title": null,

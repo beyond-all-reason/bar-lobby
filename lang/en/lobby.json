@@ -299,7 +299,8 @@
                 "message": "Message",
                 "userID": "User {id}",
                 "userIDPlaceholder": "32452",
-                "send": "Send"
+                "send": "Send",
+                "noMessages": "No messages in this chat history."
             },
             "settings": {
                 "title": "settings",

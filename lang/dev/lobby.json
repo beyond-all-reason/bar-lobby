@@ -299,7 +299,8 @@
                 "message": "Msaesge",
                 "userID": "User {id}",
                 "userIDPlaceholder": "32452",
-                "send": "Sned"
+                "send": "Sned",
+                "noMessages": "No maegesss in tihs caht htoisry."
             },
             "settings": {
                 "title": "seinttgs",
