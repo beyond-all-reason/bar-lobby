@@ -4338,8 +4338,17 @@
                 "votePanel": {
                     "vote": null,
                     "yes": null,
+                    "abstain": null,
+                    "cancel": null,
                     "no": null,
-                    "calledBy": null
+                    "calledBy": null,
+                    "actions": {
+                        "kickban": null,
+                        "kickOnly": null,
+                        "changeMap": null,
+                        "appointBoss": null,
+                        "start": null
+                    }
                 },
                 "botParticipant": {
                     "configure": null,

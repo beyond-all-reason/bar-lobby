@@ -2333,8 +2333,17 @@
                 "votePanel": {
                     "vote": "Vote:",
                     "yes": "Yes (F1)",
+                    "abstain": "Abstain",
+                    "cancel": "Cancel",
                     "no": "No (F2)",
-                    "calledBy": "Called by"
+                    "calledBy": "Called by {initiator}",
+                    "actions": {
+                        "kickban": "Kick {target} and ban until {banUntil}",
+                        "kickOnly": "Kick {target}",
+                        "changeMap": "Change map to {newMapName}",
+                        "appointBoss": "Appoint {target} as Boss",
+                        "start": "Start the battle"
+                    }
                 },
                 "botParticipant": {
                     "configure": "Configure",

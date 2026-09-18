@@ -502,8 +502,17 @@
                 "votePanel": {
                     "vote": "Vtoe:",
                     "yes": "Yes (F1)",
+                    "abstain": "Abtisan",
+                    "cancel": "Ceancl",
                     "no": "No (F2)",
-                    "calledBy": "Cllaed by"
+                    "calledBy": "Cllaed by {initiator}",
+                    "actions": {
+                        "kickban": "Kcik {target} and ban uitnl {banUntil}",
+                        "kickOnly": "Kcik {target}",
+                        "changeMap": "Canghe map to {newMapName}",
+                        "appointBoss": "Anippot {target} as Boss",
+                        "start": "Strat the btalte"
+                    }
                 },
                 "botParticipant": {
                     "configure": "Cgnfuoire",

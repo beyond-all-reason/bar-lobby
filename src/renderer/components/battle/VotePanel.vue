@@ -11,19 +11,22 @@ SPDX-License-Identifier: MIT
 
             <div class="title">
                 <!-- TODO Need to parse each type differently because they have additional data -->
-                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ vote?.action?.type }}
+                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ voteString }}
             </div>
 
             <div class="actions">
                 <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{ t("lobby.components.battle.votePanel.yes") }}</Button>
+                <Button class="vote-button grey" @click="onAbstain">{{ t("lobby.components.battle.votePanel.abstain") }}</Button>
+                <Button class="vote-button grey" @click="onCancel">{{ t("lobby.components.battle.votePanel.cancel") }}</Button>
                 <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
             </div>
 
-            <div v-if="vote?.initiator" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ vote.initiator }}</div>
+            <div v-if="vote?.initiator" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ initiatorName }}</div>
 
             <div v-if="missingYesVotes" class="vote-display">
                 <div v-for="i in yesVotes" :key="i" class="segment yes"></div>
                 <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
+                <div v-for="i in abstainVotes" :key="i" class="segment abstain"></div>
                 <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
                 <div v-for="i in noVotes" :key="i" class="segment no"></div>
             </div>
@@ -40,6 +43,9 @@ import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { LobbyUpdatedEventData } from "tachyon-protocol/types";
+import { computedAsync } from "@vueuse/core";
+import { db } from "@renderer/store/db";
+import { User } from "@main/model/user";
 
 const { t } = useTypedI18n();
 
@@ -122,11 +128,51 @@ function onAbstain() {
         lobby.requestVoteSubmit({ id: vote.value?.id, vote: "abstain" });
     }
 }
+
+function onCancel() {
+    if (vote.value) {
+        // Not yet implemented.
+        // lobby.requestVoteSubmit({ id: vote.value?.id, vote: "cancel" });
+    }
+}
+
+const initiatorName = computedAsync(async () => {
+    if (vote.value?.initiator === undefined) return "";
+    const name = t("lobby.navbar.messages.userID") + " " + vote.value.initiator;
+    const cached: User = (await db.users.get(vote.value.initiator)) as User;
+    if (cached != undefined) {
+        return await cached.username;
+    }
+    return name;
+});
+
+// TODO: We need name lookups for the UserIds used here.
+const voteString = computed(() => {
+    if (!vote.value?.action?.type) return "";
+    const type = vote.value?.action?.type;
+    switch (type) {
+        case "kickban":
+            if (vote.value.action.banUntil)
+                return t("lobby.components.battle.votePanel.actions.kickban", {
+                    target: vote.value?.action?.userId,
+                    banUntil: vote.value?.action?.banUntil,
+                });
+            else return t("lobby.components.battle.votePanel.actions.kickOnly", { target: vote.value?.action?.userId });
+        case "changeMap":
+            return t("lobby.components.battle.votePanel.actions.changeMap", { newMapName: vote.value?.action?.newMapName });
+        case "appointBoss":
+            return t("lobby.components.battle.votePanel.actions.appointBoss", { target: vote.value?.action?.bossId });
+        case "start":
+            return t("lobby.components.battle.votePanel.actions.start");
+        default:
+            return "";
+    }
+});
 </script>
 
 <style lang="scss" scoped>
 .voting-container {
-    position: fixed;
+    // position: fixed;
     width: 100%;
     left: 0;
     margin-top: -15px;
@@ -213,6 +259,9 @@ function onAbstain() {
     }
     &.missing-no {
         background: rgba(165, 30, 30, 0.164);
+    }
+    &.abstain {
+        background: rgba(128, 128, 128, 0.6);
     }
 }
 </style>
