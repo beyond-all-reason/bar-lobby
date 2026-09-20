@@ -6,6 +6,31 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="voting-container">
+        <Panel class="history-panel" :no-padding="true">
+            <div>
+                <div class="history-title" @click="toggleCollapse">
+                    <div>Vote History</div>
+                    <div class="collapse-history">
+                        <div>
+                            <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
+                            <Icon v-else :icon="chevronUp" :height="24" />
+                        </div>
+                    </div>
+                </div>
+                <div v-show="!collapsed" class="history-content">
+                    <div v-for="entry in historyEntries" :key="entry.voteId">
+                        <div class="flex-row">
+                            <Icon
+                                :icon="getHistoryIcon(entry.outcome)"
+                                :height="24"
+                                :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
+                            />
+                            <div>{{ getVoteString(entry.vote) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Panel>
         <Panel class="voting-panel">
             <div :class="['remaining-time', { animating: secondsRemaining !== null && secondsRemaining > 0 }]"></div>
 
@@ -42,17 +67,63 @@ import { useTypedI18n } from "@renderer/i18n";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
-import { LobbyUpdatedEventData } from "tachyon-protocol/types";
+import { LobbyUpdatedEventData, VoteActions, VoteOutcomes } from "tachyon-protocol/types";
 import { computedAsync } from "@vueuse/core";
 import { db } from "@renderer/store/db";
 import { User } from "@main/model/user";
+import chevronDown from "@iconify-icons/mdi/chevron-down";
+import chevronUp from "@iconify-icons/mdi/chevron-up";
+import { Icon } from "@iconify/vue";
+import successCircleOutline from "@iconify-icons/mdi/success-circle-outline";
+import closeCircleOutline from "@iconify-icons/mdi/close-circle-outline";
+import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
+import alarm from "@iconify-icons/mdi/alarm";
 
 const { t } = useTypedI18n();
+
+const collapsed = ref(true);
+
+function toggleCollapse() {
+    collapsed.value = !collapsed.value;
+}
 
 const vote = computed(() => {
     // FIX: Remove these casts once https://github.com/beyond-all-reason/tachyon/pull/156 is added
     return (lobbyStore.activeLobby?.currentVote as LobbyUpdatedEventData["currentVote"]) ?? null;
 });
+
+const historyEntries = computed(() =>
+    Object.entries(lobbyStore.activeLobby?.voteHistory ?? {})
+        // .filter(([, v]) => v !== null)
+        .map(([voteId, v]) => ({ voteId, ...v! }))
+        .sort((a, b) => b.finishedAt - a.finishedAt)
+);
+
+function getHistoryIcon(outcome: VoteOutcomes) {
+    switch (outcome) {
+        case "passed":
+            return successCircleOutline;
+        case "failed":
+            return closeCircleOutline;
+        case "cancelled":
+            return circleOffOutline;
+        case "timeout":
+            return alarm;
+    }
+}
+
+function getHistoryIconColor(outcome: VoteOutcomes) {
+    switch (outcome) {
+        case "passed":
+            return "history-icon-passed";
+        case "failed":
+            return "history-icon-failed";
+        case "cancelled":
+            return "history-icon-cancelled";
+        case "timeout":
+            return "history-icon-timeout";
+    }
+}
 
 const yesVotes = computed(() => {
     if (vote.value?.voters === undefined) {
@@ -147,26 +218,30 @@ const initiatorName = computedAsync(async () => {
 });
 
 // TODO: We need name lookups for the UserIds used here.
-const voteString = computed(() => {
-    if (!vote.value?.action?.type) return "";
-    const type = vote.value?.action?.type;
+function getVoteString(voteAction: VoteActions) {
+    if (!voteAction?.type) return "";
+    const type = voteAction.type;
     switch (type) {
         case "kickban":
-            if (vote.value.action.banUntil)
+            if (voteAction.banUntil)
                 return t("lobby.components.battle.votePanel.actions.kickban", {
-                    target: vote.value?.action?.userId,
-                    banUntil: vote.value?.action?.banUntil,
+                    target: voteAction.userId,
+                    banUntil: voteAction.banUntil,
                 });
-            else return t("lobby.components.battle.votePanel.actions.kickOnly", { target: vote.value?.action?.userId });
+            else return t("lobby.components.battle.votePanel.actions.kickOnly", { target: voteAction.userId });
         case "changeMap":
-            return t("lobby.components.battle.votePanel.actions.changeMap", { newMapName: vote.value?.action?.newMapName });
+            return t("lobby.components.battle.votePanel.actions.changeMap", { newMapName: voteAction.newMapName });
         case "appointBoss":
-            return t("lobby.components.battle.votePanel.actions.appointBoss", { target: vote.value?.action?.bossId });
+            return t("lobby.components.battle.votePanel.actions.appointBoss", { target: voteAction.bossId });
         case "start":
             return t("lobby.components.battle.votePanel.actions.start");
         default:
             return "";
     }
+}
+const voteString = computed(() => {
+    if (!vote.value?.action) return "";
+    return getVoteString(vote.value?.action);
 });
 </script>
 
@@ -175,15 +250,16 @@ const voteString = computed(() => {
     // position: fixed;
     width: 100%;
     left: 0;
-    margin-top: -15px;
+    // margin-top: -15px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    pointer-events: none;
+    // pointer-events: none;
 }
 .voting-panel {
-    background: radial-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
-    border-radius: 7px;
+    // background: radial-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
+    // border-radius: 7px;
     overflow: hidden;
     pointer-events: auto;
     :deep(.content) {
@@ -263,5 +339,39 @@ const voteString = computed(() => {
     &.abstain {
         background: rgba(128, 128, 128, 0.6);
     }
+}
+.history-panel {
+    max-height: 200px;
+    width: 100%;
+    padding: 15px;
+}
+.history-content {
+    max-height: 200px;
+    overflow-y: scroll;
+    overflow: hidden;
+}
+.history-icon-passed {
+    color: rgb(96, 216, 26);
+}
+.history-icon-failed {
+    color: rgb(206, 73, 73);
+}
+.history-icon-cancelled {
+    color: rgb(128, 128, 128);
+}
+.history-icon-timeout {
+    color: rgb(128, 128, 128);
+}
+.history-title {
+    font-weight: bold;
+    // margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.collapse-history {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
 }
 </style>
