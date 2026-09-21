@@ -6,31 +6,6 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="voting-container">
-        <Panel class="history-panel" :no-padding="true">
-            <div>
-                <div class="history-title" @click="toggleCollapse">
-                    <div>Vote History</div>
-                    <div class="collapse-history">
-                        <div>
-                            <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
-                            <Icon v-else :icon="chevronUp" :height="24" />
-                        </div>
-                    </div>
-                </div>
-                <div v-show="!collapsed" class="history-content">
-                    <div v-for="entry in historyEntries" :key="entry.voteId">
-                        <div class="flex-row">
-                            <Icon
-                                :icon="getHistoryIcon(entry.outcome)"
-                                :height="24"
-                                :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
-                            />
-                            <div>{{ getVoteString(entry.vote) }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Panel>
         <Panel class="voting-panel">
             <div :class="['remaining-time', { animating: secondsRemaining !== null && secondsRemaining > 0 }]"></div>
 
@@ -54,6 +29,31 @@ SPDX-License-Identifier: MIT
                 <div v-for="i in abstainVotes" :key="i" class="segment abstain"></div>
                 <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
                 <div v-for="i in noVotes" :key="i" class="segment no"></div>
+            </div>
+        </Panel>
+        <Panel class="history-panel" :no-padding="true">
+            <div>
+                <div class="history-title" @click="toggleCollapse">
+                    <div>Vote History</div>
+                    <div class="collapse-history">
+                        <div>
+                            <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
+                            <Icon v-else :icon="chevronUp" :height="24" />
+                        </div>
+                    </div>
+                </div>
+                <div v-show="!collapsed" class="history-content">
+                    <div v-for="entry in historyEntries" :key="entry.voteId">
+                        <div class="flex-row">
+                            <Icon
+                                :icon="getHistoryIcon(entry.outcome)"
+                                :height="24"
+                                :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
+                            />
+                            <div>{{ getVoteString(entry.vote) }}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </Panel>
     </div>
@@ -249,7 +249,7 @@ const voteString = computed(() => {
 .voting-container {
     // position: fixed;
     width: 100%;
-    left: 0;
+    // left: 0;
     // margin-top: -15px;
     display: flex;
     flex-direction: column;
@@ -260,6 +260,7 @@ const voteString = computed(() => {
 .voting-panel {
     // background: radial-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
     // border-radius: 7px;
+    width: 100%;
     overflow: hidden;
     pointer-events: auto;
     :deep(.content) {
