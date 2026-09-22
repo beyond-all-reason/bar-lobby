@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
     <header>
         <slot name="header" />
     </header>
-    <div class="flex-row">
+    <div class="flex-row flex-grow lobby-content">
         <div class="main-content">
             <div class="player-list">
                 <slot name="player-list" />
@@ -37,13 +37,17 @@ SPDX-License-Identifier: MIT
 .map-and-options {
     width: 25%;
 }
+.lobby-content {
+    flex: 1 1 0;
+    min-height: 0;
+}
 .main-content {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    flex-grow: 1;
+    flex: 1 1 auto;
     gap: 10px;
-    height: 100%;
+    min-height: 0;
 }
 .player-list {
     display: flex;
@@ -56,13 +60,15 @@ SPDX-License-Identifier: MIT
     flex-direction: column;
     flex-grow: 2;
     gap: 10px;
-    height: 100%;
+    min-height: 0;
     position: relative;
 }
 .vote-panel-slot {
     flex-shrink: 0;
 }
 .chat-slot {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
 }

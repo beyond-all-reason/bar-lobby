@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
             >
             <Button @click="switchLobbyTemplate()" class="flex-right">Switch Template</Button>
         </div>
-        <div v-if="lobbyStore.activeLobby">
+        <div v-if="lobbyStore.activeLobby" class="lobby-body">
             <component :is="switchTemplate ? FFALobby : StandardLobby">
                 <template #header>
                     <div class="flex flex-row fullwidth margin-top-md margin-bottom-md gap-md">
@@ -257,6 +257,12 @@ async function onGameSelected(gameVersion: string) {
     flex-direction: column;
     gap: 10px;
     height: 100%;
+}
+.lobby-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
 }
 .title {
     font-size: 28px;

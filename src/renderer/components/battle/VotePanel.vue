@@ -9,28 +9,31 @@ SPDX-License-Identifier: MIT
         <Panel class="voting-panel" :no-padding="true">
             <div :class="['remaining-time', { animating: secondsRemaining !== null && secondsRemaining > 0 }]"></div>
 
-            <div class="title">
-                <!-- TODO Need to parse each type differently because they have additional data -->
-                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ voteString }}
+            <div v-show="vote != undefined">
+                <div class="title">
+                    <!-- TODO Need to parse each type differently because they have additional data -->
+                    <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ voteString }}
+                </div>
+
+                <div class="actions">
+                    <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{
+                        t("lobby.components.battle.votePanel.yes")
+                    }}</Button>
+                    <Button class="vote-button grey" @click="onAbstain">{{ t("lobby.components.battle.votePanel.abstain") }}</Button>
+                    <Button class="vote-button grey" @click="onCancel">{{ t("lobby.components.battle.votePanel.cancel") }}</Button>
+                    <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
+                </div>
+
+                <div v-if="vote?.initiator" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ initiatorName }}</div>
+
+                <div v-if="missingYesVotes" class="vote-display">
+                    <div v-for="i in yesVotes" :key="i" class="segment yes"></div>
+                    <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
+                    <div v-for="i in abstainVotes" :key="i" class="segment abstain"></div>
+                    <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
+                    <div v-for="i in noVotes" :key="i" class="segment no"></div>
+                </div>
             </div>
-
-            <div class="actions">
-                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{ t("lobby.components.battle.votePanel.yes") }}</Button>
-                <Button class="vote-button grey" @click="onAbstain">{{ t("lobby.components.battle.votePanel.abstain") }}</Button>
-                <Button class="vote-button grey" @click="onCancel">{{ t("lobby.components.battle.votePanel.cancel") }}</Button>
-                <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
-            </div>
-
-            <div v-if="vote?.initiator" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ initiatorName }}</div>
-
-            <div v-if="missingYesVotes" class="vote-display">
-                <div v-for="i in yesVotes" :key="i" class="segment yes"></div>
-                <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
-                <div v-for="i in abstainVotes" :key="i" class="segment abstain"></div>
-                <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
-                <div v-for="i in noVotes" :key="i" class="segment no"></div>
-            </div>
-
             <div
                 class="history-title"
                 @click="toggleCollapse"
