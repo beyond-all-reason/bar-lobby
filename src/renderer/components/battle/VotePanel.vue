@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="voting-container">
-        <Panel class="voting-panel">
+        <Panel class="voting-panel" :no-padding="true">
             <div :class="['remaining-time', { animating: secondsRemaining !== null && secondsRemaining > 0 }]"></div>
 
             <div class="title">
@@ -30,28 +30,37 @@ SPDX-License-Identifier: MIT
                 <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
                 <div v-for="i in noVotes" :key="i" class="segment no"></div>
             </div>
-        </Panel>
-        <Panel class="history-panel" :no-padding="true">
-            <div>
-                <div class="history-title" @click="toggleCollapse">
-                    <div>Vote History</div>
-                    <div class="collapse-history">
-                        <div>
-                            <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
-                            <Icon v-else :icon="chevronUp" :height="24" />
-                        </div>
+
+            <div
+                class="history-title"
+                @click="toggleCollapse"
+                @mouseenter="setHistoryHovered(true)"
+                @mouseleave="collapseHistoryIfNotHovered"
+            >
+                <div>Vote History</div>
+                <div class="collapse-history">
+                    <div>
+                        <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
+                        <Icon v-else :icon="chevronUp" :height="24" />
                     </div>
                 </div>
-                <div v-show="!collapsed" class="history-content">
-                    <div v-for="entry in historyEntries" :key="entry.voteId">
-                        <div class="flex-row">
-                            <Icon
-                                :icon="getHistoryIcon(entry.outcome)"
-                                :height="24"
-                                :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
-                            />
-                            <div>{{ getVoteString(entry.vote) }}</div>
-                        </div>
+            </div>
+            <!-- Absolutely positioned so an expanded history overlaps the chat below rather than pushing it down -->
+            <div
+                v-show="!collapsed"
+                class="history-overlay"
+                @mouseenter="setHistoryHovered(true)"
+                @mouseleave="collapseHistoryIfNotHovered"
+            >
+                <div v-if="historyEntries.length === 0">No vote history available.</div>
+                <div v-for="entry in historyEntries" :key="entry.voteId">
+                    <div class="flex-row">
+                        <Icon
+                            :icon="getHistoryIcon(entry.outcome)"
+                            :height="24"
+                            :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
+                        />
+                        <div>{{ getVoteString(entry.vote) }}</div>
                     </div>
                 </div>
             </div>
@@ -82,9 +91,30 @@ import alarm from "@iconify-icons/mdi/alarm";
 const { t } = useTypedI18n();
 
 const collapsed = ref(true);
+const historyHovered = ref(false);
+const historyHoverCloseDelayMs = 100;
+let collapseHistoryTimeout: number | undefined;
 
 function toggleCollapse() {
     collapsed.value = !collapsed.value;
+}
+
+function setHistoryHovered(hovered: boolean) {
+    historyHovered.value = hovered;
+    if (hovered && collapseHistoryTimeout !== undefined) {
+        window.clearTimeout(collapseHistoryTimeout);
+        collapseHistoryTimeout = undefined;
+    }
+}
+
+function collapseHistoryIfNotHovered() {
+    setHistoryHovered(false);
+    collapseHistoryTimeout = window.setTimeout(() => {
+        collapseHistoryTimeout = undefined;
+        if (!historyHovered.value) {
+            collapsed.value = true;
+        }
+    }, historyHoverCloseDelayMs);
 }
 
 const vote = computed(() => {
@@ -247,37 +277,30 @@ const voteString = computed(() => {
 
 <style lang="scss" scoped>
 .voting-container {
-    // position: fixed;
     width: 100%;
-    // left: 0;
-    // margin-top: -15px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    // pointer-events: none;
 }
 .voting-panel {
-    // background: radial-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
-    // border-radius: 7px;
+    padding: 0px 16px;
+    position: relative;
     width: 100%;
-    overflow: hidden;
     pointer-events: auto;
     :deep(.content) {
         padding: 10px 15px;
         padding-top: 13px;
         padding-bottom: 23px;
         gap: 10px;
-        overflow: hidden;
     }
 }
 .remaining-time {
-    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 5px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.521);
     transform: scaleX(1);
     visibility: hidden;
     &.animating {
@@ -310,7 +333,7 @@ const voteString = computed(() => {
     opacity: 0.8;
 }
 .vote-display {
-    position: absolute;
+    // position: absolute;
     left: 0;
     bottom: 0;
     width: 100%;
@@ -341,15 +364,17 @@ const voteString = computed(() => {
         background: rgba(128, 128, 128, 0.6);
     }
 }
-.history-panel {
-    max-height: 200px;
+.history-overlay {
+    position: absolute;
+    top: 100%;
+    left: 0;
     width: 100%;
-    padding: 15px;
-}
-.history-content {
     max-height: 200px;
-    overflow-y: scroll;
-    overflow: hidden;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    padding: 15px;
 }
 .history-icon-passed {
     color: rgb(96, 216, 26);
@@ -365,10 +390,15 @@ const voteString = computed(() => {
 }
 .history-title {
     font-weight: bold;
-    // margin-bottom: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
+    margin: 0 -15px; // cancel out .content's horizontal padding
+    padding: 0px 15px 4px 15px; // restore visual alignment of text
+    &:hover {
+        cursor: pointer;
+        background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+    }
 }
 .collapse-history {
     display: flex;

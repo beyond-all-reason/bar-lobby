@@ -16,9 +16,13 @@ SPDX-License-Identifier: MIT
             <div class="player-list">
                 <slot name="player-list" />
             </div>
-            <div class="chat-container">
-                <slot name="vote-panel" />
-                <slot name="chat" />
+            <div class="center-column">
+                <div class="vote-panel-slot">
+                    <slot name="vote-panel" />
+                </div>
+                <div class="chat-slot">
+                    <slot name="chat" />
+                </div>
             </div>
             <div class="map-and-options">
                 <slot name="map-and-options" />
@@ -47,11 +51,19 @@ SPDX-License-Identifier: MIT
     flex-grow: 1;
     width: 25%;
 }
-.chat-container {
+.center-column {
     display: flex;
     flex-direction: column;
     flex-grow: 2;
     gap: 10px;
     height: 100%;
+    position: relative;
+}
+.vote-panel-slot {
+    flex-shrink: 0;
+}
+.chat-slot {
+    flex: 1 1 auto;
+    min-height: 0;
 }
 </style>
