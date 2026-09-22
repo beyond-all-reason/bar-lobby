@@ -6,12 +6,11 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="voting-container">
-        <Panel class="voting-panel" :no-padding="true">
-            <div :class="['remaining-time', { animating: secondsRemaining !== null && secondsRemaining > 0 }]"></div>
+        <div class="voting-panel" :no-padding="true">
+            <div ref="remainingTimeEl" :class="['remaining-time', { visible: !!vote?.until }]"></div>
 
             <div v-show="vote != undefined">
                 <div class="title">
-                    <!-- TODO Need to parse each type differently because they have additional data -->
                     <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ voteString }}
                 </div>
 
@@ -67,22 +66,19 @@ SPDX-License-Identifier: MIT
                     </div>
                 </div>
             </div>
-        </Panel>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { onKeyUp } from "@vueuse/core";
-import { computed, ref } from "vue";
-import { useNow } from "@vueuse/core";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
-import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { LobbyUpdatedEventData, VoteActions, VoteOutcomes } from "tachyon-protocol/types";
 import { computedAsync } from "@vueuse/core";
 import { db } from "@renderer/store/db";
-import { User } from "@main/model/user";
 import chevronDown from "@iconify-icons/mdi/chevron-down";
 import chevronUp from "@iconify-icons/mdi/chevron-up";
 import { Icon } from "@iconify/vue";
@@ -90,6 +86,8 @@ import successCircleOutline from "@iconify-icons/mdi/success-circle-outline";
 import closeCircleOutline from "@iconify-icons/mdi/close-circle-outline";
 import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
 import alarm from "@iconify-icons/mdi/alarm";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { UserId } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 
@@ -176,6 +174,7 @@ const abstainVotes = computed(() => {
     }
     return Object.values(vote.value?.voters).filter((voter) => voter.vote === "abstain").length;
 });
+
 const pendingVotes = computed(() => {
     if (vote.value?.voters === undefined) {
         return null;
@@ -201,16 +200,32 @@ const voteMajority = computed(() => {
     return vote.value?.majority;
 });
 
-const remainingTimeDurationCss = ref("60s");
+// The countdown bar uses the Web Animations API rather than a CSS transition. A transition needs the browser to have
+// painted the scaleX(1) state before the end state is applied, which is unreliable here: this component can be mounted
+// while its kept-alive parent view is detached (e.g. rejoining a lobby), and deactivated components still re-render.
+// element.animate() declares its start keyframe explicitly and runs on the document timeline, so it doesn't depend on
+// paint timing or on the element being attached.
+const remainingTimeEl = ref<HTMLElement>();
+let remainingTimeAnimation: Animation | undefined;
 
-const now = useNow({ interval: 1000 });
-const secondsRemaining = computed(() => {
-    if (!vote.value) return null;
-    const until = vote.value.until;
-    if (!until) return null;
-    const deadlineMs = until / 1000;
-    return Math.max(0, Math.ceil((deadlineMs - now.value.getTime()) / 1000));
-});
+function startRemainingTimeAnimation() {
+    remainingTimeAnimation?.cancel();
+    remainingTimeAnimation = undefined;
+    const until = vote.value?.until;
+    if (!remainingTimeEl.value || !until) return;
+    const remainingMs = until / 1000 - Date.now();
+    if (remainingMs <= 0) return;
+    remainingTimeAnimation = remainingTimeEl.value.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], {
+        duration: remainingMs,
+        easing: "linear",
+        fill: "forwards",
+    });
+}
+
+onMounted(startRemainingTimeAnimation);
+// Only restart for a new vote or deadline; lobby updates replace activeLobby wholesale, so watching the vote object would restart it on every update.
+watch([() => vote.value?.id, () => vote.value?.until], startRemainingTimeAnimation, { flush: "post" });
+onUnmounted(() => remainingTimeAnimation?.cancel());
 
 onKeyUp("F1", onYes);
 onKeyUp("F2", onNo);
@@ -242,15 +257,13 @@ function onCancel() {
 
 const initiatorName = computedAsync(async () => {
     if (vote.value?.initiator === undefined) return "";
-    const name = t("lobby.navbar.messages.userID") + " " + vote.value.initiator;
-    const cached: User = (await db.users.get(vote.value.initiator)) as User;
-    if (cached != undefined) {
-        return await cached.username;
+    const displayName = displayNames.value?.get(vote.value.initiator);
+    if (displayName != undefined) {
+        return displayName;
     }
-    return name;
+    return t("lobby.navbar.messages.userID") + " " + vote.value.initiator;
 });
 
-// TODO: We need name lookups for the UserIds used here.
 function getVoteString(voteAction: VoteActions) {
     if (!voteAction?.type) return "";
     const type = voteAction.type;
@@ -258,14 +271,19 @@ function getVoteString(voteAction: VoteActions) {
         case "kickban":
             if (voteAction.banUntil)
                 return t("lobby.components.battle.votePanel.actions.kickban", {
-                    target: voteAction.userId,
+                    target: displayNames.value?.get(voteAction.userId) ?? voteAction.userId,
                     banUntil: voteAction.banUntil,
                 });
-            else return t("lobby.components.battle.votePanel.actions.kickOnly", { target: voteAction.userId });
+            else
+                return t("lobby.components.battle.votePanel.actions.kickOnly", {
+                    target: displayNames.value?.get(voteAction.userId) ?? voteAction.userId,
+                });
         case "changeMap":
             return t("lobby.components.battle.votePanel.actions.changeMap", { newMapName: voteAction.newMapName });
         case "appointBoss":
-            return t("lobby.components.battle.votePanel.actions.appointBoss", { target: voteAction.bossId });
+            return t("lobby.components.battle.votePanel.actions.appointBoss", {
+                target: displayNames.value?.get(voteAction.bossId) ?? voteAction.bossId,
+            });
         case "start":
             return t("lobby.components.battle.votePanel.actions.start");
         default:
@@ -275,6 +293,14 @@ function getVoteString(voteAction: VoteActions) {
 const voteString = computed(() => {
     if (!vote.value?.action) return "";
     return getVoteString(vote.value?.action);
+});
+
+const displayNames = useDexieLiveQueryWithDeps(lobbyStore.activeLobby, async () => {
+    const map = new Map<UserId, string>();
+    await db.users.each(function (user) {
+        map.set(user.userId, user.username);
+    });
+    return map;
 });
 </script>
 
@@ -295,7 +321,7 @@ const voteString = computed(() => {
         padding: 10px 15px;
         padding-top: 13px;
         padding-bottom: 23px;
-        gap: 10px;
+        // gap: 10px;
     }
 }
 .remaining-time {
@@ -304,14 +330,9 @@ const voteString = computed(() => {
     width: 100%;
     height: 5px;
     background: rgba(255, 255, 255, 0.521);
-    transform: scaleX(1);
     visibility: hidden;
-    &.animating {
+    &.visible {
         visibility: visible;
-        transition-property: transform;
-        transition-timing-function: linear;
-        transition-duration: v-bind(remainingTimeDurationCss);
-        transform: scaleX(0);
     }
 }
 .title {
