@@ -5,77 +5,68 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="voting-container">
-        <div class="voting-panel" :no-padding="true">
-            <div ref="remainingTimeEl" :class="['remaining-time', { visible: !!vote?.until }]"></div>
+    <div :class="['group', 'vote-panel', { 'needs-vote': needsMyVote }]">
+        <div ref="remainingTimeEl" :class="['remaining-time', { visible: !!vote?.until }]"></div>
 
-            <div v-show="vote != undefined">
-                <div class="title">
-                    <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ voteString }}
-                </div>
-
-                <div class="actions">
-                    <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{
-                        t("lobby.components.battle.votePanel.yes")
-                    }}</Button>
-                    <Button class="vote-button grey" @click="onAbstain">{{ t("lobby.components.battle.votePanel.abstain") }}</Button>
-                    <Button class="vote-button grey" @click="onCancel">{{ t("lobby.components.battle.votePanel.cancel") }}</Button>
-                    <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
-                </div>
-
+        <div v-show="vote != undefined" class="active-vote">
+            <div class="group-header flex-row flex-center-items gap-md">
+                <div class="title">{{ t("lobby.components.battle.votePanel.vote") }}</div>
+                <div class="action">{{ voteString }}</div>
                 <div v-if="vote?.initiator" class="caller">
                     {{ t("lobby.components.battle.votePanel.calledBy", { initiator: initiatorName }) }}
                 </div>
-
-                <template v-if="tally">
-                    <!-- Yes fills from the left, no from the right, pending voters are the gap; whichever side crosses the finish line (majority) has won -->
-                    <div class="majority-bar">
-                        <template v-if="tally.bar">
-                            <div class="fill yes" :style="{ width: `${tally.bar.yes * 100}%` }"></div>
-                            <div class="fill no" :style="{ width: `${tally.bar.no * 100}%` }"></div>
-                        </template>
-                        <div
-                            class="finish-line"
-                            :style="{ left: `${tally.majority * 100}%` }"
-                            :title="`${Math.round(tally.majority * 1000) / 10}%`"
-                        ></div>
-                    </div>
-                    <div :class="['quorum-text', { met: tally.quorumMet }]">
-                        {{ t("lobby.components.battle.votePanel.quorum", { cast: tally.cast, quorum: tally.quorum }) }}
-                    </div>
-                </template>
             </div>
-            <div
-                class="history-title"
-                @click="toggleCollapse"
-                @mouseenter="setHistoryHovered(true)"
-                @mouseleave="collapseHistoryIfNotHovered"
-            >
-                <div>{{ t("lobby.components.battle.votePanel.history") }}</div>
-                <div class="collapse-history">
-                    <div>
-                        <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
-                        <Icon v-else :icon="chevronUp" :height="24" />
-                    </div>
+
+            <div class="actions">
+                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{ t("lobby.components.battle.votePanel.yes") }}</Button>
+                <Button class="vote-button grey" @click="onAbstain">{{ t("lobby.components.battle.votePanel.abstain") }}</Button>
+                <Button class="vote-button grey" @click="onCancel">{{ t("lobby.components.battle.votePanel.cancel") }}</Button>
+                <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
+            </div>
+
+            <template v-if="tally">
+                <!-- Yes fills from the left, no from the right, pending voters are the gap; whichever side crosses the finish line (majority) has won -->
+                <div class="majority-bar">
+                    <template v-if="tally.bar">
+                        <div class="fill yes" :style="{ width: `${tally.bar.yes * 100}%` }"></div>
+                        <div class="fill no" :style="{ width: `${tally.bar.no * 100}%` }"></div>
+                    </template>
+                    <div
+                        class="finish-line"
+                        :style="{ left: `${tally.majority * 100}%` }"
+                        :title="`${Math.round(tally.majority * 1000) / 10}%`"
+                    ></div>
+                </div>
+                <div :class="['quorum-text', { met: tally.quorumMet }]">
+                    {{ t("lobby.components.battle.votePanel.quorum", { cast: tally.cast, quorum: tally.quorum }) }}
+                </div>
+            </template>
+        </div>
+        <div
+            :class="['history-title', { separated: vote }]"
+            @click="toggleCollapse"
+            @mouseenter="setHistoryHovered(true)"
+            @mouseleave="collapseHistoryIfNotHovered"
+        >
+            <div>{{ t("lobby.components.battle.votePanel.history") }}</div>
+            <div class="collapse-history">
+                <div>
+                    <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
+                    <Icon v-else :icon="chevronUp" :height="24" />
                 </div>
             </div>
-            <!-- Absolutely positioned so an expanded history overlaps the chat below rather than pushing it down -->
-            <div
-                v-show="!collapsed"
-                class="history-overlay"
-                @mouseenter="setHistoryHovered(true)"
-                @mouseleave="collapseHistoryIfNotHovered"
-            >
-                <div v-if="historyEntries.length === 0">{{ t("lobby.components.battle.votePanel.noHistory") }}</div>
-                <div v-for="entry in historyEntries" :key="entry.voteId">
-                    <div class="flex-row">
-                        <Icon
-                            :icon="getHistoryIcon(entry.outcome)"
-                            :height="24"
-                            :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
-                        />
-                        <div>{{ getVoteString(entry.vote) }}</div>
-                    </div>
+        </div>
+        <!-- Absolutely positioned so an expanded history overlaps the chat below rather than pushing it down -->
+        <div v-show="!collapsed" class="history-overlay" @mouseenter="setHistoryHovered(true)" @mouseleave="collapseHistoryIfNotHovered">
+            <div v-if="historyEntries.length === 0">{{ t("lobby.components.battle.votePanel.noHistory") }}</div>
+            <div v-for="entry in historyEntries" :key="entry.voteId">
+                <div class="flex-row">
+                    <Icon
+                        :icon="getHistoryIcon(entry.outcome)"
+                        :height="24"
+                        :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
+                    />
+                    <div>{{ getVoteString(entry.vote) }}</div>
                 </div>
             </div>
         </div>
@@ -98,8 +89,10 @@ import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
 import alarm from "@iconify-icons/mdi/alarm";
 import { useVoteString } from "@renderer/composables/useVoteString";
 import { tallyVote } from "@renderer/utils/vote-tally";
+import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 
 const { t } = useTypedI18n();
+const { needsMyVote } = useActiveLobbyStatus();
 
 const collapsed = ref(true);
 const historyHovered = ref(false);
@@ -228,39 +221,68 @@ const voteString = computed(() => getVoteString(vote.value?.action));
 </script>
 
 <style lang="scss" scoped>
-.voting-container {
-    width: 100%;
+// Box matches LobbyTeamComponent/SpectatorsComponent so the vote panel reads as part of the same set.
+.group {
+    border: 1px inset rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
 }
-.voting-panel {
-    padding: 0px 16px;
-    position: relative;
-    width: 100%;
-    pointer-events: auto;
-    :deep(.content) {
-        padding: 10px 15px;
-        padding-top: 13px;
-        padding-bottom: 23px;
-        // gap: 10px;
+// Flashing gold edge while my vote is pending. An overlaid strip rather than a border so it doesn't shift the content;
+// it fills with currentColor so the shared vote-flash keyframes (which animate color) drive it.
+.vote-panel.needs-vote::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background: currentColor;
+    pointer-events: none;
+    animation: vote-flash 1s ease-in-out infinite;
+}
+// Same flash as ActiveLobbyPreview's vote prompt; duplicated because scoped styles rename keyframes per component.
+@keyframes vote-flash {
+    0%,
+    100% {
+        opacity: 1;
+        color: rgb(255, 215, 80);
+        filter: drop-shadow(0 0 6px rgba(255, 215, 80, 0.9));
+    }
+    50% {
+        opacity: 0.35;
+        color: #fff;
+        filter: none;
     }
 }
 .remaining-time {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 5px;
+    height: 3px;
     background: rgba(255, 255, 255, 0.521);
     visibility: hidden;
     &.visible {
         visibility: visible;
     }
 }
+.active-vote {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.group-header {
+    margin-bottom: 4px;
+}
 .title {
-    text-align: center;
-    font-size: 24px;
+    font-size: 20px;
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.8));
+}
+.action {
+    font-size: 16px;
 }
 .actions {
     display: flex;
@@ -275,15 +297,15 @@ const voteString = computed(() => getVoteString(vote.value?.action));
     flex-grow: 1;
 }
 .caller {
-    text-align: center;
+    margin-left: auto;
     font-size: 14px;
-    opacity: 0.8;
+    opacity: 0.5;
 }
 .majority-bar {
     position: relative;
     width: 100%;
     height: 10px;
-    margin-top: 6px;
+    margin-top: 4px;
     background: rgba(255, 255, 255, 0.1);
     border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -313,7 +335,6 @@ const voteString = computed(() => getVoteString(vote.value?.action));
 .quorum-text {
     text-align: center;
     font-size: 14px;
-    margin-top: 4px;
     opacity: 0.6;
     &.met {
         opacity: 0.9;
@@ -327,6 +348,7 @@ const voteString = computed(() => getVoteString(vote.value?.action));
     max-height: 200px;
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.9);
+    border: 1px inset rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     z-index: 10;
     padding: 15px;
@@ -348,8 +370,14 @@ const voteString = computed(() => getVoteString(vote.value?.action));
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin: 0 -15px; // cancel out .content's horizontal padding
-    padding: 0px 15px 4px 15px; // restore visual alignment of text
+    // Cancel out .group's padding so the hover gradient reaches the box edges; padding restores the text position.
+    margin: -10px;
+    padding: 10px;
+    &.separated {
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
     &:hover {
         cursor: pointer;
         background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
