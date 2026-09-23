@@ -2489,6 +2489,8 @@
                     "cancel": null,
                     "no": null,
                     "calledBy": null,
+                    "history": null,
+                    "noHistory": null,
                     "actions": {
                         "kickban": null,
                         "kickOnly": null,

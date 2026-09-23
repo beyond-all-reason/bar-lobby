@@ -506,6 +506,8 @@
                     "cancel": "Ceancl",
                     "no": "No (F2)",
                     "calledBy": "Cllaed by {initiator}",
+                    "history": "Vtoe Htrisoy",
+                    "noHistory": "No vtoe htoisry aablviale.",
                     "actions": {
                         "kickban": "Kcik {target} and ban uitnl {banUntil}",
                         "kickOnly": "Kcik {target}",

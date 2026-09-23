@@ -23,7 +23,9 @@ SPDX-License-Identifier: MIT
                     <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
                 </div>
 
-                <div v-if="vote?.initiator" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ initiatorName }}</div>
+                <div v-if="vote?.initiator" class="caller">
+                    {{ t("lobby.components.battle.votePanel.calledBy", { initiator: initiatorName }) }}
+                </div>
 
                 <div v-if="missingYesVotes" class="vote-display">
                     <div v-for="i in yesVotes" :key="i" class="segment yes"></div>
@@ -39,7 +41,7 @@ SPDX-License-Identifier: MIT
                 @mouseenter="setHistoryHovered(true)"
                 @mouseleave="collapseHistoryIfNotHovered"
             >
-                <div>Vote History</div>
+                <div>{{ t("lobby.components.battle.votePanel.history") }}</div>
                 <div class="collapse-history">
                     <div>
                         <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
@@ -54,7 +56,7 @@ SPDX-License-Identifier: MIT
                 @mouseenter="setHistoryHovered(true)"
                 @mouseleave="collapseHistoryIfNotHovered"
             >
-                <div v-if="historyEntries.length === 0">No vote history available.</div>
+                <div v-if="historyEntries.length === 0">{{ t("lobby.components.battle.votePanel.noHistory") }}</div>
                 <div v-for="entry in historyEntries" :key="entry.voteId">
                     <div class="flex-row">
                         <Icon
@@ -76,9 +78,7 @@ import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
-import { LobbyUpdatedEventData, VoteActions, VoteOutcomes } from "tachyon-protocol/types";
-import { computedAsync } from "@vueuse/core";
-import { db } from "@renderer/store/db";
+import { LobbyUpdatedEventData, VoteOutcomes } from "tachyon-protocol/types";
 import chevronDown from "@iconify-icons/mdi/chevron-down";
 import chevronUp from "@iconify-icons/mdi/chevron-up";
 import { Icon } from "@iconify/vue";
@@ -86,8 +86,7 @@ import successCircleOutline from "@iconify-icons/mdi/success-circle-outline";
 import closeCircleOutline from "@iconify-icons/mdi/close-circle-outline";
 import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
 import alarm from "@iconify-icons/mdi/alarm";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { UserId } from "tachyon-protocol/types";
+import { useVoteString } from "@renderer/composables/useVoteString";
 
 const { t } = useTypedI18n();
 
@@ -255,53 +254,14 @@ function onCancel() {
     }
 }
 
-const initiatorName = computedAsync(async () => {
+const { displayNames, getVoteString } = useVoteString();
+
+const initiatorName = computed(() => {
     if (vote.value?.initiator === undefined) return "";
-    const displayName = displayNames.value?.get(vote.value.initiator);
-    if (displayName != undefined) {
-        return displayName;
-    }
-    return t("lobby.navbar.messages.userID") + " " + vote.value.initiator;
+    return displayNames.value?.get(vote.value.initiator) ?? t("lobby.navbar.messages.userID") + " " + vote.value.initiator;
 });
 
-function getVoteString(voteAction: VoteActions) {
-    if (!voteAction?.type) return "";
-    const type = voteAction.type;
-    switch (type) {
-        case "kickban":
-            if (voteAction.banUntil)
-                return t("lobby.components.battle.votePanel.actions.kickban", {
-                    target: displayNames.value?.get(voteAction.userId) ?? voteAction.userId,
-                    banUntil: voteAction.banUntil,
-                });
-            else
-                return t("lobby.components.battle.votePanel.actions.kickOnly", {
-                    target: displayNames.value?.get(voteAction.userId) ?? voteAction.userId,
-                });
-        case "changeMap":
-            return t("lobby.components.battle.votePanel.actions.changeMap", { newMapName: voteAction.newMapName });
-        case "appointBoss":
-            return t("lobby.components.battle.votePanel.actions.appointBoss", {
-                target: displayNames.value?.get(voteAction.bossId) ?? voteAction.bossId,
-            });
-        case "start":
-            return t("lobby.components.battle.votePanel.actions.start");
-        default:
-            return "";
-    }
-}
-const voteString = computed(() => {
-    if (!vote.value?.action) return "";
-    return getVoteString(vote.value?.action);
-});
-
-const displayNames = useDexieLiveQueryWithDeps(lobbyStore.activeLobby, async () => {
-    const map = new Map<UserId, string>();
-    await db.users.each(function (user) {
-        map.set(user.userId, user.username);
-    });
-    return map;
-});
+const voteString = computed(() => getVoteString(vote.value?.action));
 </script>
 
 <style lang="scss" scoped>

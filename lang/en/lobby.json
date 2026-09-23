@@ -506,6 +506,8 @@
                     "cancel": "Cancel",
                     "no": "No (F2)",
                     "calledBy": "Called by {initiator}",
+                    "history": "Vote History",
+                    "noHistory": "No vote history available.",
                     "actions": {
                         "kickban": "Kick {target} and ban until {banUntil}",
                         "kickOnly": "Kick {target}",
