@@ -7,10 +7,10 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="container">
         <Select
-            :data-key="'label'"
+            data-key="id"
             :modelValue="battleStore.battleOptions.gameMode"
             :options="gameModeListOptions"
-            optionLabel="label"
+            :optionLabel="(mode: GameModeWithOptions) => getTranslatedGameMode(mode.id)"
             :label="t('lobby.components.battle.gameModeComponent.presets')"
             @update:model-value="onGameModeSelected"
             disabled
@@ -43,7 +43,7 @@ import { type GameModeWithOptions, GameModeID } from "@main/game/battle/battle-t
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
-import { battleActions, battleStore } from "@renderer/store/battle.store";
+import { battleActions, battleStore, getTranslatedGameMode } from "@renderer/store/battle.store";
 import { gameStore } from "@renderer/store/game.store";
 import { ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
@@ -52,10 +52,10 @@ const { t } = useTypedI18n();
 
 //TODO have these presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [
-    { id: GameModeID.CLASSIC, label: t("lobby.components.battle.gameModeComponent.gameModeClassic"), options: {} },
-    { id: GameModeID.FFA, label: t("lobby.components.battle.gameModeComponent.gameModeFFA"), options: {} },
-    { id: GameModeID.RAPTORS, label: t("lobby.components.battle.gameModeComponent.gameModeRaptors"), options: {} },
-    { id: GameModeID.SCAVENGERS, label: t("lobby.components.battle.gameModeComponent.gameModeScavengers"), options: {} },
+    { id: GameModeID.CLASSIC, options: {} },
+    { id: GameModeID.FFA, options: {} },
+    { id: GameModeID.RAPTORS, options: {} },
+    { id: GameModeID.SCAVENGERS, options: {} },
 ];
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());

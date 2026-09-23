@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
                     <div class="scroll-container">
                         <div v-for="command in filteredCommands" :key="command.cmd" class="command">
                             <div class="cmd">{{ command.cmd }}</div>
-                            <div class="cmdDescription">{{ command.cmdDescription }}</div>
+                            <div class="cmdDescription">{{ t(command.descriptionKey) }}</div>
                         </div>
                     </div>
                 </div>
@@ -40,6 +40,9 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 type FilterMethod = "All" | "Spads" | "Server";
 const filterMethods: FilterMethod[] = ["All", "Spads", "Server"];
@@ -73,7 +76,7 @@ const filteredCommands = computed(() => {
         return filterCommands(commands, filterMethod.value);
     }
     return filterCommands(
-        commands.filter((command) => (command.cmd + command.cmdDescription).includes(searchVal.value)),
+        commands.filter((command) => (command.cmd + t(command.descriptionKey)).includes(searchVal.value)),
         filterMethod.value
     );
 });

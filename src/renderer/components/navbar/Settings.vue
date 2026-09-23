@@ -150,8 +150,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
-import type { Locale } from "@renderer/locales";
-const { t, locale } = useTypedI18n();
+const { t } = useTypedI18n();
 const { localeOptions } = useLocaleOptions();
 
 const currentAssetsPath = ref("");
@@ -352,13 +351,6 @@ async function uploadLogsCommand(event) {
     // Display feedback
     op.value.show(curE, curTarget);
 }
-
-watch(
-    () => settingsStore.language,
-    () => {
-        locale.value = settingsStore.language as Locale;
-    }
-);
 </script>
 
 <style lang="scss" scoped>

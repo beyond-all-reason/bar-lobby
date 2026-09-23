@@ -104,7 +104,7 @@ import Number from "@renderer/components/controls/Number.vue";
 import Friend from "@renderer/components/navbar/Friend.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { me, friends } from "@renderer/store/me.store";
-import { useTypedI18n } from "@renderer/i18n";
+import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 import { notificationsApi } from "@renderer/api/notifications";
 import type { Ref } from "vue";
 
@@ -196,7 +196,7 @@ async function addFriend() {
         console.error("Failed to send friend request:", error);
         const errorMessage = error instanceof Error ? error.message : String(error);
 
-        const errorMessageMap: Record<string, string> = {
+        const errorMessageMap: Record<string, TranslationKey> = {
             already_in_friendlist: "lobby.navbar.friends.notifications.errors.alreadyFriends",
             invalid_user: "lobby.navbar.friends.notifications.errors.invalidUser",
             outgoing_capacity_reached: "lobby.navbar.friends.notifications.errors.outgoingCapacityReached",

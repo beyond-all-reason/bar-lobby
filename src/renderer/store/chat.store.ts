@@ -13,9 +13,6 @@ import { onWentOffline } from "@renderer/utils/offline-signal";
 import { onTachyonConnected } from "@renderer/utils/connection-signal";
 import { lobbyStore } from "@renderer/store/lobby.store";
 import { partyStore } from "@renderer/store/party.store";
-// import { setupI18n } from "@renderer/i18n";
-
-// const i18n = setupI18n();
 
 const chatSymbol = Symbol("chat.store");
 
