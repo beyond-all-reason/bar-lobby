@@ -66,7 +66,7 @@ const isSynced = computed(() => {
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const actions =
+const actions = computed(() =>
     props.player.id === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
@@ -87,7 +87,8 @@ const actions =
                   ],
               },
               //{ label: "Report", command: reportPlayer },
-          ];
+          ]
+);
 
 function onRightClick(event: MouseEvent) {
     if (menu.value) {

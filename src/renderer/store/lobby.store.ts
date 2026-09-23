@@ -29,15 +29,13 @@ import { apply as applyPatch } from "json8-merge-patch";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest, isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import { Lobby } from "@renderer/model/lobby";
-import { setupI18n } from "@renderer/i18n";
+import { t } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { tachyonStore } from "@renderer/store/tachyon.store";
-
-const i18n = setupI18n();
 
 const lobbySymbol = Symbol("lobby.store");
 
@@ -486,7 +484,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
         router.replace("/play/customLobbies");
     }
     notificationsApi.alert({
-        text: i18n.global.t("lobby.multiplayer.custom.removedFromLobby"),
+        text: t("lobby.multiplayer.custom.removedFromLobby"),
         severity: "info",
     });
 }

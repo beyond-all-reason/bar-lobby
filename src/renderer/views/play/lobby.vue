@@ -130,7 +130,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
@@ -152,13 +152,13 @@ import { battleStore } from "@renderer/store/battle.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import pencilIcon from "@iconify-icons/mdi/pencil";
 import arrowBackIcon from "@iconify-icons/mdi/arrow-back";
-import { MapData } from "@main/content/maps/map-data";
 import { StartPosType } from "@main/game/battle/battle-types";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { useTypedI18n } from "@renderer/i18n";
 import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import { useLobbyMap } from "@renderer/composables/useLobbyMap";
 
 const editLobbyModalIsOpen = ref(false);
 
@@ -209,18 +209,7 @@ const gameListOptions = computed(() => {
     return Array.from(gameStore.availableGameVersions.values());
 });
 
-const map = ref<MapData>();
-
-watch(
-    () => lobbyStore.activeLobby?.mapName,
-    async (mapName) => {
-        const loadedMap = mapName ? await db.maps.get(mapName) : undefined;
-        if (lobbyStore.activeLobby?.mapName === mapName) {
-            map.value = loadedMap;
-        }
-    },
-    { immediate: true }
-);
+const map = useLobbyMap();
 
 const mapOptions = computed(() => ({
     startPosType: StartPosType.Boxes,
