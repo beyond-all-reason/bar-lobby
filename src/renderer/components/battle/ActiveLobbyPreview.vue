@@ -7,8 +7,9 @@ SPDX-License-Identifier: MIT
 <template>
     <div v-if="lobby && !isOnLobbyView" class="active-lobby-preview" @click="openLobby">
         <div class="details">
-            <div class="details-inner">
+            <div class="details-panel">
                 <div class="details-content flex-row gap-md">
+                    <div v-if="backgroundUrl" class="details-background" :style="{ backgroundImage: `url(${backgroundUrl})` }" />
                     <div class="map-column flex-col gap-xs">
                         <div class="map-frame">
                             <MapSimplePreview :map="map" :class="{ dim: lobby.currentBattle }" />
@@ -18,22 +19,29 @@ SPDX-License-Identifier: MIT
                     </div>
                     <div class="info-column flex-col gap-sm">
                         <div class="full-title">{{ lobby.name }}</div>
-                        <div v-if="roleIcon && roleLabel" class="info-line flex-row flex-center-items gap-sm">
-                            <Icon :icon="roleIcon" :height="18" class="line-icon" />
-                            <span>{{ roleLabel }}</span>
-                        </div>
-                        <div v-if="allyTeamConfigLabel" class="info-line">{{ allyTeamConfigLabel }}</div>
-                        <div v-if="vote" class="info-line">
-                            <strong>{{ t("lobby.components.battle.activeLobbyPreview.activeVote") }}</strong>
-                            <!-- TODO: replace with shared getVoteString once lobby-voting merges -->
-                            {{ vote.action.type }}
-                        </div>
-                        <div v-if="vote && voteTimeLeftMs !== null" class="info-line vote-time-left">
-                            {{ t("lobby.components.battle.activeLobbyPreview.voteTimeLeft", { time: formatTimeLeft(voteTimeLeftMs) }) }}
-                        </div>
-                        <div v-if="battleDurationMs !== null" class="info-line">
-                            {{ t("lobby.components.battle.activeLobbyPreview.battleDuration") }}
-                            {{ getFriendlyDuration(battleDurationMs) }}
+                        <!-- Groups sit side by side when there is room and wrap underneath each other when there isn't. -->
+                        <div class="info-groups">
+                            <div v-if="(roleIcon && roleLabel) || allyTeamConfigLabel" class="info-group flex-col gap-xs">
+                                <div v-if="roleIcon && roleLabel" class="info-line flex-row flex-center-items gap-sm">
+                                    <Icon :icon="roleIcon" :height="20" class="line-icon" />
+                                    <span>{{ roleLabel }}</span>
+                                </div>
+                                <div v-if="allyTeamConfigLabel" class="info-line">{{ allyTeamConfigLabel }}</div>
+                            </div>
+                            <div v-if="vote || battleDurationMs !== null" class="info-group flex-col gap-xs">
+                                <div v-if="vote" class="info-line">
+                                    <strong>{{ t("lobby.components.battle.activeLobbyPreview.activeVote") }}</strong>
+                                    <!-- TODO: replace with shared getVoteString once lobby-voting merges -->
+                                    {{ vote.action.type }}
+                                </div>
+                                <div v-if="vote && voteTimeLeftMs !== null" class="info-line vote-time-left">
+                                    {{ t("lobby.components.battle.activeLobbyPreview.voteTimeLeft", { time: formatTimeLeft(voteTimeLeftMs) }) }}
+                                </div>
+                                <div v-if="battleDurationMs !== null" class="info-line">
+                                    {{ t("lobby.components.battle.activeLobbyPreview.battleDuration") }}
+                                    {{ getFriendlyDuration(battleDurationMs) }}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -62,6 +70,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
 import ActiveBattleVideo from "@renderer/components/misc/ActiveBattleVideo.vue";
 import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
+import { useLobbyBackground } from "@renderer/composables/useLobbyBackground";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 
@@ -89,6 +98,7 @@ function formatTimeLeft(ms: number) {
     return seconds > 0 ? getFriendlyDuration(seconds * 1000) : "0s";
 }
 const map = useLobbyMap();
+const backgroundUrl = useLobbyBackground();
 
 const isOnLobbyView = computed(() => route.path === "/play/lobby");
 
@@ -158,11 +168,26 @@ function openLobby() {
     flex-direction: column;
     cursor: pointer;
     font-family: Rajdhani, sans-serif;
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.5);
+    &:hover {
+        .details-panel {
+            transform: translateY(0);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .summary {
+            border-color: rgba(255, 255, 255, 0.3);
+            border-top-color: transparent;
+            box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.05);
+        }
+    }
+}
+
+// Shared look of the details panel and summary row, which together read as one box when expanded.
+%preview-surface {
+    position: relative;
     backdrop-filter: blur(5px);
-    background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-bottom: none;
-    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.5);
     &:before {
         @extend .fullsize;
         left: 0;
@@ -173,28 +198,44 @@ function openLobby() {
         background-image: url("/src/renderer/assets/images/squares.png");
         pointer-events: none;
     }
-    &:hover {
-        border-color: rgba(255, 255, 255, 0.3);
-        .details {
-            grid-template-rows: 1fr;
-        }
-        .summary {
-            background: rgba(255, 255, 255, 0.05);
-        }
-    }
 }
 
-// Grows upward from the bottom-anchored summary row on hover.
+// Clips the panel at the summary's top edge, so it appears to slide out from behind it. The panel keeps its full
+// size and only moves via transform, which the compositor can animate without repainting the background image.
 .details {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.25s ease-out;
-}
-.details-inner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
     overflow: hidden;
-    min-height: 0;
+    pointer-events: none;
+}
+.details-panel {
+    @extend %preview-surface;
+    background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.8));
+    transform: translateY(100%);
+    transition:
+        transform 0.25s ease-out,
+        border-color 0.25s;
+    will-change: transform;
+    pointer-events: auto;
+}
+// Fades out toward the left along a "/" edge (60° from horizontal) so it stays clear of the map and text.
+// Sized to the content rather than the animated clip box, so it slides up intact instead of resizing mid-transition.
+.details-background {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-size: cover;
+    background-position: right center;
+    opacity: 0.5;
+    mask-image: linear-gradient(120deg, transparent 35%, black 80%);
+    pointer-events: none;
 }
 .details-content {
+    position: relative;
+    // Own stacking context keeps the background's z-index: -1 behind the content but above the preview's backdrop.
+    isolation: isolate;
     padding: 10px 12px 6px;
 }
 
@@ -222,7 +263,7 @@ function openLobby() {
     filter: brightness(0.3);
 }
 .map-name {
-    font-size: 14px;
+    font-size: 16px;
     text-align: center;
     opacity: 0.8;
     overflow: hidden;
@@ -235,12 +276,22 @@ function openLobby() {
     flex-grow: 1;
 }
 .full-title {
-    font-size: 18px;
+    font-size: 21px;
     font-weight: 600;
     overflow-wrap: anywhere;
 }
+.info-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+}
+// The basis decides when the second group wraps below the first instead of sitting beside it.
+.info-group {
+    flex: 1 1 170px;
+    min-width: 0;
+}
 .info-line {
-    font-size: 15px;
+    font-size: 17px;
     opacity: 0.9;
 }
 .vote-time-left {
@@ -248,12 +299,16 @@ function openLobby() {
 }
 
 .summary {
+    @extend %preview-surface;
     align-items: center;
     height: 40px;
     padding: 0 12px;
     font-size: 18px;
     font-weight: 600;
-    transition: background 0.2s;
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
+    transition:
+        box-shadow 0.2s,
+        border-color 0.25s;
 }
 .status-icon {
     flex-shrink: 0;
