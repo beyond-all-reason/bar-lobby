@@ -261,6 +261,12 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             console.warn("Lobby update did not match active lobby ID. Skipping update.");
             return;
         }
+        // A different vote id means a new vote, which must replace the old one rather than merge into it (stale voters would survive the merge).
+        // Partial vote patches (e.g. only voters) may omit the id, so only an explicit different id counts.
+        const newVoteId = data.currentVote?.id;
+        if (newVoteId !== undefined && lobbyStore.activeLobby.currentVote && newVoteId !== lobbyStore.activeLobby.currentVote.id) {
+            delete lobbyStore.activeLobby.currentVote;
+        }
         //Apply the patch for an updated event
         lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
     } else {
@@ -554,6 +560,22 @@ async function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
 }
 
 /**
+ * Request to cancel a vote in the lobby.
+ */
+async function requestVoteCancel() {
+    try {
+        if (lobbyStore.activeLobby?.currentVote?.id === undefined) {
+            throw new Error("No active vote to cancel");
+        }
+        const response = await tachyonRequest("lobby/voteCancel", { id: lobbyStore.activeLobby.currentVote?.id });
+        console.log("Tachyon lobby/voteCancel:", response);
+    } catch (error) {
+        console.error("Error with request lobby/voteCancel", error);
+        notificationsApi.alert({ text: "Error with request lobby/voteCancel", severity: "error" });
+    }
+}
+
+/**
  * Request to appoint a user as the boss of the lobby.
  * @param userId The ID of the user to appoint as boss
  */
@@ -621,6 +643,7 @@ export const lobby = {
     requestUpdateClientStatus,
     requestJoinBattle,
     requestVoteSubmit,
+    requestVoteCancel,
     requestAppointBoss,
     requestKickBan,
     requestUnboss,

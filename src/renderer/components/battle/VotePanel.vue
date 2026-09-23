@@ -78,7 +78,7 @@ import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
-import { LobbyUpdatedEventData, VoteOutcomes } from "tachyon-protocol/types";
+import { VoteOutcomes } from "tachyon-protocol/types";
 import chevronDown from "@iconify-icons/mdi/chevron-down";
 import chevronUp from "@iconify-icons/mdi/chevron-up";
 import { Icon } from "@iconify/vue";
@@ -117,15 +117,11 @@ function collapseHistoryIfNotHovered() {
     }, historyHoverCloseDelayMs);
 }
 
-const vote = computed(() => {
-    // FIX: Remove these casts once https://github.com/beyond-all-reason/tachyon/pull/156 is added
-    return (lobbyStore.activeLobby?.currentVote as LobbyUpdatedEventData["currentVote"]) ?? null;
-});
+const vote = computed(() => lobbyStore.activeLobby?.currentVote ?? null);
 
 const historyEntries = computed(() =>
     Object.entries(lobbyStore.activeLobby?.voteHistory ?? {})
-        // .filter(([, v]) => v !== null)
-        .map(([voteId, v]) => ({ voteId, ...v! }))
+        .map(([voteId, v]) => ({ voteId, ...v }))
         .sort((a, b) => b.finishedAt - a.finishedAt)
 );
 
@@ -184,13 +180,14 @@ const missingYesVotes = computed(() => {
     if (vote.value?.quorum === undefined || vote.value?.voters === undefined) {
         return null;
     }
-    return vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "yes").length;
+    // Clamped: v-for throws on a negative range once votes exceed the quorum.
+    return Math.max(0, vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "yes").length);
 });
 const missingNoVotes = computed(() => {
     if (vote.value?.quorum === undefined || vote.value?.voters === undefined) {
         return null;
     }
-    return vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "no").length;
+    return Math.max(0, vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "no").length);
 });
 const voteMajority = computed(() => {
     if (vote.value?.majority === undefined) {
@@ -249,8 +246,7 @@ function onAbstain() {
 
 function onCancel() {
     if (vote.value) {
-        // Not yet implemented.
-        // lobby.requestVoteSubmit({ id: vote.value?.id, vote: "cancel" });
+        lobby.requestVoteCancel();
     }
 }
 

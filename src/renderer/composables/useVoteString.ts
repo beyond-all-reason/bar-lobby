@@ -5,15 +5,16 @@
 import { UserId, VoteActions } from "tachyon-protocol/types";
 import { t } from "@renderer/i18n";
 import { db } from "@renderer/store/db";
-import { lobbyStore } from "@renderer/store/lobby.store";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 
 /**
  * Human-readable descriptions of lobby votes, resolving user ids to display names.
  * Call getVoteString inside a computed or render so it updates with the locale and the known users.
  */
 export function useVoteString() {
-    const displayNames = useDexieLiveQueryWithDeps(lobbyStore.activeLobby, async () => {
+    // liveQuery re-runs whenever the users table changes, so no lobby dependency is needed.
+    // All users rather than just lobby members, since history entries can reference users who have left.
+    const displayNames = useDexieLiveQuery(async () => {
         const map = new Map<UserId, string>();
         await db.users.each(function (user) {
             map.set(user.userId, user.username);
