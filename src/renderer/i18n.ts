@@ -54,9 +54,10 @@ export const i18n = createI18n<[MessageSchema], Locale, false>({
     legacy: false,
 });
 
-function resolveLocale(language: string | null | undefined): Locale {
+/** The saved language if supported, otherwise the system language if supported, otherwise English. */
+export function resolveLocale(language: string | null | undefined, systemLocale = Intl.DateTimeFormat().resolvedOptions().locale): Locale {
     if (isLocale(language)) return language;
-    const systemLanguage = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+    const systemLanguage = systemLocale.split("-")[0];
     return isLocale(systemLanguage) ? systemLanguage : "en";
 }
 

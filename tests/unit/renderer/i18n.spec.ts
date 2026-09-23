@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { afterEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { computed, nextTick } from "vue";
 import devTranslation from "@renderer/assets/languages/dev.json";
-import { i18n, t } from "@renderer/i18n";
+import { i18n, resolveLocale, t } from "@renderer/i18n";
 import { settingsStore } from "@renderer/store/settings.store";
 
 const key = "lobby.navbar.settings.language";
@@ -18,7 +18,7 @@ async function setLanguage(language: string | null) {
 }
 
 describe("global i18n", () => {
-    afterEach(async () => {
+    beforeEach(async () => {
         await setLanguage("en");
     });
 
@@ -40,10 +40,20 @@ describe("global i18n", () => {
         expect(label.value).toBe(scrambled);
     });
 
-    it("resolves an unknown language to a supported locale", async () => {
-        await setLanguage("xx");
+    // The system locale is passed explicitly so these don't depend on the machine running them.
+    describe("resolveLocale", () => {
+        it("prefers a supported saved language", () => {
+            expect(resolveLocale("fr", "de-DE")).toBe("fr");
+        });
 
-        expect(i18n.global.locale.value).toBe("en");
+        it("uses the system language when nothing supported is saved", () => {
+            expect(resolveLocale(null, "de-DE")).toBe("de");
+            expect(resolveLocale("xx", "de-DE")).toBe("de");
+        });
+
+        it("falls back to English when the system language is unsupported too", () => {
+            expect(resolveLocale("xx", "ja-JP")).toBe("en");
+        });
     });
 
     // Untranslated entries are null in the generated files.
