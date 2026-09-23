@@ -2,14 +2,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { setupI18n } from "@renderer/i18n";
+import { t, type TranslationKey } from "@renderer/i18n";
 import AutoSuggestionOption from "@renderer/utils/auto-suggestion-option";
-
-const i18n = setupI18n();
 
 export interface Command {
     cmd: string;
-    cmdDescription: string;
+    descriptionKey: TranslationKey;
 }
 
 export function getAutoSuggestions(commands: Command[]): AutoSuggestionOption[] {
@@ -22,107 +20,107 @@ export function getAutoSuggestions(commands: Command[]): AutoSuggestionOption[] 
         unique.add(suggestion);
         return {
             suggestion: suggestion,
-            description: command.cmdDescription,
+            description: t(command.descriptionKey),
             replaceSuggestion: command.cmd,
         };
     });
 }
 
-export const serverCommandList = [
+export const serverCommandList: Command[] = [
     {
         cmd: "$help",
-        cmdDescription: i18n.global.t("lobby.api.commands.help"),
+        descriptionKey: "lobby.api.commands.help",
     },
     {
         cmd: "$whoami",
-        cmdDescription: i18n.global.t("lobby.api.commands.whoami"),
+        descriptionKey: "lobby.api.commands.whoami",
     },
     {
         cmd: "$whois",
-        cmdDescription: i18n.global.t("lobby.api.commands.whois"),
+        descriptionKey: "lobby.api.commands.whois",
     },
     {
         cmd: "$discord",
-        cmdDescription: i18n.global.t("lobby.api.commands.discord"),
+        descriptionKey: "lobby.api.commands.discord",
     },
     {
         cmd: "$mute",
-        cmdDescription: i18n.global.t("lobby.api.commands.mute"),
+        descriptionKey: "lobby.api.commands.mute",
     },
     {
         cmd: "$unmute",
-        cmdDescription: i18n.global.t("lobby.api.commands.unmute"),
+        descriptionKey: "lobby.api.commands.unmute",
     },
     {
         cmd: "$coc",
-        cmdDescription: i18n.global.t("lobby.api.commands.coc"),
+        descriptionKey: "lobby.api.commands.coc",
     },
     {
         cmd: "$joinq",
-        cmdDescription: i18n.global.t("lobby.api.commands.joinq"),
+        descriptionKey: "lobby.api.commands.joinq",
     },
     {
         cmd: "$leaveq",
-        cmdDescription: i18n.global.t("lobby.api.commands.leaveq"),
+        descriptionKey: "lobby.api.commands.leaveq",
     },
     {
         cmd: "$status",
-        cmdDescription: i18n.global.t("lobby.api.commands.status"),
+        descriptionKey: "lobby.api.commands.status",
     },
     {
         cmd: "$afks",
-        cmdDescription: i18n.global.t("lobby.api.commands.afks"),
+        descriptionKey: "lobby.api.commands.afks",
     },
     {
         cmd: "$password?",
-        cmdDescription: i18n.global.t("lobby.api.commands.password"),
+        descriptionKey: "lobby.api.commands.password",
     },
     {
         cmd: "$splitlobby",
-        cmdDescription: i18n.global.t("lobby.api.commands.splitLobby"),
+        descriptionKey: "lobby.api.commands.splitLobby",
     },
     {
         cmd: "$roll",
-        cmdDescription: i18n.global.t("lobby.api.commands.roll"),
+        descriptionKey: "lobby.api.commands.roll",
     },
     {
         cmd: "$explain",
-        cmdDescription: i18n.global.t("lobby.api.commands.explain"),
+        descriptionKey: "lobby.api.commands.explain",
     },
     {
         cmd: "$reset-approval",
-        cmdDescription: i18n.global.t("lobby.api.commands.resetApproval"),
+        descriptionKey: "lobby.api.commands.resetApproval",
     },
     {
         cmd: "$meme",
-        cmdDescription: i18n.global.t("lobby.api.commands.meme"),
+        descriptionKey: "lobby.api.commands.meme",
     },
     {
         cmd: "$welcome-message",
-        cmdDescription: i18n.global.t("lobby.api.commands.welcomeMessage"),
+        descriptionKey: "lobby.api.commands.welcomeMessage",
     },
     {
         cmd: "$gatekeeper",
-        cmdDescription: i18n.global.t("lobby.api.commands.gatekeeper"),
+        descriptionKey: "lobby.api.commands.gatekeeper",
     },
     {
         cmd: "$rename",
-        cmdDescription: i18n.global.t("lobby.api.commands.rename"),
+        descriptionKey: "lobby.api.commands.rename",
     },
     {
         cmd: "$resetratinglevels",
-        cmdDescription: i18n.global.t("lobby.api.commands.resetRatingLevels"),
+        descriptionKey: "lobby.api.commands.resetRatingLevels",
     },
     {
         cmd: "$minratinglevel",
-        cmdDescription: i18n.global.t("lobby.api.commands.minRatingLevel"),
+        descriptionKey: "lobby.api.commands.minRatingLevel",
     },
     {
         cmd: "$maxratinglevel ",
-        cmdDescription: i18n.global.t("lobby.api.commands.maxRatingLevel"),
+        descriptionKey: "lobby.api.commands.maxRatingLevel",
     },
     {
         cmd: "$setratinglevels",
-        cmdDescription: i18n.global.t("lobby.api.commands.setRatingLevels"),
+        descriptionKey: "lobby.api.commands.setRatingLevels",
     },
 ];

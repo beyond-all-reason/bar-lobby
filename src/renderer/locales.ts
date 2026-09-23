@@ -2,4 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-export type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh" | "dev";
+export const LOCALES = ["cs", "de", "en", "fr", "ru", "zh", "dev"] as const;
+
+export type Locale = (typeof LOCALES)[number];
+
+export function isLocale(value: unknown): value is Locale {
+    return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
+}

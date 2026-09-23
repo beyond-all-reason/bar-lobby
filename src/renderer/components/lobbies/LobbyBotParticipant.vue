@@ -66,7 +66,7 @@ const menu = ref<InstanceType<typeof ContextMenu>>();
 
 let optionsToSubmit: { [k: string]: string | null } = {};
 
-const actions = [
+const actions = computed(() => [
     {
         label: t("lobby.components.battle.botParticipant.configure"),
         command: openConfigureModal,
@@ -75,7 +75,7 @@ const actions = [
         label: t("lobby.components.battle.botParticipant.kick"),
         command: kickBot,
     },
-];
+]);
 
 // Fill it with options as known to the server.
 const botOptions = computed<LuaOptionSection[]>(

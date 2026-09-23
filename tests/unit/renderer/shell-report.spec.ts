@@ -8,7 +8,7 @@ import type { IpcResult } from "@main/typed-ipc";
 const alert = vi.hoisted(() => vi.fn());
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert } }));
-vi.mock("@renderer/i18n", () => ({ setupI18n: () => ({ global: { t: (key: string, params: Record<string, string>) => `${key}:${params.details}` } }) }));
+vi.mock("@renderer/i18n", () => ({ t: (key: string, params: Record<string, string>) => `${key}:${params.details}` }));
 
 const { shellApi } = await import("@renderer/api/shell");
 

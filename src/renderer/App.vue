@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
             <DebugSidebar v-if="settingsStore.devMode" />
         </Suspense>
         <StickyBattle v-if="state === 'default'" />
+        <ActiveLobbyPreview v-if="state === 'default'" />
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />
         <ReconnectingOverlay v-if="state === 'default'" />
@@ -76,6 +77,7 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import StickyBattle from "@renderer/components/battle/StickyBattle.vue";
+import ActiveLobbyPreview from "@renderer/components/battle/ActiveLobbyPreview.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Background from "@renderer/components/misc/Background.vue";
 import DebugSidebar from "@renderer/components/misc/DebugSidebar.vue";

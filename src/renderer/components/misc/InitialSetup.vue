@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
             <Button class="green" @click="confirmPath">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
         </template>
         <template v-else>
-            <h1>{{ title }}</h1>
+            <h1>{{ t(titleKey) }}</h1>
             <h4 :class="{ 'status-error': stepError, 'status-warning': stepRetrying }">{{ text }}</h4>
             <Progress :percent="overallProgress" :height="40" style="width: 70%" themed pulsating />
             <template v-if="isDownloadPhase">
@@ -66,7 +66,7 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useTypedI18n } from "@renderer/i18n";
+import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -88,18 +88,11 @@ import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
 
-import type { Locale } from "@renderer/locales";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
 
 const { localeOptions } = useLocaleOptions();
-const { t, locale } = useTypedI18n();
+const { t } = useTypedI18n();
 
-watch(
-    () => settingsStore.language,
-    () => {
-        locale.value = settingsStore.language as Locale;
-    }
-);
 let resolveLanguageSelection: (() => void) | undefined;
 
 const PRELOAD_WEIGHT = 0.05;
@@ -118,7 +111,7 @@ interface DownloadStage {
     run: () => Promise<void>;
 }
 
-const title = ref(t("lobby.components.misc.preloader.loading"));
+const titleKey = ref<TranslationKey>("lobby.components.misc.preloader.loading");
 const text = ref("");
 const state = ref<"language-selection" | "path-selection" | "engine" | "game" | "maps" | "update">("engine");
 const selectedPath = ref("");
@@ -259,11 +252,12 @@ function completeStage() {
 const randomBackgroundImage = randomFromArray(Object.values(backgroundImages));
 document.documentElement.style.setProperty("--background", `url(${randomBackgroundImage})`);
 
-const preloadSteps: [string, () => Promise<unknown>][] = [
-    [t("lobby.components.misc.preloader.loadingFonts"), loadAllFonts],
-    [t("lobby.components.misc.preloader.initializingIndexDB"), initDb],
-    [t("lobby.components.misc.preloader.initializingMaps"), initMapsStore],
-    [t("lobby.components.misc.preloader.initializingReplays"), initReplaysStore],
+// Keys, not strings: these are defined before the user picks a language.
+const preloadSteps: [TranslationKey, () => Promise<unknown>][] = [
+    ["lobby.components.misc.preloader.loadingFonts", loadAllFonts],
+    ["lobby.components.misc.preloader.initializingIndexDB", initDb],
+    ["lobby.components.misc.preloader.initializingMaps", initMapsStore],
+    ["lobby.components.misc.preloader.initializingReplays", initReplaysStore],
 ];
 
 const preloadStepWeight = PRELOAD_WEIGHT / preloadSteps.length;
@@ -376,13 +370,13 @@ onMounted(async () => {
     }
 
     // Phase 1: Preload (local-first; failures degrade gracefully inside each step)
-    for (const [label, thing] of preloadSteps) {
+    for (const [labelKey, thing] of preloadSteps) {
         if (abortSignal.aborted) break;
-        text.value = label;
+        text.value = t(labelKey);
         try {
             await thing();
         } catch (error) {
-            console.warn(`Preload step "${label}" failed`, error);
+            console.warn(`Preload step "${labelKey}" failed`, error);
         }
         overallProgress.value += preloadStepWeight;
     }
@@ -392,7 +386,7 @@ onMounted(async () => {
 
     // Phase 2: Downloads
     isDownloadPhase.value = true;
-    title.value = t("lobby.components.misc.initialSetup.title");
+    titleKey.value = "lobby.components.misc.initialSetup.title";
 
     const needsEngine = installedEngineVersions.value.length === 0;
 

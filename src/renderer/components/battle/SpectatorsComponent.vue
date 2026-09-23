@@ -71,9 +71,9 @@ const props = defineProps<{
     queue?: boolean;
 }>();
 
-const title = props.queue
-    ? t("lobby.components.battle.spectatorsComponent.queue")
-    : t("lobby.components.battle.spectatorsComponent.spectators");
+const title = computed(() =>
+    props.queue ? t("lobby.components.battle.spectatorsComponent.queue") : t("lobby.components.battle.spectatorsComponent.spectators")
+);
 
 const showJoin = computed(() => {
     return me.battleRoomState.isSpectator === false;

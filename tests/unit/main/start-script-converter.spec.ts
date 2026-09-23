@@ -43,7 +43,7 @@ function twoTeamBattle(mapOptions: Record<string, unknown>): BattleWithMetadata 
         teams: [{ participants: [{ id: "0", user: { username: "p1", userId: "1" } }] }, { participants: [{ id: "1", user: { username: "p2", userId: "2" } }] }],
         battleOptions: {
             gameVersion: "test",
-            gameMode: { id: GameModeID.CLASSIC, label: "Classic", options: {} },
+            gameMode: { id: GameModeID.CLASSIC, options: {} },
             map: { springName: "Test Map", startboxesSet: polygonSet, playerCountMax: 16 },
             mapOptions,
             restrictions: [],
