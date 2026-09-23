@@ -4,9 +4,7 @@
 
 import { IpcResult } from "@main/typed-ipc";
 import { notificationsApi } from "@renderer/api/notifications";
-import { setupI18n } from "@renderer/i18n";
-
-const i18n = setupI18n();
+import { t } from "@renderer/i18n";
 
 async function openAndReport(open: () => Promise<IpcResult>) {
     const result = await open().catch((err): IpcResult => {
@@ -17,7 +15,7 @@ async function openAndReport(open: () => Promise<IpcResult>) {
     if (result.status === "success") return;
 
     notificationsApi.alert({
-        text: i18n.global.t("lobby.api.shell.openFailed", { details: result.details ?? result.reason }),
+        text: t("lobby.api.shell.openFailed", { details: result.details ?? result.reason }),
         severity: "error",
     });
 }

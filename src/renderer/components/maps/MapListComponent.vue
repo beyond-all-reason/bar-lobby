@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
                 v-model="sortMethod"
                 :options="sortMethods"
                 :label="t('lobby.components.maps.mapListComponents.sortBy')"
-                optionLabel="label"
+                :optionLabel="(method: SortMethod) => t(method.labelKey)"
             />
         </div>
 
@@ -52,16 +52,16 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import { mapsStore } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
-import { useTypedI18n } from "@renderer/i18n";
+import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
 const { filters } = mapsStore;
 
-type SortMethod = { label: string; dbKey: string };
+type SortMethod = { labelKey: TranslationKey; dbKey: string };
 
 const sortMethods: SortMethod[] = [
-    { label: t("lobby.components.maps.mapListComponents.labelName"), dbKey: "displayName" },
-    { label: t("lobby.components.maps.mapListComponents.labelSize"), dbKey: "mapWidth" },
+    { labelKey: "lobby.components.maps.mapListComponents.labelName", dbKey: "displayName" },
+    { labelKey: "lobby.components.maps.mapListComponents.labelSize", dbKey: "mapWidth" },
 ];
 const sortMethod: Ref<SortMethod | undefined> = ref(sortMethods.at(0));
 const searchVal = ref("");

@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { createI18n, useI18n } from "vue-i18n";
+import { createI18n, useI18n, type NamedValue, type TranslateOptions } from "vue-i18n";
+import { watch } from "vue";
 import enTranslation from "@renderer/assets/languages/en.json";
 import csTranslation from "@renderer/assets/languages/cs.json";
 import deTranslation from "@renderer/assets/languages/de.json";
@@ -13,35 +12,71 @@ import ruTranslation from "@renderer/assets/languages/ru.json";
 import zhTranslation from "@renderer/assets/languages/zh.json";
 import devTranslation from "@renderer/assets/languages/dev.json";
 import { settingsStore } from "@renderer/store/settings.store";
-import type { Locale } from "@renderer/locales";
+import { isLocale, type Locale } from "@renderer/locales";
 
 type MessageSchema = typeof enTranslation;
 
-const messages = {
+// Leaf paths only, so a namespace like "lobby.api" is not accepted as a key.
+type LeafPaths<T> = {
+    [K in keyof T & string]: T[K] extends Record<string, unknown> ? `${K}.${LeafPaths<T[K]>}` : K;
+}[keyof T & string];
+
+/** Every translation key defined in the English messages. */
+export type TranslationKey = LeafPaths<MessageSchema>;
+
+/** vue-i18n's `t`, narrowed so only known keys compile. */
+export interface TypedTranslate {
+    (key: TranslationKey): string;
+    (key: TranslationKey, named: NamedValue): string;
+    (key: TranslationKey, plural: number): string;
+    (key: TranslationKey, plural: number, options: TranslateOptions): string;
+    (key: TranslationKey, named: NamedValue, plural: number): string;
+    (key: TranslationKey, named: NamedValue, options: TranslateOptions): string;
+}
+
+// Other locales have missing or null (untranslated) entries, so they can't satisfy the English schema.
+// vue-i18n falls back to English for those at runtime; keys are only ever checked against English.
+const messages: Record<Locale, MessageSchema> = {
     en: enTranslation,
-    cs: csTranslation as any,
-    de: deTranslation as any,
-    fr: frTranslation as any,
-    ru: ruTranslation as any,
-    zh: zhTranslation as any,
-    dev: devTranslation as any,
+    cs: csTranslation as unknown as MessageSchema,
+    de: deTranslation as unknown as MessageSchema,
+    fr: frTranslation as unknown as MessageSchema,
+    ru: ruTranslation as unknown as MessageSchema,
+    zh: zhTranslation as unknown as MessageSchema,
+    dev: devTranslation as unknown as MessageSchema,
 };
 
-export function setupI18n() {
-    const myLocale = settingsStore.language ?? Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+/** The single i18n instance for the renderer. Its locale follows `settingsStore.language`. */
+export const i18n = createI18n<[MessageSchema], Locale, false>({
+    locale: "en",
+    fallbackLocale: "en",
+    messages,
+    legacy: false,
+});
 
-    return createI18n<[MessageSchema], Locale>({
-        locale: myLocale,
-        fallbackLocale: "en",
-        messages,
-        legacy: false,
-    });
+function resolveLocale(language: string | null | undefined): Locale {
+    if (isLocale(language)) return language;
+    const systemLanguage = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+    return isLocale(systemLanguage) ? systemLanguage : "en";
 }
 
+// Also covers the initial load, since initSettingsStore assigns the saved language after this module runs.
+watch(
+    () => settingsStore.language,
+    (language) => {
+        i18n.global.locale.value = resolveLocale(language);
+    },
+    { immediate: true }
+);
+
+/**
+ * Translate outside of components (stores, APIs, composables).
+ * Reactive when called inside a computed, watcher or render; otherwise returns the current locale's string.
+ */
+export const t: TypedTranslate = (key: TranslationKey, ...args: unknown[]) => (i18n.global.t as (key: string, ...args: unknown[]) => string)(key, ...args);
+
+/** The global composer for use in components, with `t` narrowed to known keys. */
 export function useTypedI18n() {
-    return useI18n<[MessageSchema], Locale>({
-        useScope: "global",
-    });
+    const composer = useI18n<[MessageSchema], Locale>({ useScope: "global" });
+    return composer as Omit<typeof composer, "t"> & { t: TypedTranslate };
 }
-
-// Reference for changing scope https://vue-i18n.intlify.dev/guide/essentials/scope.html

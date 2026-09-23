@@ -16,9 +16,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
-import { setupI18n } from "@renderer/i18n";
-
-const i18n = setupI18n();
+import { t, type TranslationKey } from "@renderer/i18n";
 
 let participantId = 0;
 interface BattleLobby {
@@ -37,7 +35,6 @@ export const battleStore = reactive<Battle & BattleLobby>({
     battleOptions: {
         gameMode: {
             id: GameModeID.CLASSIC,
-            label: getTranslatedGameMode(GameModeID.CLASSIC),
             options: {},
         },
         mapOptions: {
@@ -51,21 +48,17 @@ export const battleStore = reactive<Battle & BattleLobby>({
     started: false,
 });
 
+const gameModeKeys: Record<GameModeID, TranslationKey> = {
+    [GameModeID.CLASSIC]: "lobby.components.battle.gameModeComponent.gameModeClassic",
+    [GameModeID.FFA]: "lobby.components.battle.gameModeComponent.gameModeFFA",
+    [GameModeID.RAPTORS]: "lobby.components.battle.gameModeComponent.gameModeRaptors",
+    [GameModeID.SCAVENGERS]: "lobby.components.battle.gameModeComponent.gameModeScavengers",
+    [GameModeID.SKIRMISH]: "lobby.components.battle.gameModeComponent.gameModeSkirmish",
+};
+
+// Call wherever the name is displayed rather than storing the result, so it follows locale changes.
 export function getTranslatedGameMode(gameMode: GameModeID): string {
-    switch (gameMode) {
-        case GameModeID.CLASSIC:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeClassic");
-        case GameModeID.FFA:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeFFA");
-        case GameModeID.RAPTORS:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeRaptors");
-        case GameModeID.SCAVENGERS:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeScavengers");
-        case GameModeID.SKIRMISH:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeSkirmish");
-        default:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeUnknown");
-    }
+    return t(gameModeKeys[gameMode] ?? "lobby.components.battle.gameModeComponent.gameModeUnknown");
 }
 
 // Automatically computing metadata for the battle
@@ -331,14 +324,13 @@ function removeCustomStartBox(boxId: number) {
 
 function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
     const battle: Battle = {
-        title: i18n.global.t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
+        title: t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
         isOnline: !!isOnline,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
                 id: GameModeID.CLASSIC,
-                label: getTranslatedGameMode(GameModeID.CLASSIC),
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -379,7 +371,7 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 
 async function startBattle() {
     if (!battleStore.battleOptions.engineVersion || !battleStore.battleOptions.gameVersion) {
-        notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+        notificationsApi.alert({ text: t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
         return;
     }
     await startGame(deepToRaw(_battleWithMetadataStore));
@@ -467,7 +459,7 @@ async function loadGameMode(gameMode: GameModeID) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
         if (!engineVersion) {
-            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            notificationsApi.alert({ text: t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
             return;
         }
 
@@ -475,7 +467,7 @@ async function loadGameMode(gameMode: GameModeID) {
     }
     if (!battleStore.battleOptions.gameVersion) {
         if (!gameStore.selectedGameVersion) {
-            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            notificationsApi.alert({ text: t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
             return;
         }
 
@@ -494,7 +486,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.CLASSIC,
-                    label: getTranslatedGameMode(GameModeID.CLASSIC),
                     options: {},
                 },
                 mapOptions: {
@@ -511,7 +502,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.RAPTORS,
-                    label: getTranslatedGameMode(GameModeID.RAPTORS),
                     options: {},
                 },
                 mapOptions: {
@@ -528,7 +518,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.SCAVENGERS,
-                    label: getTranslatedGameMode(GameModeID.SCAVENGERS),
                     options: {},
                 },
                 mapOptions: {
@@ -545,7 +534,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.FFA,
-                    label: getTranslatedGameMode(GameModeID.FFA),
                     options: {},
                 },
                 mapOptions: {

@@ -33,7 +33,6 @@ export enum GameModeID {
 
 export type GameModeWithOptions = {
     id: GameModeID;
-    label: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>;
 };

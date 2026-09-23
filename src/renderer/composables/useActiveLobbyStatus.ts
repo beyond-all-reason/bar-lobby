@@ -6,9 +6,7 @@ import { useNow } from "@vueuse/core";
 import { computed } from "vue";
 import { lobbyStore } from "@renderer/store/lobby.store";
 import { me } from "@renderer/store/me.store";
-import { setupI18n } from "@renderer/i18n";
-
-const i18n = setupI18n();
+import { t } from "@renderer/i18n";
 
 export type ActiveLobbyRole = "player" | "queued" | "spectator";
 
@@ -61,7 +59,7 @@ export function useActiveLobbyStatus() {
 
     const playerSummary = computed(() => {
         if (!lobby.value) return "";
-        return i18n.global.t("lobby.components.battle.activeLobbyPreview.playersCount", { count: `${lobby.value.playerCount + lobby.value.botCount}/${lobby.value.maxPlayerCount}` });
+        return t("lobby.components.battle.activeLobbyPreview.playersCount", { count: `${lobby.value.playerCount + lobby.value.botCount}/${lobby.value.maxPlayerCount}` });
     });
 
     const now = useNow({ interval: 1000 });

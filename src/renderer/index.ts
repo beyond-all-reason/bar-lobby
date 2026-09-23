@@ -17,7 +17,7 @@ import { elementInViewDirective } from "@renderer/utils/element-in-view-directiv
 import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
-import { setupI18n } from "@renderer/i18n";
+import { i18n } from "@renderer/i18n";
 
 setupVue();
 
@@ -25,14 +25,13 @@ async function setupVue() {
     const app = createApp(App);
 
     // Init stores before mounting app
-    // Settings store is needed before i18n to provide selected locale
     await initPreMountStores();
     await audioApi.init();
 
     // Plugins
     app.use(router);
     app.use(PrimeVue, { ripple: true });
-    app.use(setupI18n());
+    app.use(i18n);
 
     // Directives
     app.directive("click-away", clickAwayDirective);

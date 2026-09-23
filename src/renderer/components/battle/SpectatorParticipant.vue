@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { delay } from "$/jaz-ts-utils/delay";
-import { inject, Ref, ref } from "vue";
+import { computed, inject, Ref, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
@@ -59,7 +59,7 @@ const displayName = computedAsync(async () => {
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const onlineActions =
+const onlineActions = computed(() =>
     props.member.id == me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
@@ -76,7 +76,8 @@ const onlineActions =
                   items: [{ label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss }],
               },
               //{ label: "Report", command: reportPlayer },
-          ];
+          ]
+);
 
 function onRightClick(event: MouseEvent) {
     if (menu.value && props.member) {
