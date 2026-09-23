@@ -4,6 +4,7 @@
 
 import { app, BrowserWindow, nativeImage, screen } from "electron";
 import path from "path";
+import url from "url";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import icon from "@main/resources/icon.png";
@@ -12,6 +13,7 @@ import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
 import contentService from "@main/services/content.service";
+import { suppressBrowserBehaviours } from "@main/browser-behaviours";
 
 const log = logger("main-window");
 
@@ -30,7 +32,6 @@ export function createWindow() {
         center: true,
         frame: false,
         show: false,
-        autoHideMenuBar: true,
         width: settings.windowWidth,
         height: settings.windowHeight,
         minWidth: MIN_WINDOW_SIZE.width,
@@ -114,11 +115,10 @@ export function createWindow() {
 
     mainWindow.once("ready-to-show", () => {
         // Open the DevTools.
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV === "development" && settings.devMode) {
             log.debug(`NODE_ENV is development, opening dev tools`);
             webContents.openDevTools();
         }
-        mainWindow.setMenuBarVisibility(false);
         mainWindow.center();
         // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
         if (settings.fullscreen) {
@@ -140,12 +140,9 @@ export function createWindow() {
         return { action: "deny" };
     });
 
-    // and load the index.html of the app.
-    if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
-    } else {
-        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-    }
+    const appUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL ?? url.pathToFileURL(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)).href;
+    suppressBrowserBehaviours(mainWindow, appUrl, () => settingsService.getSettings().devMode);
+    mainWindow.loadURL(appUrl);
 
     mainWindow.on("restore", () => mainWindow.flashFrame(false));
 
