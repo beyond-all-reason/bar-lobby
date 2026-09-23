@@ -5,10 +5,9 @@
 import { BrowserWindow, Menu } from "electron";
 
 // Electron installs a default menu whose accelerators still fire when the bar is hidden: reload,
-// dev tools, native fullscreen and closing the window among them. macOS keeps the app and edit
-// menus, because that is the only route its clipboard shortcuts have into a text field.
+// dev tools, native fullscreen and closing the window among them.
 export function installApplicationMenu() {
-    Menu.setApplicationMenu(process.platform === "darwin" ? Menu.buildFromTemplate([{ role: "appMenu" }, { role: "editMenu" }]) : null);
+    Menu.setApplicationMenu(null);
 }
 
 export function suppressBrowserBehaviours(window: BrowserWindow, appUrl: string, devToolsAllowed: () => boolean) {
@@ -41,11 +40,9 @@ function isAppDocument(target: string, appDocument: URL) {
     return url !== null && url.protocol === appDocument.protocol && url.host === appDocument.host && url.pathname === appDocument.pathname;
 }
 
-// Matched on the physical key, because Option on macOS turns I into a different character.
+// Matched on the physical key, since on layouts like Russian that key does not type an I.
 function isDevToolsShortcut(input: Electron.Input) {
     if (input.code === "F12") return true;
 
-    if (input.code !== "KeyI") return false;
-
-    return process.platform === "darwin" ? input.meta && input.alt : input.control && input.shift;
+    return input.code === "KeyI" && input.control && input.shift;
 }
