@@ -508,6 +508,7 @@
                     "calledBy": "Cllaed by {initiator}",
                     "history": "Vtoe Htrisoy",
                     "noHistory": "No vtoe htoisry aablviale.",
+                    "quorum": "Vteos: {cast} / {quorum} nedeed",
                     "actions": {
                         "kickban": "Kcik {target} and ban uitnl {banUntil}",
                         "kickOnly": "Kcik {target}",

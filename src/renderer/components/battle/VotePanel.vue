@@ -27,13 +27,23 @@ SPDX-License-Identifier: MIT
                     {{ t("lobby.components.battle.votePanel.calledBy", { initiator: initiatorName }) }}
                 </div>
 
-                <div v-if="missingYesVotes" class="vote-display">
-                    <div v-for="i in yesVotes" :key="i" class="segment yes"></div>
-                    <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
-                    <div v-for="i in abstainVotes" :key="i" class="segment abstain"></div>
-                    <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
-                    <div v-for="i in noVotes" :key="i" class="segment no"></div>
-                </div>
+                <template v-if="tally">
+                    <!-- Yes fills from the left, no from the right, pending voters are the gap; whichever side crosses the finish line (majority) has won -->
+                    <div class="majority-bar">
+                        <template v-if="tally.bar">
+                            <div class="fill yes" :style="{ width: `${tally.bar.yes * 100}%` }"></div>
+                            <div class="fill no" :style="{ width: `${tally.bar.no * 100}%` }"></div>
+                        </template>
+                        <div
+                            class="finish-line"
+                            :style="{ left: `${tally.majority * 100}%` }"
+                            :title="`${Math.round(tally.majority * 1000) / 10}%`"
+                        ></div>
+                    </div>
+                    <div :class="['quorum-text', { met: tally.quorumMet }]">
+                        {{ t("lobby.components.battle.votePanel.quorum", { cast: tally.cast, quorum: tally.quorum }) }}
+                    </div>
+                </template>
             </div>
             <div
                 class="history-title"
@@ -87,6 +97,7 @@ import closeCircleOutline from "@iconify-icons/mdi/close-circle-outline";
 import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
 import alarm from "@iconify-icons/mdi/alarm";
 import { useVoteString } from "@renderer/composables/useVoteString";
+import { tallyVote } from "@renderer/utils/vote-tally";
 
 const { t } = useTypedI18n();
 
@@ -151,50 +162,7 @@ function getHistoryIconColor(outcome: VoteOutcomes) {
     }
 }
 
-const yesVotes = computed(() => {
-    if (vote.value?.voters === undefined) {
-        return null;
-    }
-    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "yes").length;
-});
-const noVotes = computed(() => {
-    if (vote.value?.voters === undefined) {
-        return null;
-    }
-    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "no").length;
-});
-const abstainVotes = computed(() => {
-    if (vote.value?.voters === undefined) {
-        return null;
-    }
-    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "abstain").length;
-});
-
-const pendingVotes = computed(() => {
-    if (vote.value?.voters === undefined) {
-        return null;
-    }
-    return Object.values(vote.value?.voters).filter((voter) => voter.vote === "pending").length;
-});
-const missingYesVotes = computed(() => {
-    if (vote.value?.quorum === undefined || vote.value?.voters === undefined) {
-        return null;
-    }
-    // Clamped: v-for throws on a negative range once votes exceed the quorum.
-    return Math.max(0, vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "yes").length);
-});
-const missingNoVotes = computed(() => {
-    if (vote.value?.quorum === undefined || vote.value?.voters === undefined) {
-        return null;
-    }
-    return Math.max(0, vote.value.quorum - Object.values(vote.value.voters).filter((voter) => voter.vote === "no").length);
-});
-const voteMajority = computed(() => {
-    if (vote.value?.majority === undefined) {
-        return null;
-    }
-    return vote.value?.majority;
-});
+const tally = computed(() => (vote.value ? tallyVote(vote.value) : null));
 
 // The countdown bar uses the Web Animations API rather than a CSS transition. A transition needs the browser to have
 // painted the scaleX(1) state before the end state is applied, which is unreliable here: this component can be mounted
@@ -219,7 +187,6 @@ function startRemainingTimeAnimation() {
 }
 
 onMounted(startRemainingTimeAnimation);
-// Only restart for a new vote or deadline; lobby updates replace activeLobby wholesale, so watching the vote object would restart it on every update.
 watch([() => vote.value?.id, () => vote.value?.until], startRemainingTimeAnimation, { flush: "post" });
 onUnmounted(() => remainingTimeAnimation?.cancel());
 
@@ -312,36 +279,44 @@ const voteString = computed(() => getVoteString(vote.value?.action));
     font-size: 14px;
     opacity: 0.8;
 }
-.vote-display {
-    // position: absolute;
-    left: 0;
-    bottom: 0;
+.majority-bar {
+    position: relative;
     width: 100%;
     height: 10px;
-    display: flex;
-    flex-direction: row;
+    margin-top: 6px;
     background: rgba(255, 255, 255, 0.1);
-}
-.segment {
-    flex-grow: 1;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
-    &:not(:last-child) {
-        border-right: 1px solid rgba(0, 0, 0, 0.3);
-    }
+}
+.fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: width 0.2s ease-out;
     &.yes {
+        left: 0;
         background: rgba(96, 216, 26, 0.6);
     }
-    &.missing-yes {
-        background: rgba(96, 216, 26, 0.247);
-    }
     &.no {
+        right: 0;
         background: rgba(165, 30, 30, 0.6);
     }
-    &.missing-no {
-        background: rgba(165, 30, 30, 0.164);
-    }
-    &.abstain {
-        background: rgba(128, 128, 128, 0.6);
+}
+.finish-line {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+}
+.quorum-text {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 4px;
+    opacity: 0.6;
+    &.met {
+        opacity: 0.9;
     }
 }
 .history-overlay {

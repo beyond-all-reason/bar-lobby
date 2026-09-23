@@ -4455,6 +4455,7 @@
                     "calledBy": null,
                     "history": null,
                     "noHistory": null,
+                    "quorum": null,
                     "actions": {
                         "kickban": null,
                         "kickOnly": null,

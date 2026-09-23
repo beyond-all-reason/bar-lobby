@@ -2339,6 +2339,7 @@
                     "calledBy": "Called by {initiator}",
                     "history": "Vote History",
                     "noHistory": "No vote history available.",
+                    "quorum": "Votes: {cast} / {quorum} needed",
                     "actions": {
                         "kickban": "Kick {target} and ban until {banUntil}",
                         "kickOnly": "Kick {target}",
