@@ -19,6 +19,10 @@ SPDX-License-Identifier: MIT
                     </div>
                     <div class="info-column flex-col gap-sm">
                         <div class="full-title">{{ lobby.name }}</div>
+                        <div v-if="isBoss" class="info-line flex-row flex-center-items gap-sm">
+                            <Icon :icon="hammerIcon" :height="20" class="line-icon boss-icon" />
+                            <span>{{ t("lobby.components.battle.activeLobbyPreview.lobbyBoss") }}</span>
+                        </div>
                         <!-- Groups sit side by side when there is room and wrap underneath each other when there isn't. -->
                         <div class="info-groups">
                             <div v-if="(roleIcon && roleLabel) || allyTeamConfigLabel" class="info-group flex-col gap-xs">
@@ -35,7 +39,15 @@ SPDX-License-Identifier: MIT
                                     {{ vote.action.type }}
                                 </div>
                                 <div v-if="vote && voteTimeLeftMs !== null" class="info-line vote-time-left">
-                                    {{ t("lobby.components.battle.activeLobbyPreview.voteTimeLeft", { time: formatTimeLeft(voteTimeLeftMs) }) }}
+                                    {{
+                                        t("lobby.components.battle.activeLobbyPreview.voteTimeLeft", {
+                                            time: formatTimeLeft(voteTimeLeftMs),
+                                        })
+                                    }}
+                                </div>
+                                <div v-if="needsMyVote" class="info-line vote-prompt flashing flex-row flex-center-items gap-sm">
+                                    <Icon :icon="voteIcon" :height="20" class="line-icon" />
+                                    <span>{{ t("lobby.components.battle.activeLobbyPreview.clickToVote") }}</span>
                                 </div>
                                 <div v-if="battleDurationMs !== null" class="info-line">
                                     {{ t("lobby.components.battle.activeLobbyPreview.battleDuration") }}
@@ -48,7 +60,10 @@ SPDX-License-Identifier: MIT
             </div>
         </div>
         <div class="summary flex-row gap-md" v-tooltip.top="t('lobby.components.battle.activeLobbyPreview.openLobby')">
-            <Icon :icon="statusIcon" :height="24" :class="['status-icon', { flashing: needsMyVote }]" />
+            <div class="status-icons flex-row flex-center-items gap-xs">
+                <Icon :icon="statusIcon" :height="24" :class="['status-icon', { flashing: needsMyVote }]" />
+                <Icon v-if="isBoss" :icon="hammerIcon" :height="24" class="status-icon boss-icon" />
+            </div>
             <div class="title flex-row gap-sm">
                 <span class="lobby-name">{{ lobby.name }}</span>
                 <span class="summary-map-name">{{ mapName }}</span>
@@ -61,6 +76,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import eyeIcon from "@iconify-icons/mdi/eye";
+import hammerIcon from "@iconify-icons/mdi/hammer";
 import humanQueueIcon from "@iconify-icons/mdi/human-queue";
 import swordCrossIcon from "@iconify-icons/mdi/sword-cross";
 import voteIcon from "@iconify-icons/mdi/vote";
@@ -81,6 +97,7 @@ const router = useRouter();
 const {
     lobby,
     role,
+    isBoss,
     teamNumber,
     queuePosition,
     allyTeamSizes,
@@ -297,6 +314,10 @@ function openLobby() {
 .vote-time-left {
     font-variant-numeric: tabular-nums;
 }
+// Flashes in step with the summary's vote icon, so the prompt reads as the explanation for it.
+.vote-prompt {
+    font-weight: 600;
+}
 
 .summary {
     @extend %preview-surface;
@@ -310,8 +331,12 @@ function openLobby() {
         box-shadow 0.2s,
         border-color 0.25s;
 }
+.status-icons,
 .status-icon {
     flex-shrink: 0;
+}
+.boss-icon {
+    color: gold;
 }
 .title {
     flex: 1;

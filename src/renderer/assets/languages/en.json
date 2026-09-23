@@ -2346,7 +2346,9 @@
                     "teamMember": "Member of Team #{team}",
                     "allyTeamConfig": "{numOfTeams} teams of 1 player | {numOfTeams} teams of {teamSize} players",
                     "allyTeamConfigUneven": "{numOfTeams} teams of {sizes} players",
-                    "playersCount": "Players: {count}"
+                    "playersCount": "Players: {count}",
+                    "lobbyBoss": "Lobby Boss",
+                    "clickToVote": "Click to open the lobby and cast your vote"
                 },
                 "botParticipant": {
                     "configure": "Configure",

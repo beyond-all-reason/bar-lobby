@@ -2498,7 +2498,9 @@
                     "teamMember": null,
                     "allyTeamConfig": null,
                     "allyTeamConfigUneven": null,
-                    "playersCount": null
+                    "playersCount": null,
+                    "lobbyBoss": null,
+                    "clickToVote": null
                 },
                 "botParticipant": {
                     "configure": null,

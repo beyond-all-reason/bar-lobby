@@ -29,6 +29,8 @@ export function useActiveLobbyStatus() {
         return spectator.joinQueuePosition !== undefined ? "queued" : "spectator";
     });
 
+    const isBoss = computed(() => Boolean(lobby.value?.bosses && me.userId in lobby.value.bosses));
+
     // 1-based, matching the "Team N" labels in the lobby view.
     const teamNumber = computed(() => {
         if (role.value !== "player" || !lobby.value) return null;
@@ -80,6 +82,7 @@ export function useActiveLobbyStatus() {
     return {
         lobby,
         role,
+        isBoss,
         teamNumber,
         queuePosition,
         allyTeamSizes,
