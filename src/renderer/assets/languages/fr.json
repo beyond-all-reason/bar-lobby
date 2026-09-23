@@ -4341,6 +4341,18 @@
                     "no": null,
                     "calledBy": null
                 },
+                "activeLobbyPreview": {
+                    "openLobby": null,
+                    "battleDuration": null,
+                    "activeVote": null,
+                    "voteTimeLeft": null,
+                    "spectating": null,
+                    "queuePosition": null,
+                    "teamMember": null,
+                    "allyTeamConfig": null,
+                    "allyTeamConfigUneven": null,
+                    "playersCount": null
+                },
                 "botParticipant": {
                     "configure": null,
                     "duplicate": null,

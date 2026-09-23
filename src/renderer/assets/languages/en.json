@@ -2336,6 +2336,18 @@
                     "no": "No (F2)",
                     "calledBy": "Called by"
                 },
+                "activeLobbyPreview": {
+                    "openLobby": "Open lobby",
+                    "battleDuration": "Battle in progress:",
+                    "activeVote": "Active Vote:",
+                    "voteTimeLeft": "Time left: {time}",
+                    "spectating": "Spectating",
+                    "queuePosition": "Queue Position #{position}",
+                    "teamMember": "Member of Team #{team}",
+                    "allyTeamConfig": "{numOfTeams} teams of 1 player | {numOfTeams} teams of {teamSize} players",
+                    "allyTeamConfigUneven": "{numOfTeams} teams of {sizes} players",
+                    "playersCount": "Players: {count}"
+                },
                 "botParticipant": {
                     "configure": "Configure",
                     "duplicate": "Duplicate",

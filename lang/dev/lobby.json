@@ -505,6 +505,18 @@
                     "no": "No (F2)",
                     "calledBy": "Cllaed by"
                 },
+                "activeLobbyPreview": {
+                    "openLobby": "Oepn lobby",
+                    "battleDuration": "Blatte in prsgeros:",
+                    "activeVote": "Atvcie Vtoe:",
+                    "voteTimeLeft": "Time left: {time}",
+                    "spectating": "Setcntaipg",
+                    "queuePosition": "Quuee Poiotisn #{position}",
+                    "teamMember": "Meembr of Team #{team}",
+                    "allyTeamConfig": "{numOfTeams} tmaes of 1 pyaler | {numOfTeams} tmaes of {teamSize} plyaers",
+                    "allyTeamConfigUneven": "{numOfTeams} tmaes of {sizes} plyaers",
+                    "playersCount": "Plyreas: {count}"
+                },
                 "botParticipant": {
                     "configure": "Cgnfuoire",
                     "duplicate": "Ditalpcue",
