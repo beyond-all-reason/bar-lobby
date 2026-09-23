@@ -10,6 +10,7 @@ import url from "url";
 import netFromNode from "node:net";
 
 import { createWindow } from "@main/main-window";
+import { installApplicationMenu } from "@main/browser-behaviours";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
 import { logService } from "@main/services/log.service";
@@ -92,6 +93,7 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
+    installApplicationMenu();
     registerBarFileProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {

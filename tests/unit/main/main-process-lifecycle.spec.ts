@@ -118,6 +118,10 @@ describe("Main Process Lifecycle", () => {
             }),
         }));
 
+        vi.doMock("@main/browser-behaviours", () => ({
+            installApplicationMenu: vi.fn(),
+        }));
+
         vi.doMock("@main/main-window", () => ({
             createWindow: vi.fn().mockReturnValue({
                 webContents: {},
