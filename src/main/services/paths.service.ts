@@ -95,8 +95,8 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         return canceled ? null : filePaths[0];
     });
 
-    // Parented to the window so the picker stays owned by the app, rather than the taskbar
-    // surfacing over a borderless window.
+    // The taskbar still appears over a borderless window while a native dialog is open. Only an
+    // in-app picker would avoid that.
     ipcMain.handle("paths:selectImages", async (event) => {
         const parent = BrowserWindow.fromWebContents(event.sender);
         const options = {
