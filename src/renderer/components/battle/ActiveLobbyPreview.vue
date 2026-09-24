@@ -87,7 +87,7 @@ import ActiveBattleVideo from "@renderer/components/misc/ActiveBattleVideo.vue";
 import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 import { useLobbyBackground } from "@renderer/composables/useLobbyBackground";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
-import { useVoteString } from "@renderer/composables/useVoteString";
+import { getVoteActionUserId, useVoteString } from "@renderer/composables/useVoteString";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 
 const { t } = useTypedI18n();
@@ -114,7 +114,7 @@ function formatTimeLeft(ms: number) {
     const seconds = Math.ceil(ms / 1000);
     return seconds > 0 ? getFriendlyDuration(seconds * 1000) : "0s";
 }
-const { getVoteString } = useVoteString();
+const { getVoteString } = useVoteString(() => [getVoteActionUserId(vote.value?.action)]);
 const voteString = computed(() => getVoteString(vote.value?.action));
 
 const map = useLobbyMap();

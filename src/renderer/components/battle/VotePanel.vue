@@ -17,11 +17,19 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
 
-            <div class="actions">
-                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{ t("lobby.components.battle.votePanel.yes") }}</Button>
-                <Button class="vote-button grey" @click="onAbstain">{{ t("lobby.components.battle.votePanel.abstain") }}</Button>
-                <Button class="vote-button grey" @click="onCancel">{{ t("lobby.components.battle.votePanel.cancel") }}</Button>
-                <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
+            <div :class="['actions', { 'has-voted': hasVoted }]">
+                <Button :class="['vote-button', 'green', { selected: myVote === 'yes' }]" :disabled="!canVote" @click="onYes">
+                    {{ t("lobby.components.battle.votePanel.yes") }}
+                </Button>
+                <Button :class="['vote-button', 'gray', { selected: myVote === 'abstain' }]" :disabled="!canVote" @click="onAbstain">
+                    {{ t("lobby.components.battle.votePanel.abstain") }}
+                </Button>
+                <Button class="vote-button gray" :disabled="!canCancel" @click="onCancel">
+                    {{ t("lobby.components.battle.votePanel.cancel") }}
+                </Button>
+                <Button :class="['vote-button', 'red', { selected: myVote === 'no' }]" :disabled="!canVote" @click="onNo">
+                    {{ t("lobby.components.battle.votePanel.no") }}
+                </Button>
             </div>
 
             <template v-if="tally">
@@ -74,11 +82,11 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { onKeyUp } from "@vueuse/core";
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
+import { me } from "@renderer/store/me.store";
 import { VoteOutcomes } from "tachyon-protocol/types";
 import chevronDown from "@iconify-icons/mdi/chevron-down";
 import chevronUp from "@iconify-icons/mdi/chevron-up";
@@ -87,12 +95,12 @@ import successCircleOutline from "@iconify-icons/mdi/success-circle-outline";
 import closeCircleOutline from "@iconify-icons/mdi/close-circle-outline";
 import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
 import alarm from "@iconify-icons/mdi/alarm";
-import { useVoteString } from "@renderer/composables/useVoteString";
+import { getVoteActionUserId, useVoteString } from "@renderer/composables/useVoteString";
 import { tallyVote } from "@renderer/utils/vote-tally";
 import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 
 const { t } = useTypedI18n();
-const { needsMyVote } = useActiveLobbyStatus();
+const { needsMyVote, isBoss } = useActiveLobbyStatus();
 
 const collapsed = ref(true);
 const historyHovered = ref(false);
@@ -183,39 +191,44 @@ onMounted(startRemainingTimeAnimation);
 watch([() => vote.value?.id, () => vote.value?.until], startRemainingTimeAnimation, { flush: "post" });
 onUnmounted(() => remainingTimeAnimation?.cancel());
 
-onKeyUp("F1", onYes);
-onKeyUp("F2", onNo);
+// Only users listed as voters can vote; the server includes the initiator and leaves out spectators.
+const myVote = computed(() => vote.value?.voters[me.userId]?.vote);
+const canVote = computed(() => myVote.value !== undefined);
+const hasVoted = computed(() => myVote.value !== undefined && myVote.value !== "pending");
+const canCancel = computed(() => vote.value !== null && (vote.value.initiator === me.userId || isBoss.value));
+
+function submitVote(ballot: "yes" | "no" | "abstain") {
+    // Disabled buttons can still be activated from the keyboard, so check eligibility here too.
+    if (vote.value && canVote.value) {
+        lobby.requestVoteSubmit({ id: vote.value.id, vote: ballot });
+    }
+}
 
 function onYes() {
-    if (vote.value) {
-        lobby.requestVoteSubmit({ id: vote.value?.id, vote: "yes" });
-    }
+    submitVote("yes");
 }
 
 function onNo() {
-    if (vote.value) {
-        lobby.requestVoteSubmit({ id: vote.value?.id, vote: "no" });
-    }
+    submitVote("no");
 }
 
 function onAbstain() {
-    if (vote.value) {
-        lobby.requestVoteSubmit({ id: vote.value?.id, vote: "abstain" });
-    }
+    submitVote("abstain");
 }
 
 function onCancel() {
-    if (vote.value) {
+    if (canCancel.value) {
         lobby.requestVoteCancel();
     }
 }
 
-const { displayNames, getVoteString } = useVoteString();
+const { getUserName, getVoteString } = useVoteString(() => [
+    vote.value?.initiator,
+    getVoteActionUserId(vote.value?.action),
+    ...historyEntries.value.map((entry) => getVoteActionUserId(entry.vote)),
+]);
 
-const initiatorName = computed(() => {
-    if (vote.value?.initiator === undefined) return "";
-    return displayNames.value?.get(vote.value.initiator) ?? t("lobby.navbar.messages.userID") + " " + vote.value.initiator;
-});
+const initiatorName = computed(() => (vote.value ? getUserName(vote.value.initiator) : ""));
 
 const voteString = computed(() => getVoteString(vote.value?.action));
 </script>
@@ -295,6 +308,18 @@ const voteString = computed(() => getVoteString(vote.value?.action));
     font-size: 20px;
     font-weight: 600;
     flex-grow: 1;
+    &.selected {
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+        outline-offset: -2px;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+}
+// Once I've voted, fade the other choices so my vote stands out; they stay clickable to change it.
+.actions.has-voted .vote-button:not(.selected):not(.disabled) {
+    opacity: 0.6;
+    &:hover {
+        opacity: 1;
+    }
 }
 .caller {
     margin-left: auto;

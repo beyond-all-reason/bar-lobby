@@ -501,10 +501,10 @@
                 },
                 "votePanel": {
                     "vote": "Vtoe:",
-                    "yes": "Yes (F1)",
+                    "yes": "Yes",
                     "abstain": "Abtisan",
                     "cancel": "Ceancl",
-                    "no": "No (F2)",
+                    "no": "No",
                     "calledBy": "Cllaed by {initiator}",
                     "history": "Vtoe Htrisoy",
                     "noHistory": "No vtoe htoisry aablviale.",
