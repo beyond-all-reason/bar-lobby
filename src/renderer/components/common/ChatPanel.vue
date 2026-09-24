@@ -15,8 +15,9 @@ SPDX-License-Identifier: MIT
                         :key="i"
                         v-in-view.once="() => (message.seen = true)"
                         :class="['message', { fromMe: message.source.userId === me.userId }]"
+                        @contextmenu="onMessageRightClick($event, message)"
                     >
-                        <span class="user-name" @contextmenu="onNameRightClick($event, message)">
+                        <span class="user-name">
                             {{ displayNames?.get(message.source.userId) ?? message.source.userId }}
                         </span>
                         <Markdown :source="message.message" />
@@ -87,7 +88,7 @@ const { openReportUser } = useReportUser();
 const menu = ref<InstanceType<typeof ContextMenu>>();
 const actions = ref<{ label: string; icon: string; command: () => void }[]>([]);
 
-async function onNameRightClick(event: MouseEvent, message: Message) {
+async function onMessageRightClick(event: MouseEvent, message: Message) {
     if (message.source.userId === me.userId) return;
 
     event.preventDefault();
