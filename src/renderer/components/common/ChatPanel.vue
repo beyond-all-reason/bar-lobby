@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-col flex-grow fullheight">
-            <div class="messages">
+            <div class="messages" :class="{ fill }">
                 <div v-if="messages.length === 0" class="no-messages">{{ t("lobby.navbar.messages.noMessages") }}</div>
                 <div v-else class="flex-col gap-sm">
                     <div
@@ -16,7 +16,9 @@ SPDX-License-Identifier: MIT
                         v-in-view.once="() => (message.seen = true)"
                         :class="['message', { fromMe: message.source.userId === me.userId }]"
                     >
-                        <span class="user-name"> {{ displayNames?.get(message.source.userId) ?? message.source.userId }} </span>
+                        <span class="user-name">
+                            {{ displayNames?.get(message.source.userId) ?? message.source.userId }}
+                        </span>
                         <Markdown :source="message.message" />
                     </div>
                 </div>
@@ -50,8 +52,9 @@ import Textbox from "@renderer/components/controls/Textbox.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 
 const props = defineProps<{
-    type: "lobby" | "party";
-    id: LobbyId | PartyId | undefined;
+    type: "lobby" | "party" | "player";
+    id: LobbyId | PartyId | UserId | undefined;
+    fill?: boolean;
 }>();
 
 const { t } = useTypedI18n();
@@ -64,7 +67,7 @@ function focusTextbox(el: HTMLElement) {
 
 const messages = computed(() => {
     if (!props.id) return [];
-    const chats = props.type === "lobby" ? chatStore.lobbyChats : chatStore.partyChats;
+    const chats = { lobby: chatStore.lobbyChats, party: chatStore.partyChats, player: chatStore.userChats }[props.type];
     return chats.get(props.id) ?? [];
 });
 
@@ -81,12 +84,10 @@ const newMessage = ref("");
 
 function sendMessage(messageText: string) {
     // Button's disabled prop only styles the control, it does not stop the click.
-    if (!tachyonStore.isConnected) return;
+    if (!tachyonStore.isConnected || !props.id) return;
 
     chat.requestSend({
-        target: {
-            type: props.type,
-        },
+        target: props.type === "player" ? { type: "player", userId: props.id } : { type: props.type },
         message: messageText,
     });
     newMessage.value = "";
@@ -102,6 +103,11 @@ function sendMessage(messageText: string) {
     padding: 10px;
     // flex: 1 1 auto;
     height: 600px; //FIX: this probably shouldn't be a fixed value?
+    // Where the host gives the chat a height, it takes that instead.
+    &.fill {
+        flex: 1 1 0;
+        height: auto;
+    }
 }
 .no-messages {
     align-self: center;

@@ -19,31 +19,7 @@ SPDX-License-Identifier: MIT
                         </div>
                     </div>
                 </template>
-                <div class="messages">
-                    <div class="flex-col gap-sm">
-                        <div
-                            v-for="(message, i) in messages"
-                            :key="i"
-                            v-in-view.once="() => (message.seen = true)"
-                            :class="['message', { fromMe: message.source.userId === me.userId }]"
-                        >
-                            <Markdown :source="message.message" />
-                        </div>
-                    </div>
-                </div>
-                <div class="flex-row gap-sm flex-bottom padding-md">
-                    <Textbox
-                        v-model="text"
-                        v-in-view="focusTextbox"
-                        class="reply"
-                        :disabled="!tachyonStore.isConnected"
-                        :placeholder="t('lobby.navbar.messages.message')"
-                        @keyup.enter.stop="sendDirectMessage(userId, text)"
-                    />
-                    <Button :disabled="!tachyonStore.isConnected" @click="sendDirectMessage(userId, text)">{{
-                        t("lobby.navbar.messages.send")
-                    }}</Button>
-                </div>
+                <ChatPanel type="player" :id="userId" fill />
             </TabPanel>
             <TabPanel>
                 <template #header>
@@ -85,14 +61,13 @@ import { inject, Ref, ref } from "vue";
 import TabView from "@renderer/components/common/TabView.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
-import Markdown from "@renderer/components/misc/Markdown.vue";
+import ChatPanel from "@renderer/components/common/ChatPanel.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { UserId } from "tachyon-protocol/types";
 import { User } from "@main/model/user";
-import { me } from "@renderer/store/me.store";
 import { Message } from "@renderer/model/message";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
@@ -123,7 +98,6 @@ function displayUsersFilter(user: User) {
     else return false;
 }
 
-const text = ref("");
 const newMessage = ref("");
 const newMessageUserId = ref("");
 const activeTabIndex = ref(0);
@@ -162,7 +136,6 @@ function sendDirectMessage(destinationUserId: string, messageText: string) {
     });
     newMessageUserId.value = "";
     newMessage.value = "";
-    text.value = "";
 }
 
 function closeUserTab(userId: string) {
@@ -194,29 +167,6 @@ function hasUnseenMessage(messages: Message[]) {
 
 :deep(.p-tabview-header-action) {
     overflow: unset;
-}
-.messages {
-    display: flex;
-    flex-direction: column-reverse;
-    overflow-y: scroll;
-    padding: 10px;
-    flex: 1 1 auto;
-    height: 0;
-}
-.message {
-    word-break: break-word;
-    padding: 4px 8px;
-    user-select: text;
-    display: flex;
-    flex-direction: row;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    align-self: flex-start;
-    &.fromMe {
-        align-self: flex-end;
-        background: rgba(240, 240, 240, 0.247);
-    }
 }
 .reply-container {
     padding: 10px;
