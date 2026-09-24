@@ -139,7 +139,7 @@ SPDX-License-Identifier: MIT
 
             <template v-else-if="stage === 'chat'">
                 <div>{{ t("lobby.components.user.reportUser.chatHint") }}</div>
-                <div class="chat-list">
+                <div ref="chatList" class="chat-list">
                     <div v-if="!chatLines.length" class="chat-list-message note">
                         {{ t("lobby.components.user.reportUser.noChatAvailable") }}
                     </div>
@@ -150,15 +150,24 @@ SPDX-License-Identifier: MIT
                         class="conversation"
                         :class="{ origin: conversation.key === originConversationKey }"
                     >
-                        <div class="conversation-label">
+                        <div class="conversation-label" @click="toggleConversation(conversation.key)">
                             {{ conversation.label }}
                             <span v-if="conversation.key === originConversationKey" class="note">
                                 {{ t("lobby.components.user.reportUser.chatReportedFrom") }}
                             </span>
+                            <Icon
+                                v-if="collapsedConversations.includes(conversation.key)"
+                                :icon="chevronDown"
+                                :height="24"
+                                class="collapse-toggle"
+                            />
+                            <Icon v-else :icon="chevronUp" :height="24" class="collapse-toggle" />
                         </div>
                         <div
                             v-for="line in conversation.lines"
+                            v-show="!collapsedConversations.includes(conversation.key)"
                             :key="line.key"
+                            :data-line-key="line.key"
                             class="chat-line"
                             @click="toggleChatLine(line.key, !selectedChatKeys.includes(line.key))"
                         >
@@ -190,7 +199,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, toRaw, watch } from "vue";
+import { computed, nextTick, ref, toRaw, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import arrowLeft from "@iconify-icons/mdi/arrow-left";
 import messageText from "@iconify-icons/mdi/message-text";
@@ -198,6 +207,8 @@ import swordCross from "@iconify-icons/mdi/sword-cross";
 import cancel from "@iconify-icons/mdi/cancel";
 import paperclip from "@iconify-icons/mdi/paperclip";
 import checkCircle from "@iconify-icons/mdi/check-circle-outline";
+import chevronDown from "@iconify-icons/mdi/chevron-down";
+import chevronUp from "@iconify-icons/mdi/chevron-up";
 import { formatDistanceToNow } from "date-fns";
 
 import Modal from "@renderer/components/common/Modal.vue";
@@ -266,6 +277,8 @@ const message = ref("");
 const isSubmitting = ref(false);
 const selectedChatKeys = ref<string[]>([]);
 const evidenceFiles = ref<string[]>([]);
+const collapsedConversations = ref<string[]>([]);
+const chatList = ref<HTMLElement>();
 
 // Responses that arrive after the user has moved on, or after the modal was reopened on someone
 // else, must not overwrite what is on screen now.
@@ -389,6 +402,9 @@ watch(isOpen, (open) => {
     message.value = "";
     isSubmitting.value = false;
     selectedChatKeys.value = preselectedChatKey.value ? [preselectedChatKey.value] : [];
+    collapsedConversations.value = originConversationKey.value
+        ? chatConversations.value.map((conversation) => conversation.key).filter((key) => key !== originConversationKey.value)
+        : [];
     evidenceFiles.value = [];
 
     if (!open) {
@@ -450,6 +466,22 @@ function continueFromDetails() {
 
     stage.value = "chat";
 }
+
+function toggleConversation(key: string) {
+    collapsedConversations.value = collapsedConversations.value.includes(key)
+        ? collapsedConversations.value.filter((entry) => entry !== key)
+        : [...collapsedConversations.value, key];
+}
+
+watch(stage, async (current) => {
+    if (current !== "chat" || !preselectedChatKey.value) return;
+
+    await nextTick();
+    const line = [...(chatList.value?.querySelectorAll<HTMLElement>(".chat-line") ?? [])].find(
+        (element) => element.dataset.lineKey === preselectedChatKey.value
+    );
+    line?.scrollIntoView({ block: "center" });
+});
 
 function toggleChatLine(key: string, selected: boolean) {
     selectedChatKeys.value = selected ? [...selectedChatKeys.value, key] : selectedChatKeys.value.filter((entry) => entry !== key);
@@ -675,7 +707,9 @@ ul {
     z-index: 1;
     grid-column: 1 / -1;
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
     gap: 8px;
     padding: 5px 10px;
     background: rgb(38, 38, 38);
@@ -683,6 +717,9 @@ ul {
     text-transform: uppercase;
     font-weight: 600;
     font-size: 13px;
+}
+.collapse-toggle {
+    margin-left: auto;
 }
 .conversation.origin .conversation-label {
     color: rgb(243, 213, 79);

@@ -64,6 +64,10 @@ Object.defineProperty(window, "paths", {
     writable: true,
 });
 
+// jsdom lays nothing out, so it has no scrollIntoView to call.
+const scrollIntoView = vi.fn();
+Element.prototype.scrollIntoView = scrollIntoView;
+
 const CHAT = "Chat / Communication";
 const ACTIONS = "In-Game Actions";
 
@@ -166,6 +170,7 @@ describe("ReportUserModal", () => {
         getOnline.mockReset();
         getOnline.mockResolvedValue({ status: "success", data: matchDetails });
         selectImages.mockReset();
+        scrollIntoView.mockReset();
         selectImages.mockResolvedValue([]);
         chatStore.lobbyChats.clear();
         chatStore.partyChats.clear();
@@ -355,6 +360,66 @@ describe("ReportUserModal", () => {
         const picked = wrapper.findAll(".chat-line").filter((line) => line.findComponent(Checkbox).props("modelValue"));
         expect(picked).toHaveLength(1);
         expect(picked[0].text()).toContain("you are throwing");
+    });
+
+    async function reachChatStep(wrapper: VueWrapper) {
+        await clickCard(wrapper, CHAT);
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+        await wrapper.find("textarea").setValue("Abusive in chat");
+        await action(wrapper);
+    }
+
+    function visibleLines(wrapper: VueWrapper) {
+        return wrapper
+            .findAll(".chat-line")
+            .filter((line) => line.isVisible())
+            .map((line) => line.text());
+    }
+
+    it("narrows to the conversation a message was reported from and scrolls to it", async () => {
+        const reported = lobbyMessage("1234", "you are throwing", 1_700_000_000_000_000);
+        chatStore.lobbyChats.set("lobby-1", [reported]);
+        chatStore.userChats.set("1234", [directMessage("1234", "and stay out", 1_700_000_120_000_000)]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser, reported);
+        await flushPromises();
+        await reachChatStep(wrapper);
+
+        expect(visibleLines(wrapper).some((line) => line.includes("you are throwing"))).toBe(true);
+        expect(visibleLines(wrapper).some((line) => line.includes("and stay out"))).toBe(false);
+        expect(scrollIntoView).toHaveBeenCalledOnce();
+        expect((scrollIntoView.mock.contexts[0] as HTMLElement).textContent).toContain("you are throwing");
+    });
+
+    it("opens a collapsed conversation when its header is clicked", async () => {
+        const reported = lobbyMessage("1234", "you are throwing", 1_700_000_000_000_000);
+        chatStore.lobbyChats.set("lobby-1", [reported]);
+        chatStore.userChats.set("1234", [directMessage("1234", "and stay out", 1_700_000_120_000_000)]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser, reported);
+        await flushPromises();
+        await reachChatStep(wrapper);
+
+        const direct = wrapper.findAll(".conversation-label").find((label) => label.text().includes("Direct messages"))!;
+        await direct.trigger("click");
+
+        expect(visibleLines(wrapper).some((line) => line.includes("and stay out"))).toBe(true);
+    });
+
+    it("shows every conversation when the report did not come from a message", async () => {
+        chatStore.lobbyChats.set("lobby-1", [lobbyMessage("1234", "you are throwing", 1_700_000_000_000_000)]);
+        chatStore.userChats.set("1234", [directMessage("1234", "and stay out", 1_700_000_120_000_000)]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await reachChatStep(wrapper);
+
+        expect(visibleLines(wrapper)).toHaveLength(2);
+        expect(scrollIntoView).not.toHaveBeenCalled();
     });
 
     it("says so when nothing this session can be cited", async () => {
