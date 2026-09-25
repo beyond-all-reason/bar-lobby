@@ -9,15 +9,15 @@ SPDX-License-Identifier: MIT
         <div v-if="props.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
             <!--
-            When the active preset has polygon-shaped startboxes (3+ vertex
+            When the active arrangement has polygon-shaped startboxes (3+ vertex
             ring), render a read-only SVG overlay only — the rect-div drag
             handles are suppressed. The user "breaks free" into custom rect
             edit mode by picking a different preset in the map options modal.
             This matches the BYAR-Chobby#1184 behaviour reviewers approved.
-            For pure-rectangle presets (or custom mode), the existing rect
+            For pure-rectangle arrangements (or custom mode), the existing rect
             divs render with full drag/resize affordance unchanged.
             -->
-            <div v-if="props.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive" class="boxes">
+            <div v-if="props.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonMode" class="boxes">
                 <slot name="boxes" :boxes="boxes">
                     <div v-for="(box, i) in boxes" :key="`box${i}`" v-startBox="box" class="box">
                         <span>{{ i + 1 }}</span>
@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
                 </slot>
             </div>
             <svg
-                v-if="props.mapOptions.startPosType === StartPosType.Boxes && polygonPresetActive && polygonOverlays.length > 0"
+                v-if="props.mapOptions.startPosType === StartPosType.Boxes && polygonMode"
                 class="polygon-overlay"
                 viewBox="0 0 200 200"
                 preserveAspectRatio="none"
@@ -41,6 +41,15 @@ SPDX-License-Identifier: MIT
                     vector-effect="non-scaling-stroke"
                 />
             </svg>
+            <div v-if="props.mapOptions.startPosType === StartPosType.Boxes && polygonMode" class="polygon-labels">
+                <span
+                    v-for="shape in polygonOverlays"
+                    :key="`label${shape.index}`"
+                    :style="{ left: `${shape.labelX / 2}%`, top: `${shape.labelY / 2}%` }"
+                >
+                    {{ shape.index + 1 }}
+                </span>
+            </div>
             <div v-if="props.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]" class="start-positions">
                 <div
                     v-for="(side, sideIndex) in props.map?.startPos?.team?.[props.mapOptions.fixedPositionsIndex ?? 0]?.sides"
@@ -76,8 +85,9 @@ import vStartPos from "@renderer/directives/vStartPos";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent } from "vue";
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
-import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
-import { isPolygonShape, tessellateRing } from "@renderer/utils/spline-tessellation";
+import { getCurrentArrangement, getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { tessellateRing } from "@renderer/utils/spline-tessellation";
+import { hasPolygon, polyToStartBox, StartboxArrangement } from "@shared/startbox-modoptions";
 
 defineComponent({
     directives: {
@@ -91,6 +101,7 @@ const { get } = useImageBlobUrlCache();
 const props = defineProps<{
     map?: MapData;
     mapOptions: BattleOptions["mapOptions"];
+    arrangement?: StartboxArrangement;
 }>();
 
 const mapTextureUrl = computed(() => {
@@ -100,43 +111,34 @@ const mapTextureUrl = computed(() => {
     return get(props.map.springName, props.map.imagesBlob?.preview) ?? defaultMiniMap;
 });
 
-const boxes = computed<StartBox[]>(() => getCurrentStartBoxes(props.map, props.mapOptions).map((box) => ({ ...box })));
+const arrangement = computed(() => props.arrangement ?? getCurrentArrangement(props.map, props.mapOptions));
+const boxes = computed<StartBox[]>(() =>
+    props.arrangement
+        ? props.arrangement.startboxes.map((box) => polyToStartBox(box.poly))
+        : getCurrentStartBoxes(props.map, props.mapOptions).map((box) => ({ ...box }))
+);
 const mapWidthElmos = computed(() => (props.map?.mapWidth ? props.map.mapWidth * 512 : null));
 const mapHeightElmos = computed(() => (props.map?.mapHeight ? props.map.mapHeight * 512 : null));
 
-// Active preset is "polygon mode" when the currently-selected map preset
-// (startBoxesIndex) contains at least one 3+ vertex ring. In that mode, the
-// rect divs are hidden and only the SVG overlay renders — no drag/resize
-// affordance, since the polygon shape is intrinsic to the map and not
-// user-editable from the lobby. Switching to a custom preset clears
-// startBoxesIndex and turns this off.
-const polygonPresetActive = computed<boolean>(() => {
-    const startBoxesIndex = props.mapOptions.startBoxesIndex;
-    if (startBoxesIndex === undefined) return false;
-    const set = props.map?.startboxesSet?.[startBoxesIndex];
-    if (!set) return false;
-    return set.startboxes.some((box) => isPolygonShape(box.poly));
-});
+// Polygon shapes are intrinsic to the map or were imported whole, so they render read-only.
+const polygonMode = computed(() => !!arrangement.value && hasPolygon(arrangement.value));
 
-// SVG `<path>` strings for the active polygon preset's startboxes. Reads
-// directly from startboxesSet (rather than the rect-flattened `boxes`
-// computed above) so the polygon vertex data — including any per-anchor
-// Catmull-Rom strength — is preserved through the render. The path uses
-// the [0, 200] coordinate space directly via the parent SVG's viewBox.
-const polygonOverlays = computed<{ index: number; path: string }[]>(() => {
-    const startBoxesIndex = props.mapOptions.startBoxesIndex;
-    if (startBoxesIndex === undefined) return [];
-    const set = props.map?.startboxesSet?.[startBoxesIndex];
-    if (!set) return [];
-    const out: { index: number; path: string }[] = [];
-    set.startboxes.forEach((box, index) => {
-        if (!isPolygonShape(box.poly)) return;
-        const tess = tessellateRing(box.poly);
-        if (tess.length === 0) return;
-        const path = `M ${tess.map((p) => `${p.x} ${p.y}`).join(" L ")} Z`;
-        out.push({ index, path });
+// Paths use the [0, 200] startbox grid directly via the SVG viewBox. Labels sit where the game
+// puts a team's default start point, the mean of the anchors.
+const polygonOverlays = computed(() => {
+    if (!polygonMode.value || !arrangement.value) return [];
+
+    return arrangement.value.startboxes.map(({ poly }, index) => {
+        const ring =
+            poly.length === 2 ? [poly[0], { x: poly[1].x, y: poly[0].y }, poly[1], { x: poly[0].x, y: poly[1].y }] : tessellateRing(poly);
+
+        return {
+            index,
+            path: `M ${ring.map((p) => `${p.x} ${p.y}`).join(" L ")} Z`,
+            labelX: poly.reduce((sum, p) => sum + p.x, 0) / poly.length,
+            labelY: poly.reduce((sum, p) => sum + p.y, 0) / poly.length,
+        };
     });
-    return out;
 });
 
 const aspectRatioDrivenStyle = computed(() => {
@@ -224,6 +226,20 @@ const rgbColors = [
     height: 100%;
     z-index: 1;
     pointer-events: none;
+}
+
+.polygon-labels {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    span {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 1.5rem;
+    }
 }
 
 .start-positions {

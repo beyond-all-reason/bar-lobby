@@ -476,7 +476,10 @@
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
                     "close": "Close",
-                    "openMapSelector": "Open map selector"
+                    "openMapSelector": "Open map selector",
+                    "startboxOverride": "Start box override",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "These start boxes could not be read."
                 },
                 "hostBattle": {
                     "title": "Host Battle",

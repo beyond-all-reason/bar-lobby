@@ -115,6 +115,7 @@ SPDX-License-Identifier: MIT
                             </Button>
                         </div>
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" :disabled="lastSelectedCustomPresetBoxes === null" />
+                        <StartboxOverrideInput @apply="setStartboxOverride" />
                         <div v-if="hasCustomStartBoxes" class="ally-team-list flex-col gap-sm">
                             <div v-for="(teamBox, teamBoxId) in teamBoxes" :key="`delete-box-${teamBoxId}`">
                                 <Button
@@ -240,12 +241,14 @@ import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import { battleStore } from "@renderer/store/battle.store";
 import EditableMapBattlePreview from "@renderer/components/maps/EditableMapBattlePreview.vue";
+import StartboxOverrideInput from "@renderer/components/maps/StartboxOverrideInput.vue";
 import { createLobbySettingsDraft, useLobbySettingsDraft } from "@renderer/composables/useLobbySettingsDraft";
 import { BattleOptions, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
-import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { getCurrentStartBoxes, withStartboxOverride } from "@renderer/utils/battle-map-options";
 import { getBoxes } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
+import { StartboxArrangement } from "@shared/startbox-modoptions";
 
 const { t } = useTypedI18n();
 const props = withDefaults(defineProps<{ mode?: "create" | "update"; activeLobby?: Lobby }>(), { mode: "create" });
@@ -337,11 +340,11 @@ async function hostBattle() {
     if (!draft.value) return;
     if (props.mode === "update" && settingsDraft.dirtyFields.value.size === 0) return;
     if (props.mode === "update") {
-        const payload = settingsDraft.updatePayload();
+        const payload = await settingsDraft.updatePayload();
         if (hostLobbyModal.value) hostLobbyModal.value.close();
         lobby.requestLobbyUpdate(payload);
     } else {
-        const payload = settingsDraft.createPayload();
+        const payload = await settingsDraft.createPayload();
         if (hostLobbyModal.value) hostLobbyModal.value.close();
         lobby.requestCreateLobby(payload);
     }
@@ -421,6 +424,11 @@ function setCustomStartBoxes(orientation: StartBoxOrientation) {
         startPosType: StartPosType.Boxes,
         customStartBoxes: getBoxes(orientation, customBoxRange.value),
     });
+}
+
+function setStartboxOverride(override: StartboxArrangement) {
+    lastSelectedCustomPresetBoxes.value = null;
+    onMapOptionsUpdated(withStartboxOverride(draftMapOptions.value, override));
 }
 
 function setFixedStartBoxes(index: number) {

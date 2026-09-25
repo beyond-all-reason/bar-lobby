@@ -3,44 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import zlib from "zlib";
-import { StartBox } from "tachyon-protocol/types";
-
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
-import { Startbox } from "@main/content/maps/map-metadata";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
-
-// JSON -> zlib deflate -> base64url, padding stripped. Matches the maps-metadata
-// modoption transport and the game-side decoder; the modoption value pattern
-// (^[a-zA-Z0-9_.-]+$) forbids '=' padding.
-function encodeModoptionValue(value: unknown): string {
-    return zlib.deflateSync(JSON.stringify(value)).toString("base64url").replace(/=+$/, "");
-}
-
-// Server-owned default: the whole set keyed by team count, so the game resolves
-// set[numTeams] back to the arrangement the lobby selected.
-function encodeStartboxesSet(set: Startbox[]): string {
-    const byTeamCount: Record<string, Startbox> = {};
-    for (const arrangement of set) {
-        byTeamCount[String(arrangement.startboxes.length)] = arrangement;
-    }
-    return encodeModoptionValue(byTeamCount);
-}
-
-// Lobby-owned custom areas: a single arrangement the game prefers over the set
-// (matchOverride matches when startboxes.length == numTeams). Boxes are 0-1 rects;
-// a 2-point poly is read as opposite corners on the 0-200 grid.
-function encodeStartboxOverride(boxes: StartBox[]): string {
-    return encodeModoptionValue({
-        startboxes: boxes.map((b) => ({
-            poly: [
-                { x: Math.round(b.left * 200), y: Math.round(b.top * 200) },
-                { x: Math.round(b.right * 200), y: Math.round(b.bottom * 200) },
-            ],
-        })),
-    });
-}
+import { customStartboxOverride, encodeModoptionValue, STARTBOX_OVERRIDE_KEY, STARTBOXES_SET_KEY, startboxesSetByTeamCount } from "@shared/startbox-modoptions";
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -50,10 +16,10 @@ function encodeStartboxOverride(boxes: StartBox[]): string {
  * - parse and convert restrictions
  */
 class StartScriptConverter {
-    public generateScriptStr(battle: BattleWithMetadata): string {
+    public async generateScriptStr(battle: BattleWithMetadata): Promise<string> {
         let scriptStr = "";
         if (!battle.isOnline) {
-            const script = this.offlineBattleToStartScript(battle);
+            const script = await this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
         } else {
             throw new Error("Online battles are not supported yet");
@@ -70,7 +36,7 @@ class StartScriptConverter {
         return obj;
     }
 
-    protected offlineBattleToStartScript(battle: BattleWithMetadata): Game {
+    protected async offlineBattleToStartScript(battle: BattleWithMetadata): Promise<Game> {
         const allyTeams: AllyTeam[] = [];
         const teams: Team[] = [];
         const players: Player[] = [];
@@ -185,15 +151,20 @@ class StartScriptConverter {
         const modoptions: Record<string, any> = { ...battle.battleOptions.gameMode.options };
 
         // Engine startboxes are rectangles only, so start areas ride to the game as
-        // modoptions. A selected preset becomes the set; custom drag-edited boxes
-        // become the override, which the game prefers over the set. The engine-native
-        // startrects set above remain a baseline for game builds without the decoder.
+        // modoptions, filled the way SPADS fills them: the set follows the map, the
+        // override follows custom boxes, and the game prefers an override that covers
+        // every team. The engine-native startrects set above remain a baseline for game
+        // builds without the decoder.
         const mapOptions = battle.battleOptions.mapOptions;
         if (mapOptions.startPosType === StartPosType.Boxes) {
-            if (mapOptions.startBoxesIndex != undefined && battle.battleOptions.map.startboxesSet.length > 0) {
-                modoptions.mapmetadata_startboxes_set = encodeStartboxesSet(battle.battleOptions.map.startboxesSet);
-            } else if (mapOptions.customStartBoxes && mapOptions.customStartBoxes.length > 0) {
-                modoptions.mapmetadata_startbox_override = encodeStartboxOverride(mapOptions.customStartBoxes);
+            const startboxesSet = battle.battleOptions.map.startboxesSet;
+            if (startboxesSet?.length) {
+                modoptions[STARTBOXES_SET_KEY] = await encodeModoptionValue(startboxesSetByTeamCount(startboxesSet));
+            }
+
+            const override = mapOptions.startBoxesIndex == undefined ? customStartboxOverride(mapOptions.customStartBoxes, mapOptions.customStartBoxShapes) : undefined;
+            if (override) {
+                modoptions[STARTBOX_OVERRIDE_KEY] = await encodeModoptionValue(override);
             }
         }
 

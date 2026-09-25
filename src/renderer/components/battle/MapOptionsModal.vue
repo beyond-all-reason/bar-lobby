@@ -44,6 +44,7 @@ SPDX-License-Identifier: MIT
                     <div class="box-buttons">
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" :disabled="lastSelectedCustomPresetBoxes === null" />
                     </div>
+                    <StartboxOverrideInput @apply="setStartboxOverride" />
                 </div>
                 <div v-if="hasCustomStartBoxes">
                     <div v-for="(teamBox, teamBoxId) in teamBoxes" :key="`delete-box-${teamBoxId}`">
@@ -132,13 +133,15 @@ import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
 import { isPlayer, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
 import EditableMapBattlePreview from "@renderer/components/maps/EditableMapBattlePreview.vue";
+import StartboxOverrideInput from "@renderer/components/maps/StartboxOverrideInput.vue";
 import { getBoxes } from "@renderer/utils/start-boxes";
-import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { getCurrentStartBoxes, withStartboxOverride } from "@renderer/utils/battle-map-options";
 import { StartBox } from "tachyon-protocol/types";
 import { pluralize } from "@renderer/utils/i18n";
 import { Icon } from "@iconify/vue";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
 import { useTypedI18n } from "@renderer/i18n";
+import { StartboxArrangement } from "@shared/startbox-modoptions";
 const { t } = useTypedI18n();
 
 const props = defineProps<{
@@ -232,6 +235,12 @@ function setCustomStartBoxes(orientation: StartBoxOrientation) {
         startPosType: StartPosType.Boxes,
         customStartBoxes,
     });
+}
+
+function setStartboxOverride(override: StartboxArrangement) {
+    lastSelectedCustomPresetBoxes.value = null;
+
+    emit("update:mapOptions", withStartboxOverride(mapOptions.value, override));
 }
 
 function setFixedStartBoxes(index: number) {

@@ -44,7 +44,7 @@ SPDX-License-Identifier: MIT
                 <template #chat><ChatPanel type="lobby" :id="lobbyStore.activeLobby?.id" /></template>
                 <template #map-and-options>
                     <div class="options">
-                        <MapBattlePreview :map="map" :map-options="mapOptions" />
+                        <MapBattlePreview :map="map" :map-options="mapOptions" :arrangement="arrangement" />
                         <div class="flex-row flex-space-between">
                             <div class="flex-row gap-lg flex-center-items">
                                 <div class="flex-row flex-center-items gap-sm">
@@ -161,6 +161,7 @@ import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import VotePanel from "@renderer/components/battle/VotePanel.vue";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
+import { resolveLobbyArrangement } from "@renderer/utils/lobby-startboxes";
 
 const editLobbyModalIsOpen = ref(false);
 
@@ -221,6 +222,13 @@ const mapOptions = computed(() => ({
               .map((key) => lobbyStore.activeLobby!.allyTeamConfig[key].startBox)
         : [],
 }));
+
+const arrangement = computed(() => {
+    const activeLobby = lobbyStore.activeLobby;
+    if (!activeLobby) return undefined;
+
+    return resolveLobbyArrangement(activeLobby.startboxes, Object.keys(activeLobby.allyTeamConfig).length);
+});
 
 async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.

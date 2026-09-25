@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { MapData } from "@main/content/maps/map-data";
+import { StartBoxPoly } from "@main/content/maps/map-metadata";
 import { User } from "@main/model/user";
 import { StartBox } from "tachyon-protocol/types";
 
@@ -53,6 +54,7 @@ export type BattleOptions = {
         startPosType: StartPosType;
         startBoxesIndex?: number;
         customStartBoxes?: StartBox[];
+        customStartBoxShapes?: StartBoxPoly[][];
         customStartBoxPreset?: StartBoxOrientation;
         fixedPositionsIndex?: number;
     };

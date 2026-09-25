@@ -262,9 +262,9 @@ function updateTeams() {
     if (!battleStore.battleOptions.map) return;
     const numberOfTeams = getNumberOfTeams();
 
-    // Adjust number of teams
+    // Adjust number of teams. The count already follows the boxes, so new teams must not add boxes the way addTeam does.
     if (battleStore.teams.length < numberOfTeams) {
-        for (let i = 0; i <= numberOfTeams - battleStore.teams.length; i++) addTeam();
+        while (battleStore.teams.length < numberOfTeams) battleStore.teams.push({ participants: [] });
     } else if (battleStore.teams.length > numberOfTeams) {
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) removeTeam(i);
     }
@@ -317,8 +317,9 @@ function removeCustomStartBox(boxId: number) {
     if (customBoxes == undefined || customBoxes.length == 0) return;
 
     if (customBoxes[boxId]) {
-        const newBoxes = customBoxes.filter((_, index) => index !== boxId);
-        battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
+        const mapOptions = battleStore.battleOptions.mapOptions;
+        mapOptions.customStartBoxes = customBoxes.filter((_, index) => index !== boxId);
+        mapOptions.customStartBoxShapes = mapOptions.customStartBoxShapes?.filter((_, index) => index !== boxId);
     }
 }
 
