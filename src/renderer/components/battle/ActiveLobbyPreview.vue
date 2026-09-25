@@ -373,17 +373,4 @@ function openLobby() {
 .flashing {
     animation: vote-flash 1s ease-in-out infinite;
 }
-@keyframes vote-flash {
-    0%,
-    100% {
-        opacity: 1;
-        color: rgb(255, 215, 80);
-        filter: drop-shadow(0 0 6px rgba(255, 215, 80, 0.9));
-    }
-    50% {
-        opacity: 0.35;
-        color: #fff;
-        filter: none;
-    }
-}
 </style>
