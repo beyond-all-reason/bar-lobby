@@ -19,9 +19,11 @@ function makeVote(ballots: Partial<Record<Ballot, number>>, quorum: number, majo
 }
 
 describe("tallyVote", () => {
-    it("counts abstains towards quorum but not towards the yes share", () => {
+    it("counts abstains towards quorum but not towards the bar", () => {
         const tally = tallyVote(makeVote({ pending: 4, abstain: 5, yes: 3, no: 1 }, 9));
-        expect(tally).toMatchObject({ yes: 3, no: 1, abstain: 5, pending: 4, cast: 9, quorumMet: true, yesShare: 0.75, majority: 0.501 });
+        expect(tally).toMatchObject({ cast: 9, quorumMet: true, majority: 0.501 });
+        expect(tally.bar!.yes).toBeCloseTo(3 / 8);
+        expect(tally.bar!.no).toBeCloseTo(1 / 8);
     });
 
     it("does not count pending voters towards quorum", () => {
@@ -47,14 +49,13 @@ describe("tallyVote", () => {
         expect(1 - tally.bar!.no).toBeLessThan(tally.majority);
     });
 
-    it("has no yes share when nobody has voted yes or no", () => {
-        expect(tallyVote(makeVote({ abstain: 3, pending: 2 }, 3)).yesShare).toBeNull();
+    it("has no bar when everyone abstained", () => {
+        expect(tallyVote(makeVote({ abstain: 3 }, 3)).bar).toBeNull();
     });
 
-    it("raises the cast count but leaves the yes share unchanged when someone abstains", () => {
+    it("raises the cast count when someone abstains", () => {
         const before = tallyVote(makeVote({ yes: 2, no: 2, pending: 1 }, 5));
         const after = tallyVote(makeVote({ yes: 2, no: 2, abstain: 1 }, 5));
         expect(after.cast).toBe(before.cast + 1);
-        expect(after.yesShare).toBe(before.yesShare);
     });
 });

@@ -5,16 +5,10 @@
 import { Lobby } from "@renderer/model/lobby";
 
 export type VoteTally = {
-    yes: number;
-    no: number;
-    abstain: number;
-    pending: number;
     /** Votes that count towards quorum: yes, no and abstain. Pending (e.g. AFK) voters do not. */
     cast: number;
     quorum: number;
     quorumMet: boolean;
-    /** Share of yes out of yes + no, abstainers excluded. Null until someone votes yes or no. */
-    yesShare: number | null;
     /**
      * Bar widths (0-1) over everyone who could still vote yes or no (yes + no + pending), abstainers excluded.
      * Pending voters are the gap between them, so yes reaching the majority line means it holds even if every
@@ -35,11 +29,9 @@ export function tallyVote(vote: NonNullable<Lobby["currentVote"]>): VoteTally {
     const decisive = counts.yes + counts.no;
     const undecidedOrDecisive = decisive + counts.pending;
     return {
-        ...counts,
         cast,
         quorum: vote.quorum,
         quorumMet: cast >= vote.quorum,
-        yesShare: decisive > 0 ? counts.yes / decisive : null,
         bar: undecidedOrDecisive > 0 ? { yes: counts.yes / undecidedOrDecisive, no: counts.no / undecidedOrDecisive } : null,
         majority: vote.majority,
     };
