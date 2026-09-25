@@ -72,7 +72,7 @@ SPDX-License-Identifier: MIT
                     <Icon
                         :icon="getHistoryIcon(entry.outcome)"
                         :height="24"
-                        :class="['margin-right-sm', getHistoryIconColor(entry.outcome)]"
+                        :class="['margin-right-sm', `history-icon-${entry.outcome}`]"
                     />
                     <div>{{ getVoteString(entry.vote) }}</div>
                 </div>
@@ -145,19 +145,6 @@ function getHistoryIcon(outcome: VoteOutcomes) {
             return circleOffOutline;
         case "timeout":
             return alarm;
-    }
-}
-
-function getHistoryIconColor(outcome: VoteOutcomes) {
-    switch (outcome) {
-        case "passed":
-            return "history-icon-passed";
-        case "failed":
-            return "history-icon-failed";
-        case "cancelled":
-            return "history-icon-cancelled";
-        case "timeout":
-            return "history-icon-timeout";
     }
 }
 
@@ -366,9 +353,7 @@ const voteString = computed(() => getVoteString(vote.value?.action));
 .history-icon-failed {
     color: rgb(206, 73, 73);
 }
-.history-icon-cancelled {
-    color: rgb(128, 128, 128);
-}
+.history-icon-cancelled,
 .history-icon-timeout {
     color: rgb(128, 128, 128);
 }
