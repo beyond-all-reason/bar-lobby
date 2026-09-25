@@ -128,12 +128,3 @@ export function tessellateRing(anchors: AnchorPoint[], segments = DEFAULT_SEGMEN
     }
     return out;
 }
-
-/**
- * Decide whether a poly should be drawn as a polygon outline (3+ points) or
- * left to the existing rectangle renderer (2 points). Used by the lobby
- * preview to branch between the rect-div and the SVG polygon overlay.
- */
-export function isPolygonShape(poly: { x: number; y: number }[]): boolean {
-    return poly.length > 2;
-}

@@ -476,7 +476,10 @@
                     "fixedPositions": "Fiexd piooitsns",
                     "random": "Rdoanm",
                     "close": "Csole",
-                    "openMapSelector": "Oepn map seteoclr"
+                    "openMapSelector": "Oepn map seteoclr",
+                    "startboxOverride": "Strat box odverrie",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "Teshe strat bxeos culod not be raed."
                 },
                 "hostBattle": {
                     "title": "Hsot Blatte",

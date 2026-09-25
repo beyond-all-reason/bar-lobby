@@ -4312,7 +4312,10 @@
                     "fixedPositions": null,
                     "random": null,
                     "close": null,
-                    "openMapSelector": null
+                    "openMapSelector": null,
+                    "startboxOverride": null,
+                    "applyStartboxOverride": null,
+                    "unreadableStartboxOverride": null
                 },
                 "hostBattle": {
                     "title": null,

@@ -4,7 +4,7 @@
 
 import { MapData } from "@main/content/maps/map-data";
 import { StartPosType } from "@main/game/battle/battle-types";
-import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { getCurrentArrangement, getCurrentStartBoxes, withStartboxOverride } from "@renderer/utils/battle-map-options";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
@@ -96,6 +96,43 @@ describe("getCurrentStartBoxes", () => {
         await nextTick();
 
         expect(battleStore.battleOptions.mapOptions.startBoxesIndex).toBe(0);
+    });
+
+    it("adds one team per box when pasted start boxes outnumber the teams", async () => {
+        battleStore.battleOptions.map = mapWith([]);
+        await nextTick();
+        const override = {
+            startboxes: [0, 1, 2, 3].map((i) => ({
+                poly: [
+                    { x: i * 50, y: 0 },
+                    { x: i * 50 + 40, y: 200 },
+                ],
+            })),
+        };
+
+        battleStore.battleOptions.mapOptions = withStartboxOverride(battleStore.battleOptions.mapOptions, override);
+        await nextTick();
+
+        expect(battleStore.teams).toHaveLength(4);
+        expect(battleStore.battleOptions.mapOptions.customStartBoxes).toHaveLength(4);
+    });
+
+    it("keeps the other teams' pasted shapes when a team is deleted", async () => {
+        battleStore.battleOptions.map = mapWith([]);
+        await nextTick();
+        const triangle = (x: number) => [
+            { x, y: 0 },
+            { x: x + 40, y: 0 },
+            { x: x + 20, y: 60 },
+        ];
+        const shapes = [triangle(0), triangle(80), triangle(160)];
+        battleStore.battleOptions.mapOptions = withStartboxOverride(battleStore.battleOptions.mapOptions, { startboxes: shapes.map((poly) => ({ poly })) });
+        await nextTick();
+
+        battleActions.removeTeam(1);
+        await nextTick();
+
+        expect(getCurrentArrangement(battleStore.battleOptions.map, battleStore.battleOptions.mapOptions)?.startboxes.map((box) => box.poly)).toEqual([shapes[0], shapes[2]]);
     });
 
     it("resolves boxes without depending on the battle store", () => {

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { LobbyStartboxes } from "@renderer/utils/lobby-startboxes";
 import { LobbyCreateOkResponse } from "tachyon-protocol/types";
 
 export type Lobby = LobbyCreateOkResponse["data"] & {
@@ -10,4 +11,5 @@ export type Lobby = LobbyCreateOkResponse["data"] & {
     spectatorCount: number;
     playerQueue: Map<number, string>;
     botCount: number;
+    startboxes?: LobbyStartboxes;
 };

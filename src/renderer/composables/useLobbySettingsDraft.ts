@@ -7,7 +7,8 @@ import { MapData } from "@main/content/maps/map-data";
 import { Lobby } from "@renderer/model/lobby";
 import { LobbyCreateRequestData, LobbyUpdateRequestData, StartBox } from "tachyon-protocol/types";
 import { computed, isProxy, reactive, ref, toRaw } from "vue";
-import { eastVsWestStartBoxes, getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { eastVsWestStartBoxes, getCurrentStartBoxes, getStartboxOverride, withStartboxOverride } from "@renderer/utils/battle-map-options";
+import { allyTeamConfigToArray, startboxGameOptions } from "@renderer/utils/lobby-startboxes";
 
 export type LobbyDraftMode = "create" | "update";
 
@@ -29,7 +30,7 @@ export type LobbyDraftField = "name" | "mapName" | "allyTeamConfig";
 export type LobbyDraftConflict =
     | { field: "name"; base: string; draft: string; server: string }
     | { field: "mapName"; base: string; draft: string; server: string; serverMap?: MapData }
-    | { field: "allyTeamConfig"; base: AllyTeam[]; draft: AllyTeam[]; server: AllyTeam[] };
+    | { field: "allyTeamConfig"; base: AllyTeam[]; draft: AllyTeam[]; server: AllyTeam[]; serverMapOptions: BattleOptions["mapOptions"] };
 
 function isBlobLike(value: unknown): value is Blob {
     if (value === null || typeof value !== "object") return false;
@@ -52,21 +53,6 @@ function clone<T>(value: T): T {
     return cloneValue(value) as T;
 }
 
-function configRecordToArray(config: Lobby["allyTeamConfig"]): AllyTeam[] {
-    return Object.keys(config)
-        .sort((a, b) => Number(a) - Number(b))
-        .map((allyTeam) => {
-            const value = config[allyTeam];
-            return {
-                maxTeams: value.maxTeams,
-                startBox: clone(value.startBox),
-                teams: Object.keys(value.teams)
-                    .sort((a, b) => Number(a) - Number(b))
-                    .map((team) => ({ maxPlayers: value.teams[team].maxPlayers })),
-            };
-        });
-}
-
 function arrayToConfigRecord(config: AllyTeam[]): AllyTeam[] {
     return clone(config);
 }
@@ -81,8 +67,27 @@ function copyField(target: LobbySettingsDraft, field: LobbyDraftField, source: L
             break;
         case "allyTeamConfig":
             target.allyTeamConfig = clone(source.allyTeamConfig);
+            target.mapOptions = clone(source.mapOptions);
             break;
     }
+}
+
+// The override is compared with the team setup because a box can change shape without its bounding rect moving.
+function fieldValue(source: LobbySettingsDraft, field: LobbyDraftField): unknown {
+    switch (field) {
+        case "name":
+            return source.name;
+        case "mapName":
+            return source.mapName;
+        case "allyTeamConfig":
+            return { allyTeamConfig: source.allyTeamConfig, override: getStartboxOverride(source.mapOptions) ?? null };
+    }
+}
+
+const DRAFT_FIELDS: LobbyDraftField[] = ["name", "mapName", "allyTeamConfig"];
+
+function isFieldEqual(a: LobbySettingsDraft, b: LobbySettingsDraft, field: LobbyDraftField) {
+    return JSON.stringify(fieldValue(a, field)) === JSON.stringify(fieldValue(b, field));
 }
 
 function makeConflict(field: LobbyDraftField, base: LobbySettingsDraft, draft: LobbySettingsDraft, server: LobbySettingsDraft): LobbyDraftConflict {
@@ -97,6 +102,7 @@ function makeConflict(field: LobbyDraftField, base: LobbySettingsDraft, draft: L
                 base: clone(base.allyTeamConfig),
                 draft: clone(draft.allyTeamConfig),
                 server: clone(server.allyTeamConfig),
+                serverMapOptions: clone(server.mapOptions),
             };
     }
 }
@@ -141,16 +147,31 @@ function boxesFromConfig(config: AllyTeam[]): StartBox[] {
     return config.map((allyTeam) => clone(allyTeam.startBox));
 }
 
+function mapOptionsFromLobby(lobby: Lobby, map: MapData | undefined, allyTeamConfig: AllyTeam[]): BattleOptions["mapOptions"] {
+    const count = allyTeamConfig.length;
+    const override = lobby.startboxes?.override;
+    if (override && override.startboxes.length >= count) {
+        return withStartboxOverride({ startPosType: StartPosType.Boxes }, { startboxes: override.startboxes.slice(0, count) });
+    }
+
+    const presetIndex = map?.startboxesSet?.findIndex((preset) => preset.startboxes.length === count) ?? -1;
+    if (lobby.startboxes?.set?.[String(count)] && presetIndex >= 0) {
+        return { startPosType: StartPosType.Boxes, startBoxesIndex: presetIndex };
+    }
+
+    return {
+        startPosType: StartPosType.Boxes,
+        customStartBoxes: allyTeamConfig.map((allyTeam) => clone(allyTeam.startBox)),
+    };
+}
+
 export function createDraftFromLobby(lobby: Lobby, map: MapData | undefined): LobbySettingsDraft {
-    const allyTeamConfig = configRecordToArray(lobby.allyTeamConfig);
+    const allyTeamConfig = allyTeamConfigToArray(lobby.allyTeamConfig);
     return {
         name: lobby.name,
         map,
         mapName: lobby.mapName,
-        mapOptions: {
-            startPosType: StartPosType.Boxes,
-            customStartBoxes: allyTeamConfig.map((allyTeam) => clone(allyTeam.startBox)),
-        },
+        mapOptions: mapOptionsFromLobby(lobby, map, allyTeamConfig),
         allyTeamConfig,
     };
 }
@@ -187,9 +208,9 @@ export function useLobbySettingsDraft() {
     const dirtyFields = computed<Set<LobbyDraftField>>(() => {
         if (!base.value || !draft.value) return new Set();
         const dirty = new Set<LobbyDraftField>();
-        if (base.value.name !== draft.value.name) dirty.add("name");
-        if (base.value.mapName !== draft.value.mapName) dirty.add("mapName");
-        if (JSON.stringify(base.value.allyTeamConfig) !== JSON.stringify(draft.value.allyTeamConfig)) dirty.add("allyTeamConfig");
+        for (const field of DRAFT_FIELDS) {
+            if (!isFieldEqual(base.value, draft.value, field)) dirty.add(field);
+        }
         return dirty;
     });
 
@@ -315,40 +336,50 @@ export function useLobbySettingsDraft() {
             startPosType: StartPosType.Boxes,
             startBoxesIndex: undefined,
             customStartBoxes: boxesFromConfig(allyTeamConfig),
+            customStartBoxShapes: draft.value.mapOptions.customStartBoxShapes?.filter((_, allyTeamIndex) => allyTeamIndex !== index),
         };
     }
 
-    function createPayload(): LobbyCreateRequestData {
+    async function createPayload(): Promise<LobbyCreateRequestData> {
         if (!draft.value || !draft.value.mapName) throw new Error("Cannot create a lobby without a map");
+        const gameOptions = await startboxGameOptions(draft.value.map, getStartboxOverride(draft.value.mapOptions));
+
         return {
             name: draft.value.name,
             mapName: draft.value.mapName,
             allyTeamConfig: clone(draft.value.allyTeamConfig),
             areBossesEnabled: draft.value.areBossesEnabled,
+            gameOptions: Object.fromEntries(Object.entries(gameOptions).filter((entry): entry is [string, { value: string }] => entry[1] !== null)),
         };
     }
 
-    function updatePayload(): LobbyUpdateRequestData {
+    async function updatePayload(): Promise<LobbyUpdateRequestData> {
         if (!draft.value) throw new Error("Cannot update a lobby without an open draft");
         const payload: LobbyUpdateRequestData = {};
         const dirty = dirtyFields.value;
         if (dirty.has("name")) payload.name = draft.value.name;
         if (dirty.has("mapName")) payload.mapName = draft.value.mapName;
         if (dirty.has("allyTeamConfig")) payload.allyTeamConfig = arrayToConfigRecord(draft.value.allyTeamConfig);
+        // Teiserver may put a map change to a vote, and these options belong to whichever map ends up set.
+        if (dirty.has("allyTeamConfig") && !dirty.has("mapName")) {
+            payload.gameOptions = await startboxGameOptions(draft.value.map, getStartboxOverride(draft.value.mapOptions));
+        }
+
         return payload;
     }
 
     function syncFromServer(server: LobbySettingsDraft) {
         if (!base.value || !draft.value) return;
-        const fields: LobbyDraftField[] = ["name", "mapName", "allyTeamConfig"];
         let acceptedServerBoxes = false;
-        for (const field of fields) {
-            const localChanged = JSON.stringify(base.value[field]) !== JSON.stringify(draft.value[field]);
-            const serverChanged = JSON.stringify(base.value[field]) !== JSON.stringify(server[field]);
-            const same = JSON.stringify(draft.value[field]) === JSON.stringify(server[field]);
+        for (const field of DRAFT_FIELDS) {
+            const localChanged = !isFieldEqual(base.value, draft.value, field);
+            const serverChanged = !isFieldEqual(base.value, server, field);
+            const same = isFieldEqual(draft.value, server, field);
             if (!localChanged || same) {
-                copyField(draft.value, field, server);
-                if (field === "allyTeamConfig" && serverChanged) acceptedServerBoxes = true;
+                if (serverChanged) {
+                    copyField(draft.value, field, server);
+                    if (field === "allyTeamConfig") acceptedServerBoxes = true;
+                }
             } else if (serverChanged) {
                 const conflict = makeConflict(field, base.value, draft.value, server);
                 const conflictIndex = conflicts.findIndex((existing) => existing.field === field);
@@ -357,7 +388,8 @@ export function useLobbySettingsDraft() {
             }
             copyField(base.value, field, server);
         }
-        if (acceptedServerBoxes) syncPreviewFromConfig();
+        // Server presets index into the server's map, which is not the one this draft has moved to.
+        if (acceptedServerBoxes && draft.value.mapName !== server.mapName) syncPreviewFromConfig();
     }
 
     function syncFromLobby(lobby: Lobby, map: MapData | undefined) {
@@ -384,7 +416,8 @@ export function useLobbySettingsDraft() {
                 break;
             case "allyTeamConfig":
                 draft.value.allyTeamConfig = clone(conflict.server);
-                syncPreviewFromConfig();
+                if (draft.value.mapName === base.value?.mapName) draft.value.mapOptions = clone(conflict.serverMapOptions);
+                else syncPreviewFromConfig();
                 break;
         }
         conflicts.splice(conflictIndex, 1);
