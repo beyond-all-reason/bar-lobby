@@ -100,7 +100,7 @@ import { tallyVote } from "@renderer/utils/vote-tally";
 import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 
 const { t } = useTypedI18n();
-const { needsMyVote, isBoss } = useActiveLobbyStatus();
+const { needsMyVote, isBoss, vote, voteTimeLeftMs } = useActiveLobbyStatus();
 
 const collapsed = ref(true);
 const historyHovered = ref(false);
@@ -128,8 +128,6 @@ function collapseHistoryIfNotHovered() {
         }
     }, historyHoverCloseDelayMs);
 }
-
-const vote = computed(() => lobbyStore.activeLobby?.currentVote ?? null);
 
 const historyEntries = computed(() =>
     Object.entries(lobbyStore.activeLobby?.voteHistory ?? {})
@@ -176,10 +174,8 @@ let remainingTimeAnimation: Animation | undefined;
 function startRemainingTimeAnimation() {
     remainingTimeAnimation?.cancel();
     remainingTimeAnimation = undefined;
-    const until = vote.value?.until;
-    if (!remainingTimeEl.value || !until) return;
-    const remainingMs = until / 1000 - Date.now();
-    if (remainingMs <= 0) return;
+    const remainingMs = voteTimeLeftMs.value;
+    if (!remainingTimeEl.value || !remainingMs) return;
     remainingTimeAnimation = remainingTimeEl.value.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], {
         duration: remainingMs,
         easing: "linear",
