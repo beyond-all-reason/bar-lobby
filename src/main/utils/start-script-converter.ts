@@ -150,11 +150,7 @@ class StartScriptConverter {
 
         const modoptions: Record<string, any> = { ...battle.battleOptions.gameMode.options };
 
-        // Engine startboxes are rectangles only, so start areas ride to the game as
-        // modoptions, filled the way SPADS fills them: the set follows the map, the
-        // override follows custom boxes, and the game prefers an override that covers
-        // every team. The engine-native startrects set above remain a baseline for game
-        // builds without the decoder.
+        // The engine only knows rects, so polygons go as the game's startbox modoptions; the startrects above stay as the fallback.
         const mapOptions = battle.battleOptions.mapOptions;
         if (mapOptions.startPosType === StartPosType.Boxes) {
             const startboxesSet = battle.battleOptions.map.startboxesSet;

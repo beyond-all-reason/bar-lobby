@@ -4,8 +4,7 @@
 
 import type { StartBox } from "tachyon-protocol/types";
 
-// The game-side contract for both modoptions lives in
-// beyond-all-reason/Beyond-All-Reason luarules/gadgets/include/startbox_utilities.lua.
+// Game-side contract: Beyond-All-Reason luarules/gadgets/include/startbox_utilities.lua.
 export const STARTBOXES_SET_KEY = "mapmetadata_startboxes_set";
 export const STARTBOX_OVERRIDE_KEY = "mapmetadata_startbox_override";
 
@@ -117,8 +116,7 @@ export function startboxesSetByTeamCount(arrangements: StartboxArrangement[]): S
     return Object.fromEntries(arrangements.map((arrangement) => [String(arrangement.startboxes.length), arrangement]));
 }
 
-// Same order as resolveArrangement in the game: an override covering every team, then the set's
-// exact team count, the next larger, the next smaller. undefined means the game uses the engine rects.
+// Same order as the game's resolveArrangement; undefined means the game uses the engine rects.
 export function resolveArrangement(override: StartboxArrangement | undefined, set: StartboxesSet | undefined, numTeams: number) {
     if (override && override.startboxes.length >= numTeams) return override;
     if (!set) return undefined;
@@ -171,8 +169,7 @@ function isBoundedBy(shape: StartboxPoint[], box: StartBox) {
     return bounds.left === box.left && bounds.top === box.top && bounds.right === box.right && bounds.bottom === box.bottom;
 }
 
-// A shape only describes the custom rect at its index while that rect is still its bounding box, so
-// editing one rect turns just that box back into a rect.
+// The rect editor doesn't know about shapes, so a shape only counts while its rect still bounds it.
 export function customStartboxOverride(customStartBoxes: StartBox[] | undefined, shapes: StartboxPoint[][] | undefined): StartboxArrangement | undefined {
     if (!customStartBoxes?.length) return undefined;
 

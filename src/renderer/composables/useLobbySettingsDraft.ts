@@ -147,8 +147,6 @@ function boxesFromConfig(config: AllyTeam[]): StartBox[] {
     return config.map((allyTeam) => clone(allyTeam.startBox));
 }
 
-// The draft only knows presets with exactly one box per team, so anything else the game would
-// resolve to is edited as the custom rects the lobby already holds.
 function mapOptionsFromLobby(lobby: Lobby, map: MapData | undefined, allyTeamConfig: AllyTeam[]): BattleOptions["mapOptions"] {
     const count = allyTeamConfig.length;
     const override = lobby.startboxes?.override;
@@ -362,7 +360,7 @@ export function useLobbySettingsDraft() {
         if (dirty.has("name")) payload.name = draft.value.name;
         if (dirty.has("mapName")) payload.mapName = draft.value.mapName;
         if (dirty.has("allyTeamConfig")) payload.allyTeamConfig = arrayToConfigRecord(draft.value.allyTeamConfig);
-        // A map change can go to a vote, so the new map's start box options are written once it lands.
+        // Teiserver may put a map change to a vote, and these options belong to whichever map ends up set.
         if (dirty.has("allyTeamConfig") && !dirty.has("mapName")) {
             payload.gameOptions = await startboxGameOptions(draft.value.map, getStartboxOverride(draft.value.mapOptions));
         }

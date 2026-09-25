@@ -262,7 +262,7 @@ function updateTeams() {
     if (!battleStore.battleOptions.map) return;
     const numberOfTeams = getNumberOfTeams();
 
-    // Adjust number of teams. The count already follows the boxes, so new teams must not add boxes the way addTeam does.
+    // Adjust number of teams
     if (battleStore.teams.length < numberOfTeams) {
         while (battleStore.teams.length < numberOfTeams) battleStore.teams.push({ participants: [] });
     } else if (battleStore.teams.length > numberOfTeams) {

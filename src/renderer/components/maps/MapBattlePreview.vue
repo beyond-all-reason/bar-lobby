@@ -120,11 +120,9 @@ const boxes = computed<StartBox[]>(() =>
 const mapWidthElmos = computed(() => (props.map?.mapWidth ? props.map.mapWidth * 512 : null));
 const mapHeightElmos = computed(() => (props.map?.mapHeight ? props.map.mapHeight * 512 : null));
 
-// Polygon shapes are intrinsic to the map or were imported whole, so they render read-only.
 const polygonMode = computed(() => !!arrangement.value && hasPolygon(arrangement.value));
 
-// Paths use the [0, 200] startbox grid directly via the SVG viewBox. Labels sit where the game
-// puts a team's default start point, the mean of the anchors.
+// Labels sit where the game puts a team's default start point: the mean of the anchors.
 const polygonOverlays = computed(() => {
     if (!polygonMode.value || !arrangement.value) return [];
 

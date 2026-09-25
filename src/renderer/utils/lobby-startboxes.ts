@@ -63,8 +63,7 @@ export async function decodeLobbyStartboxes(gameOptions: LobbyState["gameOptions
     return { override, set };
 }
 
-// undefined means the game falls back to the allyTeamConfig rects. A larger set arrangement only
-// hands out as many boxes as there are teams, while override spares stay: someone placed them.
+// Spare boxes from a bigger set arrangement go unused in game; override spares stay visible, as in chobby.
 export function resolveLobbyArrangement(startboxes: LobbyStartboxes | undefined, allyTeamCount: number): StartboxArrangement | undefined {
     const arrangement = resolveArrangement(startboxes?.override, startboxes?.set, allyTeamCount);
     if (!arrangement || arrangement === startboxes?.override) return arrangement;
@@ -81,8 +80,7 @@ export async function startboxGameOptions(map: MapData | undefined, override: St
     };
 }
 
-// SPADS resets both options from the map's battle preset once a map change lands. Tachyon lobbies
-// have no host to do that, so exactly one client does, picked the same way by every client.
+// SPADS resets both options on a map change. Tachyon lobbies have no host, so every client picks the same client to do it.
 export function isStartboxWriter(lobby: LobbyState, userId: string) {
     const candidates = lobby.areBossesEnabled ? Object.keys(lobby.bosses) : [...Object.keys(lobby.players), ...Object.keys(lobby.spectators)];
 
