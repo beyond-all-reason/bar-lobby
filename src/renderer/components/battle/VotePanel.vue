@@ -166,7 +166,7 @@ function startRemainingTimeAnimation() {
     remainingTimeAnimation?.cancel();
     remainingTimeAnimation = undefined;
     const remainingMs = voteTimeLeftMs.value;
-    if (!remainingTimeEl.value || !remainingMs) return;
+    if (!remainingTimeEl.value || remainingMs === null) return;
     remainingTimeAnimation = remainingTimeEl.value.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], {
         duration: remainingMs,
         easing: "linear",
