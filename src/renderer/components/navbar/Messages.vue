@@ -19,7 +19,7 @@ SPDX-License-Identifier: MIT
                         </div>
                     </div>
                 </template>
-                <ChatPanel type="player" :id="userId" fill />
+                <ChatPanel type="player" :id="userId" />
             </TabPanel>
             <TabPanel>
                 <template #header>

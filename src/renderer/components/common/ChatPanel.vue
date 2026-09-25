@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="chat-panel flex-col gap-lg flex-grow fullheight">
         <div class="message-container flex-col flex-grow">
-            <div class="messages" :class="{ fill }">
+            <div class="messages">
                 <div v-if="messages.length === 0" class="no-messages">{{ t("lobby.navbar.messages.noMessages") }}</div>
                 <div v-else class="flex-col gap-sm">
                     <div
@@ -60,7 +60,6 @@ import { reportUserIconClass, useReportUser } from "@renderer/composables/useRep
 const props = defineProps<{
     type: "lobby" | "party" | "player";
     id: LobbyId | PartyId | UserId | undefined;
-    fill?: boolean;
 }>();
 
 const { t } = useTypedI18n();
@@ -141,13 +140,8 @@ function sendMessage(messageText: string) {
     flex-direction: column-reverse;
     overflow-y: scroll;
     padding: 10px;
-    // flex: 1 1 auto;
-    height: 600px; //FIX: this probably shouldn't be a fixed value?
-    // Where the host gives the chat a height, it takes that instead.
-    &.fill {
-        flex: 1 1 0;
-        height: auto;
-    }
+    flex: 1 1 auto;
+    min-height: 0;
 }
 .no-messages {
     align-self: center;
