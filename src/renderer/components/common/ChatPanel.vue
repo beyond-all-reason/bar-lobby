@@ -58,8 +58,8 @@ import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import { reportUserIconClass, useReportUser } from "@renderer/composables/useReportUser";
 
 const props = defineProps<{
-    type: "lobby" | "party";
-    id: LobbyId | PartyId | undefined;
+    type: "lobby" | "party" | "player";
+    id: LobbyId | PartyId | UserId | undefined;
 }>();
 
 const { t } = useTypedI18n();
@@ -72,7 +72,7 @@ function focusTextbox(el: HTMLElement) {
 
 const messages = computed(() => {
     if (!props.id) return [];
-    const chats = props.type === "lobby" ? chatStore.lobbyChats : chatStore.partyChats;
+    const chats = { lobby: chatStore.lobbyChats, party: chatStore.partyChats, player: chatStore.userChats }[props.type];
     return chats.get(props.id) ?? [];
 });
 
@@ -113,12 +113,10 @@ const newMessage = ref("");
 
 function sendMessage(messageText: string) {
     // Button's disabled prop only styles the control, it does not stop the click.
-    if (!tachyonStore.isConnected) return;
+    if (!tachyonStore.isConnected || !props.id) return;
 
     chat.requestSend({
-        target: {
-            type: props.type,
-        },
+        target: props.type === "player" ? { type: "player", userId: props.id } : { type: props.type },
         message: messageText,
     });
     newMessage.value = "";
