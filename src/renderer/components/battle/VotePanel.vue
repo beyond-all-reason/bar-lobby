@@ -5,133 +5,266 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="voting-container">
-        <Panel class="voting-panel">
-            <div :class="['remaining-time', { animating: showTimeRemaining }]"></div>
+    <div :class="['group', 'vote-panel', { 'needs-vote': needsMyVote }]">
+        <div ref="remainingTimeEl" :class="['remaining-time', { visible: !!vote?.until }]"></div>
 
-            <div class="title">
-                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ vote.command }}
+        <div v-show="vote != undefined" class="active-vote">
+            <div class="group-header flex-row flex-center-items gap-md">
+                <div class="title">{{ t("lobby.components.battle.votePanel.vote") }}</div>
+                <div class="action">{{ voteString }}</div>
+                <div v-if="vote?.initiator" class="caller">
+                    {{ t("lobby.components.battle.votePanel.calledBy", { initiator: initiatorName }) }}
+                </div>
             </div>
 
-            <div class="actions">
-                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{ t("lobby.components.battle.votePanel.yes") }}</Button>
-                <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
+            <div :class="['actions', { 'has-voted': hasVoted }]">
+                <Button :class="['vote-button', 'ballot', 'green', { selected: myVote === 'yes' }]" :disabled="!canVote" @click="onYes">
+                    {{ t("lobby.components.battle.votePanel.yes") }}
+                </Button>
+                <Button
+                    :class="['vote-button', 'ballot', 'gray', { selected: myVote === 'abstain' }]"
+                    :disabled="!canVote"
+                    @click="onAbstain"
+                >
+                    {{ t("lobby.components.battle.votePanel.abstain") }}
+                </Button>
+                <Button class="vote-button gray" :disabled="!canCancel" @click="onCancel">
+                    {{ t("lobby.components.battle.votePanel.cancel") }}
+                </Button>
+                <Button :class="['vote-button', 'ballot', 'red', { selected: myVote === 'no' }]" :disabled="!canVote" @click="onNo">
+                    {{ t("lobby.components.battle.votePanel.no") }}
+                </Button>
             </div>
 
-            <div v-if="vote.callerName" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ vote.callerName }}</div>
-
-            <div v-if="missingYesVotes" class="vote-display">
-                <div v-for="i in vote.yesVotes" :key="i" class="segment yes"></div>
-                <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
-                <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
-                <div v-for="i in vote.noVotes" :key="i" class="segment no"></div>
+            <template v-if="tally">
+                <!-- Yes fills from the left, no from the right, pending voters are the gap; whichever side crosses the finish line (majority) has won -->
+                <div class="majority-bar">
+                    <template v-if="tally.bar">
+                        <div class="fill yes" :style="{ width: `${tally.bar.yes * 100}%` }"></div>
+                        <div class="fill no" :style="{ width: `${tally.bar.no * 100}%` }"></div>
+                    </template>
+                    <div
+                        class="finish-line"
+                        :style="{ left: `${tally.majority * 100}%` }"
+                        :title="`${Math.round(tally.majority * 1000) / 10}%`"
+                    ></div>
+                </div>
+                <div :class="['quorum-text', { met: tally.quorumMet }]">
+                    {{ t("lobby.components.battle.votePanel.quorum", { cast: tally.cast, quorum: tally.quorum }) }}
+                </div>
+            </template>
+        </div>
+        <div
+            :class="['history-title', { separated: vote }]"
+            @click="toggleCollapse"
+            @mouseenter="setHistoryHovered(true)"
+            @mouseleave="collapseHistoryIfNotHovered"
+        >
+            <div>{{ t("lobby.components.battle.votePanel.history") }}</div>
+            <div class="collapse-history">
+                <div>
+                    <Icon v-if="collapsed" :icon="chevronDown" :height="24" />
+                    <Icon v-else :icon="chevronUp" :height="24" />
+                </div>
             </div>
-        </Panel>
+        </div>
+        <!-- Absolutely positioned so an expanded history overlaps the chat below rather than pushing it down -->
+        <div v-show="!collapsed" class="history-overlay" @mouseenter="setHistoryHovered(true)" @mouseleave="collapseHistoryIfNotHovered">
+            <div v-if="historyEntries.length === 0">{{ t("lobby.components.battle.votePanel.noHistory") }}</div>
+            <div v-for="entry in historyEntries" :key="entry.voteId">
+                <div class="flex-row">
+                    <Icon
+                        :icon="getHistoryIcon(entry.outcome)"
+                        :height="24"
+                        :class="['margin-right-sm', `history-icon-${entry.outcome}`]"
+                    />
+                    <div>{{ getVoteString(entry.vote) }}</div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { onKeyUp } from "@vueuse/core";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
-
-import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { SpadsVote } from "@main/model/spads/spads-types";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
+import { me } from "@renderer/store/me.store";
+import { VoteOutcomes } from "tachyon-protocol/types";
+import chevronDown from "@iconify-icons/mdi/chevron-down";
+import chevronUp from "@iconify-icons/mdi/chevron-up";
+import { Icon } from "@iconify/vue";
+import successCircleOutline from "@iconify-icons/mdi/success-circle-outline";
+import closeCircleOutline from "@iconify-icons/mdi/close-circle-outline";
+import circleOffOutline from "@iconify-icons/mdi/circle-off-outline";
+import alarm from "@iconify-icons/mdi/alarm";
+import { getVoteActionUserId, useVoteString } from "@renderer/composables/useVoteString";
+import { tallyVote } from "@renderer/utils/vote-tally";
+import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 
 const { t } = useTypedI18n();
+const { needsMyVote, isBoss, vote, voteTimeLeftMs } = useActiveLobbyStatus();
 
-const props = defineProps<{
-    vote: SpadsVote;
-}>();
+const collapsed = ref(true);
+const historyHovered = ref(false);
+const historyHoverCloseDelayMs = 100;
+let collapseHistoryTimeout: number | undefined;
 
-const missingYesVotes = computed(() => {
-    if (props.vote.requiredYesVotes === undefined || props.vote.yesVotes === undefined) {
-        return null;
+function toggleCollapse() {
+    collapsed.value = !collapsed.value;
+}
+
+function setHistoryHovered(hovered: boolean) {
+    historyHovered.value = hovered;
+    if (hovered && collapseHistoryTimeout !== undefined) {
+        window.clearTimeout(collapseHistoryTimeout);
+        collapseHistoryTimeout = undefined;
     }
-    return props.vote.requiredYesVotes - props.vote.yesVotes;
-});
-const missingNoVotes = computed(() => {
-    if (props.vote.requiredNoVotes === undefined || props.vote.noVotes === undefined) {
-        return null;
-    }
-    return props.vote.requiredNoVotes - props.vote.noVotes;
-});
+}
 
-const remainingTimeDurationCss = ref("60s");
-const showTimeRemaining = ref(false);
-watch(
-    () => props.vote.secondsRemaining,
-    (newValue, oldValue) => {
-        if (newValue && !oldValue) {
-            remainingTimeDurationCss.value = `${newValue}s`;
-            showTimeRemaining.value = true;
-        } else if (!newValue) {
-            showTimeRemaining.value = false;
+function collapseHistoryIfNotHovered() {
+    setHistoryHovered(false);
+    collapseHistoryTimeout = window.setTimeout(() => {
+        collapseHistoryTimeout = undefined;
+        if (!historyHovered.value) {
+            collapsed.value = true;
         }
-    }
+    }, historyHoverCloseDelayMs);
+}
+
+const historyEntries = computed(() =>
+    Object.entries(lobbyStore.activeLobby?.voteHistory ?? {})
+        .map(([voteId, v]) => ({ voteId, ...v }))
+        .sort((a, b) => b.finishedAt - a.finishedAt)
 );
 
-onKeyUp("F1", onYes);
-onKeyUp("F2", onNo);
+function getHistoryIcon(outcome: VoteOutcomes) {
+    switch (outcome) {
+        case "passed":
+            return successCircleOutline;
+        case "failed":
+            return closeCircleOutline;
+        case "cancelled":
+            return circleOffOutline;
+        case "timeout":
+            return alarm;
+    }
+}
+
+const tally = computed(() => (vote.value ? tallyVote(vote.value) : null));
+
+// Uses the Web Animations API rather than a CSS transition so it doesn't depend on paint timing or on the element being attached.
+const remainingTimeEl = ref<HTMLElement>();
+let remainingTimeAnimation: Animation | undefined;
+
+function startRemainingTimeAnimation() {
+    remainingTimeAnimation?.cancel();
+    remainingTimeAnimation = undefined;
+    const remainingMs = voteTimeLeftMs.value;
+    if (!remainingTimeEl.value || remainingMs === null) return;
+    remainingTimeAnimation = remainingTimeEl.value.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], {
+        duration: remainingMs,
+        easing: "linear",
+        fill: "forwards",
+    });
+}
+
+onMounted(startRemainingTimeAnimation);
+watch([() => vote.value?.id, () => vote.value?.until], startRemainingTimeAnimation, { flush: "post" });
+onUnmounted(() => remainingTimeAnimation?.cancel());
+
+// Only users listed as voters can vote; the server includes the initiator and leaves out spectators.
+const myVote = computed(() => vote.value?.voters[me.userId]?.vote);
+const canVote = computed(() => myVote.value !== undefined);
+const hasVoted = computed(() => myVote.value !== undefined && myVote.value !== "pending");
+const canCancel = computed(() => vote.value !== null && (vote.value.initiator === me.userId || isBoss.value));
+
+function submitVote(ballot: "yes" | "no" | "abstain") {
+    // Disabled buttons can still be activated from the keyboard, so check eligibility here too.
+    if (vote.value && canVote.value) {
+        lobby.requestVoteSubmit({ id: vote.value.id, vote: ballot });
+    }
+}
 
 function onYes() {
-    // api.comms.request("c.lobby.message", {
-    //     message: "!vote y",
-    // });
+    submitVote("yes");
 }
 
 function onNo() {
-    // api.comms.request("c.lobby.message", {
-    //     message: "!vote n",
-    // });
+    submitVote("no");
 }
+
+function onAbstain() {
+    submitVote("abstain");
+}
+
+function onCancel() {
+    if (canCancel.value) {
+        lobby.requestVoteCancel();
+    }
+}
+
+const { getUserName, getVoteString } = useVoteString(() => [
+    vote.value?.initiator,
+    getVoteActionUserId(vote.value?.action),
+    ...historyEntries.value.map((entry) => getVoteActionUserId(entry.vote)),
+]);
+
+const initiatorName = computed(() => (vote.value ? getUserName(vote.value.initiator) : ""));
+
+const voteString = computed(() => getVoteString(vote.value?.action));
 </script>
 
 <style lang="scss" scoped>
-.voting-container {
-    position: fixed;
-    width: 100%;
-    left: 0;
-    margin-top: -15px;
+// Box matches LobbyTeamComponent/SpectatorsComponent so the vote panel reads as part of the same set.
+.group {
+    border: 1px inset rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
+    flex-direction: column;
 }
-.voting-panel {
-    background: radial-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
-    border-radius: 7px;
-    overflow: hidden;
-    pointer-events: auto;
-    :deep(.content) {
-        padding: 10px 15px;
-        padding-top: 13px;
-        padding-bottom: 23px;
-        gap: 10px;
-        overflow: hidden;
-    }
+// Flashing gold edge while my vote is pending. An overlaid strip rather than a border so it doesn't shift the content;
+// it fills with currentColor so the shared vote-flash keyframes (which animate color) drive it.
+.vote-panel.needs-vote::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background: currentColor;
+    pointer-events: none;
+    animation: vote-flash 1s ease-in-out infinite;
 }
 .remaining-time {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.15);
-    transform: scaleX(1);
+    height: 3px;
+    background: rgba(255, 255, 255, 0.521);
     visibility: hidden;
-    &.animating {
+    &.visible {
         visibility: visible;
-        transition-property: transform;
-        transition-timing-function: linear;
-        transition-duration: v-bind(remainingTimeDurationCss);
-        transform: scaleX(0);
     }
 }
+.active-vote {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.group-header {
+    margin-bottom: 4px;
+}
 .title {
-    text-align: center;
-    font-size: 24px;
+    font-size: 20px;
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.8));
+}
+.action {
+    font-size: 16px;
 }
 .actions {
     display: flex;
@@ -144,39 +277,108 @@ function onNo() {
     font-size: 20px;
     font-weight: 600;
     flex-grow: 1;
+    &.selected {
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+        outline-offset: -2px;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+}
+// Once I've voted, fade the other ballots so my vote stands out; they stay clickable to change it. Cancel isn't a ballot,
+// so it keeps full opacity for the initiator and bosses.
+.actions.has-voted .ballot:not(.selected) {
+    opacity: 0.6;
+    &:hover {
+        opacity: 1;
+    }
 }
 .caller {
-    text-align: center;
+    margin-left: auto;
     font-size: 14px;
-    opacity: 0.8;
+    opacity: 0.5;
 }
-.vote-display {
-    position: absolute;
-    left: 0;
-    bottom: 0;
+.majority-bar {
+    position: relative;
     width: 100%;
     height: 10px;
-    display: flex;
-    flex-direction: row;
+    margin-top: 4px;
     background: rgba(255, 255, 255, 0.1);
-}
-.segment {
-    flex-grow: 1;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
-    &:not(:last-child) {
-        border-right: 1px solid rgba(0, 0, 0, 0.3);
-    }
+}
+.fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: width 0.2s ease-out;
     &.yes {
+        left: 0;
         background: rgba(96, 216, 26, 0.6);
     }
-    &.missing-yes {
-        background: rgba(96, 216, 26, 0.247);
-    }
     &.no {
+        right: 0;
         background: rgba(165, 30, 30, 0.6);
     }
-    &.missing-no {
-        background: rgba(165, 30, 30, 0.164);
+}
+.finish-line {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+}
+.quorum-text {
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.6;
+    &.met {
+        opacity: 0.9;
     }
+}
+.history-overlay {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px inset rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    padding: 15px;
+}
+.history-icon-passed {
+    color: rgb(96, 216, 26);
+}
+.history-icon-failed {
+    color: rgb(206, 73, 73);
+}
+.history-icon-cancelled,
+.history-icon-timeout {
+    color: rgb(128, 128, 128);
+}
+.history-title {
+    font-weight: bold;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    // Cancel out .group's padding so the hover gradient reaches the box edges; padding restores the text position.
+    margin: -10px;
+    padding: 10px;
+    &.separated {
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    &:hover {
+        cursor: pointer;
+        background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+    }
+}
+.collapse-history {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
 }
 </style>

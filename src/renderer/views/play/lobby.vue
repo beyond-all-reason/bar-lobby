@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
             >
             <Button @click="switchLobbyTemplate()" class="flex-right">Switch Template</Button>
         </div>
-        <div v-if="lobbyStore.activeLobby">
+        <div v-if="lobbyStore.activeLobby" class="lobby-body">
             <component :is="switchTemplate ? FFALobby : StandardLobby">
                 <template #header>
                     <div class="flex flex-row fullwidth margin-top-md margin-bottom-md gap-md">
@@ -40,6 +40,7 @@ SPDX-License-Identifier: MIT
                     </div>
                 </template>
                 <template #player-list><Playerlist /></template>
+                <template #vote-panel><VotePanel /></template>
                 <template #chat><ChatPanel type="lobby" :id="lobbyStore.activeLobby?.id" /></template>
                 <template #map-and-options>
                     <div class="options">
@@ -158,6 +159,7 @@ import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { useTypedI18n } from "@renderer/i18n";
 import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import VotePanel from "@renderer/components/battle/VotePanel.vue";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
 
 const editLobbyModalIsOpen = ref(false);
@@ -244,6 +246,12 @@ async function onGameSelected(gameVersion: string) {
     flex-direction: column;
     gap: 10px;
     height: 100%;
+}
+.lobby-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
 }
 .title {
     font-size: 28px;

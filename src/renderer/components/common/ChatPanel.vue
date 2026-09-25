@@ -5,8 +5,8 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="flex-col gap-lg flex-grow fullheight">
-        <div class="flex-col flex-grow fullheight">
+    <div class="chat-panel flex-col gap-lg flex-grow fullheight">
+        <div class="message-container flex-col flex-grow">
             <div class="messages">
                 <div v-if="messages.length === 0" class="no-messages">{{ t("lobby.navbar.messages.noMessages") }}</div>
                 <div v-else class="flex-col gap-sm">
@@ -25,8 +25,9 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
         </div>
+
         <ContextMenu ref="menu" :model="actions" />
-        <div class="flex-row gap-sm flex-bottom padding-md">
+        <div class="chat-input flex-row gap-sm padding-md flex-bottom">
             <Textbox
                 v-model="text"
                 v-in-view="focusTextbox"
@@ -126,13 +127,23 @@ function sendMessage(messageText: string) {
 </script>
 
 <style lang="scss" scoped>
+.chat-panel,
+.message-container {
+    min-height: 0;
+}
+.message-container {
+    flex: 1 1 0;
+}
+.chat-input {
+    flex: 0 0 auto;
+}
 .messages {
     display: flex;
     flex-direction: column-reverse;
     overflow-y: scroll;
     padding: 10px;
-    // flex: 1 1 auto;
-    height: 600px; //FIX: this probably shouldn't be a fixed value?
+    flex: 1 1 auto;
+    min-height: 0;
 }
 .no-messages {
     align-self: center;

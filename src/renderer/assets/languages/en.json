@@ -2332,9 +2332,21 @@
                 },
                 "votePanel": {
                     "vote": "Vote:",
-                    "yes": "Yes (F1)",
-                    "no": "No (F2)",
-                    "calledBy": "Called by"
+                    "yes": "Yes",
+                    "abstain": "Abstain",
+                    "cancel": "Cancel",
+                    "no": "No",
+                    "calledBy": "Called by {initiator}",
+                    "history": "Vote History",
+                    "noHistory": "No vote history available.",
+                    "quorum": "Votes: {cast} / {quorum} needed",
+                    "actions": {
+                        "kickban": "Kick {target} and ban until {banUntil}",
+                        "kickOnly": "Kick {target}",
+                        "changeMap": "Change map to {newMapName}",
+                        "appointBoss": "Appoint {target} as Boss",
+                        "start": "Start the battle"
+                    }
                 },
                 "activeLobbyPreview": {
                     "openLobby": "Open lobby",

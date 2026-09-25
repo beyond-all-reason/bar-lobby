@@ -501,9 +501,21 @@
                 },
                 "votePanel": {
                     "vote": "Vtoe:",
-                    "yes": "Yes (F1)",
-                    "no": "No (F2)",
-                    "calledBy": "Cllaed by"
+                    "yes": "Yes",
+                    "abstain": "Abtisan",
+                    "cancel": "Ceancl",
+                    "no": "No",
+                    "calledBy": "Cllaed by {initiator}",
+                    "history": "Vtoe Htrisoy",
+                    "noHistory": "No vtoe htoisry aablviale.",
+                    "quorum": "Vteos: {cast} / {quorum} nedeed",
+                    "actions": {
+                        "kickban": "Kcik {target} and ban uitnl {banUntil}",
+                        "kickOnly": "Kcik {target}",
+                        "changeMap": "Canghe map to {newMapName}",
+                        "appointBoss": "Anippot {target} as Boss",
+                        "start": "Strat the btalte"
+                    }
                 },
                 "activeLobbyPreview": {
                     "openLobby": "Oepn lobby",

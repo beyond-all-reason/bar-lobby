@@ -13,8 +13,8 @@ SPDX-License-Identifier: MIT
             <div class="view-title">
                 <h1>{{ t("lobby.views.party.title") }}</h1>
             </div>
-            <Panel no-padding>
-                <TabView v-model:activeIndex="tabIndex">
+            <Panel no-padding class="party-panel">
+                <TabView v-model:activeIndex="tabIndex" class="party-tabs">
                     <TabPanel :disabled="!showParty">
                         <template #header>
                             <div class="tab-header">
@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
                                 <div class="unread-dot" v-if="hasUnseenMessage() || hasUnseenUpdates()"></div>
                             </div>
                         </template>
-                        <div class="flex-column gap-md">
+                        <div class="party-tab-content flex-col gap-md">
                             <div class="flex-row members-header margin-bottom-lg" v-in-view="() => setPartyUpdateSeen()">
                                 <div class="flex-row members-list">
                                     <div class="flex-row gap-md">
@@ -42,7 +42,7 @@ SPDX-License-Identifier: MIT
                                     t("lobby.views.party.leaveParty")
                                 }}</Button>
                             </div>
-                            <div class="flex-row gap-md">
+                            <div class="party-main flex-row gap-md">
                                 <div class="mode-select">
                                     <h3>{{ t("lobby.views.party.matchmakingQueues") }}</h3>
                                     <div v-if="matchmakingStore.playlists.length > 0">
@@ -206,7 +206,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { useTypedI18n } from "@renderer/i18n";
 import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
-import { computed, ref, watch, toRaw } from "vue";
+import { computed, ref, watch } from "vue";
 import ChatPanel from "@renderer/components/common/ChatPanel.vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import { PartyId } from "tachyon-protocol/types";
@@ -237,6 +237,7 @@ const showInvites = computed(() => {
     return false;
 });
 const showParty = computed(() => {
+    if (partyStore.activeParty && partyStore.parties.has(partyStore.activeParty)) return true;
     if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) return true;
     return false;
 });
@@ -244,19 +245,17 @@ const showParty = computed(() => {
 const tabIndex = ref(0);
 
 watch(
-    () => toRaw(partyStore.state),
-    (newState) => {
-        if (newState === PlayersPartyState.InvitedOnly) {
-            tabIndex.value = 1;
-        } else if (newState === PlayersPartyState.JoinedOnly) {
+    [showParty, showInvites],
+    ([canShowParty, canShowInvites]) => {
+        if (canShowParty) {
             tabIndex.value = 0;
-        } else if (newState === PlayersPartyState.JoinedAndInvited) {
-            tabIndex.value = 0;
-        } else if (newState === PlayersPartyState.None) {
+        } else if (canShowInvites) {
             tabIndex.value = 1;
+        } else {
+            tabIndex.value = 0;
         }
     },
-    { deep: true, immediate: true }
+    { immediate: true }
 );
 
 function acceptInvite(partyId: PartyId) {
@@ -383,11 +382,32 @@ function getTeamSize(queue: string) {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0;
+}
+.party-panel,
+.party-tabs {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+}
+.party-tabs :deep(.p-tabview-panels) {
+    flex: 1 1 0;
+    min-height: 0;
+}
+.party-tab-content,
+.party-main {
+    flex: 1 1 0;
+    min-height: 0;
+}
+.party-main {
+    align-items: stretch;
 }
 .mode-select {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1 1 0;
+    min-height: 0;
     overflow: visible;
     align-items: center;
 }
