@@ -154,11 +154,7 @@ function getHistoryIcon(outcome: VoteOutcomes) {
 
 const tally = computed(() => (vote.value ? tallyVote(vote.value) : null));
 
-// The countdown bar uses the Web Animations API rather than a CSS transition. A transition needs the browser to have
-// painted the scaleX(1) state before the end state is applied, which is unreliable here: this component can be mounted
-// while its kept-alive parent view is detached (e.g. rejoining a lobby), and deactivated components still re-render.
-// element.animate() declares its start keyframe explicitly and runs on the document timeline, so it doesn't depend on
-// paint timing or on the element being attached.
+// Uses the Web Animations API rather than a CSS transition so it doesn't depend on paint timing or on the element being attached.
 const remainingTimeEl = ref<HTMLElement>();
 let remainingTimeAnimation: Animation | undefined;
 
