@@ -18,16 +18,20 @@ SPDX-License-Identifier: MIT
             </div>
 
             <div :class="['actions', { 'has-voted': hasVoted }]">
-                <Button :class="['vote-button', 'green', { selected: myVote === 'yes' }]" :disabled="!canVote" @click="onYes">
+                <Button :class="['vote-button', 'ballot', 'green', { selected: myVote === 'yes' }]" :disabled="!canVote" @click="onYes">
                     {{ t("lobby.components.battle.votePanel.yes") }}
                 </Button>
-                <Button :class="['vote-button', 'gray', { selected: myVote === 'abstain' }]" :disabled="!canVote" @click="onAbstain">
+                <Button
+                    :class="['vote-button', 'ballot', 'gray', { selected: myVote === 'abstain' }]"
+                    :disabled="!canVote"
+                    @click="onAbstain"
+                >
                     {{ t("lobby.components.battle.votePanel.abstain") }}
                 </Button>
                 <Button class="vote-button gray" :disabled="!canCancel" @click="onCancel">
                     {{ t("lobby.components.battle.votePanel.cancel") }}
                 </Button>
-                <Button :class="['vote-button', 'red', { selected: myVote === 'no' }]" :disabled="!canVote" @click="onNo">
+                <Button :class="['vote-button', 'ballot', 'red', { selected: myVote === 'no' }]" :disabled="!canVote" @click="onNo">
                     {{ t("lobby.components.battle.votePanel.no") }}
                 </Button>
             </div>
@@ -283,8 +287,9 @@ const voteString = computed(() => getVoteString(vote.value?.action));
         box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
     }
 }
-// Once I've voted, fade the other choices so my vote stands out; they stay clickable to change it.
-.actions.has-voted .vote-button:not(.selected):not(.disabled) {
+// Once I've voted, fade the other ballots so my vote stands out; they stay clickable to change it. Cancel isn't a ballot,
+// so it keeps full opacity for the initiator and bosses.
+.actions.has-voted .ballot:not(.selected) {
     opacity: 0.6;
     &:hover {
         opacity: 1;
