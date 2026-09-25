@@ -100,7 +100,7 @@ const mapTextureUrl = computed(() => {
     return get(props.map.springName, props.map.imagesBlob?.preview) ?? defaultMiniMap;
 });
 
-const boxes = computed<StartBox[]>(() => getCurrentStartBoxes(props.map, props.mapOptions));
+const boxes = computed<StartBox[]>(() => getCurrentStartBoxes(props.map, props.mapOptions).map((box) => ({ ...box })));
 const mapWidthElmos = computed(() => (props.map?.mapWidth ? props.map.mapWidth * 512 : null));
 const mapHeightElmos = computed(() => (props.map?.mapHeight ? props.map.mapHeight * 512 : null));
 

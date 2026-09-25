@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
             <div class="box-tooltip-side w-side" @mousedown.stop="startResize(null, 'w', $event)"></div>
             <div class="box-tooltip-corner ne-corner" @mousedown.stop="startResize('n', 'e', $event)"></div>
             <div class="box-tooltip-corner se-corner" @mousedown.stop="startResize('s', 'e', $event)"></div>
-            <div class="box-tooltip-corner nw-corner" @mousedown.stop="startResize('s', 'e', $event)"></div>
+            <div class="box-tooltip-corner nw-corner" @mousedown.stop="startResize('n', 'w', $event)"></div>
             <div class="box-tooltip-corner sw-corner" @mousedown.stop="startResize('s', 'w', $event)"></div>
             <span>{{ id + 1 }}</span>
         </div>
