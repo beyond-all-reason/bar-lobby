@@ -49,7 +49,8 @@ const { me } = await import("@renderer/store/me.store");
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
 const simulateSessionEnd = () => authHandlers.forEach((handler) => handler({ authenticated: false }));
-const simulateBattleEnded = () => battleEndedHandlers.forEach((handler) => handler({ battleId: "battle-1", players: [], spectators: [], winningAllyTeamIds: [] } satisfies BattleEndedEventData));
+const simulateBattleEnded = () =>
+    battleEndedHandlers.forEach((handler) => handler({ battleId: "battle-1", players: [], bots: [], spectators: [], winningAllyTeamIds: [] } satisfies BattleEndedEventData));
 
 describe("connection intent", () => {
     beforeAll(async () => {

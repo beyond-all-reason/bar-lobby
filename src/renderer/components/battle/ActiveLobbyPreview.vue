@@ -35,8 +35,7 @@ SPDX-License-Identifier: MIT
                             <div v-if="vote || battleDurationMs !== null" class="info-group flex-col gap-xs">
                                 <div v-if="vote" class="info-line">
                                     <strong>{{ t("lobby.components.battle.activeLobbyPreview.activeVote") }}</strong>
-                                    <!-- TODO: replace with shared getVoteString once lobby-voting merges -->
-                                    {{ vote.action.type }}
+                                    {{ voteString }}
                                 </div>
                                 <div v-if="vote && voteTimeLeftMs !== null" class="info-line vote-time-left">
                                     {{
@@ -88,6 +87,7 @@ import ActiveBattleVideo from "@renderer/components/misc/ActiveBattleVideo.vue";
 import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 import { useLobbyBackground } from "@renderer/composables/useLobbyBackground";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
+import { getVoteActionUserId, useVoteString } from "@renderer/composables/useVoteString";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 
 const { t } = useTypedI18n();
@@ -114,6 +114,9 @@ function formatTimeLeft(ms: number) {
     const seconds = Math.ceil(ms / 1000);
     return seconds > 0 ? getFriendlyDuration(seconds * 1000) : "0s";
 }
+const { getVoteString } = useVoteString(() => [getVoteActionUserId(vote.value?.action)]);
+const voteString = computed(() => getVoteString(vote.value?.action));
+
 const map = useLobbyMap();
 const backgroundUrl = useLobbyBackground();
 
@@ -369,18 +372,5 @@ function openLobby() {
 
 .flashing {
     animation: vote-flash 1s ease-in-out infinite;
-}
-@keyframes vote-flash {
-    0%,
-    100% {
-        opacity: 1;
-        color: rgb(255, 215, 80);
-        filter: drop-shadow(0 0 6px rgba(255, 215, 80, 0.9));
-    }
-    50% {
-        opacity: 0.35;
-        color: #fff;
-        filter: none;
-    }
 }
 </style>

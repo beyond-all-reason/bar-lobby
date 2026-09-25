@@ -15,3 +15,18 @@
         background-color: rgba(255, 255, 255, 0.1);
     }
 }
+
+// Flashing gold prompt for a vote that still needs my ballot.
+@keyframes vote-flash {
+    0%,
+    100% {
+        opacity: 1;
+        color: rgb(255, 215, 80);
+        filter: drop-shadow(0 0 6px rgba(255, 215, 80, 0.9));
+    }
+    50% {
+        opacity: 0.35;
+        color: #fff;
+        filter: none;
+    }
+}
