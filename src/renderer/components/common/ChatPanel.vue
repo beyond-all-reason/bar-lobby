@@ -15,14 +15,19 @@ SPDX-License-Identifier: MIT
                         :key="i"
                         v-in-view.once="() => (message.seen = true)"
                         :class="['message', { fromMe: message.source.userId === me.userId }]"
+                        @contextmenu="onMessageRightClick($event, message)"
                     >
-                        <span class="user-name"> {{ displayNames?.get(message.source.userId) ?? message.source.userId }} </span>
+                        <span class="user-name">
+                            {{ displayNames?.get(message.source.userId) ?? message.source.userId }}
+                        </span>
                         <Markdown :source="message.message" />
                     </div>
                 </div>
             </div>
         </div>
-        <div class="chat-input flex-row gap-sm padding-md">
+
+        <ContextMenu ref="menu" :model="actions" />
+        <div class="chat-input flex-row gap-sm padding-md flex-bottom">
             <Textbox
                 v-model="text"
                 v-in-view="focusTextbox"
@@ -48,6 +53,9 @@ import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
+import type { Message } from "@renderer/model/message";
+import ContextMenu from "@renderer/components/common/ContextMenu.vue";
+import { reportUserIconClass, useReportUser } from "@renderer/composables/useReportUser";
 
 const props = defineProps<{
     type: "lobby" | "party";
@@ -75,6 +83,30 @@ const displayNames = useDexieLiveQueryWithDeps(messages, async () => {
     });
     return map;
 });
+
+const { openReportUser } = useReportUser();
+
+const menu = ref<InstanceType<typeof ContextMenu>>();
+const actions = ref<{ label: string; icon: string; command: () => void }[]>([]);
+
+async function onMessageRightClick(event: MouseEvent, message: Message) {
+    if (message.source.userId === me.userId) return;
+
+    event.preventDefault();
+
+    const user = await db.users.get(message.source.userId);
+    if (!user) return;
+
+    actions.value = [
+        {
+            label: t("lobby.components.user.reportUser.menuLabel"),
+            icon: reportUserIconClass,
+            command: () => openReportUser(user, message),
+        },
+    ];
+
+    menu.value?.show(event);
+}
 
 const text = ref("");
 const newMessage = ref("");

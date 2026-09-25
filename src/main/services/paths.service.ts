@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { dialog } from "electron";
+import { BrowserWindow, dialog } from "electron";
 import { setAssetsPath, getAssetsPath, STATE_PATH } from "@main/config/app";
 import { settingsService } from "./settings.service";
 import { contentAPI } from "@main/content/content-api";
@@ -93,6 +93,21 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
             properties: ["openDirectory"],
         });
         return canceled ? null : filePaths[0];
+    });
+
+    // The taskbar still appears over a borderless window while a native dialog is open. Only an
+    // in-app picker would avoid that.
+    ipcMain.handle("paths:selectImages", async (event) => {
+        const parent = BrowserWindow.fromWebContents(event.sender);
+        const options = {
+            properties: ["openFile", "multiSelections"] as const,
+            filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }],
+        };
+        const { canceled, filePaths } = parent
+            ? await dialog.showOpenDialog(parent, { ...options, properties: [...options.properties] })
+            : await dialog.showOpenDialog({ ...options, properties: [...options.properties] });
+
+        return canceled ? [] : filePaths;
     });
 
     ipcMain.handle("paths:moveAndChangePath", async (_, newAssetsPath: string) => {
