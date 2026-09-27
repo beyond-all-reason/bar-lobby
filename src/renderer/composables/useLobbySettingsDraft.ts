@@ -303,7 +303,10 @@ export function useLobbySettingsDraft() {
                 customStartBoxes: eastVsWestStartBoxes(),
             };
         }
-        setTeamCounts(draft.value.allyTeamConfig.length, draft.value.allyTeamConfig[0]?.maxTeams ?? 1);
+
+        const presetIndex = draft.value.mapOptions.startBoxesIndex;
+        const preset = presetIndex === undefined ? undefined : map.startboxesSet?.[presetIndex];
+        setTeamCounts(preset?.startboxes.length ?? draft.value.allyTeamConfig.length, draft.value.allyTeamConfig[0]?.maxTeams ?? 1);
     }
 
     function setTeamCounts(allyTeamCount: number, playersPerAllyTeam: number) {

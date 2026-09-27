@@ -378,6 +378,27 @@ describe("useLobbySettingsDraft", () => {
         expectBoxesInSync(draft);
     });
 
+    it("takes the team count from the new map's preset when switching maps", () => {
+        const triangle = (x: number) => [
+            { x, y: 0 },
+            { x: x + 40, y: 0 },
+            { x: x + 20, y: 60 },
+        ];
+        const rectMap = { springName: "Rect Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...rectsToArrangement(boxes) }] } as MapData;
+        const polygonMap = {
+            springName: "Polygon Map",
+            startboxesSet: [{ maxPlayersPerStartbox: 1, startboxes: [triangle(0), triangle(80), triangle(160)].map((poly) => ({ poly })) }],
+        } as MapData;
+        const draft = useLobbySettingsDraft();
+        draft.openCreate(createLobbySettingsDraft("New Lobby", rectMap, { startPosType: StartPosType.Boxes, startBoxesIndex: 0 }, 2, 1, boxes));
+
+        draft.setMap(polygonMap);
+
+        expect(draft.draft.value?.mapOptions.startBoxesIndex).toBe(0);
+        expect(draft.draft.value?.allyTeamConfig).toHaveLength(3);
+        expectBoxesInSync(draft);
+    });
+
     it("updates preview boxes after accepting a clean server team update", () => {
         const draft = useLobbySettingsDraft();
         draft.openUpdate(createLobby(), map);
