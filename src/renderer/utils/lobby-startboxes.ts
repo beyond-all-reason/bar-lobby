@@ -71,8 +71,9 @@ export function resolveLobbyArrangement(startboxes: LobbyStartboxes | undefined,
     return { ...arrangement, startboxes: arrangement.startboxes.slice(0, allyTeamCount) };
 }
 
+// Only one is sent: game builds before Beyond-All-Reason#8786 drop an override whose box count isn't the in-game team count.
 export async function startboxGameOptions(map: MapData | undefined, override: StartboxArrangement | undefined) {
-    const arrangements = map?.startboxesSet ?? [];
+    const arrangements = override ? [] : (map?.startboxesSet ?? []);
 
     return {
         [STARTBOXES_SET_KEY]: arrangements.length ? { value: await encodeModoptionValue(startboxesSetByTeamCount(arrangements)) } : null,

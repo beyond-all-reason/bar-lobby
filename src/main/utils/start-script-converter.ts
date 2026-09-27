@@ -154,13 +154,11 @@ class StartScriptConverter {
         const mapOptions = battle.battleOptions.mapOptions;
         if (mapOptions.startPosType === StartPosType.Boxes) {
             const startboxesSet = battle.battleOptions.map.startboxesSet;
-            if (startboxesSet?.length) {
-                modoptions[STARTBOXES_SET_KEY] = await encodeModoptionValue(startboxesSetByTeamCount(startboxesSet));
-            }
-
             const override = mapOptions.startBoxesIndex == undefined ? customStartboxOverride(mapOptions.customStartBoxes, mapOptions.customStartBoxShapes) : undefined;
             if (override) {
                 modoptions[STARTBOX_OVERRIDE_KEY] = await encodeModoptionValue(override);
+            } else if (startboxesSet?.length) {
+                modoptions[STARTBOXES_SET_KEY] = await encodeModoptionValue(startboxesSetByTeamCount(startboxesSet));
             }
         }
 

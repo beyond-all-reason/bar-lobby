@@ -503,7 +503,7 @@ describe("useLobbySettingsDraft", () => {
         expect(draft.dirtyFields.value.size).toBe(0);
     });
 
-    it("sends custom boxes as the override and clears it again for a preset", async () => {
+    it("sends custom boxes as the override alone, and the set alone for a preset", async () => {
         const presetMap = { springName: "Test Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...rectsToArrangement(boxes) }] } as MapData;
         const editedBoxes = [{ ...boxes[0], right: 0.4 }, boxes[1]];
         const draft = useLobbySettingsDraft();
@@ -513,11 +513,12 @@ describe("useLobbySettingsDraft", () => {
         const custom = await draft.updatePayload();
 
         expect(await decodeModoptionValue(custom.gameOptions?.mapmetadata_startbox_override?.value)).toEqual(rectsToArrangement(editedBoxes));
-        expect(custom.gameOptions?.mapmetadata_startboxes_set).toEqual({ value: expect.any(String) });
+        expect(custom.gameOptions?.mapmetadata_startboxes_set).toBeNull();
 
         draft.setMapOptions({ startPosType: StartPosType.Boxes, startBoxesIndex: 0 });
         const preset = await draft.updatePayload();
 
         expect(preset.gameOptions?.mapmetadata_startbox_override).toBeNull();
+        expect(preset.gameOptions?.mapmetadata_startboxes_set).toEqual({ value: expect.any(String) });
     });
 });
