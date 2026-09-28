@@ -218,21 +218,10 @@ const gameListOptions = computed(() => {
 
 const map = useLobbyMap();
 
-const mapOptions = computed(() => ({
-    startPosType: StartPosType.Boxes,
-    customStartBoxes: lobbyStore.activeLobby
-        ? Object.keys(lobbyStore.activeLobby.allyTeamConfig)
-              .sort((a, b) => Number(a) - Number(b))
-              .map((key) => lobbyStore.activeLobby!.allyTeamConfig[key].startBox)
-        : [],
-}));
+const mapOptions = { startPosType: StartPosType.Boxes };
 
-const arrangement = computed(() => {
-    const activeLobby = lobbyStore.activeLobby;
-    if (!activeLobby) return undefined;
-
-    return resolveLobbyArrangement(activeLobby.startboxes, Object.keys(activeLobby.allyTeamConfig).length);
-});
+const allyTeamCount = computed(() => Object.keys(lobbyStore.activeLobby?.allyTeamConfig ?? {}).length);
+const arrangement = computed(() => resolveLobbyArrangement(lobbyStore.activeLobby?.startboxes, allyTeamCount.value) ?? { startboxes: [] });
 
 async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
