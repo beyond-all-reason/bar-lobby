@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { contextBridge } from "electron";
-import { ipcRenderer, IpcResult } from "@main/typed-ipc";
+import { contextBridge, type IpcRendererEvent } from "electron";
+import { ipcRenderer, IpcResult, type IPCEvents } from "@main/typed-ipc";
 import { ContentRef } from "@main/content/content-ref";
 import { ContentPresence, ContentState } from "@main/content/content-state";
 import { Replay } from "@main/replays/replay";
@@ -22,6 +22,15 @@ import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
+
+function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
+    const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
+    ipcRenderer.on(channel, listener);
+
+    return () => {
+        ipcRenderer.removeListener(channel, listener);
+    };
+}
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
@@ -44,13 +53,12 @@ const mainWindowApi = {
     setSize: (width: number, height: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", width, height),
     setUiScale: (scale: number | null): Promise<void> => ipcRenderer.invoke("mainWindow:setUiScale", scale),
     getScaleRange: (): Promise<{ min: number; max: number; os: number }> => ipcRenderer.invoke("mainWindow:getScaleRange"),
-    onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => ipcRenderer.on("mainWindow:scaleRangeChanged", (_event, range) => callback(range)),
+    onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => subscribe("mainWindow:scaleRangeChanged", callback),
     getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
         ipcRenderer.invoke("mainWindow:getDisplays"),
     setDisplay: (index: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", index),
-    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) =>
-        ipcRenderer.on("mainWindow:windowStateChanged", (_event, state) => callback(state)),
-    onUiScaleNudged: (callback: (scale: number | null) => void) => ipcRenderer.on("mainWindow:uiScaleNudged", (_event, scale) => callback(scale)),
+    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) => subscribe("mainWindow:windowStateChanged", callback),
+    onUiScaleNudged: (callback: (scale: number | null) => void) => subscribe("mainWindow:uiScaleNudged", callback),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
     isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),
@@ -79,10 +87,10 @@ const replaysApi = {
     getOnline: (replayId: string): Promise<IpcResult<OnlineReplayDetails>> => ipcRenderer.invoke("replays:getOnline", replayId),
 
     // Events
-    onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),
-    onReplayCached: (callback: (replay: Replay) => void) => ipcRenderer.on("replays:replayCached", (_event, replay) => callback(replay)),
-    onReplayDeleted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayDeleted", (_event, filename) => callback(filename)),
-    onHighlightOpened: (callback: (fileNames: string[]) => void) => ipcRenderer.on("replays:highlightOpened", (_event, fileNames) => callback(fileNames)),
+    onReplayCachingStarted: (callback: (filename: string) => void) => subscribe("replays:replayCachingStarted", callback),
+    onReplayCached: (callback: (replay: Replay) => void) => subscribe("replays:replayCached", callback),
+    onReplayDeleted: (callback: (filename: string) => void) => subscribe("replays:replayDeleted", callback),
+    onHighlightOpened: (callback: (fileNames: string[]) => void) => subscribe("replays:highlightOpened", callback),
 };
 export type ReplaysApi = typeof replaysApi;
 contextBridge.exposeInMainWorld("replays", replaysApi);
@@ -109,7 +117,7 @@ const authApi = {
     getState: (): Promise<AuthState> => ipcRenderer.invoke("auth:state"),
     getIdentity: (): Promise<StoredIdentity | undefined> => ipcRenderer.invoke("auth:identity"),
 
-    onChanged: (callback: (state: AuthState) => void) => ipcRenderer.on("auth:changed", (_event, state) => callback(state)),
+    onChanged: (callback: (state: AuthState) => void) => subscribe("auth:changed", callback),
 };
 export type AuthApi = typeof authApi;
 contextBridge.exposeInMainWorld("auth", authApi);
@@ -120,11 +128,11 @@ const contentApi = {
     ensure: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:ensure", refs),
     remove: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:remove", refs),
 
-    onChanged: (callback: (state: ContentState[]) => void) => ipcRenderer.on("content:changed", (_event, state) => callback(state)),
-    onSettled: (callback: (refs: ContentPresence[]) => void) => ipcRenderer.on("content:settled", (_event, refs) => callback(refs)),
+    onChanged: (callback: (state: ContentState[]) => void) => subscribe("content:changed", callback),
+    onSettled: (callback: (refs: ContentPresence[]) => void) => subscribe("content:settled", callback),
 
     preloadPool: (): Promise<void> => ipcRenderer.invoke("content:preloadPool"),
-    onPoolPrefetch: (callback: (downloadInfo: DownloadInfo | null) => void) => ipcRenderer.on("content:poolPrefetch", (_event, downloadInfo) => callback(downloadInfo)),
+    onPoolPrefetch: (callback: (downloadInfo: DownloadInfo | null) => void) => subscribe("content:poolPrefetch", callback),
 };
 export type ContentApi = typeof contentApi;
 contextBridge.exposeInMainWorld("content", contentApi);
@@ -153,8 +161,8 @@ const gameApi = {
     launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),
 
     // Events
-    onGameLaunched: (callback: () => void) => ipcRenderer.on("game:launched", callback),
-    onGameClosed: (callback: () => void) => ipcRenderer.on("game:closed", callback),
+    onGameLaunched: (callback: () => void) => subscribe("game:launched", callback),
+    onGameClosed: (callback: () => void) => subscribe("game:closed", callback),
 };
 export type GameApi = typeof gameApi;
 contextBridge.exposeInMainWorld("game", gameApi);
@@ -171,8 +179,8 @@ const mapsApi = {
     fetchMapImages: (imageSource: string): Promise<ArrayBuffer | undefined> => ipcRenderer.invoke("maps:online:fetchMapImages", imageSource),
 
     // Events
-    onMapAdded: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapAdded", (_event, filename) => callback(filename)),
-    onMapDeleted: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapDeleted", (_event, filename) => callback(filename)),
+    onMapAdded: (callback: (filename: string) => void) => subscribe("maps:mapAdded", callback),
+    onMapDeleted: (callback: (filename: string) => void) => subscribe("maps:mapDeleted", callback),
 };
 export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
@@ -185,7 +193,7 @@ export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
 
 const barNavigationApi = {
-    onNavigateTo: (callback: (target: string) => void) => ipcRenderer.on("navigation:navigateTo", (_event, target) => callback(target)),
+    onNavigateTo: (callback: (target: string) => void) => subscribe("navigation:navigateTo", callback),
     signalReady: (): Promise<void> => ipcRenderer.invoke("renderer:ready"),
 };
 
@@ -199,13 +207,7 @@ const pathsApi = {
     copyAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:copyAndChangePath", newPath),
     changePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:changePath", newPath),
     getCurrentAssetsPath: (): Promise<string> => ipcRenderer.invoke("paths:getCurrentAssetsPath"),
-    onCopyProgress: (callback: (progress: { copied: number; total: number }) => void): (() => void) => {
-        const handler = (_event: Electron.IpcRendererEvent, progress: { copied: number; total: number }) => callback(progress);
-        ipcRenderer.on("paths:copyProgress", handler);
-        return () => {
-            ipcRenderer.removeListener("paths:copyProgress", handler);
-        };
-    },
+    onCopyProgress: (callback: (progress: { copied: number; total: number }) => void) => subscribe("paths:copyProgress", callback),
 };
 export type PathsApi = typeof pathsApi;
 contextBridge.exposeInMainWorld("paths", pathsApi);
@@ -255,10 +257,10 @@ const tachyonApi = {
     requestStructured,
 
     // Events
-    onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
-    onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    onConnected: (callback: () => void) => subscribe("tachyon:connected", callback),
+    onDisconnected: (callback: () => void) => subscribe("tachyon:disconnected", callback),
     onEvent,
-    onBattleStart: (callback: (data: BattleStartRequestData) => void) => ipcRenderer.on("tachyon:battleStart", (_event, data) => callback(data)),
+    onBattleStart: (callback: (data: BattleStartRequestData) => void) => subscribe("tachyon:battleStart", callback),
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);
@@ -270,16 +272,14 @@ const autoUpdaterApi = {
     installUpdates: (): Promise<void> => ipcRenderer.invoke("autoUpdater:installUpdates"),
 
     // Events
-    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo | null) => void) =>
-        ipcRenderer.on("downloads:update:progress", (_event, downloadInfo: DownloadInfo | null) => callback(downloadInfo)),
+    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo | null) => void) => subscribe("downloads:update:progress", callback),
 };
 export type AutoUpdaterApi = typeof autoUpdaterApi;
 contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);
 
 const notificationsApi = {
     // Events
-    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) =>
-        ipcRenderer.on("notifications:showAlert", (_event, alertConfig) => callback(alertConfig)),
+    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) => subscribe("notifications:showAlert", callback),
 };
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);

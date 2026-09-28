@@ -10,6 +10,7 @@ import { beforeEach, describe, it, vi, expect, afterEach } from "vitest";
 type MockIpcRenderer = {
     invoke: Function;
     on: Function;
+    removeListener: Function;
 };
 
 describe("Preload API Context Bridge", () => {
@@ -30,6 +31,7 @@ describe("Preload API Context Bridge", () => {
         mockIpcRenderer = {
             invoke: vi.fn(),
             on: vi.fn(),
+            removeListener: vi.fn(),
         };
 
         vi.doMock("electron", () => ({
@@ -61,6 +63,10 @@ describe("Preload API Context Bridge", () => {
         vi.clearAllMocks();
         vi.resetModules();
     });
+
+    function listenersFor(channel: string) {
+        return (mockIpcRenderer.on as ReturnType<typeof vi.fn>).mock.calls.filter(([name]) => name === channel).map(([, listener]) => listener);
+    }
 
     it("should expose all APIs in the main world via contextBridge", async () => {
         await import("@preload/preload");
@@ -269,6 +275,20 @@ describe("Preload API Context Bridge", () => {
         expect(typeof mockWindow.tachyon.onDisconnected).toBe("function");
         expect(typeof mockWindow.tachyon.onEvent).toBe("function");
         expect(typeof mockWindow.tachyon.onBattleStart).toBe("function");
+    });
+
+    it("should hand back an unsubscribe from other event subscriptions", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        const unsubscribe = mockWindow.mainWindow.onScaleRangeChanged(callback);
+
+        const [listener] = listenersFor("mainWindow:scaleRangeChanged");
+        listener({}, { min: 0.75, max: 2.5, os: 1 });
+        unsubscribe();
+
+        expect(callback).toHaveBeenCalledWith({ min: 0.75, max: 2.5, os: 1 });
+        expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith("mainWindow:scaleRangeChanged", listener);
     });
 
     it("should expose autoUpdater API", async () => {
