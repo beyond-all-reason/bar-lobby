@@ -292,6 +292,19 @@ describe("Preload API Context Bridge", () => {
         expect(lobbyUpdated).not.toHaveBeenCalled();
     });
 
+    it("should pass the whole event to callbacks when it carries no data", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        mockWindow.tachyon.onEvent("matchmaking/lost", callback);
+
+        const event = { type: "event", commandId: "matchmaking/lost", messageId: "1" };
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, event);
+
+        expect(callback).toHaveBeenCalledWith(event);
+    });
+
     it("should listen for tachyon events once however many subscriptions there are", async () => {
         await import("@preload/preload");
 
