@@ -199,7 +199,8 @@
                     "gameVersion": "Game Version",
                     "engineVersion": "Engine Version",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Cannot start: only {boxed} of {teams} ally teams have a start box."
                 }
             }
         },

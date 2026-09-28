@@ -19,10 +19,16 @@ Object.assign(window.tachyon, {
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
+const { resolveLobbyArrangement, startboxShortfall } = await import("@renderer/utils/lobby-startboxes");
 
 const twoTeams = rectsToArrangement([
     { left: 0, top: 0, right: 0.2, bottom: 1 },
     { left: 0.8, top: 0, right: 1, bottom: 1 },
+]);
+const threeTeams = rectsToArrangement([
+    { left: 0, top: 0, right: 0.2, bottom: 0.2 },
+    { left: 0.8, top: 0, right: 1, bottom: 0.2 },
+    { left: 0.4, top: 0.8, right: 0.6, bottom: 1 },
 ]);
 
 describe("lobby start boxes", () => {
@@ -51,5 +57,28 @@ describe("lobby start boxes", () => {
         await lobby.requestJoinLobby({ id: "lobby-1", pushLobbyView: false });
 
         await vi.waitFor(() => expect(lobbyStore.activeLobby?.startboxes?.override).toEqual(twoTeams));
+    });
+});
+
+describe("startboxShortfall", () => {
+    it("blocks the start when an ally team would have no start box", () => {
+        expect(startboxShortfall({ override: twoTeams }, 3)).toEqual({ boxed: 2, teams: 3 });
+        expect(startboxShortfall({ set: { "2": twoTeams } }, 3)).toEqual({ boxed: 2, teams: 3 });
+        expect(startboxShortfall({}, 2)).toEqual({ boxed: 0, teams: 2 });
+    });
+
+    it("prefers the override over a set that would cover every ally team", () => {
+        expect(startboxShortfall({ override: twoTeams, set: { "3": threeTeams } }, 3)).toEqual({ boxed: 2, teams: 3 });
+    });
+
+    it("draws spare boxes out and lets the start through", () => {
+        expect(resolveLobbyArrangement({ override: threeTeams }, 2)?.startboxes).toEqual(threeTeams.startboxes.slice(0, 2));
+        expect(resolveLobbyArrangement({ set: { "3": threeTeams } }, 2)?.startboxes).toEqual(threeTeams.startboxes.slice(0, 2));
+        expect(startboxShortfall({ override: threeTeams }, 2)).toBeUndefined();
+        expect(startboxShortfall({ set: { "3": threeTeams } }, 2)).toBeUndefined();
+    });
+
+    it("waits for the lobby's game options to be decoded", () => {
+        expect(startboxShortfall(undefined, 2)).toBeUndefined();
     });
 });

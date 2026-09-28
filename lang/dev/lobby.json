@@ -199,7 +199,8 @@
                     "gameVersion": "Gmae Vosiren",
                     "engineVersion": "Egnnie Vosiren",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Canont strat: olny {boxed} of {teams} ally tmaes hvae a strat box."
                 }
             }
         },

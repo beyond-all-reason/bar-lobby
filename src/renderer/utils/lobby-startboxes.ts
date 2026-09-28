@@ -60,12 +60,20 @@ export async function decodeLobbyStartboxes(gameOptions: LobbyState["gameOptions
     return { override, set };
 }
 
-// Spare boxes from a bigger set arrangement go unused in game; override spares stay visible, as in chobby.
+// Cut to the ally team count, as the game uses them: boxes past it belong to no ally team.
 export function resolveLobbyArrangement(startboxes: LobbyStartboxes | undefined, allyTeamCount: number): StartboxArrangement | undefined {
-    const arrangement = resolveArrangement(startboxes?.override, startboxes?.set, allyTeamCount);
-    if (!arrangement || arrangement === startboxes?.override) return arrangement;
+    const arrangement = startboxes?.override ?? resolveArrangement(undefined, startboxes?.set, allyTeamCount);
 
-    return { ...arrangement, startboxes: arrangement.startboxes.slice(0, allyTeamCount) };
+    return arrangement && { ...arrangement, startboxes: arrangement.startboxes.slice(0, allyTeamCount) };
+}
+
+export function startboxShortfall(startboxes: LobbyStartboxes | undefined, allyTeamCount: number) {
+    // Undefined until the game options are decoded, which shouldn't count as missing boxes.
+    if (!startboxes) return undefined;
+
+    const boxed = resolveLobbyArrangement(startboxes, allyTeamCount)?.startboxes.length ?? 0;
+
+    return boxed < allyTeamCount ? { boxed, teams: allyTeamCount } : undefined;
 }
 
 export async function mapStartboxGameOptions(map: MapData | undefined): Promise<NonNullable<LobbyCreateRequestData["gameOptions"]>> {

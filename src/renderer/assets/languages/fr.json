@@ -4035,7 +4035,8 @@
                     "gameVersion": null,
                     "engineVersion": null,
                     "maps": null,
-                    "map": null
+                    "map": null,
+                    "startBoxShortfall": null
                 }
             }
         },

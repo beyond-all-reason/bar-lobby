@@ -11,7 +11,9 @@ SPDX-License-Identifier: MIT
 <template>
     <Panel>
         <div class="flex flex-row">
-            <Button @click="startGame()" class="green" :disabled="isMapNeeded">Start Game</Button>
+            <div v-tooltip.bottom="startBlockedReason" class="start-game">
+                <Button @click="startGame()" class="green" :disabled="isMapNeeded || !!startBlockedReason">Start Game</Button>
+            </div>
             <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
             <Button v-if="lobbyStore.activeLobby" @click="startBoxesModalIsOpen = true" class="blue">Edit Start Boxes</Button>
             <StartBoxesModal v-if="lobbyStore.activeLobby" v-model="startBoxesModalIsOpen" :map="map" />
@@ -164,7 +166,7 @@ import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import StartBoxesModal from "@renderer/components/battle/StartBoxesModal.vue";
 import VotePanel from "@renderer/components/battle/VotePanel.vue";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
-import { resolveLobbyArrangement } from "@renderer/utils/lobby-startboxes";
+import { resolveLobbyArrangement, startboxShortfall } from "@renderer/utils/lobby-startboxes";
 
 const editLobbyModalIsOpen = ref(false);
 const startBoxesModalIsOpen = ref(false);
@@ -222,6 +224,11 @@ const mapOptions = { startPosType: StartPosType.Boxes };
 
 const allyTeamCount = computed(() => Object.keys(lobbyStore.activeLobby?.allyTeamConfig ?? {}).length);
 const arrangement = computed(() => resolveLobbyArrangement(lobbyStore.activeLobby?.startboxes, allyTeamCount.value) ?? { startboxes: [] });
+const startBlockedReason = computed(() => {
+    const shortfall = startboxShortfall(lobbyStore.activeLobby?.startboxes, allyTeamCount.value);
+
+    return shortfall && t("lobby.multiplayer.custom.lobby.startBoxShortfall", { boxed: shortfall.boxed, teams: shortfall.teams });
+});
 
 async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
@@ -241,6 +248,9 @@ async function onGameSelected(gameVersion: string) {
 }
 .datagridstripe {
     background-color: #00000033;
+}
+.start-game {
+    display: flex;
 }
 .options {
     display: flex;
