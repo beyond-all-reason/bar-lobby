@@ -307,6 +307,7 @@ describe("Preload API Context Bridge", () => {
 
         const callback = vi.fn();
         const unsubscribe = mockWindow.tachyon.onEvent("party/updated", callback);
+
         unsubscribe();
 
         const [dispatch] = listenersFor("tachyon:event");
@@ -323,6 +324,7 @@ describe("Preload API Context Bridge", () => {
 
         const [listener] = listenersFor("mainWindow:scaleRangeChanged");
         listener({}, { min: 0.75, max: 2.5, os: 1 });
+
         unsubscribe();
 
         expect(callback).toHaveBeenCalledWith({ min: 0.75, max: 2.5, os: 1 });
