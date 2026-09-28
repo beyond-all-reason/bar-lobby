@@ -232,8 +232,8 @@ function requestStructured<C extends GetCommandIds<"user", "server", "request">>
 type TachyonEventId = GetCommandIds<"server", "user", "event">;
 type TachyonEventData<C extends TachyonEventId> = GetCommandData<GetCommands<"server", "user", "event", C>>;
 
-// One listener for every subscription rather than one each: Node warns once a channel passes ten
-// listeners, and the renderer subscribes to far more tachyon events than that.
+// Every subscription shares this one listener. Node warns once a channel passes ten listeners, and
+// the renderer subscribes to far more tachyon events than that.
 const tachyonEventCallbacks = new Map<string, Set<(data: unknown) => void>>();
 
 ipcRenderer.on("tachyon:event", (_event, event) => {
