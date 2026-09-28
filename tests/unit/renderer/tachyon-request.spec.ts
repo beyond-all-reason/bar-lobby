@@ -66,7 +66,7 @@ describe("onTachyonEvent", () => {
     it("subscribes through the bridge and hands back its unsubscribe", () => {
         const unsubscribe = vi.fn();
         const handler = vi.fn();
-        vi.mocked(window.tachyon.onEvent).mockReturnValue(unsubscribe);
+        vi.mocked(window.tachyon.onEvent).mockReturnValueOnce(unsubscribe);
 
         expect(onTachyonEvent("party/updated", handler)).toBe(unsubscribe);
         expect(window.tachyon.onEvent).toHaveBeenCalledWith("party/updated", handler);
