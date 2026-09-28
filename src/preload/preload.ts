@@ -229,20 +229,29 @@ function requestStructured<C extends GetCommandIds<"user", "server", "request">>
     return ipcRenderer.invoke("tachyon:requestStructured", ...args) as Promise<GetCommands<"server", "user", "response", C>>;
 }
 
-function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
-    ipcRenderer.setMaxListeners(30);
+type TachyonEventId = GetCommandIds<"server", "user", "event">;
+type TachyonEventData<C extends TachyonEventId> = GetCommandData<GetCommands<"server", "user", "event", C>>;
 
-    return ipcRenderer.on("tachyon:event", (_event, event) => {
-        if (event.commandId === eventID) {
-            // event is a generic TachyonEvent in the IPC interface.
-            // For consumers we cast it to the correct type based on the eventID.
-            if ("data" in event) {
-                callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
-            } else {
-                callback(event as GetCommandData<GetCommands<"server", "user", "event", C>>);
-            }
-        }
-    });
+// One listener for every subscription rather than one each: Node warns once a channel passes ten
+// listeners, and the renderer subscribes to far more tachyon events than that.
+const tachyonEventCallbacks = new Map<string, Set<(data: unknown) => void>>();
+
+ipcRenderer.on("tachyon:event", (_event, event) => {
+    const data = "data" in event ? event.data : event;
+
+    for (const callback of [...(tachyonEventCallbacks.get(event.commandId) ?? [])]) {
+        callback(data);
+    }
+});
+
+function onEvent<C extends TachyonEventId>(eventID: C, callback: (event: TachyonEventData<C>) => void): () => void {
+    const callbacks = tachyonEventCallbacks.get(eventID) ?? new Set();
+    tachyonEventCallbacks.set(eventID, callbacks);
+    callbacks.add(callback as (data: unknown) => void);
+
+    return () => {
+        callbacks.delete(callback as (data: unknown) => void);
+    };
 }
 
 const tachyonApi = {
