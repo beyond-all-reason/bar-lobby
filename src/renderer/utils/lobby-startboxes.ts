@@ -15,7 +15,7 @@ import {
     StartboxesSet,
     startboxesSetByTeamCount,
 } from "@shared/startbox-modoptions";
-import { LobbyCreateOkResponseData, LobbyCreateRequestData } from "tachyon-protocol/types";
+import { LobbyCreateOkResponseData, LobbyCreateRequestData, LobbyUpdateRequestData } from "tachyon-protocol/types";
 
 export interface LobbyStartboxes {
     override?: StartboxArrangement;
@@ -68,12 +68,14 @@ export function resolveLobbyArrangement(startboxes: LobbyStartboxes | undefined,
     return { ...arrangement, startboxes: arrangement.startboxes.slice(0, allyTeamCount) };
 }
 
-// Only one is sent: game builds before Beyond-All-Reason#8786 drop an override whose box count isn't the in-game team count.
-export async function startboxGameOptions(map: MapData | undefined, override: StartboxArrangement | undefined) {
-    const arrangements = override ? [] : (map?.startboxesSet ?? []);
+export async function mapStartboxGameOptions(map: MapData | undefined): Promise<NonNullable<LobbyCreateRequestData["gameOptions"]>> {
+    const arrangements = map?.startboxesSet ?? [];
+    if (!arrangements.length) return {};
 
-    return {
-        [STARTBOXES_SET_KEY]: arrangements.length ? { value: await encodeModoptionValue(startboxesSetByTeamCount(arrangements)) } : null,
-        [STARTBOX_OVERRIDE_KEY]: override ? { value: await encodeModoptionValue(override) } : null,
-    };
+    return { [STARTBOXES_SET_KEY]: { value: await encodeModoptionValue(startboxesSetByTeamCount(arrangements)) } };
+}
+
+// Sent on its own: teiserver may vote on game option changes, and a map change can't share that vote.
+export async function startboxOverrideUpdate(override: StartboxArrangement | null): Promise<LobbyUpdateRequestData> {
+    return { gameOptions: { [STARTBOX_OVERRIDE_KEY]: override ? { value: await encodeModoptionValue(override) } : null } };
 }

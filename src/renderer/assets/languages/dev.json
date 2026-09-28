@@ -481,6 +481,13 @@
                     "applyStartboxOverride": "Apply",
                     "unreadableStartboxOverride": "Teshe strat bxeos culod not be raed."
                 },
+                "startBoxesModal": {
+                    "title": "Strat Beoxs",
+                    "mapDefault": "Map dfauelt",
+                    "editAsRectangles": "Eidt as rcnaelegts",
+                    "cancel": "Ceancl",
+                    "apply": "Apply"
+                },
                 "hostBattle": {
                     "title": "Hsot Blatte",
                     "settingUp": "Stietng up a ddeeicatd btalte hsot, tihs uulasly takes aruond 30 sondecs",
@@ -488,9 +495,6 @@
                     "hostButton": "Hsot Blatte",
                     "updateButton": "Uadpte Blatte",
                     "name": "Name",
-                    "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
-                    "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
-                    "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
                     "map": "Map",

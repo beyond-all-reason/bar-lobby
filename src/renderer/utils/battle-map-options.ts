@@ -46,9 +46,3 @@ export function withStartboxOverride(mapOptions: BattleOptions["mapOptions"], ov
         customStartBoxShapes: override.startboxes.map((box) => box.poly.map((point) => ({ ...point }))),
     };
 }
-
-export function getStartboxOverride(mapOptions: BattleOptions["mapOptions"]): StartboxArrangement | undefined {
-    if (mapOptions.startBoxesIndex != undefined) return undefined;
-
-    return customStartboxOverride(mapOptions.customStartBoxes, mapOptions.customStartBoxShapes);
-}

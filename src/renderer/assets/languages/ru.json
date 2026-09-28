@@ -4286,6 +4286,13 @@
                     "applyStartboxOverride": null,
                     "unreadableStartboxOverride": null
                 },
+                "startBoxesModal": {
+                    "title": null,
+                    "mapDefault": null,
+                    "editAsRectangles": null,
+                    "cancel": null,
+                    "apply": null
+                },
                 "hostBattle": {
                     "title": null,
                     "settingUp": null,
@@ -4293,9 +4300,6 @@
                     "hostButton": null,
                     "updateButton": null,
                     "name": null,
-                    "startBoxes1": null,
-                    "startBoxes2": null,
-                    "startBoxes3": null,
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
                     "map": null,

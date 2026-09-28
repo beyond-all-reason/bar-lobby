@@ -6,7 +6,7 @@ import { StartPosType } from "@main/game/battle/battle-types";
 import { MapData } from "@main/content/maps/map-data";
 import { createLobbySettingsDraft, useLobbySettingsDraft } from "@renderer/composables/useLobbySettingsDraft";
 import { Lobby } from "@renderer/model/lobby";
-import { getCurrentArrangement, getCurrentStartBoxes, withStartboxOverride } from "@renderer/utils/battle-map-options";
+import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
 import { decodeModoptionValue, rectsToArrangement } from "@shared/startbox-modoptions";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { reactive, toRaw } from "vue";
@@ -67,7 +67,7 @@ describe("useLobbySettingsDraft", () => {
                 { maxTeams: 1, startBox: boxes[0], teams: [{ maxPlayers: 1 }] },
                 { maxTeams: 1, startBox: boxes[1], teams: [{ maxPlayers: 1 }] },
             ],
-            gameOptions: { mapmetadata_startbox_override: { value: expect.any(String) } },
+            gameOptions: {},
         });
         expectBoxesInSync(draft);
     });
@@ -440,29 +440,6 @@ describe("useLobbySettingsDraft", () => {
         expect(draft.draft.value?.mapOptions.startPosType).toBe(StartPosType.Fixed);
     });
 
-    it("reopens a lobby's polygon override as its shapes rather than their bounding rects", () => {
-        const shapes = [
-            [
-                { x: 0, y: 0 },
-                { x: 60, y: 0 },
-                { x: 30, y: 60, strength: 1 },
-            ],
-            [
-                { x: 140, y: 200 },
-                { x: 200, y: 200 },
-                { x: 170, y: 140 },
-            ],
-        ];
-        const lobby: Lobby = createLobby();
-        lobby.startboxes = { override: { startboxes: shapes.map((poly) => ({ poly })) } };
-        const draft = useLobbySettingsDraft();
-
-        draft.openUpdate(lobby, map);
-
-        expect(getCurrentArrangement(map, draft.draft.value!.mapOptions)?.startboxes.map((box) => box.poly)).toEqual(shapes);
-        expect(draft.dirtyFields.value.size).toBe(0);
-    });
-
     it("reopens a lobby on the map's set as the preset for its team count", () => {
         const arrangement = rectsToArrangement(boxes);
         const presetMap = { springName: "Test Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...arrangement }] } as MapData;
@@ -475,50 +452,21 @@ describe("useLobbySettingsDraft", () => {
         expect(draft.draft.value?.mapOptions.startBoxesIndex).toBe(0);
     });
 
-    it("keeps the other ally teams' shapes when an ally team is removed", () => {
-        const triangle = (x: number) => [
-            { x, y: 0 },
-            { x: x + 40, y: 0 },
-            { x: x + 20, y: 60 },
-        ];
-        const shapes = [triangle(0), triangle(80), triangle(160)];
-        const draft = useLobbySettingsDraft();
-        draft.openCreate(createLobbySettingsDraft("New Lobby", map, mapOptions, 2, 1, boxes));
-        draft.setMapOptions(withStartboxOverride(draft.draft.value!.mapOptions, { startboxes: shapes.map((poly) => ({ poly })) }));
-
-        draft.removeAllyTeam(1);
-
-        expect(getCurrentArrangement(map, draft.draft.value!.mapOptions)?.startboxes.map((box) => box.poly)).toEqual([shapes[0], shapes[2]]);
-        expectBoxesInSync(draft);
-    });
-
-    it("keeps the lobby's custom boxes when Random is picked, which online battles ignore", () => {
-        const lobby: Lobby = createLobby();
-        lobby.startboxes = { override: rectsToArrangement(boxes) };
-        const draft = useLobbySettingsDraft();
-        draft.openUpdate(lobby, map);
-
-        draft.setMapOptions({ ...draft.draft.value!.mapOptions, startPosType: StartPosType.Random });
-
-        expect(draft.dirtyFields.value.size).toBe(0);
-    });
-
-    it("sends custom boxes as the override alone, and the set alone for a preset", async () => {
+    it("sends the map's set on create and leaves start box options out of updates", async () => {
         const presetMap = { springName: "Test Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...rectsToArrangement(boxes) }] } as MapData;
-        const editedBoxes = [{ ...boxes[0], right: 0.4 }, boxes[1]];
         const draft = useLobbySettingsDraft();
+        draft.openCreate(createLobbySettingsDraft("New Lobby", presetMap, { startPosType: StartPosType.Boxes, startBoxesIndex: 0 }, 2, 1, boxes));
+
+        const create = await draft.createPayload();
+
+        expect(await decodeModoptionValue(create.gameOptions?.mapmetadata_startboxes_set?.value)).toEqual({ "2": presetMap.startboxesSet[0] });
+        expect(create.gameOptions?.mapmetadata_startbox_override).toBeUndefined();
+
         draft.openUpdate(createLobby(), presetMap);
+        draft.setCustomStartBoxes([{ ...boxes[0], right: 0.4 }, boxes[1]]);
+        const update = await draft.updatePayload();
 
-        draft.setCustomStartBoxes(editedBoxes);
-        const custom = await draft.updatePayload();
-
-        expect(await decodeModoptionValue(custom.gameOptions?.mapmetadata_startbox_override?.value)).toEqual(rectsToArrangement(editedBoxes));
-        expect(custom.gameOptions?.mapmetadata_startboxes_set).toBeNull();
-
-        draft.setMapOptions({ startPosType: StartPosType.Boxes, startBoxesIndex: 0 });
-        const preset = await draft.updatePayload();
-
-        expect(preset.gameOptions?.mapmetadata_startbox_override).toBeNull();
-        expect(preset.gameOptions?.mapmetadata_startboxes_set).toEqual({ value: expect.any(String) });
+        expect(update.allyTeamConfig).toBeDefined();
+        expect(update.gameOptions).toBeUndefined();
     });
 });

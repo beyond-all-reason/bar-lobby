@@ -7,8 +7,8 @@ import { MapData } from "@main/content/maps/map-data";
 import { Lobby } from "@renderer/model/lobby";
 import { LobbyCreateRequestData, LobbyUpdateRequestData, StartBox } from "tachyon-protocol/types";
 import { computed, isProxy, reactive, ref, toRaw } from "vue";
-import { eastVsWestStartBoxes, getCurrentStartBoxes, getStartboxOverride, withStartboxOverride } from "@renderer/utils/battle-map-options";
-import { allyTeamConfigToArray, startboxGameOptions } from "@renderer/utils/lobby-startboxes";
+import { eastVsWestStartBoxes, getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { allyTeamConfigToArray, mapStartboxGameOptions } from "@renderer/utils/lobby-startboxes";
 
 export type LobbyDraftMode = "create" | "update";
 
@@ -72,7 +72,6 @@ function copyField(target: LobbySettingsDraft, field: LobbyDraftField, source: L
     }
 }
 
-// The override is compared with the team setup because a box can change shape without its bounding rect moving.
 function fieldValue(source: LobbySettingsDraft, field: LobbyDraftField): unknown {
     switch (field) {
         case "name":
@@ -80,7 +79,7 @@ function fieldValue(source: LobbySettingsDraft, field: LobbyDraftField): unknown
         case "mapName":
             return source.mapName;
         case "allyTeamConfig":
-            return { allyTeamConfig: source.allyTeamConfig, override: getStartboxOverride(source.mapOptions) ?? null };
+            return source.allyTeamConfig;
     }
 }
 
@@ -138,7 +137,7 @@ function jitterBox(box: StartBox): StartBox {
     };
 }
 
-function resizeBoxes(boxes: StartBox[], count: number): StartBox[] {
+export function resizeBoxes(boxes: StartBox[], count: number): StartBox[] {
     const fallback = boxes.at(-1) ?? { top: 0, bottom: 1, left: 0, right: 1 };
     return Array.from({ length: count }, (_, index) => clone(boxes[index] ?? jitterBox(fallback)));
 }
@@ -149,11 +148,6 @@ function boxesFromConfig(config: AllyTeam[]): StartBox[] {
 
 function mapOptionsFromLobby(lobby: Lobby, map: MapData | undefined, allyTeamConfig: AllyTeam[]): BattleOptions["mapOptions"] {
     const count = allyTeamConfig.length;
-    const override = lobby.startboxes?.override;
-    if (override && override.startboxes.length >= count) {
-        return withStartboxOverride({ startPosType: StartPosType.Boxes }, { startboxes: override.startboxes.slice(0, count) });
-    }
-
     const presetIndex = map?.startboxesSet?.findIndex((preset) => preset.startboxes.length === count) ?? -1;
     if (lobby.startboxes?.set?.[String(count)] && presetIndex >= 0) {
         return { startPosType: StartPosType.Boxes, startBoxesIndex: presetIndex };
@@ -339,20 +333,19 @@ export function useLobbySettingsDraft() {
             startPosType: StartPosType.Boxes,
             startBoxesIndex: undefined,
             customStartBoxes: boxesFromConfig(allyTeamConfig),
-            customStartBoxShapes: draft.value.mapOptions.customStartBoxShapes?.filter((_, allyTeamIndex) => allyTeamIndex !== index),
         };
     }
 
     async function createPayload(): Promise<LobbyCreateRequestData> {
         if (!draft.value || !draft.value.mapName) throw new Error("Cannot create a lobby without a map");
-        const gameOptions = await startboxGameOptions(draft.value.map, getStartboxOverride(draft.value.mapOptions));
+        const gameOptions = await mapStartboxGameOptions(draft.value.map);
 
         return {
             name: draft.value.name,
             mapName: draft.value.mapName,
             allyTeamConfig: clone(draft.value.allyTeamConfig),
             areBossesEnabled: draft.value.areBossesEnabled,
-            gameOptions: Object.fromEntries(Object.entries(gameOptions).filter((entry): entry is [string, { value: string }] => entry[1] !== null)),
+            gameOptions,
         };
     }
 
@@ -363,10 +356,6 @@ export function useLobbySettingsDraft() {
         if (dirty.has("name")) payload.name = draft.value.name;
         if (dirty.has("mapName")) payload.mapName = draft.value.mapName;
         if (dirty.has("allyTeamConfig")) payload.allyTeamConfig = arrayToConfigRecord(draft.value.allyTeamConfig);
-        // Teiserver may put a map change to a vote, and these options belong to whichever map ends up set.
-        if (dirty.has("allyTeamConfig") && !dirty.has("mapName")) {
-            payload.gameOptions = await startboxGameOptions(draft.value.map, getStartboxOverride(draft.value.mapOptions));
-        }
 
         return payload;
     }

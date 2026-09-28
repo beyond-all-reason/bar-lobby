@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
         <div class="flex flex-row">
             <Button @click="startGame()" class="green" :disabled="isMapNeeded">Start Game</Button>
             <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
+            <Button v-if="lobbyStore.activeLobby" @click="startBoxesModalIsOpen = true" class="blue">Edit Start Boxes</Button>
+            <StartBoxesModal v-if="lobbyStore.activeLobby" v-model="startBoxesModalIsOpen" :map="map" />
             <Button @click="joinQueue()" class="green">Join Queue</Button>
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
             <Button @click="updateReadiness(true)" class="green">Ready</Button>
@@ -159,11 +161,13 @@ import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { useTypedI18n } from "@renderer/i18n";
 import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import StartBoxesModal from "@renderer/components/battle/StartBoxesModal.vue";
 import VotePanel from "@renderer/components/battle/VotePanel.vue";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
 import { resolveLobbyArrangement } from "@renderer/utils/lobby-startboxes";
 
 const editLobbyModalIsOpen = ref(false);
+const startBoxesModalIsOpen = ref(false);
 
 const switchTemplate = ref(false);
 
