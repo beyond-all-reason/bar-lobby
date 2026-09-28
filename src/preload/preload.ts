@@ -157,7 +157,7 @@ const gameApi = {
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
-    launchReplay: (replay) => ipcRenderer.invoke("game:launchReplay", replay),
+    launchReplay: (replay: Replay) => ipcRenderer.invoke("game:launchReplay", replay),
     launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),
 
     // Events
@@ -186,8 +186,8 @@ export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
 
 const miscApi = {
-    getNewsRssFeed: (numberOfNews) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),
-    getDevlogRssFeed: (numberOfNews) => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews),
+    getNewsRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),
+    getDevlogRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews),
 };
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
