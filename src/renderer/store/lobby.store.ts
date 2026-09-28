@@ -36,8 +36,7 @@ import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { tachyonStore } from "@renderer/store/tachyon.store";
-import { me } from "@renderer/store/me.store";
-import { decodeLobbyStartboxes, isStartboxWriter, mapStartboxDefaults } from "@renderer/utils/lobby-startboxes";
+import { decodeLobbyStartboxes } from "@renderer/utils/lobby-startboxes";
 
 const lobbySymbol = Symbol("lobby.store");
 
@@ -253,8 +252,6 @@ function toSortedPlayerQueue(map: Map<number, string>): Map<number, string> {
  * @returns void
  */
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData | LobbyUpdatedEventData, isUpdate: boolean) {
-    const previousMapName = lobbyStore.activeLobby?.mapName;
-
     // Check if we are getting an updated event or a join/create response
     if (isUpdate) {
         if (!lobbyStore.activeLobby) {
@@ -308,9 +305,6 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     if (data.gameOptions) {
         refreshLobbyStartboxes();
     }
-    if (isUpdate && data.mapName && data.mapName !== previousMapName) {
-        applyMapStartboxDefaults(data.mapName);
-    }
     if (data.allyTeamConfig) {
         // TODO: we shouldn't have to reset the startboxes like this, but since the player can go into a skirmish
         // setup, and mess with battleStore/Options, we're going to do this here anyway. Later, we want to make
@@ -351,16 +345,6 @@ async function refreshLobbyStartboxes() {
     if (decode === startboxesDecode && lobbyStore.activeLobby?.id === lobby.id) {
         lobbyStore.activeLobby.startboxes = startboxes;
     }
-}
-
-async function applyMapStartboxDefaults(mapName: string) {
-    const lobby = lobbyStore.activeLobby;
-    if (!lobby || !isStartboxWriter(lobby, me.userId)) return;
-
-    const update = await mapStartboxDefaults(lobby, await db.maps.get(mapName));
-    if (lobbyStore.activeLobby?.mapName !== mapName) return;
-
-    await requestLobbyUpdate(update);
 }
 
 /**

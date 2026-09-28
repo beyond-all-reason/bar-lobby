@@ -8,7 +8,6 @@ import {
     encodeModoptionValue,
     isArrangement,
     isStartboxesSet,
-    polyToStartBox,
     resolveArrangement,
     STARTBOX_OVERRIDE_KEY,
     StartboxArrangement,
@@ -16,17 +15,15 @@ import {
     StartboxesSet,
     startboxesSetByTeamCount,
 } from "@shared/startbox-modoptions";
-import { LobbyCreateOkResponseData, LobbyCreateRequestData, LobbyUpdateRequestData } from "tachyon-protocol/types";
+import { LobbyCreateOkResponseData, LobbyCreateRequestData } from "tachyon-protocol/types";
 
 export interface LobbyStartboxes {
     override?: StartboxArrangement;
     set?: StartboxesSet;
 }
 
-type LobbyState = Pick<LobbyCreateOkResponseData, "gameOptions" | "allyTeamConfig" | "areBossesEnabled" | "bosses" | "players" | "spectators">;
+type LobbyState = Pick<LobbyCreateOkResponseData, "gameOptions" | "allyTeamConfig">;
 type AllyTeam = LobbyCreateRequestData["allyTeamConfig"][number];
-
-const WHOLE_MAP = { top: 0, bottom: 1, left: 0, right: 1 };
 
 export function allyTeamConfigToArray(config: LobbyState["allyTeamConfig"]): AllyTeam[] {
     return Object.keys(config)
@@ -79,28 +76,4 @@ export async function startboxGameOptions(map: MapData | undefined, override: St
         [STARTBOXES_SET_KEY]: arrangements.length ? { value: await encodeModoptionValue(startboxesSetByTeamCount(arrangements)) } : null,
         [STARTBOX_OVERRIDE_KEY]: override ? { value: await encodeModoptionValue(override) } : null,
     };
-}
-
-// SPADS resets both options on a map change. Tachyon lobbies have no host, so every client picks the same client to do it.
-export function isStartboxWriter(lobby: LobbyState, userId: string) {
-    const candidates = lobby.areBossesEnabled ? Object.keys(lobby.bosses) : [...Object.keys(lobby.players), ...Object.keys(lobby.spectators)];
-
-    return candidates.sort()[0] === userId;
-}
-
-export async function mapStartboxDefaults(lobby: LobbyState, map: MapData | undefined): Promise<LobbyUpdateRequestData> {
-    const update: LobbyUpdateRequestData = { gameOptions: await startboxGameOptions(map, undefined) };
-
-    const allyTeams = allyTeamConfigToArray(lobby.allyTeamConfig);
-    const set = map?.startboxesSet?.length ? startboxesSetByTeamCount(map.startboxesSet) : undefined;
-    const arrangement = resolveArrangement(undefined, set, allyTeams.length);
-    if (arrangement) {
-        update.allyTeamConfig = allyTeams.map((allyTeam, index) => {
-            const box = arrangement.startboxes[index];
-
-            return { ...allyTeam, startBox: box ? polyToStartBox(box.poly) : { ...WHOLE_MAP } };
-        });
-    }
-
-    return update;
 }
