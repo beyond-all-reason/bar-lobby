@@ -44,7 +44,7 @@ SPDX-License-Identifier: MIT
                     <div class="box-buttons">
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" :disabled="lastSelectedCustomPresetBoxes === null" />
                     </div>
-                    <StartboxOverrideInput @apply="setStartboxOverride" />
+                    <StartboxOverrideInput v-if="settingsStore.devMode" @apply="setStartboxOverride" />
                 </div>
                 <div v-if="hasCustomStartBoxes">
                     <div v-for="(teamBox, teamBoxId) in teamBoxes" :key="`delete-box-${teamBoxId}`">
@@ -141,6 +141,7 @@ import { pluralize } from "@renderer/utils/i18n";
 import { Icon } from "@iconify/vue";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
 import { useTypedI18n } from "@renderer/i18n";
+import { settingsStore } from "@renderer/store/settings.store";
 import { StartboxArrangement } from "@shared/startbox-modoptions";
 const { t } = useTypedI18n();
 
