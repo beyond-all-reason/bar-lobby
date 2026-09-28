@@ -110,7 +110,7 @@ describe("start script polygon startbox modoptions", () => {
         expect(set["2"].startboxes[0].poly[2].strength).toBe(1);
     });
 
-    it("injects an override instead of the map's set for custom drag-edited boxes", async () => {
+    it("injects an override alongside the map's set for custom drag-edited boxes", async () => {
         const script = await startScriptConverter.generateScriptStr(
             twoTeamBattle({
                 startPosType: StartPosType.Boxes,
@@ -121,7 +121,7 @@ describe("start script polygon startbox modoptions", () => {
             })
         );
 
-        expect(script).not.toContain("mapmetadata_startboxes_set");
+        expect(Object.keys(decodeModoption(script, SET) as object)).toEqual(["2"]);
 
         const override = decodeModoption(script, OVERRIDE) as Arrangement;
         // single arrangement, not keyed by team count; matchOverride checks startboxes.length == numTeams
