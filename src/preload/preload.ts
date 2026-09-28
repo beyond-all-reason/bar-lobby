@@ -247,10 +247,12 @@ ipcRenderer.on("tachyon:event", (_event, event) => {
 function onEvent<C extends TachyonEventId>(eventID: C, callback: (event: TachyonEventData<C>) => void): () => void {
     const callbacks = tachyonEventCallbacks.get(eventID) ?? new Set();
     tachyonEventCallbacks.set(eventID, callbacks);
-    callbacks.add(callback as (data: unknown) => void);
+
+    const handler = callback as (data: unknown) => void;
+    callbacks.add(handler);
 
     return () => {
-        callbacks.delete(callback as (data: unknown) => void);
+        callbacks.delete(handler);
     };
 }
 
