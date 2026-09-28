@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { isTachyonErrorForCommand, TachyonRequestError, tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonErrorForCommand, onTachyonEvent, TachyonRequestError, tachyonRequest } from "@renderer/api/tachyon";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const requestStructured = vi.fn();
@@ -59,5 +59,16 @@ describe("tachyonRequest", () => {
 
         expect(error).toBeInstanceOf(Error);
         expect(isTachyonErrorForCommand(error, "matchmaking/cancel")).toBe(false);
+    });
+});
+
+describe("onTachyonEvent", () => {
+    it("subscribes through the bridge and hands back its unsubscribe", () => {
+        const unsubscribe = vi.fn();
+        const handler = vi.fn();
+        vi.mocked(window.tachyon.onEvent).mockReturnValue(unsubscribe);
+
+        expect(onTachyonEvent("party/updated", handler)).toBe(unsubscribe);
+        expect(window.tachyon.onEvent).toHaveBeenCalledWith("party/updated", handler);
     });
 });
