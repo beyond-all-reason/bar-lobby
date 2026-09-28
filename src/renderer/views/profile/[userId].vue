@@ -30,13 +30,17 @@ SPDX-License-Identifier: MIT
             <h3>{{ t("lobby.views.profile.battleHistory.title") }}</h3>
             <p v-if="battleHistory.length === 0">{{ t("lobby.views.profile.battleHistory.empty") }}</p>
             <div v-else class="battle-history">
-                <div v-for="entry in battleHistory" :key="entry.id" class="battle-history-entry">
+                <div
+                    v-for="entry in battleHistory"
+                    :key="entry.id"
+                    class="battle-history-entry"
+                    :title="t('lobby.views.profile.battleHistory.viewResults')"
+                    @click="battleResults.show(entry)"
+                >
                     <Icon :icon="crown" height="20" class="crown" :class="{ hidden: !wonBattle(entry) }" />
                     <span class="time">{{ new Date(entry.receivedAt).toLocaleString() }}</span>
                     <span class="summary">{{ summarize(entry) }}</span>
-                    <Button class="slim" @click="battleResults.show(entry)">{{
-                        t("lobby.views.profile.battleHistory.viewResults")
-                    }}</Button>
+                    <Icon :icon="chevronRight" height="20" class="chevron" />
                 </div>
             </div>
         </Panel>
@@ -58,6 +62,7 @@ import { battleHistory, me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { Icon } from "@iconify/vue";
 import crown from "@iconify-icons/mdi/crown";
+import chevronRight from "@iconify-icons/mdi/chevron-right";
 import type { BattleHistoryEntry } from "@renderer/model/battleResults";
 import { useBattleResults } from "@renderer/composables/useBattleResults";
 const { t } = useTypedI18n();
@@ -133,9 +138,17 @@ const user = useDexieLiveQueryWithDeps([() => props.userId], () => {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 3px;
+    cursor: pointer;
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
     .summary {
         flex-grow: 1;
         opacity: 0.8;
+    }
+    .chevron {
+        opacity: 0.6;
     }
 }
 

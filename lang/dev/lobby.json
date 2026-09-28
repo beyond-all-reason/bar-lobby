@@ -73,7 +73,7 @@
                 "userNotFound": "User not fnuod",
                 "battleHistory": {
                     "title": "Blatte Htrisoy",
-                    "empty": "No bealtts pleyad tihs sesosin.",
+                    "empty": "No oninle bealtts pleyad tihs sesosin.",
                     "viewResults": "View Rutelss",
                     "bots": "{count} bot | {count} btos"
                 }

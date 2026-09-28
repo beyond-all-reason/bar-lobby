@@ -1904,7 +1904,7 @@
                 "userNotFound": "User not found",
                 "battleHistory": {
                     "title": "Battle History",
-                    "empty": "No battles played this session.",
+                    "empty": "No online battles played this session.",
                     "viewResults": "View Results",
                     "bots": "{count} bot | {count} bots"
                 }
