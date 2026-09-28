@@ -91,7 +91,7 @@ import checkThick from "@iconify-icons/mdi/check-thick";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import deleteIcon from "@iconify-icons/mdi/delete";
 import messageReplyText from "@iconify-icons/mdi/message-reply-text";
-import { inject, Ref, watch, computed } from "vue";
+import { inject, Ref, watch } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
@@ -103,9 +103,8 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { chat } from "@renderer/store/chat.store";
-import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
-import { PartyInviteRequestData } from "tachyon-protocol/types";
 import { useReportUser } from "@renderer/composables/useReportUser";
+import { usePartyInviteState } from "@renderer/composables/usePartyInviteState";
 
 const { t } = useTypedI18n();
 const { openReportUser } = useReportUser();
@@ -137,24 +136,7 @@ watch(
     { immediate: true }
 );
 
-const maxMembersReached = computed(() => {
-    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
-    return (
-        (partyStore.parties.get(partyStore.activeParty)!.members?.length || 0) +
-            (partyStore.parties.get(partyStore.activeParty)!.invited?.length || 0) >=
-        partyStore.parties.get(partyStore.activeParty)!.maxMembers
-    );
-});
-
-const userInParty = computed(() => {
-    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
-    return partyStore.parties.get(partyStore.activeParty)!.members?.some((member) => member.userId === props.userId) || false;
-});
-
-const userInvited = computed(() => {
-    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
-    return partyStore.parties.get(partyStore.activeParty)!.invited?.some((invited) => invited.userId === props.userId) || false;
-});
+const { maxMembersReached, userInParty, userInvited, inviteToParty } = usePartyInviteState(() => props.userId);
 
 async function cancelRequest() {
     try {
@@ -206,15 +188,6 @@ function sendMessage() {
 
 async function joinBattle() {
     // TODO
-}
-
-async function inviteToParty() {
-    if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
-        const data: PartyInviteRequestData = { userId: props.userId };
-        party.requestInvite(data);
-    } else {
-        party.requestCreateAndInvite(props.userId);
-    }
 }
 
 function reportUser() {

@@ -1901,7 +1901,13 @@
             "profile": {
                 "status": "Status: ",
                 "clan": "Clan: ",
-                "userNotFound": "User not found"
+                "userNotFound": "User not found",
+                "battleHistory": {
+                    "title": "Battle History",
+                    "empty": "No battles played this session.",
+                    "viewResults": "View Results",
+                    "bots": "{count} bot | {count} bots"
+                }
             },
             "play": {
                 "comingSoon": "(Coming Soon)",
@@ -2452,6 +2458,18 @@
                     "description2": "Would you like to attempt to rejoin the battle?",
                     "rejoinButton": "Rejoin",
                     "ignoreButton": "Ignore"
+                },
+                "battleResults": {
+                    "victory": "Victory",
+                    "defeat": "Defeat",
+                    "battleEnded": "Battle Ended",
+                    "draw": "Draw",
+                    "winner": "Winner",
+                    "team": "Team {team}",
+                    "spectators": "Spectators",
+                    "inviteToParty": "Invite to Party",
+                    "partyFull": "Party Full",
+                    "acceptFriendRequest": "Accept Friend Request"
                 }
             },
             "controls": {
