@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { isTachyonErrorForCommand, TachyonRequestError, tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, isTachyonErrorForCommand, TachyonIpcError, TachyonRequestError, tachyonRequest } from "@renderer/api/tachyon";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 
 const requestStructured = vi.fn();
@@ -59,30 +59,32 @@ describe("tachyonRequest", () => {
         expect(isTachyonErrorForCommand(error, "matchmaking/cancel")).toBe(false);
     });
 
-    it("leaves IPC errors alone", async () => {
-        requestStructured.mockRejectedValue(new Error("Not connected to server"));
+    it("wraps IPC errors in a TachyonIpcError carrying the command and the original error", async () => {
+        const ipcError = new Error("Not connected to server");
+        requestStructured.mockRejectedValue(ipcError);
 
         const error = await tachyonRequest("matchmaking/cancel").catch((error: unknown) => error);
 
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(TachyonIpcError);
+        expect((error as TachyonIpcError).commandId).toBe("matchmaking/cancel");
+        expect((error as TachyonIpcError).cause).toBe(ipcError);
         expect(isTachyonErrorForCommand(error, "matchmaking/cancel")).toBe(false);
     });
 
-    it("logs a failed response before throwing it", async () => {
+    it("logs a failed response", async () => {
         requestStructured.mockResolvedValue({ type: "response", commandId: "matchmaking/cancel", messageId: "1", status: "failed", reason: "internal_error" });
 
         const error = await tachyonRequest("matchmaking/cancel").catch((error: unknown) => error);
 
-        expect(consoleError).toHaveBeenCalledWith("Tachyon error: matchmaking/cancel:", error);
+        expect(consoleError).toHaveBeenCalledWith(error);
     });
 
-    it("logs IPC errors before passing them on", async () => {
-        const ipcError = new Error("Not connected to server");
-        requestStructured.mockRejectedValue(ipcError);
+    it("logs IPC errors", async () => {
+        requestStructured.mockRejectedValue(new Error("Not connected to server"));
 
-        await expect(tachyonRequest("matchmaking/cancel")).rejects.toBe(ipcError);
+        const error = await tachyonRequest("matchmaking/cancel").catch((error: unknown) => error);
 
-        expect(consoleError).toHaveBeenCalledWith("Tachyon error: matchmaking/cancel:", ipcError);
+        expect(consoleError).toHaveBeenCalledWith(error);
     });
 
     it("logs nothing on success", async () => {
@@ -91,5 +93,18 @@ describe("tachyonRequest", () => {
         await tachyonRequest("matchmaking/cancel");
 
         expect(consoleError).not.toHaveBeenCalled();
+    });
+});
+
+describe("isTachyonError", () => {
+    it("matches both kinds of tachyonRequest failure", () => {
+        const failed = { type: "response", commandId: "matchmaking/cancel", messageId: "1", status: "failed", reason: "internal_error" } as const;
+
+        expect(isTachyonError(new TachyonRequestError("matchmaking/cancel", failed))).toBe(true);
+        expect(isTachyonError(new TachyonIpcError("matchmaking/cancel", new Error("Not connected to server")))).toBe(true);
+    });
+
+    it("leaves other errors out", () => {
+        expect(isTachyonError(new Error("No active vote to cancel"))).toBe(false);
     });
 });
