@@ -14,7 +14,7 @@ import {
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
-import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { router } from "@renderer/router";
 
@@ -196,7 +196,10 @@ async function sendListRequest() {
         }
         await triggerAssetsRefresh();
     } catch (error) {
-        console.error("Tachyon error: matchmaking/list:", error);
+        if (!isTachyonError(error)) {
+            console.error("Tachyon error: matchmaking/list:", error);
+        }
+
         notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
         matchmakingStore.queueError = "Failed to retrieve available queues";
     } finally {

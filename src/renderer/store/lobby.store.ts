@@ -27,7 +27,7 @@ import {
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
 import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest, isTachyonErrorForCommand } from "@renderer/api/tachyon";
+import { tachyonRequest, isTachyonError, isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import { Lobby } from "@renderer/model/lobby";
 import { t } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
@@ -153,7 +153,10 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
         parseLobbyResponseData(response.data, false);
         router.push("/play/lobby");
     } catch (error) {
-        console.error("Error with request lobby/create", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with request lobby/create", error);
+        }
+
         notificationsApi.alert({
             text: "Error with request lobby/create",
             severity: "error",
@@ -176,7 +179,10 @@ async function requestJoinLobby({ id, pushLobbyView }: { id: string; pushLobbyVi
             router.push("/play/lobby");
         }
     } catch (error) {
-        console.error("Error with request lobby/join", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with request lobby/join", error);
+        }
+
         notificationsApi.alert({
             text: "Error with request lobby/join",
             severity: "error",
@@ -554,7 +560,10 @@ async function requestVoteCancel() {
         const response = await tachyonRequest("lobby/voteCancel", { id: lobbyStore.activeLobby.currentVote?.id });
         console.log("Tachyon lobby/voteCancel:", response);
     } catch (error) {
-        console.error("Error with request lobby/voteCancel", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with request lobby/voteCancel", error);
+        }
+
         notificationsApi.alert({ text: "Error with request lobby/voteCancel", severity: "error" });
     }
 }
