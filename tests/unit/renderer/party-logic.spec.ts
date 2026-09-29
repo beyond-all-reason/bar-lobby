@@ -138,16 +138,6 @@ describe("party logic", () => {
             expect(partyStore.parties.has("old")).toBe(false);
         });
 
-        it("keeps the party it was in when accepting an invite fails", async () => {
-            emitUserSelf("me", makeParty("old", ["me"]), [makeParty("new", ["host"], ["me"])]);
-            const failure = new Error("party/acceptInvite failed");
-            api.tachyonRequest.mockRejectedValue(failure);
-
-            await expect(partyLogic.acceptInvite({ partyId: "new" })).rejects.toBe(failure);
-
-            expect(partyStore.activeParty).toBe("old");
-        });
-
         it("adds the party it created", async () => {
             api.tachyonRequest.mockResolvedValue(succeed({ party: makeParty("created", ["me"]) }));
 

@@ -61,8 +61,7 @@ async function acceptInvite(data: PartyAcceptInviteRequestData) {
     const response = await tachyonRequest("party/acceptInvite", data);
     console.log("Tachyon: party/acceptInvite response:", response);
 
-    // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
-    // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
+    // teiserver leaves the old party on accept but sends us no party/removed for it, so it goes here.
     if (previousParty) {
         removeParty(previousParty);
     }
@@ -173,8 +172,7 @@ function onUpdatedEvent(data: PartyUpdatedEventData) {
 function onUserSelfEvent({ user }: UserSelfEventData) {
     partyUpdates.replaceAll([...(user.party ? [user.party] : []), ...(user.invitedToParties || [])], user.userId);
 
-    // A teiserver session restored from a snapshot comes back with no user subscriptions, so clearing first
-    // makes setList send them again.
+    // Restored teiserver sessions start with no subscriptions; clearing first makes setList resend them.
     subsManager.clearAllFromList(partySymbol);
     watchPartyUsers(user.userId);
 }

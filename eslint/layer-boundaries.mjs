@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// The renderer layer boundaries from #727. They land as warnings while the renderer moves over one area at
-// a time, and become errors once it has.
+// The renderer layer boundaries from #727, as warnings until the renderer has moved over.
 
 // The namespaces preload.ts exposes through contextBridge.exposeInMainWorld.
 const preloadNamespaces = [
@@ -52,6 +51,7 @@ export const layerBoundaryRules = [
                         { name: "vue-router", message: "Logic doesn't navigate. Views do after their own clicks." },
                         { name: "@renderer/api/notifications", message: "Logic doesn't show alerts. Views do after their own clicks." },
                         { name: "@renderer/audio/audio", message: "Logic doesn't play sounds. Views do after their own clicks." },
+                        { name: "@renderer/utils/alert-request-failure", message: "Only views show alerts, after their own clicks." },
                     ],
                     patterns: [{ group: ["@renderer/components/*", "@renderer/views/*", "*.vue"], message: "Logic doesn't import components or views." }],
                 },
@@ -66,7 +66,10 @@ export const layerBoundaryRules = [
             "@typescript-eslint/no-restricted-imports": [
                 "warn",
                 {
-                    paths: [{ name: "@renderer/router", message: "Stores hold state. Navigation belongs in views." }],
+                    paths: [
+                        { name: "@renderer/router", message: "Stores hold state. Navigation belongs in views." },
+                        { name: "@renderer/utils/alert-request-failure", message: "Only views show alerts, after their own clicks." },
+                    ],
                     patterns: [
                         { group: ["@renderer/api/*"], message: "Stores hold state. Calls to main belong in @renderer/logic." },
                         { group: ["@renderer/logic/*"], message: "Stores hold state. Logic calls stores, not the other way round." },
