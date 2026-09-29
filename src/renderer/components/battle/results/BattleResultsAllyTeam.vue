@@ -14,7 +14,13 @@ SPDX-License-Identifier: MIT
             <span class="count">{{ team.players.length + team.bots.length }}</span>
         </div>
         <div v-if="!collapsed" class="members">
-            <BattleResultsPlayer v-for="player in team.players" :key="player.userId" :userId="player.userId" :name="player.name" />
+            <BattleResultsPlayer
+                v-for="player in team.players"
+                :key="player.userId"
+                :userId="player.userId"
+                :name="player.name"
+                :winner="team.isWinner"
+            />
             <BattleResultsBot v-for="bot in team.bots" :key="`${bot.team}-${bot.player}`" :shortName="bot.shortName" />
         </div>
     </div>

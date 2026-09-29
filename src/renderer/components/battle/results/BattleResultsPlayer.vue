@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div @contextmenu.prevent="onRightClick">
-        <TeamParticipant :class="{ me: isMe }">
+        <TeamParticipant :class="{ me: isMe, winner: isMe && winner }">
             <Flag class="flag" :countryCode="user.countryCode" />
             <div class="name">{{ name }}</div>
         </TeamParticipant>
@@ -35,6 +35,7 @@ import { useBattleResults } from "@renderer/composables/useBattleResults";
 const props = defineProps<{
     userId: string;
     name: string;
+    winner?: boolean;
 }>();
 
 const { t } = useTypedI18n();
@@ -143,7 +144,11 @@ async function acceptFriendRequest() {
     white-space: nowrap;
 }
 .me {
-    border-color: rgba(255, 215, 0, 0.5);
-    background: rgba(255, 215, 0, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    &.winner {
+        border-color: rgba(255, 215, 0, 0.5);
+        background: rgba(255, 215, 0, 0.08);
+    }
 }
 </style>
