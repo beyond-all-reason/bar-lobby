@@ -28,12 +28,18 @@ export async function tachyonRequest<C extends RequestCommandId>(
 ): Promise<SuccessResponse<C>> {
     const [commandId] = args as [C];
     const requestStructured = window.tachyon.requestStructured as (...args: unknown[]) => Promise<TachyonResponse>;
-    const response = await requestStructured(...args);
-    if (response.status === "failed") {
-        throw new TachyonRequestError(commandId, response);
-    }
 
-    return response as SuccessResponse<C>;
+    try {
+        const response = await requestStructured(...args);
+        if (response.status === "failed") {
+            throw new TachyonRequestError(commandId, response);
+        }
+
+        return response as SuccessResponse<C>;
+    } catch (error) {
+        console.error(`Tachyon error: ${commandId}:`, error);
+        throw error;
+    }
 }
 
 export function isTachyonErrorForCommand<C extends RequestCommandId>(error: unknown, commandId: C): error is TachyonRequestError<C> {
