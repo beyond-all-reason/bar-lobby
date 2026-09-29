@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 </route>
 <template>
     <div>
-        <Panel class="profile-container" v-if="user">
+        <Panel class="profile-container profile-header-panel" v-if="user">
             <div class="profile-header">
                 <img ref="logo" class="avatar" src="/src/renderer/assets/images/BARLogoFull.png" />
                 <div class="profile-user-info">
@@ -119,8 +119,15 @@ const user = useDexieLiveQueryWithDeps([() => props.userId], () => {
     backdrop-filter: blur(2px);
 }
 
+.profile-header-panel {
+    flex: none;
+    height: auto;
+}
+
 .battle-history-panel {
     margin-top: 15px;
+    flex: 0 1 auto;
+    min-height: 0;
 }
 
 .battle-history {
@@ -128,9 +135,13 @@ const user = useDexieLiveQueryWithDeps([() => props.userId], () => {
     flex-direction: column;
     gap: 5px;
     margin-top: 10px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
 .battle-history-entry {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 10px;

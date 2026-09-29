@@ -230,6 +230,8 @@ const showPartyPopout = computed(() => {
 <style lang="scss" scoped>
 .view-container {
     flex: auto;
+    // Keeps views at window height so they scroll instead of growing past it.
+    min-height: 0;
     // Views layer their own hover and selected states with small z-indexes, and
     // without a stacking context of their own those compete with the navbar and
     // the reconnecting overlay out here rather than staying inside the view.
