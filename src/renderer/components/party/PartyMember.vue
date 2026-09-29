@@ -24,7 +24,8 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { party } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 import { db } from "@renderer/store/db";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
@@ -49,9 +50,12 @@ function reportUser() {
     openReportUser(user);
 }
 
-function kickUser() {
-    const data = { userId: props.userId };
-    party.requestKickMember(data);
+async function kickUser() {
+    try {
+        await partyLogic.kickMember({ userId: props.userId });
+    } catch (error) {
+        alertRequestFailure(error, "party/kickMember");
+    }
 }
 
 const showKickButton = computed(() => me.userId !== props.userId);

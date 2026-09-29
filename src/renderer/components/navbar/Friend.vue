@@ -104,8 +104,9 @@ import { isTachyonError } from "@renderer/api/tachyon";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { chat } from "@renderer/store/chat.store";
-import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
-import { PartyInviteRequestData } from "tachyon-protocol/types";
+import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 import { useReportUser } from "@renderer/composables/useReportUser";
 
 const { t } = useTypedI18n();
@@ -219,11 +220,14 @@ async function joinBattle() {
 }
 
 async function inviteToParty() {
-    if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
-        const data: PartyInviteRequestData = { userId: props.userId };
-        party.requestInvite(data);
-    } else {
-        party.requestCreateAndInvite(props.userId);
+    try {
+        if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
+            await partyLogic.invite({ userId: props.userId });
+        } else {
+            await partyLogic.createAndInvite(props.userId);
+        }
+    } catch (error) {
+        alertRequestFailure(error, "party/invite");
     }
 }
 
