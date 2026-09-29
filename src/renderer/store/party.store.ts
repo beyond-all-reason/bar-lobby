@@ -18,7 +18,7 @@ import {
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -65,7 +65,10 @@ async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
             parseAllPartyData();
         }
     } catch (error) {
-        console.error("Tachyon error: party/acceptInvite:", error);
+        if (!isTachyonError(error)) {
+            console.error("Tachyon error: party/acceptInvite:", error);
+        }
+
         notificationsApi.alert({ text: "Error with request party/acceptInvite", severity: "error" });
     }
 }
@@ -78,8 +81,7 @@ async function requestCancelInvite(data: PartyCancelInviteRequestData) {
     try {
         const response = await tachyonRequest("party/cancelInvite", data);
         console.log("Tachyon: party/cancelInvite:", response);
-    } catch (error) {
-        console.error("Tachyon error: party/cancelInvite:", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request party/cancelInvite", severity: "error" });
     }
 }
@@ -94,7 +96,10 @@ async function requestCreate() {
         partyStore.parties.set(response.data.party.id, { ...response.data.party, seen: false });
         parseAllPartyData();
     } catch (error) {
-        console.error("Tachyon error: party/create:", error);
+        if (!isTachyonError(error)) {
+            console.error("Tachyon error: party/create:", error);
+        }
+
         notificationsApi.alert({ text: "Error with request party/create", severity: "error" });
     }
 }
@@ -124,7 +129,10 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
         partyStore.parties.delete(data.partyId);
         parseAllPartyData();
     } catch (error) {
-        console.error("Tachyon error: party/declineInvite:", error);
+        if (!isTachyonError(error)) {
+            console.error("Tachyon error: party/declineInvite:", error);
+        }
+
         notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
     }
 }
@@ -138,8 +146,7 @@ async function requestInvite(data: PartyInviteRequestData) {
         const response = await tachyonRequest("party/invite", data);
         console.log("Tachyon: party/invite:", response);
         // Reminder; success is not "user joined party", but is instead "pending invite created".
-    } catch (error) {
-        console.error("Tachyon error: party/invite:", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request party/invite", severity: "error" });
     }
 }
@@ -152,8 +159,7 @@ async function requestKickMember(data: PartyKickMemberRequestData) {
     try {
         const response = await tachyonRequest("party/kickMember", data);
         console.log("Tachyon: party/kickMember:", response);
-    } catch (error) {
-        console.error("Tachyon error: party/kickMember:", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request party/kickMember", severity: "error" });
     }
 }
@@ -168,7 +174,10 @@ async function requestLeave() {
         partyStore.parties.delete(partyStore.activeParty ?? "");
         parseAllPartyData();
     } catch (error) {
-        console.error("Tachyon error: party/leave:", error);
+        if (!isTachyonError(error)) {
+            console.error("Tachyon error: party/leave:", error);
+        }
+
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
     }
 }

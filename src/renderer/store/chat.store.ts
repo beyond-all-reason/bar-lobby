@@ -6,7 +6,7 @@ import { reactive } from "vue";
 import { subsManager } from "@renderer/store/users.store";
 import { HistoryMarker, MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId, PartyId, LobbyId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -77,7 +77,10 @@ async function requestSend(data: MessagingSendRequestData) {
         }
         insertSelfMessage(data);
     } catch (error) {
-        console.error("Error with messaging/send", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with messaging/send", error);
+        }
+
         notificationsApi.alert({ text: "Error with request messaging/send", severity: "error" });
     }
 }
@@ -127,8 +130,7 @@ async function subscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
         if (response.data.hasMissedMessages && request.since?.type === "marker") {
             console.warn("Tachyon messaging/subscribeReceived: could not resume from our marker, chat history has a gap");
         }
-    } catch (error) {
-        console.error("Error with messaging/subscribeReceived", error);
+    } catch {
         scheduleSubscribeRetry(data);
     }
 }
