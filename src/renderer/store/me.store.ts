@@ -14,15 +14,13 @@ import {
     FriendRequestRejectedEventData,
     FriendRequestCancelledEventData,
     FriendRemovedEventData,
-    BattleEndedEventData,
 } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
-import type { BattleHistoryEntry } from "@renderer/model/battleResults";
-import { useBattleResults } from "@renderer/composables/useBattleResults";
+import { clearBattleHistory, recordBattleEnded } from "@renderer/store/battleHistory.store";
 
 export const me = reactive<
     Me & {
@@ -46,9 +44,6 @@ export const me = reactive<
     ignoreUserIds: new Set<string>(),
     permissions: new Set<string>(),
 });
-
-// Kept apart from `me`, which gets written whole into db.users. This only lives for the session.
-export const battleHistory = reactive<BattleHistoryEntry[]>([]);
 
 const friendsSymbol = Symbol("me.store");
 
@@ -90,10 +85,10 @@ async function goOnline() {
 }
 
 async function logout() {
+    clearBattleHistory();
     await tachyon.goOffline();
     await window.auth.logout();
     await syncAuthState();
-    battleHistory.splice(0);
 }
 
 // The same setting picks the websocket and the authorization server, so the
@@ -166,14 +161,6 @@ async function onFriendRequestCancelledEvent(data: FriendRequestCancelledEventDa
 async function onFriendRemovedEvent(data: FriendRemovedEventData) {
     me.friendUserIds.delete(data.from);
     await unsubscribeFromUsers([data.from]);
-}
-
-function onBattleEndedEvent(data: BattleEndedEventData) {
-    if (battleHistory.some((entry) => entry.id === data.battleId)) return;
-
-    const entry: BattleHistoryEntry = { id: data.battleId, receivedAt: Date.now(), data };
-    battleHistory.push(entry);
-    useBattleResults().show(entry, { reveal: true });
 }
 
 // Identity fields survive; they're persisted in db and used while offline.
@@ -306,7 +293,7 @@ export async function initMeStore() {
     window.tachyon.onEvent("friend/requestRejected", onFriendRequestRejectedEvent);
     window.tachyon.onEvent("friend/requestCancelled", onFriendRequestCancelledEvent);
     window.tachyon.onEvent("friend/removed", onFriendRemovedEvent);
-    window.tachyon.onEvent("battle/ended", onBattleEndedEvent);
+    window.tachyon.onEvent("battle/ended", recordBattleEnded);
 
     // Last known, from whenever we were last connected. Absent on a fresh
     // install, in which case the defaults stand in until a socket says otherwise.

@@ -44,8 +44,7 @@ const { openReportUser } = useReportUser();
 const { close: closeResults } = useBattleResults();
 const { maxMembersReached, userInParty, userInvited, inviteToParty } = usePartyInviteState(() => props.userId);
 
-// Participants we have never seen before only reach db.users once the modal's subscription is
-// answered, so this stands in until then and gets replaced when they arrive.
+// Placeholder until the subscription fills db.users.
 const liveUser = useDexieLiveQueryWithDeps([() => props.userId], () => db.users.get(props.userId));
 const user = computed<User>(
     () =>

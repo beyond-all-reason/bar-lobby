@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import crown from "@iconify-icons/mdi/crown";
 import chevronDown from "@iconify-icons/mdi/chevron-down";
@@ -48,7 +48,14 @@ const props = withDefaults(
 
 const { t } = useTypedI18n();
 
-const collapsed = ref(props.collapsible && props.team.defaultCollapsed);
+const collapsed = ref(false);
+watch(
+    () => [props.team, props.collapsible] as const,
+    ([team, collapsible]) => {
+        collapsed.value = collapsible && team.defaultCollapsed;
+    },
+    { immediate: true }
+);
 
 function toggle() {
     if (props.collapsible) collapsed.value = !collapsed.value;

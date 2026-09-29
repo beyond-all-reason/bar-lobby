@@ -2,41 +2,67 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ref, type Ref } from "vue";
+import { ref, watch, type Ref } from "vue";
 import type { BattleEndedEventData } from "tachyon-protocol/types";
-import { Signal } from "$/jaz-ts-utils/signal";
 import type { AllyTeamView, BattleHistoryEntry, BattleResultsLayout, BattleResultsView } from "@renderer/model/battleResults";
+import type { TranslationKey } from "@renderer/i18n";
+import { battleHistory, onBattleRecorded } from "@renderer/store/battleHistory.store";
+import { me } from "@renderer/store/me.store";
+import { subsManager } from "@renderer/store/users.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const isOpen = ref(false);
 const entry = ref<BattleHistoryEntry | null>(null);
 const reveal = ref(false);
 
-// Raised when the results open straight off a battle/ended event rather than being reopened from
-// history, for anything that wants to accompany the reveal animation.
-export const onBattleResultsReveal = new Signal<BattleHistoryEntry>();
+function show(historyEntry: BattleHistoryEntry, options: { reveal?: boolean } = {}) {
+    entry.value = historyEntry;
+    reveal.value = options.reveal ?? false;
+    isOpen.value = true;
+}
+
+function close() {
+    isOpen.value = false;
+    reveal.value = false;
+}
 
 export function useBattleResults() {
     return {
         isOpen: isOpen as Ref<boolean>,
         entry: entry as Ref<BattleHistoryEntry | null>,
         reveal: reveal as Ref<boolean>,
-        show(historyEntry: BattleHistoryEntry, options: { reveal?: boolean } = {}) {
-            entry.value = historyEntry;
-            reveal.value = options.reveal ?? false;
-            isOpen.value = true;
-        },
-        close() {
-            isOpen.value = false;
-            reveal.value = false;
-        },
+        show,
+        close,
     };
 }
+
+onBattleRecorded.add((recorded) => show(recorded, { reveal: true }));
+
+watch(
+    () => entry.value !== null && !battleHistory.includes(entry.value),
+    (removed) => {
+        if (removed) close();
+    },
+    { flush: "sync" }
+);
+
+const subscriptionSymbol = Symbol("useBattleResults");
+
+watch([isOpen, entry], ([open, current]) => {
+    subsManager.clearAllFromList(subscriptionSymbol);
+    if (!open || !current) return;
+
+    const userIds = [...current.data.players, ...current.data.spectators].map((participant) => participant.userId).filter((id) => id !== me.userId);
+    if (userIds.length) subsManager.attach(userIds, subscriptionSymbol);
+});
+
+onWentOffline.add(() => subsManager.clearAllFromList(subscriptionSymbol));
 
 function compareIds(a: string, b: string) {
     return a.localeCompare(b, undefined, { numeric: true });
 }
 
-// Ally team ids are zero based as the engine counts them, which reads oddly as a label.
+// Engine ally teams are zero based.
 export function allyTeamDisplayNumber(id: string): string {
     return /^\d+$/.test(id) ? String(Number(id) + 1) : id;
 }
@@ -82,4 +108,20 @@ export function pickLayout(view: BattleResultsView): BattleResultsLayout {
     if (view.allyTeams.length === 2) return "twoColumn";
     if (view.allyTeams.length === 3) return "threeColumn";
     return "list";
+}
+
+export function battleResultTitleKey(view: BattleResultsView): TranslationKey {
+    if (view.iWon) return "lobby.components.battle.battleResults.victory";
+    if (view.isDraw) return "lobby.components.battle.battleResults.draw";
+    if (view.myAllyTeamId !== undefined) return "lobby.components.battle.battleResults.defeat";
+    return "lobby.components.battle.battleResults.battleEnded";
+}
+
+// Ally team sizes joined as "2v2" or "1v1v1", bots included.
+export function summarizeBattle(data: BattleEndedEventData): { teamSizes: string; bots: number } {
+    const teamSizes = new Map<string, number>();
+    for (const participant of [...data.players, ...data.bots]) {
+        teamSizes.set(participant.allyTeam, (teamSizes.get(participant.allyTeam) ?? 0) + 1);
+    }
+    return { teamSizes: [...teamSizes.values()].join("v"), bots: data.bots.length };
 }

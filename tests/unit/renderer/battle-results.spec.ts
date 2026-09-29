@@ -2,29 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { BattleEndedEventData } from "tachyon-protocol/types";
+import { allyTeamDisplayNumber, battleResultTitleKey, buildBattleResultsView, pickLayout, summarizeBattle } from "@renderer/composables/useBattleResults";
 
-vi.mock("@renderer/store/db", () => ({
-    db: { users: { where: () => ({ first: async () => undefined, modify: async () => undefined }), put: vi.fn() } },
-}));
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
-
-Object.assign(window.tachyon, { disconnect: vi.fn(async () => {}), onConnected: vi.fn() });
-Object.defineProperty(window, "auth", {
-    value: {
-        logout: vi.fn(async () => {}),
-        getState: vi.fn(async () => ({ authenticated: false })),
-        getIdentity: vi.fn(async () => undefined),
-        hasCredentials: vi.fn(async () => false),
-        login: vi.fn(async () => {}),
-        onChanged: vi.fn(),
-    },
-    writable: true,
-});
-
-const { buildBattleResultsView, pickLayout, useBattleResults, allyTeamDisplayNumber } = await import("@renderer/composables/useBattleResults");
-const { battleHistory, initMeStore } = await import("@renderer/store/me.store");
 
 const ME = "me";
 
@@ -63,12 +45,18 @@ describe("buildBattleResultsView", () => {
         expect(view.iWon).toBe(true);
     });
 
-    it("keeps bots apart from and after the players on their ally team", () => {
+    it("keeps bots apart from the players on their ally team", () => {
         const view = buildBattleResultsView(battle({ players: [player("b", "0", "2"), player("a", "0", "1")], bots: [bot("RaptorsAI", "0", "0", "0")], winningAllyTeamIds: ["0"] }), ME);
 
         const [team] = view.allyTeams;
         expect(team.players.map((p) => p.userId)).toEqual(["a", "b"]);
         expect(team.bots.map((b) => b.shortName)).toEqual(["RaptorsAI"]);
+    });
+
+    it("orders bots by team and slot", () => {
+        const view = buildBattleResultsView(battle({ bots: [bot("c", "0", "2", "0"), bot("b", "0", "1", "1"), bot("a", "0", "1", "0")] }), ME);
+
+        expect(view.allyTeams[0].bots.map((b) => b.shortName)).toEqual(["a", "b", "c"]);
     });
 
     it("counts a team made only of bots", () => {
@@ -115,59 +103,59 @@ describe("pickLayout", () => {
         [1, "list"],
         [2, "twoColumn"],
         [3, "threeColumn"],
+        [4, "list"],
         [5, "list"],
     ])("uses the %i team layout %s", (count, layout) => {
         expect(pickLayout(buildBattleResultsView(teams(count), ME))).toBe(layout);
     });
 });
 
-describe("allyTeamDisplayNumber", () => {
-    it("counts from one", () => {
-        expect(allyTeamDisplayNumber("0")).toBe("1");
-        expect(allyTeamDisplayNumber("red")).toBe("red");
+describe("battleResultTitleKey", () => {
+    it("is victory when my team won", () => {
+        const view = buildBattleResultsView(battle({ players: [player(ME, "0"), player("a", "1")], winningAllyTeamIds: ["0"] }), ME);
+
+        expect(battleResultTitleKey(view)).toBe("lobby.components.battle.battleResults.victory");
+    });
+
+    it("is defeat when another team won", () => {
+        const view = buildBattleResultsView(battle({ players: [player(ME, "0"), player("a", "1")], winningAllyTeamIds: ["1"] }), ME);
+
+        expect(battleResultTitleKey(view)).toBe("lobby.components.battle.battleResults.defeat");
+    });
+
+    it("is a draw when nobody won", () => {
+        const view = buildBattleResultsView(battle({ players: [player(ME, "0"), player("a", "1")] }), ME);
+
+        expect(battleResultTitleKey(view)).toBe("lobby.components.battle.battleResults.draw");
+    });
+
+    it("is battle ended when I only watched", () => {
+        const view = buildBattleResultsView(battle({ players: [player("a", "0"), player("b", "1")], spectators: [{ userId: ME, name: ME }], winningAllyTeamIds: ["0"] }), ME);
+
+        expect(battleResultTitleKey(view)).toBe("lobby.components.battle.battleResults.battleEnded");
     });
 });
 
-describe("battle history", () => {
-    let onBattleEnded: (data: BattleEndedEventData) => void;
+describe("summarizeBattle", () => {
+    it("joins the ally team sizes", () => {
+        const summary = summarizeBattle(battle({ players: [player("a", "0"), player("b", "0"), player("c", "1"), player("d", "1")] }));
 
-    beforeAll(async () => {
-        await initMeStore();
-        const call = vi.mocked(window.tachyon.onEvent).mock.calls.find(([command]) => command === "battle/ended");
-        onBattleEnded = call![1] as (data: BattleEndedEventData) => void;
+        expect(summary).toEqual({ teamSizes: "2v2", bots: 0 });
     });
 
-    beforeEach(() => {
-        battleHistory.splice(0);
-        useBattleResults().close();
+    it("counts bots in their team's size and separately", () => {
+        const summary = summarizeBattle(battle({ players: [player("a", "0")], bots: [bot("BARb", "1"), bot("BARb", "1")] }));
+
+        expect(summary).toEqual({ teamSizes: "1v2", bots: 2 });
+    });
+});
+
+describe("allyTeamDisplayNumber", () => {
+    it("counts numeric ids from one", () => {
+        expect(allyTeamDisplayNumber("0")).toBe("1");
     });
 
-    it("records each ended battle in order and reveals the results", () => {
-        onBattleEnded(battle({ battleId: "first" }));
-        onBattleEnded(battle({ battleId: "second" }));
-
-        expect(battleHistory.map((entry) => entry.id)).toEqual(["first", "second"]);
-        const { isOpen, entry, reveal } = useBattleResults();
-        expect(isOpen.value).toBe(true);
-        expect(entry.value?.id).toBe("second");
-        expect(reveal.value).toBe(true);
-    });
-
-    it("ignores the same battle ending twice", () => {
-        onBattleEnded(battle({ battleId: "first" }));
-        onBattleEnded(battle({ battleId: "first" }));
-
-        expect(battleHistory).toHaveLength(1);
-    });
-
-    it("reopens from history without the reveal", () => {
-        onBattleEnded(battle({ battleId: "first" }));
-        const results = useBattleResults();
-        results.close();
-
-        results.show(battleHistory[0]);
-
-        expect(results.isOpen.value).toBe(true);
-        expect(results.reveal.value).toBe(false);
+    it("leaves other ids alone", () => {
+        expect(allyTeamDisplayNumber("red")).toBe("red");
     });
 });

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="layout">
-        <div class="columns">
+        <div class="columns" :style="{ '--columns': columns }">
             <BattleResultsAllyTeam
                 v-for="(team, index) in view.allyTeams"
                 :key="team.id"
@@ -26,6 +26,7 @@ import BattleResultsSpectators from "@renderer/components/battle/results/BattleR
 
 defineProps<{
     view: BattleResultsView;
+    columns: number;
 }>();
 </script>
 
@@ -37,8 +38,8 @@ defineProps<{
 }
 .columns {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+    gap: 15px;
     align-items: start;
 }
 </style>

@@ -28,18 +28,18 @@ SPDX-License-Identifier: MIT
         </Panel>
         <Panel v-if="user && user.userId === me.userId" class="battle-history-panel">
             <h3>{{ t("lobby.views.profile.battleHistory.title") }}</h3>
-            <p v-if="battleHistory.length === 0">{{ t("lobby.views.profile.battleHistory.empty") }}</p>
+            <p v-if="historyRows.length === 0">{{ t("lobby.views.profile.battleHistory.empty") }}</p>
             <div v-else class="battle-history">
                 <div
-                    v-for="entry in battleHistory"
-                    :key="entry.id"
+                    v-for="row in historyRows"
+                    :key="row.entry.id"
                     class="battle-history-entry"
-                    :title="t('lobby.views.profile.battleHistory.viewResults')"
-                    @click="battleResults.show(entry)"
+                    v-tooltip.top="t('lobby.views.profile.battleHistory.viewResults')"
+                    @click="battleResults.show(row.entry)"
                 >
-                    <Icon :icon="crown" height="20" class="crown" :class="{ hidden: !wonBattle(entry) }" />
-                    <span class="time">{{ new Date(entry.receivedAt).toLocaleString() }}</span>
-                    <span class="summary">{{ summarize(entry) }}</span>
+                    <Icon :icon="crown" height="20" class="crown" :class="{ hidden: !row.won }" />
+                    <span class="time">{{ row.time }}</span>
+                    <span class="summary">{{ row.summary }}</span>
                     <Icon :icon="chevronRight" height="20" class="chevron" />
                 </div>
             </div>
@@ -58,32 +58,30 @@ import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import { db } from "@renderer/store/db";
-import { battleHistory, me } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
+import { battleHistory } from "@renderer/store/battleHistory.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { Icon } from "@iconify/vue";
 import crown from "@iconify-icons/mdi/crown";
 import chevronRight from "@iconify-icons/mdi/chevron-right";
-import type { BattleHistoryEntry } from "@renderer/model/battleResults";
-import { useBattleResults } from "@renderer/composables/useBattleResults";
-const { t } = useTypedI18n();
+import { computed } from "vue";
+import { buildBattleResultsView, summarizeBattle, useBattleResults } from "@renderer/composables/useBattleResults";
+const { t, locale } = useTypedI18n();
 const { openReportUser } = useReportUser();
 const battleResults = useBattleResults();
 
-function wonBattle(entry: BattleHistoryEntry) {
-    const myAllyTeam = entry.data.players.find((player) => player.userId === me.userId)?.allyTeam;
-    return myAllyTeam !== undefined && entry.data.winningAllyTeamIds.includes(myAllyTeam);
-}
-
-// Reads like "2v2" or "1v1v1", with any bots counted separately.
-function summarize(entry: BattleHistoryEntry) {
-    const teamSizes = new Map<string, number>();
-    for (const participant of [...entry.data.players, ...entry.data.bots]) {
-        teamSizes.set(participant.allyTeam, (teamSizes.get(participant.allyTeam) ?? 0) + 1);
-    }
-    const sizes = [...teamSizes.values()].join("v");
-    const bots = entry.data.bots.length;
-    return bots ? `${sizes} · ${t("lobby.views.profile.battleHistory.bots", bots)}` : sizes;
-}
+const historyRows = computed(() => {
+    const timeFormat = new Intl.DateTimeFormat(locale.value, { dateStyle: "medium", timeStyle: "short" });
+    return [...battleHistory].reverse().map((entry) => {
+        const { teamSizes, bots } = summarizeBattle(entry.data);
+        return {
+            entry,
+            won: buildBattleResultsView(entry.data, me.userId).iWon,
+            time: timeFormat.format(entry.receivedAt),
+            summary: bots ? `${teamSizes} · ${t("lobby.views.profile.battleHistory.bots", bots)}` : teamSizes,
+        };
+    });
+});
 
 const props = defineProps<{
     userId: string;

@@ -150,12 +150,15 @@ export function isBot(bot: any): bot is Bot {
     return "aiShortName" in bot;
 }
 
+export const RAPTORS_AI = "RaptorsAI";
+export const SCAVENGERS_AI = "ScavengersAI";
+
 export function isRaptor(bot: Bot): boolean {
-    return bot.aiShortName === "RaptorsAI";
+    return bot.aiShortName === RAPTORS_AI;
 }
 
 export function isScavenger(bot: Bot): boolean {
-    return bot.aiShortName === "ScavengersAI";
+    return bot.aiShortName === SCAVENGERS_AI;
 }
 
 export function isScavengerOrRaptor(p: Bot | Player): boolean {
