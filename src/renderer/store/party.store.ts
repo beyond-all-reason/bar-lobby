@@ -78,8 +78,7 @@ async function requestCancelInvite(data: PartyCancelInviteRequestData) {
     try {
         const response = await tachyonRequest("party/cancelInvite", data);
         console.log("Tachyon: party/cancelInvite:", response);
-    } catch (error) {
-        console.error("Tachyon error: party/cancelInvite:", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request party/cancelInvite", severity: "error" });
     }
 }
@@ -138,8 +137,7 @@ async function requestInvite(data: PartyInviteRequestData) {
         const response = await tachyonRequest("party/invite", data);
         console.log("Tachyon: party/invite:", response);
         // Reminder; success is not "user joined party", but is instead "pending invite created".
-    } catch (error) {
-        console.error("Tachyon error: party/invite:", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request party/invite", severity: "error" });
     }
 }
@@ -152,8 +150,7 @@ async function requestKickMember(data: PartyKickMemberRequestData) {
     try {
         const response = await tachyonRequest("party/kickMember", data);
         console.log("Tachyon: party/kickMember:", response);
-    } catch (error) {
-        console.error("Tachyon error: party/kickMember:", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request party/kickMember", severity: "error" });
     }
 }

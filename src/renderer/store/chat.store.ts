@@ -127,8 +127,7 @@ async function subscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
         if (response.data.hasMissedMessages && request.since?.type === "marker") {
             console.warn("Tachyon messaging/subscribeReceived: could not resume from our marker, chat history has a gap");
         }
-    } catch (error) {
-        console.error("Error with messaging/subscribeReceived", error);
+    } catch {
         scheduleSubscribeRetry(data);
     }
 }
