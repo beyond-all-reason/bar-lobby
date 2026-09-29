@@ -57,8 +57,10 @@ function clearParty() {
  */
 async function acceptInvite(data: PartyAcceptInviteRequestData) {
     const previousParty = partyStore.activeParty;
+
     const response = await tachyonRequest("party/acceptInvite", data);
     console.log("Tachyon: party/acceptInvite response:", response);
+
     // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
     // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
     if (previousParty) {
@@ -81,6 +83,7 @@ async function cancelInvite(data: PartyCancelInviteRequestData) {
 async function create() {
     const response = await tachyonRequest("party/create");
     console.log("Tachyon: party/create:", response);
+
     setParty(response.data.party);
 }
 
@@ -100,6 +103,7 @@ async function createAndInvite(userId: UserId) {
 async function declineInvite(data: PartyDeclineInviteRequestData) {
     const response = await tachyonRequest("party/declineInvite", data);
     console.log("Tachyon: party/declineInvite:", response);
+
     // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
     removeParty(data.partyId);
 }
@@ -129,6 +133,7 @@ async function kickMember(data: PartyKickMemberRequestData) {
 async function leave() {
     const response = await tachyonRequest("party/leave");
     console.log("Tachyon: party/leave:", response);
+
     removeParty(partyStore.activeParty ?? "");
 }
 
@@ -141,28 +146,36 @@ function onLogout() {
         // A polite notification to the server, so it isn't awaited and a failure only gets logged by tachyonRequest.
         leave().catch(() => {});
     }
+
     clearParty();
 }
 
 function onInvitedEvent(data: PartyInvitedEventData) {
     console.log("Tachyon: party/invited:", data);
+
     setParty(data.party);
 }
 
 function onRemovedEvent(data: PartyRemovedEventData) {
     console.log("Tachyon: party/removed:", data);
+
     // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     removeParty(data.partyId);
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
     console.log("Tachyon: party/updated:", data);
+
     setParty(data);
 }
 
 // me.store only updates me.userId after an await, so this goes by the id in the event.
 function onUserSelfEvent({ user }: UserSelfEventData) {
     partyUpdates.replaceAll([...(user.party ? [user.party] : []), ...(user.invitedToParties || [])], user.userId);
+
+    // A teiserver session restored from a snapshot comes back with no user subscriptions, so clearing first
+    // makes setList send them again.
+    subsManager.clearAllFromList(partySymbol);
     watchPartyUsers(user.userId);
 }
 

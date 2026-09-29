@@ -92,6 +92,14 @@ describe("party logic", () => {
 
             expect(subsManager.setList).toHaveBeenLastCalledWith(["friend", "host", "stranger"], expect.anything());
         });
+
+        it("clears the watched users before setting them, so their subscriptions get sent again", () => {
+            emitUserSelf("me", makeParty("joined", ["me", "friend"]));
+
+            const [cleared] = vi.mocked(subsManager.clearAllFromList).mock.invocationCallOrder;
+            const [set] = vi.mocked(subsManager.setList).mock.invocationCallOrder;
+            expect(cleared).toBeLessThan(set);
+        });
     });
 
     describe("party events", () => {
@@ -206,13 +214,16 @@ describe("party logic", () => {
         });
 
         it("doesn't let a failed leave on logout escape", async () => {
+            const unhandled = vi.fn();
+            process.on("unhandledRejection", unhandled);
             emit("party/updated", makeParty("joined", ["me"]));
             api.tachyonRequest.mockRejectedValue(new Error("party/leave failed"));
 
             partyLogic.onLogout();
-            await Promise.resolve();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            process.off("unhandledRejection", unhandled);
 
-            expect(partyStore.parties.size).toBe(0);
+            expect(unhandled).not.toHaveBeenCalled();
         });
     });
 });

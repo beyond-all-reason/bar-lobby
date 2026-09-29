@@ -26,7 +26,7 @@ Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable:
 
 const { matchmakingStore, MatchmakingStatus, initializeMatchmakingStore } = await import("@renderer/store/matchmaking.store");
 const { partyStore, partyUpdates, PlayersPartyState } = await import("@renderer/store/party.store");
-const { partyLogic, initPartyLogic } = await import("@renderer/logic/party");
+const { initPartyLogic } = await import("@renderer/logic/party");
 const { lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
 const { tachyon, tachyonStore, initTachyonStore } = await import("@renderer/store/tachyon.store");
@@ -167,11 +167,9 @@ describe("going offline", () => {
         });
 
         it("does not ask the dead socket to leave the party", async () => {
-            const leave = vi.spyOn(partyLogic, "leave");
-
             await tachyon.goOffline();
 
-            expect(leave).not.toHaveBeenCalled();
+            expect(window.tachyon.requestStructured).not.toHaveBeenCalledWith("party/leave");
         });
 
         it("stops wanting a connection so the close is not treated as a fault", async () => {

@@ -48,9 +48,13 @@ function settle(myUserId: UserId) {
     }
 }
 
+function putParty(party: PartyState) {
+    state.parties.set(party.id, { ...party, seen: false });
+}
+
 export const partyUpdates = {
     set(party: PartyState, myUserId: UserId) {
-        state.parties.set(party.id, { ...party, seen: false });
+        putParty(party);
         settle(myUserId);
     },
     remove(partyId: PartyId, myUserId: UserId) {
@@ -60,7 +64,7 @@ export const partyUpdates = {
     replaceAll(parties: PartyState[], myUserId: UserId) {
         state.parties.clear();
         for (const party of parties) {
-            state.parties.set(party.id, { ...party, seen: false });
+            putParty(party);
         }
         settle(myUserId);
     },
