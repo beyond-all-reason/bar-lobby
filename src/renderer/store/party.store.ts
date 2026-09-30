@@ -2,28 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { me } from "@renderer/store/me.store";
-import {
-    PartyInvitedEventData,
-    PartyRemovedEventData,
-    PartyUpdatedEventData,
-    PartyId,
-    PartyAcceptInviteRequestData,
-    PartyCancelInviteRequestData,
-    PartyDeclineInviteRequestData,
-    PartyInviteRequestData,
-    PartyKickMemberRequestData,
-    UserId,
-    PrivateUser,
-} from "tachyon-protocol/types";
-import { reactive } from "vue";
-import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest } from "@renderer/api/tachyon";
+import { PartyId, PartyState, UserId } from "tachyon-protocol/types";
+import { reactive, readonly } from "vue";
 import { Party } from "@renderer/model/party";
-import { subsManager } from "@renderer/store/users.store";
-import { onWentOffline } from "@renderer/utils/offline-signal";
-
-const partySymbol = Symbol("party.store");
 
 export enum PlayersPartyState {
     None = "None",
@@ -32,255 +13,70 @@ export enum PlayersPartyState {
     JoinedAndInvited = "JoinedAndInvited",
 }
 
-export const partyStore: {
-    isInitialized: boolean;
+const state: {
     activeParty: PartyId | undefined;
     parties: Map<PartyId, Party>; //All parties (all invited, and up to one joined)
     state: PlayersPartyState;
 } = reactive({
-    isInitialized: false,
     activeParty: undefined,
     parties: new Map(),
     state: PlayersPartyState.None,
 });
 
-/**
- * Send a Tachyon request to accept a specific pending party invite.
- * Note that if the user is currently in a party, this will also remove them from that first party (on success).
- * @param data Required data payload for this request
- */
-async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
-    let currentParty: PartyId | undefined = undefined;
-    if (partyStore.activeParty) {
-        currentParty = partyStore.activeParty;
-    }
-    try {
-        const response = await tachyonRequest("party/acceptInvite", data);
-        console.log("Tachyon: party/acceptInvite response:", response);
-        // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
-        // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
-        if (currentParty) {
-            partyStore.parties.delete(currentParty);
-            // And unfortunately, because this could arrive *after* the new party/updated event, we have to parse the party data again, just in case.
-            parseAllPartyData();
-        }
-    } catch (error) {
-        console.error("Tachyon error: party/acceptInvite:", error);
-        notificationsApi.alert({ text: "Error with request party/acceptInvite", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request to cancel a pending party invitation for a specific user
- * @param data Required data payload for this request
- */
-async function requestCancelInvite(data: PartyCancelInviteRequestData) {
-    try {
-        const response = await tachyonRequest("party/cancelInvite", data);
-        console.log("Tachyon: party/cancelInvite:", response);
-    } catch (error) {
-        console.error("Tachyon error: party/cancelInvite:", error);
-        notificationsApi.alert({ text: "Error with request party/cancelInvite", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request to create a new party with only the requestee in it.
- */
-async function requestCreate() {
-    try {
-        const response = await tachyonRequest("party/create");
-        console.log("Tachyon: party/create:", response);
-        partyStore.parties.set(response.data.party.id, { ...response.data.party, seen: false });
-        parseAllPartyData();
-    } catch (error) {
-        console.error("Tachyon error: party/create:", error);
-        notificationsApi.alert({ text: "Error with request party/create", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request to create a new party and then invite a specific user to it immediately afterward.
- * @param userId The user to request the invite for
- */
-async function requestCreateAndInvite(userId: UserId) {
-    try {
-        await requestCreate().then(async () => await requestInvite({ userId: userId }));
-    } catch (error) {
-        console.error("Tachyon error: party/createAndInvite:", error);
-        notificationsApi.alert({ text: "Error with request party/createAndInvite", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request to decline a specific pending party invite.
- * @param data Required data payload for this request
- */
-async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
-    try {
-        const response = await tachyonRequest("party/declineInvite", data);
-        console.log("Tachyon: party/declineInvite:", response);
-        // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
-        partyStore.parties.delete(data.partyId);
-        parseAllPartyData();
-    } catch (error) {
-        console.error("Tachyon error: party/declineInvite:", error);
-        notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request to create a pending party invite for a specific user
- * @param data Required data payload for this request
- */
-async function requestInvite(data: PartyInviteRequestData) {
-    try {
-        const response = await tachyonRequest("party/invite", data);
-        console.log("Tachyon: party/invite:", response);
-        // Reminder; success is not "user joined party", but is instead "pending invite created".
-    } catch (error) {
-        console.error("Tachyon error: party/invite:", error);
-        notificationsApi.alert({ text: "Error with request party/invite", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request to remove a specific user from the current party
- * @param data Required data payload for this request
- */
-async function requestKickMember(data: PartyKickMemberRequestData) {
-    try {
-        const response = await tachyonRequest("party/kickMember", data);
-        console.log("Tachyon: party/kickMember:", response);
-    } catch (error) {
-        console.error("Tachyon error: party/kickMember:", error);
-        notificationsApi.alert({ text: "Error with request party/kickMember", severity: "error" });
-    }
-}
-
-/**
- * Send a Tachyon request for the user to remove themselves from their active party
- */
-async function requestLeave() {
-    try {
-        const response = await tachyonRequest("party/leave");
-        console.log("Tachyon: party/leave:", response);
-        partyStore.parties.delete(partyStore.activeParty ?? "");
-        parseAllPartyData();
-    } catch (error) {
-        console.error("Tachyon error: party/leave:", error);
-        notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
-    }
-}
-
-function onInvitedEvent(data: PartyInvitedEventData) {
-    console.log("Tachyon: party/invited:", data);
-    partyStore.parties.set(data.party.id, { ...data.party, seen: false });
-    parseAllPartyData();
-}
-
-function onRemovedEvent(data: PartyRemovedEventData) {
-    console.log("Tachyon: party/removed:", data);
-    // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
-    partyStore.parties.delete(data.partyId);
-    parseAllPartyData();
-}
-
-function onUpdatedEvent(data: PartyUpdatedEventData) {
-    console.log("Tachyon: party/updated:", data);
-    partyStore.parties.set(data.id, { ...data, seen: false });
-    parseAllPartyData();
-}
-
-function onUserSelfEventParty({ party, invites }: { party: PrivateUser["party"]; invites: PrivateUser["invitedToParties"] }) {
-    if (party && party.id === partyStore.activeParty) {
-        // This is the only case where we want to preserve the chat history, so we keep activeParty
-        // The rest will be reset by parseAllPartyData().
-        subsManager.clearAllFromList(partySymbol);
-        partyStore.parties.clear();
-        partyStore.state = PlayersPartyState.None;
-    } else {
-        clearOnlineState();
-    }
-    const allParties = [...(party ? [party] : []), ...(invites || [])];
-    for (const partyState of allParties) {
-        partyStore.parties.set(partyState.id, { ...partyState, seen: false });
-    }
-    parseAllPartyData();
-}
+export const partyStore = readonly(state);
 
 // We might be invited, or member, have to check to know.
-function parseAllPartyData() {
+function settle(myUserId: UserId) {
     // Reset active party in case we are no longer in a party.
-    partyStore.activeParty = undefined;
-    const bools = {
-        joined: false,
-        invited: false,
-    };
-    const users: Array<UserId> = [];
-    partyStore.parties.forEach((party) => {
-        for (const member of party.members) {
-            if (member.userId === me.userId) {
-                bools.joined = true;
-                partyStore.activeParty = party.id;
-            } else users.push(member.userId);
+    state.activeParty = undefined;
+    let joined = false;
+    let invited = false;
+    for (const party of state.parties.values()) {
+        if (party.members.some((member) => member.userId === myUserId)) {
+            joined = true;
+            state.activeParty = party.id;
         }
-        for (const invitee of party.invited) {
-            if (invitee.userId === me.userId) {
-                bools.invited = true;
-            } else users.push(invitee.userId);
+        if (party.invited.some((invitee) => invitee.userId === myUserId)) {
+            invited = true;
         }
-    });
-    subsManager.setList(users, partySymbol);
-
-    if (bools.joined) {
-        if (bools.invited) {
-            partyStore.state = PlayersPartyState.JoinedAndInvited;
-        } else partyStore.state = PlayersPartyState.JoinedOnly;
-    } else if (bools.invited) {
-        partyStore.state = PlayersPartyState.InvitedOnly;
-    } else partyStore.state = PlayersPartyState.None;
-}
-
-export function clearOnlineState() {
-    subsManager.clearAllFromList(partySymbol);
-    partyStore.activeParty = undefined;
-    partyStore.parties.clear();
-    partyStore.state = PlayersPartyState.None;
-}
-
-export function onLogout() {
-    if (partyStore.activeParty) {
-        // We don't await this request because it's just a polite notification to the server, and we don't want to block the logout process.
-        requestLeave();
-    }
-    clearOnlineState();
-}
-
-export async function initPartyStore() {
-    if (partyStore.isInitialized) {
-        console.warn("Party store is already initialized. Skipping initialization.");
-        return;
     }
 
-    onWentOffline.add(clearOnlineState);
-    window.tachyon.onEvent("party/invited", onInvitedEvent);
-    window.tachyon.onEvent("party/removed", onRemovedEvent);
-    window.tachyon.onEvent("party/updated", onUpdatedEvent);
-    window.tachyon.onEvent("user/self", (data) => onUserSelfEventParty({ party: data.user.party, invites: data.user.invitedToParties }));
-
-    partyStore.isInitialized = true;
+    if (joined) {
+        state.state = invited ? PlayersPartyState.JoinedAndInvited : PlayersPartyState.JoinedOnly;
+    } else {
+        state.state = invited ? PlayersPartyState.InvitedOnly : PlayersPartyState.None;
+    }
 }
 
-export const party = {
-    requestAcceptInvite,
-    requestCancelInvite,
-    requestCreate,
-    requestCreateAndInvite,
-    requestDeclineInvite,
-    requestInvite,
-    requestKickMember,
-    requestLeave,
-    onLogout,
-    clearOnlineState,
+function putParty(party: PartyState) {
+    state.parties.set(party.id, { ...party, seen: false });
+}
+
+export const partyUpdates = {
+    set(party: PartyState, myUserId: UserId) {
+        putParty(party);
+        settle(myUserId);
+    },
+    remove(partyId: PartyId, myUserId: UserId) {
+        state.parties.delete(partyId);
+        settle(myUserId);
+    },
+    replaceAll(parties: PartyState[], myUserId: UserId) {
+        state.parties.clear();
+        for (const party of parties) {
+            putParty(party);
+        }
+        settle(myUserId);
+    },
+    markSeen(partyId: PartyId) {
+        const party = state.parties.get(partyId);
+        if (party) {
+            party.seen = true;
+        }
+    },
+    clear() {
+        state.activeParty = undefined;
+        state.parties.clear();
+        state.state = PlayersPartyState.None;
+    },
 };

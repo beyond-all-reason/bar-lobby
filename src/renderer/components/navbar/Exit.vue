@@ -28,7 +28,7 @@ import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
-import { party } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
 const { t } = useTypedI18n();
 
 const router = useRouter();
@@ -48,13 +48,13 @@ async function login() {
 async function logout() {
     modal.value?.close();
 
-    party.onLogout();
+    partyLogic.onLogout();
     await auth.logout();
     await router.push("/");
 }
 
 async function quitToDesktop() {
-    party.onLogout();
+    partyLogic.onLogout();
     window.close();
 }
 </script>

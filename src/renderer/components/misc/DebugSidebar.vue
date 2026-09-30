@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
         <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
         <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
-        <Button @click="party.requestCreate"> {{ t("lobby.components.misc.debugSidebar.createParty") }} </Button>
+        <Button @click="createParty"> {{ t("lobby.components.misc.debugSidebar.createParty") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
@@ -70,7 +70,8 @@ import { enginesStore, installedEngineVersions, selectEngineVersion } from "@ren
 import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
-import { party } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 import { shellApi } from "@renderer/api/shell";
 const { t } = useTypedI18n();
 
@@ -118,6 +119,14 @@ function openStartScript() {
 
 function openSyncLobbyContentTool() {
     syncLobbyContentToolOpen.value = true;
+}
+
+async function createParty() {
+    try {
+        await partyLogic.create();
+    } catch (error) {
+        alertRequestFailure(error, "party/create");
+    }
 }
 
 function causeError() {

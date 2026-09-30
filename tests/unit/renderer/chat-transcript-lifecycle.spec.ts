@@ -19,7 +19,8 @@ Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable:
 
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
-const { partyStore, initPartyStore } = await import("@renderer/store/party.store");
+const { partyUpdates } = await import("@renderer/store/party.store");
+const { initPartyLogic } = await import("@renderer/logic/party");
 const { me } = await import("@renderer/store/me.store");
 
 const emit = (command: string, data: unknown) => handlers.get(command)?.(data);
@@ -34,7 +35,7 @@ const partyPayload = (id: string) => ({ id, members: [{ userId: me.userId }], in
 describe("chat transcript lifecycle", () => {
     beforeAll(async () => {
         me.userId = "1";
-        await Promise.all([initChatStore(), initLobbyStore(), initPartyStore()]);
+        await Promise.all([initChatStore(), initLobbyStore(), initPartyLogic()]);
     });
 
     beforeEach(() => {
@@ -43,8 +44,7 @@ describe("chat transcript lifecycle", () => {
         chatStore.partyChats.clear();
         chatStore.partyChats.set("party-1", [{ message: "said in the last party" } as never]);
         lobbyStore.activeLobby = undefined;
-        partyStore.parties.clear();
-        partyStore.activeParty = undefined;
+        partyUpdates.clear();
         vi.mocked(window.tachyon.requestStructured).mockReset();
     });
 

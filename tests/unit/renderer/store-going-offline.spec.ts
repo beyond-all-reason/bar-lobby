@@ -25,7 +25,8 @@ Object.assign(window.tachyon, {
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { matchmakingStore, MatchmakingStatus, initializeMatchmakingStore } = await import("@renderer/store/matchmaking.store");
-const { partyStore, party, PlayersPartyState, initPartyStore } = await import("@renderer/store/party.store");
+const { partyStore, partyUpdates, PlayersPartyState } = await import("@renderer/store/party.store");
+const { initPartyLogic } = await import("@renderer/logic/party");
 const { lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
 const { tachyon, tachyonStore, initTachyonStore } = await import("@renderer/store/tachyon.store");
@@ -40,9 +41,7 @@ function populateOnlineState() {
     matchmakingStore.selectedQueue = "2v2";
     matchmakingStore.downloadsRequired = { "2v2": { engines: [], games: [], maps: ["somemap"] } };
 
-    partyStore.activeParty = "party-1";
-    partyStore.state = PlayersPartyState.JoinedOnly;
-    partyStore.parties.set("party-1", { id: "party-1", members: [], invited: [], seen: true } as never);
+    partyUpdates.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
 
     lobbyStore.lobbies = { "lobby-1": { id: "lobby-1" } as never };
     lobbyStore.selectedLobby = { id: "lobby-1" } as never;
@@ -56,7 +55,7 @@ function populateOnlineState() {
 
 describe("going offline", () => {
     beforeAll(async () => {
-        await Promise.all([initPartyStore(), initLobbyStore(), initializeMatchmakingStore(), initChatStore(), initTachyonStore()]);
+        await Promise.all([initPartyLogic(), initLobbyStore(), initializeMatchmakingStore(), initChatStore(), initTachyonStore()]);
     });
 
     beforeEach(() => {
@@ -168,11 +167,9 @@ describe("going offline", () => {
         });
 
         it("does not ask the dead socket to leave the party", async () => {
-            const requestLeave = vi.spyOn(party, "requestLeave");
-
             await tachyon.goOffline();
 
-            expect(requestLeave).not.toHaveBeenCalled();
+            expect(window.tachyon.requestStructured).not.toHaveBeenCalledWith("party/leave");
         });
 
         it("stops wanting a connection so the close is not treated as a fault", async () => {
