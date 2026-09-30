@@ -23,11 +23,7 @@ SPDX-License-Identifier: MIT
                 <div class="host-layout">
                     <div class="host-left">
                         <div class="options">
-                            <EditableMapBattlePreview
-                                :map="draftMap"
-                                :map-options="draftMapOptions"
-                                @update:map-options="onMapOptionsUpdated"
-                            />
+                            <MapBattlePreview :map="draftMap" :map-options="draftMapOptions" :arrangement="previewArrangement" />
                             <div class="flex-row flex-space-between">
                                 <div class="flex-row gap-lg flex-center-items">
                                     <div class="flex-row flex-center-items gap-sm">
@@ -46,9 +42,6 @@ SPDX-License-Identifier: MIT
                         </div>
                         <div class="host-form">
                             <Textbox v-model="lobbyName" :label="t('lobby.components.battle.hostBattle.name')" />
-                            <p>{{ t("lobby.components.battle.hostBattle.startBoxes1") }}</p>
-                            <p>{{ t("lobby.components.battle.hostBattle.startBoxes2") }}</p>
-                            <p>{{ t("lobby.components.battle.hostBattle.startBoxes3") }}</p>
                             <div class="flex-row gap-sm margin-sm">
                                 <p>
                                     <b>{{ t("lobby.components.battle.hostBattle.allyTeamCount") }}</b>
@@ -90,32 +83,7 @@ SPDX-License-Identifier: MIT
                         </div>
                     </div>
                     <div class="host-options">
-                        <div v-if="draftMap?.startboxesSet" class="box-buttons">
-                            <Button
-                                v-for="(boxSet, index) in draftMap.startboxesSet"
-                                :key="index"
-                                @click="setPresetStartBoxes(index)"
-                                :disabled="draftMapOptions.startBoxesIndex === index"
-                            >
-                                <span>{{ index + 1 }}</span>
-                            </Button>
-                        </div>
-                        <div class="box-buttons">
-                            <Button @click="setCustomStartBoxes(StartBoxOrientation.EastVsWest)">
-                                <img src="/src/renderer/assets/images/icons/east-vs-west.png" />
-                            </Button>
-                            <Button @click="setCustomStartBoxes(StartBoxOrientation.NorthVsSouth)">
-                                <img src="/src/renderer/assets/images/icons/north-vs-south.png" />
-                            </Button>
-                            <Button @click="setCustomStartBoxes(StartBoxOrientation.NortheastVsSouthwest)">
-                                <img src="/src/renderer/assets/images/icons/northeast-vs-southwest.png" />
-                            </Button>
-                            <Button @click="setCustomStartBoxes(StartBoxOrientation.NorthwestVsSoutheast)">
-                                <img src="/src/renderer/assets/images/icons/northwest-vs-southeast.png" />
-                            </Button>
-                        </div>
-                        <Range v-model="customBoxRange" :min="5" :max="100" :step="5" :disabled="lastSelectedCustomPresetBoxes === null" />
-                        <div v-if="hasCustomStartBoxes" class="ally-team-list flex-col gap-sm">
+                        <div class="ally-team-list flex-col gap-sm">
                             <div v-for="(teamBox, teamBoxId) in teamBoxes" :key="`delete-box-${teamBoxId}`">
                                 <Button
                                     :disabled="!canDeleteTeamBox(teamBox)"
@@ -136,13 +104,6 @@ SPDX-License-Identifier: MIT
                                 {{ t("lobby.components.battle.mapOptionsModal.addTeam") }}
                             </Button>
                         </div>
-                        <Button
-                            v-else-if="draftMapOptions.startBoxesIndex !== undefined"
-                            class="fullwidth"
-                            @click="setCustomBoxesFromPresetBoxes"
-                        >
-                            {{ t("lobby.components.battle.mapOptionsModal.editPresetTeams") }}
-                        </Button>
                         <div v-if="draftMap?.startPos" class="box-buttons">
                             <Button
                                 v-for="(teamSet, index) in draftMap.startPos.team"
@@ -221,7 +182,6 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
-import Range from "@renderer/components/controls/Range.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { lobby } from "@renderer/store/lobby.store";
@@ -239,13 +199,14 @@ import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import { battleStore } from "@renderer/store/battle.store";
-import EditableMapBattlePreview from "@renderer/components/maps/EditableMapBattlePreview.vue";
+import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { createLobbySettingsDraft, useLobbySettingsDraft } from "@renderer/composables/useLobbySettingsDraft";
-import { BattleOptions, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
+import { BattleOptions, StartPosType, Team } from "@main/game/battle/battle-types";
 import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
-import { getBoxes } from "@renderer/utils/start-boxes";
+import { resolveLobbyArrangement } from "@renderer/utils/lobby-startboxes";
 import { StartBox } from "tachyon-protocol/types";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
+import { startboxesSetByTeamCount } from "@shared/startbox-modoptions";
 
 const { t } = useTypedI18n();
 const props = withDefaults(defineProps<{ mode?: "create" | "update"; activeLobby?: Lobby }>(), { mode: "create" });
@@ -282,19 +243,19 @@ const playersPerAllyTeam = computed({
 const draftMap = computed(() => draft.value?.map);
 const draftMapOptions = computed<BattleOptions["mapOptions"]>(() => draft.value?.mapOptions ?? battleStore.battleOptions.mapOptions);
 const draftTeams = computed<Team[]>(() => draft.value?.allyTeamConfig.map(() => ({ participants: [] })) ?? []);
-const customBoxRange = ref(25);
-const lastSelectedCustomPresetBoxes = ref<StartBoxOrientation | null>(null);
 const teamBoxes = computed<Array<StartBox & Team>>(() => {
     const boxes = getCurrentStartBoxes(draftMap.value, draftMapOptions.value);
     return boxes.map((box, index) => ({ ...(draftTeams.value[index] ?? { participants: [] }), ...box }));
 });
-const hasCustomStartBoxes = computed(
-    () => draftMapOptions.value.customStartBoxes !== undefined && draftMapOptions.value.startBoxesIndex === undefined
-);
 const canDeleteTeamBox = (teamBox: StartBox & Team) => teamBoxes.value.length >= 3 && teamBox.participants.length === 0;
+const previewArrangement = computed(() => {
+    const set = draftMap.value?.startboxesSet?.length ? startboxesSetByTeamCount(draftMap.value.startboxesSet) : undefined;
+    const override =
+        props.mode === "update" && draft.value?.mapName === props.activeLobby?.mapName
+            ? props.activeLobby?.startboxes?.override
+            : undefined;
 
-watch(customBoxRange, () => {
-    if (lastSelectedCustomPresetBoxes.value !== null) setCustomStartBoxes(lastSelectedCustomPresetBoxes.value);
+    return resolveLobbyArrangement({ override, set }, draft.value?.allyTeamConfig.length ?? 0) ?? { startboxes: [] };
 });
 const canSubmit = computed(
     () =>
@@ -337,11 +298,11 @@ async function hostBattle() {
     if (!draft.value) return;
     if (props.mode === "update" && settingsDraft.dirtyFields.value.size === 0) return;
     if (props.mode === "update") {
-        const payload = settingsDraft.updatePayload();
+        const payload = await settingsDraft.updatePayload();
         if (hostLobbyModal.value) hostLobbyModal.value.close();
         lobby.requestLobbyUpdate(payload);
     } else {
-        const payload = settingsDraft.createPayload();
+        const payload = await settingsDraft.createPayload();
         if (hostLobbyModal.value) hostLobbyModal.value.close();
         lobby.requestCreateLobby(payload);
     }
@@ -403,28 +364,7 @@ function onRemoveTeam(teamId: number) {
     settingsDraft.removeAllyTeam(teamId);
 }
 
-function setPresetStartBoxes(startBoxIndex: number) {
-    lastSelectedCustomPresetBoxes.value = null;
-    onMapOptionsUpdated({
-        ...draftMapOptions.value,
-        fixedPositionsIndex: undefined,
-        startPosType: StartPosType.Boxes,
-        startBoxesIndex: startBoxIndex,
-    });
-}
-
-function setCustomStartBoxes(orientation: StartBoxOrientation) {
-    lastSelectedCustomPresetBoxes.value = orientation;
-    onMapOptionsUpdated({
-        ...draftMapOptions.value,
-        startBoxesIndex: undefined,
-        startPosType: StartPosType.Boxes,
-        customStartBoxes: getBoxes(orientation, customBoxRange.value),
-    });
-}
-
 function setFixedStartBoxes(index: number) {
-    lastSelectedCustomPresetBoxes.value = null;
     onMapOptionsUpdated({
         ...draftMapOptions.value,
         startBoxesIndex: undefined,
@@ -434,21 +374,11 @@ function setFixedStartBoxes(index: number) {
 }
 
 function setRandomStartBoxes() {
-    lastSelectedCustomPresetBoxes.value = null;
     onMapOptionsUpdated({
         ...draftMapOptions.value,
         startBoxesIndex: undefined,
         fixedPositionsIndex: undefined,
         startPosType: StartPosType.Random,
-    });
-}
-
-function setCustomBoxesFromPresetBoxes() {
-    if (draftMapOptions.value.startBoxesIndex === undefined) return;
-    onMapOptionsUpdated({
-        ...draftMapOptions.value,
-        startBoxesIndex: undefined,
-        customStartBoxes: getCurrentStartBoxes(draftMap.value, draftMapOptions.value),
     });
 }
 

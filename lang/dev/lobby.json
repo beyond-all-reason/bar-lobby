@@ -199,7 +199,8 @@
                     "gameVersion": "Gmae Vosiren",
                     "engineVersion": "Egnnie Vosiren",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Canont strat: olny {boxed} of {teams} ally tmaes hvae a strat box."
                 }
             }
         },
@@ -476,7 +477,17 @@
                     "fixedPositions": "Fiexd piooitsns",
                     "random": "Rdoanm",
                     "close": "Csole",
-                    "openMapSelector": "Oepn map seteoclr"
+                    "openMapSelector": "Oepn map seteoclr",
+                    "startboxOverride": "Strat box odverrie",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "Teshe strat bxeos culod not be raed."
+                },
+                "startBoxesModal": {
+                    "title": "Strat Beoxs",
+                    "mapDefault": "Map dfauelt",
+                    "editAsRectangles": "Eidt as rcnaelegts",
+                    "cancel": "Ceancl",
+                    "apply": "Apply"
                 },
                 "hostBattle": {
                     "title": "Hsot Blatte",
@@ -485,9 +496,6 @@
                     "hostButton": "Hsot Blatte",
                     "updateButton": "Uadpte Blatte",
                     "name": "Name",
-                    "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
-                    "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
-                    "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
                     "map": "Map",

@@ -36,6 +36,7 @@ import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { decodeLobbyStartboxes } from "@renderer/utils/lobby-startboxes";
 
 const lobbySymbol = Symbol("lobby.store");
 
@@ -301,6 +302,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             battleStore.battleOptions.map = map;
         });
     }
+    if (data.gameOptions) {
+        refreshLobbyStartboxes();
+    }
     if (data.allyTeamConfig) {
         // TODO: we shouldn't have to reset the startboxes like this, but since the player can go into a skirmish
         // setup, and mess with battleStore/Options, we're going to do this here anyway. Later, we want to make
@@ -328,6 +332,19 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     // Manage our User subscriptions after updated/joined/created
     subsManager.setList([...Object.keys(lobbyStore.activeLobby.players), ...Object.keys(lobbyStore.activeLobby.spectators)], lobbySymbol);
     return;
+}
+
+let startboxesDecode = 0;
+
+async function refreshLobbyStartboxes() {
+    const lobby = lobbyStore.activeLobby;
+    if (!lobby) return;
+
+    const decode = ++startboxesDecode;
+    const startboxes = await decodeLobbyStartboxes(lobby.gameOptions);
+    if (decode === startboxesDecode && lobbyStore.activeLobby?.id === lobby.id) {
+        lobbyStore.activeLobby.startboxes = startboxes;
+    }
 }
 
 /**

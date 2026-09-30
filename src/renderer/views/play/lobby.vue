@@ -11,8 +11,12 @@ SPDX-License-Identifier: MIT
 <template>
     <Panel>
         <div class="flex flex-row">
-            <Button @click="startGame()" class="green" :disabled="isMapNeeded">Start Game</Button>
+            <div v-tooltip.bottom="startBlockedReason" class="start-game">
+                <Button @click="startGame()" class="green" :disabled="isMapNeeded || !!startBlockedReason">Start Game</Button>
+            </div>
             <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
+            <Button v-if="lobbyStore.activeLobby" @click="startBoxesModalIsOpen = true" class="blue">Edit Start Boxes</Button>
+            <StartBoxesModal v-if="lobbyStore.activeLobby" v-model="startBoxesModalIsOpen" :map="map" />
             <Button @click="joinQueue()" class="green">Join Queue</Button>
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
             <Button @click="updateReadiness(true)" class="green">Ready</Button>
@@ -44,7 +48,7 @@ SPDX-License-Identifier: MIT
                 <template #chat><ChatPanel type="lobby" :id="lobbyStore.activeLobby?.id" /></template>
                 <template #map-and-options>
                     <div class="options">
-                        <MapBattlePreview :map="map" :map-options="mapOptions" />
+                        <MapBattlePreview :map="map" :map-options="mapOptions" :arrangement="arrangement" />
                         <div class="flex-row flex-space-between">
                             <div class="flex-row gap-lg flex-center-items">
                                 <div class="flex-row flex-center-items gap-sm">
@@ -159,10 +163,13 @@ import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { useTypedI18n } from "@renderer/i18n";
 import Select from "@renderer/components/controls/Select.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import StartBoxesModal from "@renderer/components/battle/StartBoxesModal.vue";
 import VotePanel from "@renderer/components/battle/VotePanel.vue";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
+import { resolveLobbyArrangement, startboxShortfall } from "@renderer/utils/lobby-startboxes";
 
 const editLobbyModalIsOpen = ref(false);
+const startBoxesModalIsOpen = ref(false);
 
 const switchTemplate = ref(false);
 
@@ -213,14 +220,15 @@ const gameListOptions = computed(() => {
 
 const map = useLobbyMap();
 
-const mapOptions = computed(() => ({
-    startPosType: StartPosType.Boxes,
-    customStartBoxes: lobbyStore.activeLobby
-        ? Object.keys(lobbyStore.activeLobby.allyTeamConfig)
-              .sort((a, b) => Number(a) - Number(b))
-              .map((key) => lobbyStore.activeLobby!.allyTeamConfig[key].startBox)
-        : [],
-}));
+const mapOptions = { startPosType: StartPosType.Boxes };
+
+const allyTeamCount = computed(() => Object.keys(lobbyStore.activeLobby?.allyTeamConfig ?? {}).length);
+const arrangement = computed(() => resolveLobbyArrangement(lobbyStore.activeLobby?.startboxes, allyTeamCount.value) ?? { startboxes: [] });
+const startBlockedReason = computed(() => {
+    const shortfall = startboxShortfall(lobbyStore.activeLobby?.startboxes, allyTeamCount.value);
+
+    return shortfall && t("lobby.multiplayer.custom.lobby.startBoxShortfall", { boxed: shortfall.boxed, teams: shortfall.teams });
+});
 
 async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
@@ -240,6 +248,9 @@ async function onGameSelected(gameVersion: string) {
 }
 .datagridstripe {
     background-color: #00000033;
+}
+.start-game {
+    display: flex;
 }
 .options {
     display: flex;

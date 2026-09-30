@@ -4035,7 +4035,8 @@
                     "gameVersion": null,
                     "engineVersion": null,
                     "maps": null,
-                    "map": null
+                    "map": null,
+                    "startBoxShortfall": null
                 }
             }
         },
@@ -4312,7 +4313,17 @@
                     "fixedPositions": null,
                     "random": null,
                     "close": null,
-                    "openMapSelector": null
+                    "openMapSelector": null,
+                    "startboxOverride": null,
+                    "applyStartboxOverride": null,
+                    "unreadableStartboxOverride": null
+                },
+                "startBoxesModal": {
+                    "title": null,
+                    "mapDefault": null,
+                    "editAsRectangles": null,
+                    "cancel": null,
+                    "apply": null
                 },
                 "hostBattle": {
                     "title": null,
@@ -4321,9 +4332,6 @@
                     "hostButton": null,
                     "updateButton": null,
                     "name": null,
-                    "startBoxes1": null,
-                    "startBoxes2": null,
-                    "startBoxes3": null,
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
                     "map": null,

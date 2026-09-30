@@ -7,6 +7,7 @@ import { MapData } from "@main/content/maps/map-data";
 import { createLobbySettingsDraft, useLobbySettingsDraft } from "@renderer/composables/useLobbySettingsDraft";
 import { Lobby } from "@renderer/model/lobby";
 import { getCurrentStartBoxes } from "@renderer/utils/battle-map-options";
+import { decodeModoptionValue, rectsToArrangement } from "@shared/startbox-modoptions";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { reactive, toRaw } from "vue";
 
@@ -51,14 +52,14 @@ function expectBoxesInSync(settingsDraft: ReturnType<typeof useLobbySettingsDraf
 describe("useLobbySettingsDraft", () => {
     afterEach(() => vi.restoreAllMocks());
 
-    it("creates an isolated complete create payload", () => {
+    it("creates an isolated complete create payload", async () => {
         const initial = createLobbySettingsDraft("New Lobby", map, mapOptions, 2, 1, boxes);
         const draft = useLobbySettingsDraft();
 
         draft.openCreate(initial);
         initial.name = "Changed outside draft";
 
-        expect(draft.createPayload()).toEqual({
+        expect(await draft.createPayload()).toEqual({
             name: "New Lobby",
             mapName: "Test Map",
             areBossesEnabled: false,
@@ -66,37 +67,39 @@ describe("useLobbySettingsDraft", () => {
                 { maxTeams: 1, startBox: boxes[0], teams: [{ maxPlayers: 1 }] },
                 { maxTeams: 1, startBox: boxes[1], teams: [{ maxPlayers: 1 }] },
             ],
+            gameOptions: {},
         });
         expectBoxesInSync(draft);
     });
 
-    it("creates a dirty-only update payload", () => {
+    it("creates a dirty-only update payload", async () => {
         const draft = useLobbySettingsDraft();
         draft.openUpdate(createLobby(), map);
         draft.updateDraft({ name: "Renamed Lobby" });
 
-        expect(draft.updatePayload()).toEqual({ name: "Renamed Lobby" });
+        expect(await draft.updatePayload()).toEqual({ name: "Renamed Lobby" });
         expect(draft.dirtyFields.value).toEqual(new Set(["name"]));
     });
 
-    it("creates no update payload when the draft is unchanged", () => {
+    it("creates no update payload when the draft is unchanged", async () => {
         const draft = useLobbySettingsDraft();
         draft.openUpdate(createLobby(), map);
 
         expect(draft.dirtyFields.value).toEqual(new Set());
-        expect(draft.updatePayload()).toEqual({});
+        expect(await draft.updatePayload()).toEqual({});
     });
 
-    it("includes map and ally-team changes in the same update payload", () => {
+    it("includes map and ally-team changes in the same update payload, leaving start box options to the map change", async () => {
         const draft = useLobbySettingsDraft();
         draft.openUpdate(createLobby(), map);
         draft.setMap({ springName: "Updated Map" } as MapData);
         draft.setTeamCounts(3, 1);
 
-        const payload = draft.updatePayload();
+        const payload = await draft.updatePayload();
 
         expect(payload.mapName).toBe("Updated Map");
         expect(payload.allyTeamConfig).toHaveLength(3);
+        expect(payload.gameOptions).toBeUndefined();
         expect(draft.dirtyFields.value).toEqual(new Set(["mapName", "allyTeamConfig"]));
     });
 
@@ -180,7 +183,7 @@ describe("useLobbySettingsDraft", () => {
         expect(draft.draft.value?.mapOptions.customStartBoxes).toEqual(boxes);
     });
 
-    it("updates preview and payload boxes atomically for custom edits", () => {
+    it("updates preview and payload boxes atomically for custom edits", async () => {
         const draft = useLobbySettingsDraft();
         draft.openCreate(createLobbySettingsDraft("New Lobby", map, mapOptions, 2, 1, boxes));
         const editedBoxes = [
@@ -191,7 +194,7 @@ describe("useLobbySettingsDraft", () => {
         draft.setCustomStartBoxes(editedBoxes);
 
         expectBoxesInSync(draft);
-        expect(draft.createPayload().allyTeamConfig.map((allyTeam) => allyTeam.startBox)).toEqual(editedBoxes);
+        expect((await draft.createPayload()).allyTeamConfig.map((allyTeam) => allyTeam.startBox)).toEqual(editedBoxes);
     });
 
     it("preserves a map preview Blob when opening a create draft", () => {
@@ -375,6 +378,27 @@ describe("useLobbySettingsDraft", () => {
         expectBoxesInSync(draft);
     });
 
+    it("takes the team count from the new map's preset when switching maps", () => {
+        const triangle = (x: number) => [
+            { x, y: 0 },
+            { x: x + 40, y: 0 },
+            { x: x + 20, y: 60 },
+        ];
+        const rectMap = { springName: "Rect Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...rectsToArrangement(boxes) }] } as MapData;
+        const polygonMap = {
+            springName: "Polygon Map",
+            startboxesSet: [{ maxPlayersPerStartbox: 1, startboxes: [triangle(0), triangle(80), triangle(160)].map((poly) => ({ poly })) }],
+        } as MapData;
+        const draft = useLobbySettingsDraft();
+        draft.openCreate(createLobbySettingsDraft("New Lobby", rectMap, { startPosType: StartPosType.Boxes, startBoxesIndex: 0 }, 2, 1, boxes));
+
+        draft.setMap(polygonMap);
+
+        expect(draft.draft.value?.mapOptions.startBoxesIndex).toBe(0);
+        expect(draft.draft.value?.allyTeamConfig).toHaveLength(3);
+        expectBoxesInSync(draft);
+    });
+
     it("updates preview boxes after accepting a clean server team update", () => {
         const draft = useLobbySettingsDraft();
         draft.openUpdate(createLobby(), map);
@@ -382,15 +406,11 @@ describe("useLobbySettingsDraft", () => {
             { ...boxes[0], right: 0.35 },
             { ...boxes[1], left: 0.65 },
         ];
-        const server = {
-            ...draft.base.value!,
-            allyTeamConfig: draft.base.value!.allyTeamConfig.map((allyTeam, index) => ({
-                ...allyTeam,
-                startBox: serverBoxes[index],
-            })),
-        };
+        const serverLobby = createLobby();
+        serverLobby.allyTeamConfig["0"].startBox = serverBoxes[0];
+        serverLobby.allyTeamConfig["1"].startBox = serverBoxes[1];
 
-        draft.syncFromServer(server);
+        draft.syncFromLobby(serverLobby, map);
 
         expectBoxesInSync(draft);
         expect(draft.draft.value?.mapOptions.customStartBoxes).toEqual(serverBoxes);
@@ -400,19 +420,14 @@ describe("useLobbySettingsDraft", () => {
         const draft = useLobbySettingsDraft();
         draft.openUpdate(createLobby(), map);
         draft.setCustomStartBoxes([{ ...boxes[0], right: 0.4 }, boxes[1]]);
-        const server = {
-            ...draft.base.value!,
-            allyTeamConfig: draft.base.value!.allyTeamConfig.map((allyTeam, index) => ({
-                ...allyTeam,
-                startBox: index === 0 ? { ...boxes[0], right: 0.3 } : allyTeam.startBox,
-            })),
-        };
-        draft.syncFromServer(server);
+        const serverLobby = createLobby();
+        serverLobby.allyTeamConfig["0"].startBox = { ...boxes[0], right: 0.3 };
+        draft.syncFromLobby(serverLobby, map);
 
         draft.useServer("allyTeamConfig");
 
         expectBoxesInSync(draft);
-        expect(draft.draft.value?.allyTeamConfig).toEqual(server.allyTeamConfig);
+        expect(draft.draft.value?.allyTeamConfig.map((allyTeam) => allyTeam.startBox)).toEqual([{ ...boxes[0], right: 0.3 }, boxes[1]]);
     });
 
     it("preserves a non-box start mode during unrelated server updates", () => {
@@ -423,5 +438,35 @@ describe("useLobbySettingsDraft", () => {
         draft.syncFromServer({ ...draft.base.value!, name: "Server Name" });
 
         expect(draft.draft.value?.mapOptions.startPosType).toBe(StartPosType.Fixed);
+    });
+
+    it("reopens a lobby on the map's set as the preset for its team count", () => {
+        const arrangement = rectsToArrangement(boxes);
+        const presetMap = { springName: "Test Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...arrangement }] } as MapData;
+        const lobby: Lobby = createLobby();
+        lobby.startboxes = { set: { "2": arrangement } };
+        const draft = useLobbySettingsDraft();
+
+        draft.openUpdate(lobby, presetMap);
+
+        expect(draft.draft.value?.mapOptions.startBoxesIndex).toBe(0);
+    });
+
+    it("sends the map's set on create and leaves start box options out of updates", async () => {
+        const presetMap = { springName: "Test Map", startboxesSet: [{ maxPlayersPerStartbox: 1, ...rectsToArrangement(boxes) }] } as MapData;
+        const draft = useLobbySettingsDraft();
+        draft.openCreate(createLobbySettingsDraft("New Lobby", presetMap, { startPosType: StartPosType.Boxes, startBoxesIndex: 0 }, 2, 1, boxes));
+
+        const create = await draft.createPayload();
+
+        expect(await decodeModoptionValue(create.gameOptions?.mapmetadata_startboxes_set?.value)).toEqual({ "2": presetMap.startboxesSet[0] });
+        expect(create.gameOptions?.mapmetadata_startbox_override).toBeUndefined();
+
+        draft.openUpdate(createLobby(), presetMap);
+        draft.setCustomStartBoxes([{ ...boxes[0], right: 0.4 }, boxes[1]]);
+        const update = await draft.updatePayload();
+
+        expect(update.allyTeamConfig).toBeDefined();
+        expect(update.gameOptions).toBeUndefined();
     });
 });

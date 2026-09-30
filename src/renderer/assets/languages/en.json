@@ -2030,7 +2030,8 @@
                     "gameVersion": "Game Version",
                     "engineVersion": "Engine Version",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Cannot start: only {boxed} of {teams} ally teams have a start box."
                 }
             }
         },
@@ -2307,7 +2308,17 @@
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
                     "close": "Close",
-                    "openMapSelector": "Open map selector"
+                    "openMapSelector": "Open map selector",
+                    "startboxOverride": "Start box override",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "These start boxes could not be read."
+                },
+                "startBoxesModal": {
+                    "title": "Start Boxes",
+                    "mapDefault": "Map default",
+                    "editAsRectangles": "Edit as rectangles",
+                    "cancel": "Cancel",
+                    "apply": "Apply"
                 },
                 "hostBattle": {
                     "title": "Host Battle",
@@ -2316,9 +2327,6 @@
                     "hostButton": "Host Battle",
                     "updateButton": "Update Battle",
                     "name": "Name",
-                    "startBoxes1": "Startboxes are assigned sequentially to AllyTeams.",
-                    "startBoxes2": "Extra startboxes will be dropped.",
-                    "startBoxes3": "AllyTeams without one are full-map startboxes.",
                     "allyTeamCount": "AllyTeam Count: ",
                     "teamsPerAllyTeam": "Teams per AllyTeam: ",
                     "map": "Map",
