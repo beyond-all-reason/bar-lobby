@@ -14,8 +14,6 @@ const store = vi.hoisted(() => ({ dir: "" }));
 vi.mock("@main/config/app", () => ({ CONFIG_PATH: store.dir }));
 vi.mock("@main/typed-ipc", () => ({ ipcMain: { handle: vi.fn() } }));
 
-const alphaTest = { id: "mm-1", serverUrl: "wss://integration.example", messageKey: "rankedMatchmakingTest" };
-
 const configFile = () => path.join(store.dir, "config.json");
 const localConfigFile = () => path.join(store.dir, "local-config.json");
 
@@ -60,87 +58,15 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-describe("remote config", () => {
-    it("stores an announced alpha test", async () => {
-        fetchMock.mockResolvedValue(respondWith({ alphaTest }));
-
-        const service = await loadService();
-
-        expect(service.getConfig().alphaTest).toEqual(alphaTest);
-    });
-
-    it("removes the alpha test once a fetch no longer announces it", async () => {
-        fetchMock.mockResolvedValue(respondWith({ alphaTest }));
-        const service = await loadService();
-
-        fetchMock.mockResolvedValue(respondWith({}));
-        await service.fetchConfig();
-
-        expect(service.getConfig().alphaTest).toBeUndefined();
-        expect(JSON.parse(fs.readFileSync(configFile(), "utf-8")).alphaTest).toBeUndefined();
-    });
-
-    it("removes a cached alpha test on the next launch's fetch", async () => {
-        fetchMock.mockResolvedValue(respondWith({ alphaTest }));
-        await loadService();
-
-        fetchMock.mockResolvedValue(respondWith({}));
-        const service = await loadService();
-
-        expect(service.getConfig().alphaTest).toBeUndefined();
-    });
-
-    it("keeps the cached alpha test when the fetch fails", async () => {
-        fetchMock.mockResolvedValue(respondWith({ alphaTest }));
-        const service = await loadService();
-
-        fetchMock.mockRejectedValue(new Error("getaddrinfo ENOTFOUND"));
-        await service.fetchConfig();
-
-        expect(service.getConfig().alphaTest).toEqual(alphaTest);
-    });
-
-    it("accepts a message key this release does not know", async () => {
-        const futureTest = { ...alphaTest, messageKey: "tournamentTest", endsAt: "2026-12-01T00:00:00Z" };
-        fetchMock.mockResolvedValue(respondWith({ alphaTest: futureTest, latestGameVersion: "byar:remote" }));
-
-        const service = await loadService();
-
-        expect(service.getConfig().alphaTest).toEqual(futureTest);
-        expect(service.getConfig().latestGameVersion).toBe("byar:remote");
-    });
-});
-
 describe("local config", () => {
     it("never fetches the remote config", async () => {
         useLocalConfig({});
-        fetchMock.mockResolvedValue(respondWith({ alphaTest }));
+        fetchMock.mockResolvedValue(respondWith({ latestGameVersion: "byar:remote" }));
 
         const service = await loadService();
         await service.fetchConfig();
 
         expect(fetchMock).not.toHaveBeenCalled();
-    });
-
-    it("keeps its own alpha test when the remote has none", async () => {
-        const localTest = { ...alphaTest, id: "local-dev" };
-        useLocalConfig({ alphaTest: localTest });
-        fetchMock.mockResolvedValue(respondWith({}));
-
-        const service = await loadService();
-        await service.fetchConfig();
-
-        expect(service.getConfig().alphaTest).toEqual(localTest);
-    });
-
-    it("has no alpha test when it leaves one out, even if one was cached", async () => {
-        fetchMock.mockResolvedValue(respondWith({ alphaTest }));
-        await loadService();
-
-        useLocalConfig({});
-        const service = await loadService();
-
-        expect(service.getConfig().alphaTest).toBeUndefined();
     });
 
     it("fills what a partial file leaves out with the defaults, not the cached remote values", async () => {

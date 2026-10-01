@@ -7,8 +7,12 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal ref="modal" :title="t('lobby.navbar.exit.title')">
         <div class="flex-row gap-md">
-            <Button @click="login" v-if="!me.isAuthenticated && !onLoginPage">{{ t("lobby.navbar.exit.login") }}</Button>
-            <Button @click="logout" v-if="me.isAuthenticated && !onLoginPage">{{ t("lobby.navbar.exit.logout") }}</Button>
+            <Button @click="login" v-if="!me.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
+                t("lobby.navbar.exit.login")
+            }}</Button>
+            <Button @click="logout" v-if="me.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
+                t("lobby.navbar.exit.logout")
+            }}</Button>
             <Button @click="quitToDesktop">{{ t("lobby.navbar.exit.quitToDesktop") }}</Button>
         </div>
     </Modal>
@@ -21,6 +25,7 @@ import { useRouter } from "vue-router";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { auth } from "@renderer/store/me.store";
+import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { party } from "@renderer/store/party.store";

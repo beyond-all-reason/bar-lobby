@@ -6,11 +6,9 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const settings = vi.hoisted(() => ({ devMode: true, loginAutomatically: true, alphaTestChoice: "ask" }));
-const config = vi.hoisted(() => ({ alphaTest: undefined as { id: string; serverUrl: string; messageKey: string } | undefined }));
+const settings = vi.hoisted(() => ({ devMode: true, loginAutomatically: true }));
 
 vi.mock("@renderer/store/settings.store", () => ({ settingsStore: settings }));
-vi.mock("@renderer/store/config.store", () => ({ configStore: config }));
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 vi.mock("@renderer/store/users.store", () => ({
@@ -41,8 +39,6 @@ beforeEach(() => {
     onAuthChanged = undefined;
     settings.devMode = true;
     settings.loginAutomatically = true;
-    settings.alphaTestChoice = "ask";
-    config.alphaTest = undefined;
 
     authApi.getState.mockResolvedValue({ authenticated: false });
     authApi.hasCredentials.mockResolvedValue(false);
@@ -123,19 +119,8 @@ describe("renderer auth projection", () => {
         expect(me.isAuthenticated).toBe(true);
     });
 
-    it("restores outside dev mode too", async () => {
+    it("does not touch the session outside dev mode", async () => {
         settings.devMode = false;
-        authApi.hasCredentials.mockResolvedValue(true);
-
-        const { initMeStore } = await loadStore();
-        await initMeStore();
-
-        expect(authApi.login).toHaveBeenCalledWith(false);
-    });
-
-    // The answer may switch servers, and the old server's session would only be signed out again.
-    it("leaves restoring to the alpha test prompt while it is unanswered", async () => {
-        config.alphaTest = { id: "mm-1", serverUrl: "wss://integration.example", messageKey: "rankedMatchmakingTest" };
         authApi.hasCredentials.mockResolvedValue(true);
 
         const { initMeStore } = await loadStore();
@@ -143,17 +128,6 @@ describe("renderer auth projection", () => {
 
         expect(authApi.login).not.toHaveBeenCalled();
         expect(window.tachyon.connect).not.toHaveBeenCalled();
-    });
-
-    it("restores straight away when the alpha test choice is remembered", async () => {
-        config.alphaTest = { id: "mm-1", serverUrl: "wss://integration.example", messageKey: "rankedMatchmakingTest" };
-        settings.alphaTestChoice = "join";
-        authApi.hasCredentials.mockResolvedValue(true);
-
-        const { initMeStore } = await loadStore();
-        await initMeStore();
-
-        expect(authApi.login).toHaveBeenCalledWith(false);
     });
 
     it("honours the automatic login setting", async () => {

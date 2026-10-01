@@ -19,17 +19,14 @@ import { initChatStore } from "@renderer/store/chat.store";
 import { initConfigStore } from "@renderer/store/config.store";
 
 export async function initPreMountStores() {
-    // The me store decides whether to restore a session from both of these.
-    const configAndSettings = Promise.all([initConfigStore(), initSettingsStore()]);
     await Promise.all([
-        configAndSettings,
+        initConfigStore(),
+        initSettingsStore(),
         initInfosStore(),
         initGameStore(),
         initContentsStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        Promise.all([initTachyonStore(), configAndSettings]).then(() =>
-            Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyStore()])
-        ),
+        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyStore()])),
     ]);
 }

@@ -18,15 +18,15 @@ const log = logger("config.service.ts");
 const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "config.json"), configSchema);
 
 // A config file given on the command line wins outright. Fetching would let a live remote config change
-// state a developer is testing against, the alpha test prompt included. Like the remote one it may be
-// partial, and anything it leaves out takes the built-in default rather than the cached remote value.
+// state a developer is testing against. Like the remote one it may be partial, and anything it leaves
+// out takes the built-in default rather than the cached remote value.
 let localConfig: Static<typeof configSchema> | undefined;
 
 async function init() {
     await configStore.init();
     localConfig = await readConfigOverride();
     if (localConfig) {
-        await replaceConfig(localConfig);
+        await configStore.update(localConfig);
     } else {
         await fetchConfig();
     }
@@ -50,15 +50,6 @@ async function readConfigOverride() {
         throw new Error("Provided config file does not match schema");
     }
     return Value.Cast(configSchema, data);
-}
-
-// The store merges, so an optional property the new config leaves out would otherwise survive from the
-// cached one. An alpha test that has ended must actually go away.
-async function replaceConfig(data: Static<typeof configSchema>) {
-    if (data.alphaTest === undefined) {
-        delete configStore.model.alphaTest;
-    }
-    await configStore.update(data);
 }
 
 /**
@@ -93,7 +84,7 @@ async function fetchConfig() {
         }
         log.info(`Fetched config successfully from ${getConfig().configUrl}`);
         const mergedConfig = Value.Cast(configSchema, data);
-        await replaceConfig(mergedConfig);
+        await configStore.update(mergedConfig);
     } catch (err) {
         if (err instanceof Error) {
             log.error(`Error fetching config: ${err.message}`);

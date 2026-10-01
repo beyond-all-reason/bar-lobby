@@ -386,26 +386,6 @@
                 }
             },
             "misc": {
-                "alphaTest": {
-                    "title": "Tset Seevrr Aibavlale",
-                    "expectedUntil": "The tset is ecepextd to be avctie uitnl {date}.",
-                    "serverLabel": "Tset sveerr: {server}",
-                    "remember": "Remeebmr my seeiloctn",
-                    "join": "Jion Tset",
-                    "decline": "Not Now",
-                    "settingsSection": "Tset Seevrr",
-                    "settingsChoice": "Jion Tset Seevrr",
-                    "settingsNote": "Tihs prfecneree olny apeipls to the crerunt tset and is reest wehn the tset edns.",
-                    "choiceAsk": "Ask eervy lncauh",
-                    "choiceJoin": "Always jion",
-                    "choiceDecline": "Always dncliee",
-                    "messages": {
-                        "generic": "A time-limited tset sveerr is crelnrtuy avctie. Wulod you like to jion it?",
-                        "rankedMatchmakingTest": "A time-limited rakend mnchaaiktmg tset is crelnrtuy avctie. Wulod you like to jion it?",
-                        "unrankedMatchmakingTest": "A time-limited urneankd mnchaaiktmg tset is crelnrtuy avctie. Wulod you like to jion it?",
-                        "customLobbiesTest": "A time-limited cuotsm leibbos tset is crelnrtuy avctie. Wulod you like to jion it?"
-                    }
-                },
                 "debugSidebar": {
                     "debugSandbox": "Duebg Snbodax",
                     "openSettingsFile": "Oepn Setngits Flie",
