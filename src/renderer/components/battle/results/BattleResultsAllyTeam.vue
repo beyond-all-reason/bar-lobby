@@ -76,13 +76,18 @@ function toggle() {
     padding: 5px 8px;
     font-weight: 600;
     background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
     &.collapsible {
         cursor: pointer;
         &:hover {
             background: rgba(255, 255, 255, 0.1);
         }
     }
+}
+.mine .header {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
 }
 .winner .header {
     border-bottom-color: rgba(255, 215, 0, 0.6);

@@ -23,7 +23,7 @@ function battle(overrides: Partial<BattleEndedEventData> = {}): BattleEndedEvent
 }
 
 describe("buildBattleResultsView", () => {
-    it("lists the winners first, then my team expanded, with the rest collapsed", () => {
+    it("lists ally teams in id order, with only my team expanded", () => {
         const view = buildBattleResultsView(
             battle({
                 players: [player("a", "0"), player("b", "1"), player(ME, "2"), player("c", "3")],
@@ -32,17 +32,10 @@ describe("buildBattleResultsView", () => {
             ME
         );
 
-        expect(view.allyTeams.map((team) => team.id)).toEqual(["3", "2", "0", "1"]);
-        expect(view.allyTeams.map((team) => team.defaultCollapsed)).toEqual([false, false, true, true]);
+        expect(view.allyTeams.map((team) => team.id)).toEqual(["0", "1", "2", "3"]);
+        expect(view.allyTeams.map((team) => team.defaultCollapsed)).toEqual([true, true, false, true]);
         expect(view.iWon).toBe(false);
         expect(view.myAllyTeamId).toBe("2");
-    });
-
-    it("does not pull my team up a second time when it won", () => {
-        const view = buildBattleResultsView(battle({ players: [player("a", "0"), player(ME, "1"), player("b", "2")], winningAllyTeamIds: ["1"] }), ME);
-
-        expect(view.allyTeams.map((team) => team.id)).toEqual(["1", "0", "2"]);
-        expect(view.iWon).toBe(true);
     });
 
     it("keeps bots apart from the players on their ally team", () => {
@@ -62,16 +55,14 @@ describe("buildBattleResultsView", () => {
     it("counts a team made only of bots", () => {
         const view = buildBattleResultsView(battle({ players: [player(ME, "0")], bots: [bot("BARb", "1")], winningAllyTeamIds: ["1"] }), ME);
 
-        expect(view.allyTeams.map((team) => team.id)).toEqual(["1", "0"]);
-        expect(view.allyTeams[0].players).toEqual([]);
+        expect(view.allyTeams.map((team) => team.id)).toEqual(["0", "1"]);
+        expect(view.allyTeams[1].players).toEqual([]);
     });
 
     it("treats every listed ally team as a winner", () => {
         const view = buildBattleResultsView(battle({ players: [player("a", "0"), player("b", "1"), player("c", "2")], winningAllyTeamIds: ["2", "0"] }), ME);
 
-        expect(view.allyTeams.filter((team) => team.isWinner).map((team) => team.id)).toEqual(["0", "2"]);
-        expect(view.allyTeams[2].id).toBe("1");
-    });
+        expect(view.allyTeams.filter((team) => team.isWinner).map((team) => team.id)).toEqual(["0", "2"]);    });
 
     it("calls it a draw when nobody won", () => {
         const view = buildBattleResultsView(battle({ players: [player(ME, "0"), player("a", "1")] }), ME);
@@ -84,7 +75,7 @@ describe("buildBattleResultsView", () => {
         const view = buildBattleResultsView(battle({ players: [player("a", "0"), player("b", "1"), player("c", "2")], spectators: [{ userId: ME, name: ME }], winningAllyTeamIds: ["0"] }), ME);
 
         expect(view.myAllyTeamId).toBeUndefined();
-        expect(view.allyTeams.map((team) => team.defaultCollapsed)).toEqual([false, true, true]);
+        expect(view.allyTeams.map((team) => team.defaultCollapsed)).toEqual([true, true, true]);
         expect(view.spectators).toHaveLength(1);
     });
 
@@ -92,7 +83,7 @@ describe("buildBattleResultsView", () => {
         const players = Array.from({ length: 11 }, (_, i) => player(`p${i}`, String(i)));
         const view = buildBattleResultsView(battle({ players, winningAllyTeamIds: ["5"] }), ME);
 
-        expect(view.allyTeams.map((team) => team.id)).toEqual(["5", "0", "1", "2", "3", "4", "6", "7", "8", "9", "10"]);
+        expect(view.allyTeams.map((team) => team.id)).toEqual(["0", "1", "2", "3", "4", "5", "6","7", "8", "9", "10"]);
     });
 });
 

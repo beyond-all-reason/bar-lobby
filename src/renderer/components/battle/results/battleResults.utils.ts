@@ -24,7 +24,7 @@ export function buildBattleResultsView(data: BattleResultsData, myUserId: string
         if (!team) {
             const isWinner = winners.has(id);
             const containsMe = id === myAllyTeamId;
-            team = { id, isWinner, containsMe, defaultCollapsed: !isWinner && !containsMe, players: [], bots: [] };
+            team = { id, isWinner, containsMe, defaultCollapsed: !containsMe, players: [], bots: [] };
             teams.set(id, team);
         }
         return team;
@@ -34,9 +34,8 @@ export function buildBattleResultsView(data: BattleResultsData, myUserId: string
     for (const bot of data.bots) teamFor(bot.allyTeam).bots.push(bot);
 
     const bySlot = (a: { team: string; player: string }, b: { team: string; player: string }) => compareIds(a.team, b.team) || compareIds(a.player, b.player);
-    const rank = (team: AllyTeamView) => (team.isWinner ? 0 : team.containsMe ? 1 : 2);
 
-    const allyTeams = [...teams.values()].sort((a, b) => rank(a) - rank(b) || compareIds(a.id, b.id));
+    const allyTeams = [...teams.values()].sort((a, b) => compareIds(a.id, b.id));
     for (const team of allyTeams) {
         team.players.sort(bySlot);
         team.bots.sort(bySlot);
