@@ -15,10 +15,16 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { onActivated } from "vue";
 import { useRouter } from "vue-router";
+import { battleStore } from "@renderer/store/battle.store";
 
 const router = useRouter();
 const route = router.currentRoute.value;
+
+onActivated(() => {
+    battleStore.isSelectingGameMode = true;
+});
 </script>
 
 <style lang="scss" scoped></style>
