@@ -54,7 +54,8 @@ const tooltipMessage = ref("");
 const defaultServers: string[] = [...configStore.defaultServers];
 
 const disableRemoveButton = computed(() => {
-    return defaultServers.includes(settingsStore.lobbyServer);
+    // Only custom entries can be removed; the active server may also be one that is in neither list
+    return !settingsStore.customServerList.includes(settingsStore.lobbyServer);
 });
 
 const serversList = computed(() => [
@@ -83,6 +84,9 @@ function addServerToList() {
 
 function removeServerFromList() {
     const index = settingsStore.customServerList.indexOf(settingsStore.lobbyServer);
+    if (index === -1) {
+        return;
+    }
     settingsStore.customServerList.splice(index, 1);
     //Bounce back to the primary default when an entry is deleted
     settingsStore.lobbyServer = defaultServers[0];
