@@ -17,9 +17,7 @@ const log = logger("config.service.ts");
 
 const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "config.json"), configSchema);
 
-// A config file given on the command line wins outright. Fetching would let a live remote config change
-// state a developer is testing against. Like the remote one it may be partial, and anything it leaves
-// out takes the built-in default rather than the cached remote value.
+// A config file given on the command line wins outright; no remote fetch is needed.
 let localConfig: Static<typeof configSchema> | undefined;
 
 async function init() {
@@ -66,7 +64,6 @@ async function updateConfig(data: TUpdateConfigSchema) {
 
 /**
  * Fetch the latest configuration from the remote URL and update the local config store.
- * Note that env vars will be used to override the config values if they are set, including remote config values.
  */
 async function fetchConfig() {
     if (localConfig) return;
