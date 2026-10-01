@@ -62,6 +62,8 @@ const title = computed(() => (view.value ? t(battleResultTitleKey(view.value)) :
 }
 .body {
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 // Placeholder reveal, only when opened by battle/ended.
