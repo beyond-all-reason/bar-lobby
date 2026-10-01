@@ -62,7 +62,8 @@ describe("buildBattleResultsView", () => {
     it("treats every listed ally team as a winner", () => {
         const view = buildBattleResultsView(battle({ players: [player("a", "0"), player("b", "1"), player("c", "2")], winningAllyTeamIds: ["2", "0"] }), ME);
 
-        expect(view.allyTeams.filter((team) => team.isWinner).map((team) => team.id)).toEqual(["0", "2"]);    });
+        expect(view.allyTeams.filter((team) => team.isWinner).map((team) => team.id)).toEqual(["0", "2"]);
+    });
 
     it("calls it a draw when nobody won", () => {
         const view = buildBattleResultsView(battle({ players: [player(ME, "0"), player("a", "1")] }), ME);
@@ -83,7 +84,7 @@ describe("buildBattleResultsView", () => {
         const players = Array.from({ length: 11 }, (_, i) => player(`p${i}`, String(i)));
         const view = buildBattleResultsView(battle({ players, winningAllyTeamIds: ["5"] }), ME);
 
-        expect(view.allyTeams.map((team) => team.id)).toEqual(["0", "1", "2", "3", "4", "5", "6","7", "8", "9", "10"]);
+        expect(view.allyTeams.map((team) => team.id)).toEqual(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
     });
 });
 
