@@ -27,7 +27,9 @@ export const configSchema = Type.Object({
     allowedUrlLinks: Type.Array(Type.String(), { default: ["https://bar-rts.com/replays", "https://www.beyondallreason.info/news"] }),
     replayServiceUrl: Type.String({ default: "https://bar-rts.com/replays" }),
     onlineReplaysApiUrl: Type.String({ default: "https://api.bar-rts.com/replays" }),
+    // The first entry is the server used by anyone who has not chosen one, so there must always be one.
     defaultServers: Type.Array(Type.String(), {
+        minItems: 1,
         default: ["wss://server4.beyondallreason.info", "wss://server5.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev", "ws://localhost:4000"],
     }),
     // Default engine settings for BAR, sourced from:

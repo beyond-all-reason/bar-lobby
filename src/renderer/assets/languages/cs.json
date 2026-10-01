@@ -2242,7 +2242,8 @@
                 "remove": null,
                 "info": null,
                 "labelDefault": null,
-                "labelCustom": null
+                "labelCustom": null,
+                "followDefault": null
             },
             "breadcrumbs": {
                 "back": null

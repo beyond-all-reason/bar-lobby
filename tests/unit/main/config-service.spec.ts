@@ -86,3 +86,22 @@ describe("local config", () => {
         await expect(loadService()).rejects.toThrow("Provided config file does not match schema");
     });
 });
+
+// The first default is the server for everyone without an override, so a config without one is unusable.
+describe("default servers", () => {
+    it("rejects a local file with no default servers", async () => {
+        useLocalConfig({ defaultServers: [] });
+
+        await expect(loadService()).rejects.toThrow("Provided config file does not match schema");
+    });
+
+    it("ignores a remote config with no default servers", async () => {
+        fetchMock.mockResolvedValue(respondWith({ defaultServers: ["wss://alpha.beyondallreason.info"] }));
+        await loadService();
+
+        fetchMock.mockResolvedValue(respondWith({ defaultServers: [] }));
+        const service = await loadService();
+
+        expect(service.getConfig().defaultServers).toEqual(["wss://alpha.beyondallreason.info"]);
+    });
+});

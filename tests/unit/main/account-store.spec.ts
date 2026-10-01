@@ -33,7 +33,7 @@ vi.mock("@main/config/app", () => ({ CONFIG_PATH: store.dir }));
 const accountFile = () => path.join(store.dir, "account.json");
 const onDisk = () => JSON.parse(fs.readFileSync(accountFile(), "utf-8"));
 
-const tokens = { token: "access-1", refreshToken: "refresh-1", expiresAt: 1_800_000 };
+const tokens = { token: "access-1", refreshToken: "refresh-1", expiresAt: 1_800_000, server: "wss://server4.beyondallreason.info" };
 
 async function loadService() {
     vi.resetModules();
@@ -79,6 +79,7 @@ describe("account store", () => {
         expect(saved.refreshToken).toBeTruthy();
         expect(saved.expiresAt).toBe(1_800_000);
         expect(saved.encrypted).toBe(true);
+        expect(saved.server).toBe("wss://server4.beyondallreason.info");
     });
 
     it("survives a restart", async () => {
@@ -88,6 +89,7 @@ describe("account store", () => {
         const second = await loadService();
         expect(second.getToken()).toBe("access-1");
         expect(second.getRefreshToken()).toBe("refresh-1");
+        expect(second.getServer()).toBe("wss://server4.beyondallreason.info");
     });
 
     it("falls back to plain text when encryption is unavailable", async () => {
@@ -193,5 +195,6 @@ describe("account store", () => {
         expect(accountService.getToken()).toBe("");
         expect(accountService.getRefreshToken()).toBe("");
         expect(accountService.getExpiresAt()).toBe(0);
+        expect(accountService.getServer()).toBeUndefined();
     });
 });

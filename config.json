@@ -1,0 +1,4 @@
+{
+    "configUrl": "https://lobby-config.beyondallreason.dev/config.json",
+    "defaultServers": ["wss://server5.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev"]
+}

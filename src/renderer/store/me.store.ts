@@ -16,6 +16,8 @@ import {
     FriendRemovedEventData,
 } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
+import { resolveLobbyServer } from "@shared/lobby-server";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
@@ -262,13 +264,14 @@ export async function initMeStore() {
         console.warn("Me store is already initialized. Skipping initialization.");
         return;
     }
-    // Settings load in parallel with this, and the stored server arriving over
-    // the default counts as a change. Reacting to that would sign out everyone
-    // who does not use the default server, every launch.
+    // Settings and config load in parallel with this, and either arriving counts
+    // as a change. Reacting to that would sign out everyone who does not use the
+    // default server, every launch. Watching the resolved server rather than the
+    // override means clearing an override that names the default changes nothing.
     watch(
-        () => settingsStore.lobbyServer,
+        () => resolveLobbyServer(settingsStore.lobbyServerOverride, configStore.defaultServers ?? []),
         () => {
-            if (!settingsStore.isInitialized) return;
+            if (!settingsStore.isInitialized || !configStore.isInitialized) return;
 
             void serverChanged();
         }
