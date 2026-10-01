@@ -2,17 +2,21 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { DeepReadonly } from "vue";
 import type { BattleEndedEventData } from "tachyon-protocol/types";
 
-export type BattleResultsPlayer = BattleEndedEventData["players"][number];
-export type BattleResultsBot = BattleEndedEventData["bots"][number];
-export type BattleResultsSpectator = BattleEndedEventData["spectators"][number];
+// Read out of the readonly battle history store, so taken as readonly throughout.
+export type BattleResultsData = DeepReadonly<BattleEndedEventData>;
+
+export type BattleResultsPlayer = BattleResultsData["players"][number];
+export type BattleResultsBot = BattleResultsData["bots"][number];
+export type BattleResultsSpectator = BattleResultsData["spectators"][number];
 
 // The event carries no time of its own, so receivedAt is when this client heard about it.
 export type BattleHistoryEntry = {
-    id: string;
-    receivedAt: number;
-    data: BattleEndedEventData;
+    readonly id: string;
+    readonly receivedAt: number;
+    readonly data: BattleResultsData;
 };
 
 export type AllyTeamView = {

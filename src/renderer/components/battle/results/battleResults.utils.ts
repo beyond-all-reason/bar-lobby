@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import type { BattleEndedEventData } from "tachyon-protocol/types";
-import type { AllyTeamView, BattleResultsLayout, BattleResultsView } from "@renderer/model/battleResults";
+import type { AllyTeamView, BattleResultsData, BattleResultsLayout, BattleResultsView } from "@renderer/model/battleResults";
 import type { TranslationKey } from "@renderer/i18n";
 
 function compareIds(a: string, b: string) {
@@ -15,7 +14,7 @@ export function allyTeamDisplayNumber(id: string): string {
     return /^\d+$/.test(id) ? String(Number(id) + 1) : id;
 }
 
-export function buildBattleResultsView(data: BattleEndedEventData, myUserId: string): BattleResultsView {
+export function buildBattleResultsView(data: BattleResultsData, myUserId: string): BattleResultsView {
     const winners = new Set(data.winningAllyTeamIds);
     const myAllyTeamId = data.players.find((player) => player.userId === myUserId)?.allyTeam;
 
@@ -66,7 +65,7 @@ export function battleResultTitleKey(view: BattleResultsView): TranslationKey {
 }
 
 // Ally team sizes joined as "2v2" or "1v1v1", bots included.
-export function summarizeBattle(data: BattleEndedEventData): { teamSizes: string; bots: number } {
+export function summarizeBattle(data: BattleResultsData): { teamSizes: string; bots: number } {
     const teamSizes = new Map<string, number>();
     for (const participant of [...data.players, ...data.bots]) {
         teamSizes.set(participant.allyTeam, (teamSizes.get(participant.allyTeam) ?? 0) + 1);

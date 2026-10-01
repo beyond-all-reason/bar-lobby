@@ -59,7 +59,7 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import { useReportUser } from "@renderer/composables/useReportUser";
 import { db } from "@renderer/store/db";
 import { me } from "@renderer/store/me.store";
-import { battleHistory } from "@renderer/store/battleHistory.store";
+import { battleHistoryStore } from "@renderer/store/battleHistory.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { Icon } from "@iconify/vue";
 import crown from "@iconify-icons/mdi/crown";
@@ -73,7 +73,7 @@ const battleResults = useBattleResults();
 
 const historyRows = computed(() => {
     const timeFormat = new Intl.DateTimeFormat(locale.value, { dateStyle: "medium", timeStyle: "short" });
-    return [...battleHistory].reverse().map((entry) => {
+    return [...battleHistoryStore.entries].reverse().map((entry) => {
         const { teamSizes, bots } = summarizeBattle(entry.data);
         return {
             entry,

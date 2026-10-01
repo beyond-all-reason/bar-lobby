@@ -2,23 +2,32 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { reactive } from "vue";
+import { reactive, readonly } from "vue";
 import type { BattleEndedEventData } from "tachyon-protocol/types";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { BattleHistoryEntry } from "@renderer/model/battleResults";
 
-export const battleHistory = reactive<BattleHistoryEntry[]>([]);
+const state = reactive<{ entries: BattleHistoryEntry[] }>({
+    entries: [],
+});
+
+export const battleHistoryStore = readonly(state);
 
 export const onBattleRecorded = new Signal<BattleHistoryEntry>();
 
-export function recordBattleEnded(data: BattleEndedEventData) {
-    if (battleHistory.some((entry) => entry.id === data.battleId)) return;
+function recordBattleEnded(data: BattleEndedEventData) {
+    if (state.entries.some((entry) => entry.id === data.battleId)) return;
 
     const entry: BattleHistoryEntry = { id: data.battleId, receivedAt: Date.now(), data };
-    battleHistory.push(entry);
+    state.entries.push(entry);
     onBattleRecorded.dispatch(entry);
 }
 
-export function clearBattleHistory() {
-    battleHistory.splice(0);
+function clearBattleHistory() {
+    state.entries.splice(0);
 }
+
+export const battleHistoryActions = {
+    recordBattleEnded,
+    clearBattleHistory,
+};

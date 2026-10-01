@@ -21,7 +21,8 @@ Object.defineProperty(window, "auth", {
     writable: true,
 });
 
-const { battleHistory, clearBattleHistory, recordBattleEnded } = await import("@renderer/store/battleHistory.store");
+const { battleHistoryStore, battleHistoryActions } = await import("@renderer/store/battleHistory.store");
+const { recordBattleEnded, clearBattleHistory } = battleHistoryActions;
 const { useBattleResults } = await import("@renderer/composables/useBattleResults");
 const { auth, me } = await import("@renderer/store/me.store");
 const { subsManager } = await import("@renderer/store/users.store");
@@ -42,14 +43,14 @@ describe("recordBattleEnded", () => {
         recordBattleEnded(battle({ battleId: "first" }));
         recordBattleEnded(battle({ battleId: "second" }));
 
-        expect(battleHistory.map((entry) => entry.id)).toEqual(["first", "second"]);
+        expect(battleHistoryStore.entries.map((entry) => entry.id)).toEqual(["first", "second"]);
     });
 
     it("ignores the same battle ending twice", () => {
         recordBattleEnded(battle({ battleId: "first" }));
         recordBattleEnded(battle({ battleId: "first" }));
 
-        expect(battleHistory).toHaveLength(1);
+        expect(battleHistoryStore.entries).toHaveLength(1);
     });
 });
 
@@ -69,7 +70,7 @@ describe("useBattleResults", () => {
         const results = useBattleResults();
         results.close();
 
-        results.show(battleHistory[0]);
+        results.show(battleHistoryStore.entries[0]);
 
         expect(results.isOpen.value).toBe(true);
         expect(results.reveal.value).toBe(false);
@@ -128,7 +129,7 @@ describe("logout", () => {
         const loggingOut = auth.logout();
         await nextTick();
 
-        expect(battleHistory).toHaveLength(0);
+        expect(battleHistoryStore.entries).toHaveLength(0);
         expect(useBattleResults().isOpen.value).toBe(false);
         await loggingOut;
     });

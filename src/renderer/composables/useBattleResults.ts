@@ -4,7 +4,7 @@
 
 import { ref, watch, type Ref } from "vue";
 import type { BattleHistoryEntry } from "@renderer/model/battleResults";
-import { battleHistory, onBattleRecorded } from "@renderer/store/battleHistory.store";
+import { battleHistoryStore, onBattleRecorded } from "@renderer/store/battleHistory.store";
 import { me } from "@renderer/store/me.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -37,7 +37,7 @@ export function useBattleResults() {
 onBattleRecorded.add((recorded) => show(recorded, { reveal: true }));
 
 watch(
-    () => entry.value !== null && !battleHistory.includes(entry.value),
+    () => entry.value !== null && !battleHistoryStore.entries.includes(entry.value),
     (removed) => {
         if (removed) close();
     },
