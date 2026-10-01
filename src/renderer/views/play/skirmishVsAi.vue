@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
+        <Button @click="openGameModeSelector">Select Game Mode</Button>
     </div>
 </template>
 
@@ -18,13 +19,16 @@ SPDX-License-Identifier: MIT
 import { onActivated } from "vue";
 import { useRouter } from "vue-router";
 import { battleStore } from "@renderer/store/battle.store";
+import Button from "@renderer/components/controls/Button.vue";
 
 const router = useRouter();
 const route = router.currentRoute.value;
 
-onActivated(() => {
+function openGameModeSelector() {
     battleStore.isSelectingGameMode = true;
-});
+}
+
+onActivated(openGameModeSelector);
 </script>
 
 <style lang="scss" scoped></style>
