@@ -4,7 +4,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import type { BattleEndedEventData } from "tachyon-protocol/types";
-import { allyTeamDisplayNumber, battleResultTitleKey, buildBattleResultsView, pickLayout, summarizeBattle } from "@renderer/composables/useBattleResults";
+import { allyTeamDisplayNumber, battleResultTitleKey, buildBattleResultsView, pickLayout, summarizeBattle } from "@renderer/components/battle/results/battleResults.utils";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 

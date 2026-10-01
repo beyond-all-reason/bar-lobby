@@ -33,7 +33,7 @@ import crown from "@iconify-icons/mdi/crown";
 import chevronDown from "@iconify-icons/mdi/chevron-down";
 import chevronRight from "@iconify-icons/mdi/chevron-right";
 import type { AllyTeamView } from "@renderer/model/battleResults";
-import { allyTeamDisplayNumber } from "@renderer/composables/useBattleResults";
+import { allyTeamDisplayNumber } from "@renderer/components/battle/results/battleResults.utils";
 import { useTypedI18n } from "@renderer/i18n";
 import BattleResultsPlayer from "@renderer/components/battle/results/BattleResultsPlayer.vue";
 import BattleResultsBot from "@renderer/components/battle/results/BattleResultsBot.vue";

@@ -26,7 +26,8 @@ import Modal from "@renderer/components/common/Modal.vue";
 import BattleResultsColumns from "@renderer/components/battle/results/layouts/BattleResultsColumns.vue";
 import BattleResultsList from "@renderer/components/battle/results/layouts/BattleResultsList.vue";
 import type { BattleResultsLayout } from "@renderer/model/battleResults";
-import { battleResultTitleKey, buildBattleResultsView, pickLayout, useBattleResults } from "@renderer/composables/useBattleResults";
+import { useBattleResults } from "@renderer/composables/useBattleResults";
+import { battleResultTitleKey, buildBattleResultsView, pickLayout } from "@renderer/components/battle/results/battleResults.utils";
 import { useTypedI18n } from "@renderer/i18n";
 import { me } from "@renderer/store/me.store";
 
