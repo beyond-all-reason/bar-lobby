@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <div class="gridform">
             <div>{{ t("lobby.navbar.serverSettings.activeServer") }}</div>
             <Select
-                v-model="settingsStore.lobbyServerOverride"
+                v-model="selectedServer"
                 :options="serversList"
                 optionLabel="label"
                 optionValue="value"
@@ -69,13 +69,21 @@ function serverOption(server: string) {
     return { label: server, value: server };
 }
 
-// The empty value clears the override, so the client follows whatever config names as the default,
-// even if that changes later. Picking the same server by name pins it instead.
+// The dropdown treats an empty string as no selection, this is a unique value for default
+const FOLLOW_DEFAULT = Symbol("followDefault");
+
+const selectedServer = computed({
+    get: () => settingsStore.lobbyServerOverride || FOLLOW_DEFAULT,
+    set: (value: string | typeof FOLLOW_DEFAULT) => {
+        settingsStore.lobbyServerOverride = value === FOLLOW_DEFAULT ? "" : value;
+    },
+});
+
 const serversList = computed(() => [
     {
         label: t("lobby.navbar.serverSettings.labelDefault"),
         items: [
-            { label: t("lobby.navbar.serverSettings.followDefault", { server: defaultServers[0] }), value: "" },
+            { label: t("lobby.navbar.serverSettings.followDefault", { server: defaultServers[0] }), value: FOLLOW_DEFAULT },
             ...defaultServers.map(serverOption),
         ],
     },
