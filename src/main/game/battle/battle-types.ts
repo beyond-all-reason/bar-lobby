@@ -4,6 +4,7 @@
 
 import { MapData } from "@main/content/maps/map-data";
 import { User } from "@main/model/user";
+import { RAPTORS_AI, SCAVENGERS_AI } from "@shared/battle-types";
 import { StartBox } from "tachyon-protocol/types";
 
 export interface Battle {
@@ -149,9 +150,6 @@ export type Team = {
 export function isBot(bot: any): bot is Bot {
     return "aiShortName" in bot;
 }
-
-export const RAPTORS_AI = "RaptorsAI";
-export const SCAVENGERS_AI = "ScavengersAI";
 
 export function isRaptor(bot: Bot): boolean {
     return bot.aiShortName === RAPTORS_AI;

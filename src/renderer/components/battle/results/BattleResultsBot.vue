@@ -19,7 +19,7 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import robotAngry from "@iconify-icons/mdi/robot-angry";
-import { RAPTORS_AI, SCAVENGERS_AI } from "@main/game/battle/battle-types";
+import { RAPTORS_AI, SCAVENGERS_AI } from "@shared/battle-types";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelociraptor.vue";
 
