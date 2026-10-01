@@ -20,6 +20,7 @@ import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
+import { battleHistoryActions } from "@renderer/store/battleHistory.store";
 
 export const me = reactive<
     Me & {
@@ -84,6 +85,7 @@ async function goOnline() {
 }
 
 async function logout() {
+    battleHistoryActions.clearBattleHistory();
     await tachyon.goOffline();
     await window.auth.logout();
     await syncAuthState();
@@ -291,6 +293,7 @@ export async function initMeStore() {
     window.tachyon.onEvent("friend/requestRejected", onFriendRequestRejectedEvent);
     window.tachyon.onEvent("friend/requestCancelled", onFriendRequestCancelledEvent);
     window.tachyon.onEvent("friend/removed", onFriendRemovedEvent);
+    window.tachyon.onEvent("battle/ended", battleHistoryActions.recordBattleEnded);
 
     // Last known, from whenever we were last connected. Absent on a fresh
     // install, in which case the defaults stand in until a socket says otherwise.

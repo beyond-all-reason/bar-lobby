@@ -70,7 +70,13 @@
             "profile": {
                 "status": "Satuts: ",
                 "clan": "Caln: ",
-                "userNotFound": "User not fnuod"
+                "userNotFound": "User not fnuod",
+                "battleHistory": {
+                    "title": "Blatte Htrisoy",
+                    "empty": "No oninle bealtts pleyad tihs sesosin.",
+                    "viewResults": "View Rutelss",
+                    "bots": "{count} bot | {count} btos"
+                }
             },
             "play": {
                 "comingSoon": "(Conimg Soon)",
@@ -629,6 +635,18 @@
                     "description2": "Wulod you like to atemtpt to rejoin the btalte?",
                     "rejoinButton": "Reojin",
                     "ignoreButton": "Ingroe"
+                },
+                "battleResults": {
+                    "victory": "Victroy",
+                    "defeat": "Deaeft",
+                    "battleEnded": "Blatte Eednd",
+                    "draw": "Darw",
+                    "winner": "Wiennr",
+                    "team": "Team {team}",
+                    "spectators": "Setptacros",
+                    "inviteToParty": "Iivnte to Party",
+                    "partyFull": "Party Full",
+                    "acceptFriendRequest": "Acepct Finerd Rquseet"
                 }
             },
             "controls": {

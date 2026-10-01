@@ -62,6 +62,7 @@ SPDX-License-Identifier: MIT
         <ServerSettings v-model="serverSettingsOpen" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
         <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
+        <BattleResultsModal />
         <ReportUserModal />
         <RejoinBattleModal v-model="tachyonStore.rejoinModalOpen" />
     </div>
@@ -93,6 +94,7 @@ import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
 import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
 import RejoinBattleModal from "@renderer/components/battle/RejoinBattleModal.vue";
+import BattleResultsModal from "@renderer/components/battle/results/BattleResultsModal.vue";
 
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
@@ -228,6 +230,8 @@ const showPartyPopout = computed(() => {
 <style lang="scss" scoped>
 .view-container {
     flex: auto;
+    // Keeps views at window height so they scroll instead of growing past it.
+    min-height: 0;
     // Views layer their own hover and selected states with small z-indexes, and
     // without a stacking context of their own those compete with the navbar and
     // the reconnecting overlay out here rather than staying inside the view.

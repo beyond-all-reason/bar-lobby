@@ -4017,7 +4017,13 @@
             "profile": {
                 "status": null,
                 "clan": null,
-                "userNotFound": null
+                "userNotFound": null,
+                "battleHistory": {
+                    "title": null,
+                    "empty": null,
+                    "viewResults": null,
+                    "bots": null
+                }
             },
             "play": {
                 "comingSoon": null,
@@ -4576,6 +4582,18 @@
                     "description2": null,
                     "rejoinButton": null,
                     "ignoreButton": null
+                },
+                "battleResults": {
+                    "victory": null,
+                    "defeat": null,
+                    "battleEnded": null,
+                    "draw": null,
+                    "winner": null,
+                    "team": null,
+                    "spectators": null,
+                    "inviteToParty": null,
+                    "partyFull": null,
+                    "acceptFriendRequest": null
                 }
             },
             "controls": {
