@@ -214,5 +214,6 @@ export const authService = {
     registerIpcHandlers,
     getAccessToken,
     setIdentity,
+    signOut,
     onChanged,
 };

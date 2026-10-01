@@ -4222,6 +4222,26 @@
                 }
             },
             "misc": {
+                "alphaTest": {
+                    "title": null,
+                    "expectedUntil": null,
+                    "serverLabel": null,
+                    "remember": null,
+                    "join": null,
+                    "decline": null,
+                    "settingsSection": null,
+                    "settingsChoice": null,
+                    "settingsNote": null,
+                    "choiceAsk": null,
+                    "choiceJoin": null,
+                    "choiceDecline": null,
+                    "messages": {
+                        "generic": null,
+                        "rankedMatchmakingTest": null,
+                        "unrankedMatchmakingTest": null,
+                        "customLobbiesTest": null
+                    }
+                },
                 "debugSidebar": {
                     "debugSandbox": null,
                     "openSettingsFile": null,

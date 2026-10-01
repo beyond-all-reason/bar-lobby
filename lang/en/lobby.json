@@ -386,6 +386,26 @@
                 }
             },
             "misc": {
+                "alphaTest": {
+                    "title": "Test Server Available",
+                    "expectedUntil": "The test is expected to be active until {date}.",
+                    "serverLabel": "Test server: {server}",
+                    "remember": "Remember my selection",
+                    "join": "Join Test",
+                    "decline": "Not Now",
+                    "settingsSection": "Test Server",
+                    "settingsChoice": "Join Test Server",
+                    "settingsNote": "This preference only applies to the current test and is reset when the test ends.",
+                    "choiceAsk": "Ask every launch",
+                    "choiceJoin": "Always join",
+                    "choiceDecline": "Always decline",
+                    "messages": {
+                        "generic": "A time-limited test server is currently active. Would you like to join it?",
+                        "rankedMatchmakingTest": "A time-limited ranked matchmaking test is currently active. Would you like to join it?",
+                        "unrankedMatchmakingTest": "A time-limited unranked matchmaking test is currently active. Would you like to join it?",
+                        "customLobbiesTest": "A time-limited custom lobbies test is currently active. Would you like to join it?"
+                    }
+                },
                 "debugSidebar": {
                     "debugSandbox": "Debug Sandbox",
                     "openSettingsFile": "Open Settings File",

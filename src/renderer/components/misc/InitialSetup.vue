@@ -59,6 +59,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </template>
         </template>
+        <AlphaTestModal v-if="alphaTest" :test="alphaTest" @done="resolveAlphaTestPrompt?.()" />
     </div>
 </template>
 
@@ -89,6 +90,9 @@ import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
 
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
+import AlphaTestModal from "@renderer/components/misc/AlphaTestModal.vue";
+import { needsAlphaTestPrompt, type AlphaTest } from "@shared/alpha-test";
+import { auth } from "@renderer/store/me.store";
 
 const { localeOptions } = useLocaleOptions();
 const { t } = useTypedI18n();
@@ -133,6 +137,9 @@ let stageEnd = 0;
 let currentStage: DownloadStage | null = null;
 
 let resolvePathConfirm: (() => void) | undefined;
+
+const alphaTest = ref<AlphaTest>();
+let resolveAlphaTestPrompt: (() => void) | undefined;
 
 const currentDownload = computed(() => allDownloads.value[0] ?? null);
 const isExtracting = computed(() => currentDownload.value?.phase === "extracting");
@@ -484,6 +491,21 @@ onMounted(async () => {
         await initBattleStore();
     } catch (error) {
         console.error("Battle store failed to initialise", error);
+    }
+
+    // Last, right before the login screen, because the answer decides which server that signs in to.
+    if (configStore.alphaTest && needsAlphaTestPrompt(settingsStore, configStore.alphaTest)) {
+        const serverBefore = settingsStore.lobbyServer;
+        alphaTest.value = configStore.alphaTest;
+        await new Promise<void>((resolve) => {
+            resolveAlphaTestPrompt = resolve;
+        });
+        alphaTest.value = undefined;
+        // The me store held the restore back for this answer. A server switch signs out on its own instead,
+        // as the stored credentials belong to the server being left.
+        if (settingsStore.lobbyServer === serverBefore) {
+            await auth.restorePreviousSession();
+        }
     }
 
     emit("complete");

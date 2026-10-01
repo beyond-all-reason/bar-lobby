@@ -30,6 +30,25 @@ export const configSchema = Type.Object({
     defaultServers: Type.Array(Type.String(), {
         default: ["wss://server4.beyondallreason.info", "wss://server5.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev", "ws://localhost:4000"],
     }),
+    alphaTest: Type.Optional(
+        Type.Object({
+            id: Type.String({
+                description: "Opaque to the client; a different id is a new test and asks everyone again.",
+                examples: ["mm-2026-10"],
+            }),
+            serverUrl: Type.String({ examples: ["wss://server5.beyondallreason.info"] }),
+            messageKey: Type.String({
+                description: 'Translation key under lobby.components.misc.alphaTest.messages. If not matched, "generic" is used.',
+                examples: ["rankedMatchmakingTest", "unrankedMatchmakingTest", "customLobbiesTest"],
+            }),
+            endsAt: Type.Optional(
+                Type.String({
+                    description: "ISO 8601. If left out, or unparseable, the expected end isn't shown.",
+                    examples: ["2026-10-15T00:00:00Z"],
+                })
+            ),
+        })
+    ),
     // Default engine settings for BAR, sourced from:
     // https://github.com/beyond-all-reason/BYAR-Chobby/blob/master/dist_cfg/config.json
     springSettings: Type.Record(Type.String(), Type.Union([Type.String(), Type.Number()]), {

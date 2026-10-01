@@ -16,6 +16,8 @@ import {
     FriendRemovedEventData,
 } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
+import { needsAlphaTestPrompt } from "@shared/alpha-test";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
@@ -169,7 +171,7 @@ function clearOnlineState() {
 }
 
 // export const me = readonly(_me);
-export const auth = { login, goOnline, logout, clearOnlineState };
+export const auth = { login, goOnline, logout, clearOnlineState, restorePreviousSession };
 
 // Friend methods
 export const friends = {
@@ -262,9 +264,9 @@ export async function initMeStore() {
         console.warn("Me store is already initialized. Skipping initialization.");
         return;
     }
-    // Settings load in parallel with this, and the stored server arriving over
-    // the default counts as a change. Reacting to that would sign out everyone
-    // who does not use the default server, every launch.
+    // The stored server arriving over the default counts as a change. Reacting
+    // to that would sign out everyone who does not use the default server, every
+    // launch. Settings are loaded before this now, but the guard stays cheap.
     watch(
         () => settingsStore.lobbyServer,
         () => {
@@ -303,14 +305,16 @@ export async function initMeStore() {
     }
 
     await syncAuthState();
-    await restorePreviousSession();
+    // An unanswered alpha test prompt may switch servers, and restoring here would only connect to the
+    // old one to be signed out again. InitialSetup restores once the user has answered.
+    if (!needsAlphaTestPrompt(settingsStore, configStore.alphaTest)) {
+        await restorePreviousSession();
+    }
 
     me.isInitialized = true;
 }
 
-// Multiplayer is behind devMode, so outside it there is no session to restore.
 async function restorePreviousSession() {
-    if (!settingsStore.devMode) return;
     if (!settingsStore.loginAutomatically) return;
     if (!(await window.auth.hasCredentials())) return;
 

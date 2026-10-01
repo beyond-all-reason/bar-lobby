@@ -16,7 +16,12 @@ describe("Main Process Lifecycle", () => {
     // Mock all services
     const mockServices = {
         engineService: { registerIpcHandlers: vi.fn() },
-        settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
+        settingsService: {
+            init: vi.fn().mockResolvedValue(undefined),
+            registerIpcHandlers: vi.fn(),
+            getSettings: vi.fn().mockReturnValue({ assetsPath: "" }),
+            didLobbyServerChangeOnInit: vi.fn().mockReturnValue(false),
+        },
         configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
@@ -27,7 +32,7 @@ describe("Main Process Lifecycle", () => {
         contentAPI: { init: vi.fn().mockResolvedValue(undefined), reinit: vi.fn().mockResolvedValue(undefined) },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
-        authService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        authService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), signOut: vi.fn().mockResolvedValue(undefined) },
         tachyonService: { registerIpcHandlers: vi.fn() },
         shellService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },

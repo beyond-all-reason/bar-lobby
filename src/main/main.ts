@@ -142,6 +142,10 @@ app.whenReady().then(async () => {
         log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
     }
     await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
+    // Credentials belong to the server that issued them, and an alpha test can switch servers at startup.
+    if (settingsService.didLobbyServerChangeOnInit()) {
+        await authService.signOut();
+    }
 
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);

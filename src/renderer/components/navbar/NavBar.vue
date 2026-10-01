@@ -76,7 +76,7 @@ SPDX-License-Identifier: MIT
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <ServerStatus v-if="settingsStore.devMode" />
+                    <ServerStatus />
                     <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />

@@ -55,10 +55,8 @@ SPDX-License-Identifier: MIT
             <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
             <Checkbox v-model="settingsStore.skipIntro" />
 
-            <template v-if="settingsStore.devMode">
-                <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
-                <Checkbox v-model="settingsStore.loginAutomatically" />
-            </template>
+            <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
+            <Checkbox v-model="settingsStore.loginAutomatically" />
 
             <div>{{ t("lobby.navbar.settings.devMode") }}</div>
             <Checkbox v-model="settingsStore.devMode" />
@@ -69,6 +67,15 @@ SPDX-License-Identifier: MIT
                 </div>
             </OverlayPanel>
             <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
+
+            <template v-if="configStore.alphaTest">
+                <div class="section-header">{{ t("lobby.components.misc.alphaTest.settingsSection") }}</div>
+
+                <div>{{ t("lobby.components.misc.alphaTest.settingsChoice") }}</div>
+                <Select v-model="alphaTestChoice" :options="alphaTestChoiceOptions" optionLabel="label" optionValue="value" />
+
+                <div class="setting-note">{{ t("lobby.components.misc.alphaTest.settingsNote") }}</div>
+            </template>
 
             <div class="section-header">{{ t("lobby.navbar.settings.storage") }}</div>
 
@@ -150,6 +157,8 @@ import { useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
+import { configStore } from "@renderer/store/config.store";
+import { joinAlphaTest, leaveAlphaTest, type AlphaTestChoice } from "@shared/alpha-test";
 const { t } = useTypedI18n();
 const { localeOptions } = useLocaleOptions();
 
@@ -232,6 +241,28 @@ async function applyPathChange() {
 
 const op = ref();
 const tooltipMessage = ref("");
+
+const alphaTestChoiceOptions = computed(() => [
+    { label: t("lobby.components.misc.alphaTest.choiceAsk"), value: "ask" },
+    { label: t("lobby.components.misc.alphaTest.choiceJoin"), value: "join" },
+    { label: t("lobby.components.misc.alphaTest.choiceDecline"), value: "decline" },
+]);
+
+// Takes effect straight away, like picking a server in the server settings. Asking changes no server,
+// so whatever the user is on stays until the next launch asks.
+const alphaTestChoice = computed<AlphaTestChoice>({
+    get: () => settingsStore.alphaTestChoice,
+    set: (choice) => {
+        const test = configStore.alphaTest;
+        if (!test) return;
+        if (choice === "join") {
+            joinAlphaTest(settingsStore, test.serverUrl, configStore.defaultServers);
+        } else if (choice === "decline") {
+            leaveAlphaTest(settingsStore, test.serverUrl);
+        }
+        settingsStore.alphaTestChoice = choice;
+    },
+});
 
 const displays = asyncComputed(() => window.mainWindow.getDisplays(), []);
 
@@ -368,6 +399,12 @@ async function uploadLogsCommand(event) {
     opacity: 0.5;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     padding-bottom: 4px;
+}
+
+.setting-note {
+    grid-column: 1 / -1;
+    font-size: 11px;
+    opacity: 0.6;
 }
 
 .path-row {
