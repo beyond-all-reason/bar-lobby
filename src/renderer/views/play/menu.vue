@@ -30,8 +30,7 @@ SPDX-License-Identifier: MIT
                 <Panel :no-padding="true" class="game-mode-card disabled" @click="startMatchmaking">
                     <div class="card-content">
                         <h2>
-                            {{ t("lobby.views.play.matchmaking")
-                            }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
+                            {{ t("lobby.views.play.matchmaking") }}
                         </h2>
                     </div>
                 </Panel>
@@ -87,9 +86,7 @@ const startCampaign = () => {
 };
 
 const startMatchmaking = () => {
-    if (settingsStore.devMode) {
-        router.push("/play/matchmaking");
-    }
+    router.push("/play/matchmaking");
 };
 
 const startCustomLobbies = () => {

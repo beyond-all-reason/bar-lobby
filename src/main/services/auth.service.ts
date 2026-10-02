@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { getLobbyServer } from "@main/config/server";
 import { authenticate, renewAccessToken, TokenRequestError, TokenResponse } from "@main/oauth2/oauth2";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { StoredIdentity } from "@main/model/user";
@@ -62,6 +63,7 @@ async function storeTokens({ token, refreshToken, expiresIn }: TokenResponse) {
         token,
         refreshToken,
         expiresAt: Date.now() + expiresIn * 1000,
+        server: getLobbyServer(),
     });
 
     scheduleRenewal(expiresIn * 1000 * RENEW_AT_FRACTION_OF_LIFETIME);
@@ -195,8 +197,18 @@ async function setIdentity(identity: StoredIdentity) {
     }
 }
 
+// Config can bring a new default server between runs, which moves everyone who
+// hasn't picked one. Credentials from the old server mean nothing to the new one
+// and shouldn't be handed to it, so they go before anything tries to use them.
 async function init() {
     await accountService.init();
+
+    const issuer = accountService.getServer();
+    const server = getLobbyServer();
+    if (accountService.getRefreshToken() && issuer !== server) {
+        log.info(`Stored credentials were issued by ${issuer ?? "an unrecorded server"}, not ${server}, discarding them`);
+        await accountService.wipe();
+    }
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {

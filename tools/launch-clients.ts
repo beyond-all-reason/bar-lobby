@@ -9,10 +9,19 @@
 import { spawn, execSync } from "child_process";
 import os from "os";
 
-// 1. Read instance count from terminal flags (defaults to 2 if none provided)
+// 1. Read instance count and an optional config file from the arguments, e.g. `npm run start:multi 1 config.json`.
+// Positional, because npm keeps `--flags` for itself unless they come after a `--`.
+// The count defaults to 2, and can be left out: `npm run start:multi config.json`.
 const args: string[] = process.argv.slice(2);
 const passedCount: number = parseInt(args[0], 10);
-const CLIENT_COUNT: number = !isNaN(passedCount) && passedCount > 0 ? passedCount : 2;
+const hasCount = !isNaN(passedCount);
+const CLIENT_COUNT: number = hasCount && passedCount > 0 ? passedCount : 2;
+const configPath: string | undefined = hasCount ? args[1] : args[0];
+const clientArgs: string[] = configPath ? ["--config", configPath] : [];
+
+if (configPath) {
+    console.log(`Clients will use the local config ${configPath} instead of fetching the remote one.`);
+}
 
 console.log(`Preparing to compile and launch ${CLIENT_COUNT} instances...`);
 
@@ -45,7 +54,7 @@ build.on("close", (code: number | null) => {
         if (isWin) {
             const windowTitle = `"Client #${i} Log Stream"`;
 
-            spawn("cmd.exe", ["/c", "start", windowTitle, "cmd", "/c", "npx", "electron", "."], {
+            spawn("cmd.exe", ["/c", "start", windowTitle, "cmd", "/c", "npx", "electron", ".", ...clientArgs], {
                 env: customEnv,
                 detached: true,
                 shell: true,
@@ -60,7 +69,7 @@ build.on("close", (code: number | null) => {
                 hasGnomeTerminal = false;
             }
 
-            const runCmd = "npx electron .";
+            const runCmd = ["npx electron .", ...clientArgs.map((arg) => `'${arg}'`)].join(" ");
 
             if (hasGnomeTerminal) {
                 // gnome-terminal uses -- to separate terminal flags from the executed command

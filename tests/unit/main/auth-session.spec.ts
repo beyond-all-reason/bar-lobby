@@ -26,7 +26,7 @@ const oauth2 = vi.hoisted(() => ({
 }));
 
 const account = vi.hoisted(() => {
-    const state = { token: "", refreshToken: "", expiresAt: 0, identity: undefined as unknown };
+    const state = { token: "", refreshToken: "", expiresAt: 0, server: undefined as string | undefined, identity: undefined as unknown };
 
     return {
         state,
@@ -34,18 +34,21 @@ const account = vi.hoisted(() => {
             init: vi.fn(async () => {}),
             saveIdentity: vi.fn(async (identity: unknown) => void (state.identity = identity)),
             getIdentity: () => state.identity,
-            saveTokens: vi.fn(async ({ token, refreshToken, expiresAt }: any) => {
+            saveTokens: vi.fn(async ({ token, refreshToken, expiresAt, server }: any) => {
                 state.token = token;
                 state.refreshToken = refreshToken;
                 state.expiresAt = expiresAt;
+                state.server = server;
             }),
             getToken: () => state.token,
             getRefreshToken: () => state.refreshToken,
             getExpiresAt: () => state.expiresAt,
+            getServer: () => state.server,
             wipe: vi.fn(async () => {
                 state.token = "";
                 state.refreshToken = "";
                 state.expiresAt = 0;
+                state.server = undefined;
             }),
         },
     };
@@ -53,6 +56,9 @@ const account = vi.hoisted(() => {
 
 const ipc = vi.hoisted(() => ({ handlers: new Map<string, any>() }));
 
+const lobby = vi.hoisted(() => ({ server: "wss://server4.beyondallreason.info" }));
+
+vi.mock("@main/config/server", () => ({ getLobbyServer: () => lobby.server }));
 vi.mock("@main/oauth2/oauth2", () => ({ ...oauth2, TokenRequestError }));
 vi.mock("@main/services/account.service", () => ({ accountService: account.service }));
 vi.mock("@main/utils/logger", () => ({
@@ -94,6 +100,8 @@ describe("auth session policy", () => {
         account.state.token = "";
         account.state.refreshToken = "";
         account.state.expiresAt = 0;
+        account.state.server = undefined;
+        lobby.server = "wss://server4.beyondallreason.info";
     });
 
     afterEach(() => {
@@ -109,6 +117,15 @@ describe("auth session policy", () => {
 
         expect(account.service.saveTokens).toHaveBeenCalledWith(expect.objectContaining({ token: "access-1", refreshToken: "refresh-1" }));
         expect(account.state.refreshToken).toBe("refresh-1");
+    });
+
+    it("records which server issued the tokens", async () => {
+        oauth2.authenticate.mockResolvedValue(freshTokens("1"));
+
+        await loadService();
+        await signIn();
+
+        expect(account.service.saveTokens).toHaveBeenCalledWith(expect.objectContaining({ server: "wss://server4.beyondallreason.info" }));
     });
 
     it("keeps credentials when a renewal fails for a transient reason", async () => {
@@ -296,6 +313,50 @@ describe("auth session policy", () => {
         await authService.init();
 
         expect(account.service.init).toHaveBeenCalled();
+    });
+
+    // Config can move the default server between runs, and the old server's
+    // tokens must not be offered to the new one.
+    describe("on startup", () => {
+        it("keeps credentials issued by the active server", async () => {
+            account.state.refreshToken = "refresh-0";
+            account.state.server = "wss://server4.beyondallreason.info";
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).not.toHaveBeenCalled();
+            expect(account.state.refreshToken).toBe("refresh-0");
+        });
+
+        it("discards credentials issued by a different server", async () => {
+            account.state.refreshToken = "refresh-0";
+            account.state.server = "wss://server4.beyondallreason.info";
+            lobby.server = "wss://alpha.beyondallreason.info";
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).toHaveBeenCalled();
+            expect(account.state.refreshToken).toBe("");
+        });
+
+        it("discards credentials whose issuer was never recorded", async () => {
+            account.state.refreshToken = "refresh-0";
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).toHaveBeenCalled();
+        });
+
+        it("has nothing to discard when nothing is stored", async () => {
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).not.toHaveBeenCalled();
+        });
     });
 
     // Telling the renderer is one subscriber now rather than the thing that

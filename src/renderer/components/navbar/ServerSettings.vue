@@ -8,7 +8,14 @@ SPDX-License-Identifier: MIT
     <Modal :title="t('lobby.navbar.serverSettings.title')">
         <div class="gridform">
             <div>{{ t("lobby.navbar.serverSettings.activeServer") }}</div>
-            <Select v-model="settingsStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
+            <Select
+                v-model="selectedServer"
+                :options="serversList"
+                optionLabel="label"
+                optionValue="value"
+                optionGroupLabel="label"
+                optionGroupChildren="items"
+            />
             <div>{{ t("lobby.navbar.serverSettings.customServer") }}</div>
             <Textbox
                 type="text"
@@ -54,17 +61,35 @@ const tooltipMessage = ref("");
 const defaultServers: string[] = [...configStore.defaultServers];
 
 const disableRemoveButton = computed(() => {
-    return defaultServers.includes(settingsStore.lobbyServer);
+    // Only custom entries can be removed; the active server may also be one that is in neither list
+    return !settingsStore.customServerList.includes(settingsStore.lobbyServerOverride);
+});
+
+function serverOption(server: string) {
+    return { label: server, value: server };
+}
+
+// The dropdown treats an empty string as no selection, this is a unique value for default
+const FOLLOW_DEFAULT = Symbol("followDefault");
+
+const selectedServer = computed({
+    get: () => settingsStore.lobbyServerOverride || FOLLOW_DEFAULT,
+    set: (value: string | typeof FOLLOW_DEFAULT) => {
+        settingsStore.lobbyServerOverride = value === FOLLOW_DEFAULT ? "" : value;
+    },
 });
 
 const serversList = computed(() => [
     {
         label: t("lobby.navbar.serverSettings.labelDefault"),
-        items: defaultServers,
+        items: [
+            { label: t("lobby.navbar.serverSettings.followDefault", { server: defaultServers[0] }), value: FOLLOW_DEFAULT },
+            ...defaultServers.map(serverOption),
+        ],
     },
     {
         label: t("lobby.navbar.serverSettings.labelCustom"),
-        items: settingsStore.customServerList,
+        items: settingsStore.customServerList.map(serverOption),
     },
 ]);
 
@@ -82,10 +107,13 @@ function addServerToList() {
 }
 
 function removeServerFromList() {
-    const index = settingsStore.customServerList.indexOf(settingsStore.lobbyServer);
+    const index = settingsStore.customServerList.indexOf(settingsStore.lobbyServerOverride);
+    if (index === -1) {
+        return;
+    }
     settingsStore.customServerList.splice(index, 1);
-    //Bounce back to the primary default when an entry is deleted
-    settingsStore.lobbyServer = defaultServers[0];
+    //Go back to following the default when an entry is deleted
+    settingsStore.lobbyServerOverride = "";
 }
 </script>
 
