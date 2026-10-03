@@ -7,8 +7,8 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
-            <div v-if="allDownloads.length" class="downloads">
-                <TransitionGroup tag="div" class="downloads__list" name="downloads-list">
+            <div v-if="allDownloads.length || finishedDownloads.length" class="downloads">
+                <TransitionGroup v-if="allDownloads.length" tag="div" class="downloads__list" name="downloads-list">
                     <div v-for="download in allDownloads" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
@@ -31,6 +31,16 @@ SPDX-License-Identifier: MIT
                         </template>
                     </div>
                 </TransitionGroup>
+                <div v-if="finishedDownloads.length" class="downloads__finished">
+                    <div class="downloads__heading">{{ t("lobby.navbar.downloads.finished") }}</div>
+                    <div v-for="download in finishedDownloads" :key="download.key" class="downloads__download">
+                        <div class="downloads__info">
+                            <div class="downloads__name">{{ download.name }}</div>
+                            <div class="downloads__type">{{ download.type }}</div>
+                        </div>
+                        <Progress :percent="downloadPercent(download)" :text="finishedText(download)" :height="20" themed />
+                    </div>
+                </div>
             </div>
             <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
@@ -47,7 +57,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
-const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
+const { allDownloads, finishedDownloads, downloadPercent, progressText } = useDownloadProgress();
 
 function barText(download: DownloadView): string {
     if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
@@ -57,6 +67,12 @@ function barText(download: DownloadView): string {
 function detailText(download: DownloadView): string {
     if (download.currentBytes === 0) return "";
     return progressText(download);
+}
+
+function finishedText(download: DownloadView): string {
+    // A download whose size was never reported has no truthful percentage to show.
+    if (download.totalBytes <= 0) return t("lobby.navbar.downloads.finished");
+    return barText(download);
 }
 
 const props = defineProps<{
@@ -94,6 +110,13 @@ toggleDownloads.value = async (open?: boolean) => {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+    }
+    &__heading {
+        padding: 12px 15px 4px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.7);
     }
     &__download {
         width: 100%;

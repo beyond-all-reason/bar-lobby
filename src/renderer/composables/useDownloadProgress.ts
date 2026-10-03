@@ -72,6 +72,19 @@ export function useDownloadProgress() {
         })),
     ]);
 
+    // What landed this session, in the order it landed. A finished download has no figures of its
+    // own left to report, so its last known total stands as both sides of its row.
+    const finishedDownloads = computed<DownloadView[]>(() =>
+        contentsStore.finishedDownloads.map((state) => ({
+            key: `${state.type}:${state.id}`,
+            name: state.id,
+            type: state.type,
+            currentBytes: state.totalBytes,
+            totalBytes: state.totalBytes,
+            queued: false,
+        }))
+    );
+
     // The same set the fractions below are summed over. A status counted here but not there, as a
     // failure used to be, holds the figure short of full for everything downloading beside it.
     const outstandingCount = computed(() => contentsStore.inFlight.filter(isInProgress).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
@@ -188,6 +201,7 @@ export function useDownloadProgress() {
 
     return {
         allDownloads,
+        finishedDownloads,
         totalDownloadPercent,
         failedDownloadPercent,
         downloadPercent,
