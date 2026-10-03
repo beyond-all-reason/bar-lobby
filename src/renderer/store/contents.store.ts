@@ -4,7 +4,7 @@
 
 import { ContentRef } from "@main/content/content-ref";
 import { ContentPresence, ContentProgress, ContentState } from "@main/content/content-state";
-import { createSettledCounter } from "@main/content/content-progress";
+import { createSettledCounter, createSettledTracker } from "@main/content/content-progress";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
@@ -22,6 +22,9 @@ export const contentsStore: {
     // Content that landed this run, counted on both sides of the fraction so it does not drop as content
     // leaves inFlight. Held while a failure is unretried so the share it takes up stays put.
     settledCount: number;
+    // Content that landed this session, last seen as it left inFlight, so what finished can be
+    // named and not just counted. Kept after the queue drains, unlike settledCount's run.
+    finishedDownloads: ContentState[];
 } = reactive({
     isInitialized: false,
     inFlight: [],
@@ -29,6 +32,7 @@ export const contentsStore: {
     isPathChanging: false,
     poolPrefetch: null,
     settledCount: 0,
+    finishedDownloads: [],
 });
 
 export function contentRefs(content: { engines?: string[]; games?: string[]; maps?: string[] }): ContentRef[] {
@@ -69,8 +73,12 @@ export async function initContentsStore() {
     contentsStore.inFlight = await window.content.state();
 
     const countSettled = createSettledCounter();
+    const trackSettled = createSettledTracker();
+    // Seed the tracker with what is already in flight, so it notices that content leaving too.
+    contentsStore.finishedDownloads = trackSettled(contentsStore.inFlight);
     window.content.onChanged((state) => {
         contentsStore.settledCount = countSettled(state);
+        contentsStore.finishedDownloads = trackSettled(state);
         contentsStore.inFlight = state;
         contentsStore.revision++;
     });
