@@ -259,7 +259,8 @@
                 "remove": "Rmvoee",
                 "info": "Chinnagg the Atvcie Seevrr has imdmiaete eeffct. Remeebmr to log in afetr sthwciing.",
                 "labelDefault": " - Dfuaelt Seevrrs",
-                "labelCustom": " - Cuotsm Seevrrs"
+                "labelCustom": " - Cuotsm Seevrrs",
+                "useDefaultServer": "Use dfauelt sveerr coginfituraon"
             },
             "breadcrumbs": {
                 "back": "Back"

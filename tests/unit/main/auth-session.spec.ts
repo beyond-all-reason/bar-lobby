@@ -26,7 +26,7 @@ const oauth2 = vi.hoisted(() => ({
 }));
 
 const account = vi.hoisted(() => {
-    const state = { token: "", refreshToken: "", expiresAt: 0, identity: undefined as unknown };
+    const state = { token: "", refreshToken: "", expiresAt: 0, server: undefined as string | undefined, identity: undefined as unknown };
 
     return {
         state,
@@ -34,18 +34,21 @@ const account = vi.hoisted(() => {
             init: vi.fn(async () => {}),
             saveIdentity: vi.fn(async (identity: unknown) => void (state.identity = identity)),
             getIdentity: () => state.identity,
-            saveTokens: vi.fn(async ({ token, refreshToken, expiresAt }: any) => {
+            saveTokens: vi.fn(async ({ token, refreshToken, expiresAt, server }: any) => {
                 state.token = token;
                 state.refreshToken = refreshToken;
                 state.expiresAt = expiresAt;
+                state.server = server;
             }),
             getToken: () => state.token,
             getRefreshToken: () => state.refreshToken,
             getExpiresAt: () => state.expiresAt,
+            getServer: () => state.server,
             wipe: vi.fn(async () => {
                 state.token = "";
                 state.refreshToken = "";
                 state.expiresAt = 0;
+                state.server = undefined;
             }),
         },
     };
@@ -53,6 +56,9 @@ const account = vi.hoisted(() => {
 
 const ipc = vi.hoisted(() => ({ handlers: new Map<string, any>() }));
 
+const lobby = vi.hoisted(() => ({ server: "wss://server4.beyondallreason.info" }));
+
+vi.mock("@main/config/server", () => ({ getLobbyServer: () => lobby.server }));
 vi.mock("@main/oauth2/oauth2", () => ({ ...oauth2, TokenRequestError }));
 vi.mock("@main/services/account.service", () => ({ accountService: account.service }));
 vi.mock("@main/utils/logger", () => ({
@@ -94,6 +100,8 @@ describe("auth session policy", () => {
         account.state.token = "";
         account.state.refreshToken = "";
         account.state.expiresAt = 0;
+        account.state.server = undefined;
+        lobby.server = "wss://server4.beyondallreason.info";
     });
 
     afterEach(() => {
@@ -109,6 +117,15 @@ describe("auth session policy", () => {
 
         expect(account.service.saveTokens).toHaveBeenCalledWith(expect.objectContaining({ token: "access-1", refreshToken: "refresh-1" }));
         expect(account.state.refreshToken).toBe("refresh-1");
+    });
+
+    it("records which server issued the tokens", async () => {
+        oauth2.authenticate.mockResolvedValue(freshTokens("1"));
+
+        await loadService();
+        await signIn();
+
+        expect(account.service.saveTokens).toHaveBeenCalledWith(expect.objectContaining({ server: "wss://server4.beyondallreason.info" }));
     });
 
     it("keeps credentials when a renewal fails for a transient reason", async () => {
@@ -270,6 +287,70 @@ describe("auth session policy", () => {
         expect(oauth2.renewAccessToken).not.toHaveBeenCalled();
     });
 
+    // Switching servers signs out without waiting on a browser page left open, so
+    // the tokens it eventually hands back belong to a session that has ended.
+    describe("a sign in still waiting when the session ends", () => {
+        it("keeps nothing it brings back", async () => {
+            const { promise, resolve } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+            oauth2.authenticate.mockReturnValue(promise);
+
+            const { webContents } = await loadService();
+            const pending = signIn();
+            await ipc.handlers.get("auth:logout")!();
+            resolve(freshTokens("1"));
+
+            await expect(pending).rejects.toThrow();
+            expect(account.state.refreshToken).toBe("");
+            expect(ipc.handlers.get("auth:state")!()).toEqual({ authenticated: false });
+            expect(webContents.send).not.toHaveBeenCalledWith("auth:changed", expect.objectContaining({ authenticated: true }));
+        });
+
+        it("leaves a newer sign in alone when it fails", async () => {
+            const { promise, reject } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+            oauth2.authenticate.mockReturnValueOnce(promise).mockResolvedValueOnce(freshTokens("2"));
+
+            const { webContents } = await loadService();
+            const stale = signIn();
+            await ipc.handlers.get("auth:logout")!();
+            await signIn();
+            reject(new TokenRequestError("network", "browser closed"));
+
+            await expect(stale).rejects.toThrow();
+            expect(account.state.refreshToken).toBe("refresh-2");
+            expect(ipc.handlers.get("auth:state")!()).toEqual({ authenticated: true });
+            expect(webContents.send).toHaveBeenLastCalledWith("auth:changed", { authenticated: true, reason: undefined });
+        });
+
+        it("records the server it started on, not the one switched to", async () => {
+            const { promise, resolve } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+            oauth2.authenticate.mockReturnValue(promise);
+
+            await loadService();
+            const pending = signIn();
+            lobby.server = "wss://alpha.beyondallreason.info";
+            resolve(freshTokens("1"));
+            await pending;
+
+            expect(account.state.server).toBe("wss://server4.beyondallreason.info");
+        });
+    });
+
+    it("keeps nothing from a renewal that finishes after sign out", async () => {
+        account.state.refreshToken = "refresh-0";
+        const { promise, resolve } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+        oauth2.renewAccessToken.mockResolvedValueOnce(freshTokens("1")).mockReturnValueOnce(promise);
+
+        await loadService();
+        await signIn();
+        await vi.advanceTimersByTimeAsync(RENEWAL_DUE_MS);
+        await ipc.handlers.get("auth:logout")!();
+        resolve(freshTokens("2"));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(account.state.refreshToken).toBe("");
+        expect(ipc.handlers.get("auth:state")!()).toEqual({ authenticated: false });
+    });
+
     // Identity reaches the session over the socket rather than from the token
     // exchange, so it comes in through here instead of past the owner to the store.
     it("stores an identity handed to it", async () => {
@@ -296,6 +377,50 @@ describe("auth session policy", () => {
         await authService.init();
 
         expect(account.service.init).toHaveBeenCalled();
+    });
+
+    // Config can move the default server between runs, and the old server's
+    // tokens must not be offered to the new one.
+    describe("on startup", () => {
+        it("keeps credentials issued by the active server", async () => {
+            account.state.refreshToken = "refresh-0";
+            account.state.server = "wss://server4.beyondallreason.info";
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).not.toHaveBeenCalled();
+            expect(account.state.refreshToken).toBe("refresh-0");
+        });
+
+        it("discards credentials issued by a different server", async () => {
+            account.state.refreshToken = "refresh-0";
+            account.state.server = "wss://server4.beyondallreason.info";
+            lobby.server = "wss://alpha.beyondallreason.info";
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).toHaveBeenCalled();
+            expect(account.state.refreshToken).toBe("");
+        });
+
+        it("discards credentials whose issuer was never recorded", async () => {
+            account.state.refreshToken = "refresh-0";
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).toHaveBeenCalled();
+        });
+
+        it("has nothing to discard when nothing is stored", async () => {
+            const { authService } = await loadService();
+
+            await authService.init();
+
+            expect(account.service.wipe).not.toHaveBeenCalled();
+        });
     });
 
     // Telling the renderer is one subscriber now rather than the thing that

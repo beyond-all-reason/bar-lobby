@@ -4095,7 +4095,8 @@
                 "remove": null,
                 "info": null,
                 "labelDefault": null,
-                "labelCustom": null
+                "labelCustom": null,
+                "useDefaultServer": null
             },
             "breadcrumbs": {
                 "back": null

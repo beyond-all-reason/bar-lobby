@@ -10,6 +10,14 @@ vi.mock("@renderer/store/db", () => ({
     db: { users: { where: () => ({ first: async () => undefined, modify: async () => undefined }), put: vi.fn() } },
 }));
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
+// The real store is readonly, and these tests need to say when config arrives.
+vi.mock("@renderer/store/config.store", async () => {
+    const { reactive } = await import("vue");
+    return { configStore: reactive({ isInitialized: false, defaultServers: [] as string[] }) };
+});
+
+const DEFAULT_SERVER = "wss://server4.beyondallreason.info";
+const OTHER_SERVER = "wss://lobby-server-dev.beyondallreason.dev";
 
 const disconnect = vi.fn(async () => {});
 const onConnected = vi.fn(async () => {});
@@ -33,13 +41,18 @@ Object.defineProperty(window, "auth", {
 const { me, initMeStore } = await import("@renderer/store/me.store");
 const { settingsStore } = await import("@renderer/store/settings.store");
 const { tachyonStore } = await import("@renderer/store/tachyon.store");
+const configStore = (await import("@renderer/store/config.store")).configStore as { isInitialized: boolean; defaultServers: readonly string[] };
 
 // The watcher does not await the switch, and the session state it ends with is
 // read back from main at the end of that chain rather than assigned up front.
-async function changeServerTo(server: string) {
-    settingsStore.lobbyServer = server;
+async function settle() {
     await nextTick();
     await flushPromises();
+}
+
+async function changeServerTo(server: string) {
+    settingsStore.lobbyServerOverride = server;
+    await settle();
 }
 
 describe("switching the active server", () => {
@@ -54,27 +67,74 @@ describe("switching the active server", () => {
         logout.mockClear();
         session.authenticated = true;
         settingsStore.isInitialized = false;
-        settingsStore.lobbyServer = "wss://server4.beyondallreason.info";
+        settingsStore.useDefaultServer = false;
+        settingsStore.lobbyServerOverride = "";
+        configStore.isInitialized = false;
+        configStore.defaultServers = [];
         await nextTick();
     });
 
-    // Settings load in parallel with the store that watches them, so the stored
-    // server arriving over the default is a change as far as the watcher is
-    // concerned. Acting on it would sign out everyone not on the default server,
-    // every launch.
-    it("ignores the stored server arriving while settings are still loading", async () => {
+    // Settings and config load in parallel with the store that watches them, so
+    // the stored override or the default arriving is a change as far as the
+    // watcher is concerned. Acting on it would sign out everyone not on the
+    // default server, every launch. Each store sets its data and isInitialized in
+    // the same tick, and so do these.
+    it("ignores the stored override arriving while settings are still loading", async () => {
         me.isAuthenticated = true;
+        configStore.isInitialized = true;
 
-        await changeServerTo("wss://lobby-server-dev.beyondallreason.dev");
+        await changeServerTo(OTHER_SERVER);
 
         expect(logout).not.toHaveBeenCalled();
         expect(disconnect).not.toHaveBeenCalled();
         expect(me.isAuthenticated).toBe(true);
     });
 
-    describe("once settings are loaded", () => {
-        beforeEach(() => {
+    it("ignores the default arriving while config is still loading", async () => {
+        me.isAuthenticated = true;
+        settingsStore.isInitialized = true;
+
+        configStore.defaultServers = [DEFAULT_SERVER];
+        await settle();
+
+        expect(logout).not.toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
+    });
+
+    it("ignores settings arriving last with an override", async () => {
+        me.isAuthenticated = true;
+        configStore.defaultServers = [DEFAULT_SERVER];
+        configStore.isInitialized = true;
+        await settle();
+
+        settingsStore.lobbyServerOverride = OTHER_SERVER;
+        settingsStore.isInitialized = true;
+        await settle();
+
+        expect(logout).not.toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
+    });
+
+    it("ignores config arriving last with the default", async () => {
+        me.isAuthenticated = true;
+        settingsStore.useDefaultServer = true;
+        settingsStore.isInitialized = true;
+        await settle();
+
+        configStore.defaultServers = [DEFAULT_SERVER];
+        configStore.isInitialized = true;
+        await settle();
+
+        expect(logout).not.toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
+    });
+
+    describe("once settings and config are loaded", () => {
+        beforeEach(async () => {
+            configStore.defaultServers = [DEFAULT_SERVER];
+            await nextTick();
             settingsStore.isInitialized = true;
+            configStore.isInitialized = true;
             me.isAuthenticated = true;
             tachyonStore.wantsConnection = true;
         });
@@ -107,8 +167,50 @@ describe("switching the active server", () => {
             expect(wantedWhenClosing).toBe(false);
         });
 
-        it("does nothing when the same server is picked again", async () => {
-            await changeServerTo("wss://server4.beyondallreason.info");
+        // Pinning the default by name doesn't move the client anywhere.
+        it("does nothing when the default is picked by name", async () => {
+            await changeServerTo(DEFAULT_SERVER);
+
+            expect(logout).not.toHaveBeenCalled();
+            expect(disconnect).not.toHaveBeenCalled();
+        });
+
+        it("does nothing when an override naming the default is cleared", async () => {
+            await changeServerTo(DEFAULT_SERVER);
+            await changeServerTo("");
+
+            expect(logout).not.toHaveBeenCalled();
+        });
+
+        it("signs out when clearing an override moves back to the default", async () => {
+            await changeServerTo(OTHER_SERVER);
+            logout.mockClear();
+            session.authenticated = true;
+            me.isAuthenticated = true;
+
+            await changeServerTo("");
+
+            expect(logout).toHaveBeenCalledOnce();
+        });
+
+        it("signs out when switching back to the default configuration from another server", async () => {
+            await changeServerTo(OTHER_SERVER);
+            logout.mockClear();
+            session.authenticated = true;
+            me.isAuthenticated = true;
+
+            settingsStore.useDefaultServer = true;
+            await settle();
+
+            expect(logout).toHaveBeenCalledOnce();
+        });
+
+        // The override is kept while it is not in use, and changing it then moves nothing.
+        it("does nothing when the override changes while using the default configuration", async () => {
+            settingsStore.useDefaultServer = true;
+            await settle();
+
+            await changeServerTo(OTHER_SERVER);
 
             expect(logout).not.toHaveBeenCalled();
             expect(disconnect).not.toHaveBeenCalled();

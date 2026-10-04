@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { getLobbyServer } from "@main/config/server";
 import { authenticate, renewAccessToken, TokenRequestError, TokenResponse } from "@main/oauth2/oauth2";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { StoredIdentity } from "@main/model/user";
@@ -24,6 +25,10 @@ const TRANSIENT_RETRY_MS = 60 * 1000;
 let renewalTimer: NodeJS.Timeout | undefined;
 let renewalInFlight: Promise<void> | undefined;
 let authenticated = false;
+
+// Bumped by every sign out. A sign in or renewal started before one belongs to a
+// session that has ended, and whatever tokens it brings back must not be kept.
+let session = 0;
 
 // Raised whenever the session starts or ends. Kept apart from the IPC wiring so
 // that telling the renderer is one subscriber rather than the only way anything
@@ -57,11 +62,14 @@ function scheduleRenewal(delayMs: number) {
     renewalTimer = setTimeout(() => void renew(), delayMs);
 }
 
-async function storeTokens({ token, refreshToken, expiresIn }: TokenResponse) {
+// The issuer is the server in use when the request was made. The setting can
+// change while a browser sign in is waiting, so it is not read back afterwards.
+async function storeTokens({ token, refreshToken, expiresIn }: TokenResponse, server: string) {
     await accountService.saveTokens({
         token,
         refreshToken,
         expiresAt: Date.now() + expiresIn * 1000,
+        server,
     });
 
     scheduleRenewal(expiresIn * 1000 * RENEW_AT_FRACTION_OF_LIFETIME);
@@ -85,11 +93,19 @@ async function renewOnce(): Promise<void> {
         return;
     }
 
+    const startedIn = session;
+    const server = getLobbyServer();
     try {
-        await storeTokens(await renewAccessToken(refreshToken));
+        const tokens = await renewAccessToken(refreshToken);
+        if (startedIn !== session) {
+            log.info("Discarding a renewal that finished after sign out");
+            return;
+        }
+        await storeTokens(tokens, server);
         setAuthenticated(true);
         log.info("Renewed access token");
     } catch (error) {
+        if (startedIn !== session) return;
         await onRenewalFailed(error);
     }
 }
@@ -141,11 +157,22 @@ async function acquireTokens(interactive: boolean): Promise<TokenResponse> {
 }
 
 async function signIn(interactive: boolean) {
+    const startedIn = session;
+    const server = getLobbyServer();
     try {
-        await storeTokens(await acquireTokens(interactive));
+        const tokens = await acquireTokens(interactive);
+        // Sign out doesn't wait for the browser, so the session this was for may be gone.
+        if (startedIn !== session) {
+            log.info("Discarding a sign in that finished after sign out");
+            throw new Error("Signed out before sign in finished");
+        }
+        await storeTokens(tokens, server);
         setAuthenticated(true);
         log.info("Signed in");
     } catch (error) {
+        // A newer session may have started since, and it is not this sign in's to end.
+        if (startedIn !== session) throw error;
+
         const kind = kindOf(error);
         log.error(`Sign in failed (${kind}): ${describeError(error)}`);
 
@@ -160,6 +187,7 @@ async function signIn(interactive: boolean) {
 // token behind the user's back is what made a separate "change account" action
 // necessary, and whether to sign in on launch is a setting of its own.
 async function signOut() {
+    session++;
     stopRenewal();
     await accountService.wipe();
     setAuthenticated(false, "signed-out");
@@ -195,8 +223,18 @@ async function setIdentity(identity: StoredIdentity) {
     }
 }
 
+// Config can bring a new default server between runs, which moves everyone who
+// hasn't picked one. Credentials from the old server mean nothing to the new one
+// and shouldn't be handed to it, so they go before anything tries to use them.
 async function init() {
     await accountService.init();
+
+    const issuer = accountService.getServer();
+    const server = getLobbyServer();
+    if (accountService.getRefreshToken() && issuer !== server) {
+        log.info(`Stored credentials were issued by ${issuer ?? "an unrecorded server"}, not ${server}, discarding them`);
+        await accountService.wipe();
+    }
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
