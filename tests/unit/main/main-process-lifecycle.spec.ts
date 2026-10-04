@@ -16,8 +16,17 @@ describe("Main Process Lifecycle", () => {
     // Mock all services
     const mockServices = {
         engineService: { registerIpcHandlers: vi.fn() },
-        settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
-        configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
+        settingsService: {
+            init: vi.fn().mockResolvedValue(undefined),
+            registerIpcHandlers: vi.fn(),
+            getSettings: vi.fn().mockReturnValue({ assetsPath: "", lobbyServerOverride: "", customServerList: [] }),
+            updateSettings: vi.fn().mockResolvedValue(undefined),
+        },
+        configService: {
+            init: vi.fn().mockResolvedValue(undefined),
+            registerIpcHandlers: vi.fn(),
+            getConfig: vi.fn().mockReturnValue({ configUrl: "", defaultServers: ["wss://server4.beyondallreason.info"] }),
+        },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         gameService: { registerIpcHandlers: vi.fn() },
