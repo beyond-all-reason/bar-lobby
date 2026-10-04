@@ -131,6 +131,21 @@ describe("local config", () => {
         expect(electronMock.app.exit).toHaveBeenCalledWith(1);
     });
 
+    // config.json is the cache of the remote config, and a launch that can't fetch falls back to it.
+    it("is not left behind in the cache for a later launch without it", async () => {
+        fetchMock.mockResolvedValue(respondWith({ defaultServers: ["wss://remote.example"] }));
+        await loadService();
+
+        useLocalConfig({ defaultServers: ["ws://localhost:4000"] });
+        expect((await loadService()).getConfig().defaultServers).toEqual(["ws://localhost:4000"]);
+
+        process.argv = [originalArgv[0], "app"];
+        fetchMock.mockRejectedValue(new Error("offline"));
+        const service = await loadService();
+
+        expect(service.getConfig().defaultServers).toEqual(["wss://remote.example"]);
+    });
+
     it("does not ask about a valid file", async () => {
         useLocalConfig({ latestGameVersion: "byar:local" });
 

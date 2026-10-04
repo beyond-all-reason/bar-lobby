@@ -77,7 +77,8 @@ describe("switching the active server", () => {
     // Settings and config load in parallel with the store that watches them, so
     // the stored override or the default arriving is a change as far as the
     // watcher is concerned. Acting on it would sign out everyone not on the
-    // default server, every launch.
+    // default server, every launch. Each store sets its data and isInitialized in
+    // the same tick, and so do these.
     it("ignores the stored override arriving while settings are still loading", async () => {
         me.isAuthenticated = true;
         configStore.isInitialized = true;
@@ -94,6 +95,34 @@ describe("switching the active server", () => {
         settingsStore.isInitialized = true;
 
         configStore.defaultServers = [DEFAULT_SERVER];
+        await settle();
+
+        expect(logout).not.toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
+    });
+
+    it("ignores settings arriving last with an override", async () => {
+        me.isAuthenticated = true;
+        configStore.defaultServers = [DEFAULT_SERVER];
+        configStore.isInitialized = true;
+        await settle();
+
+        settingsStore.lobbyServerOverride = OTHER_SERVER;
+        settingsStore.isInitialized = true;
+        await settle();
+
+        expect(logout).not.toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
+    });
+
+    it("ignores config arriving last with the default", async () => {
+        me.isAuthenticated = true;
+        settingsStore.useDefaultServer = true;
+        settingsStore.isInitialized = true;
+        await settle();
+
+        configStore.defaultServers = [DEFAULT_SERVER];
+        configStore.isInitialized = true;
         await settle();
 
         expect(logout).not.toHaveBeenCalled();

@@ -266,12 +266,18 @@ export async function initMeStore() {
     }
     // Settings and config load in parallel with this, and either arriving counts
     // as a change. Reacting to that would sign out everyone who does not use the
-    // default server, every launch. Watching the resolved server rather than the
-    // override means clearing an override that names the default changes nothing.
+    // default server, every launch. Each store sets its data and isInitialized in
+    // the same tick, so checking the flags when the watcher fires is too late; the
+    // server only counts as known once both are in, and becoming known isn't a
+    // switch. Watching the resolved server rather than the override means clearing
+    // an override that names the default changes nothing.
     watch(
-        () => resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? []),
-        () => {
-            if (!settingsStore.isInitialized || !configStore.isInitialized) return;
+        () =>
+            settingsStore.isInitialized && configStore.isInitialized
+                ? resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? [])
+                : undefined,
+        (server, previous) => {
+            if (server === undefined || previous === undefined) return;
 
             void serverChanged();
         }

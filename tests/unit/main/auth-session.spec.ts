@@ -287,6 +287,70 @@ describe("auth session policy", () => {
         expect(oauth2.renewAccessToken).not.toHaveBeenCalled();
     });
 
+    // Switching servers signs out without waiting on a browser page left open, so
+    // the tokens it eventually hands back belong to a session that has ended.
+    describe("a sign in still waiting when the session ends", () => {
+        it("keeps nothing it brings back", async () => {
+            const { promise, resolve } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+            oauth2.authenticate.mockReturnValue(promise);
+
+            const { webContents } = await loadService();
+            const pending = signIn();
+            await ipc.handlers.get("auth:logout")!();
+            resolve(freshTokens("1"));
+
+            await expect(pending).rejects.toThrow();
+            expect(account.state.refreshToken).toBe("");
+            expect(ipc.handlers.get("auth:state")!()).toEqual({ authenticated: false });
+            expect(webContents.send).not.toHaveBeenCalledWith("auth:changed", expect.objectContaining({ authenticated: true }));
+        });
+
+        it("leaves a newer sign in alone when it fails", async () => {
+            const { promise, reject } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+            oauth2.authenticate.mockReturnValueOnce(promise).mockResolvedValueOnce(freshTokens("2"));
+
+            const { webContents } = await loadService();
+            const stale = signIn();
+            await ipc.handlers.get("auth:logout")!();
+            await signIn();
+            reject(new TokenRequestError("network", "browser closed"));
+
+            await expect(stale).rejects.toThrow();
+            expect(account.state.refreshToken).toBe("refresh-2");
+            expect(ipc.handlers.get("auth:state")!()).toEqual({ authenticated: true });
+            expect(webContents.send).toHaveBeenLastCalledWith("auth:changed", { authenticated: true, reason: undefined });
+        });
+
+        it("records the server it started on, not the one switched to", async () => {
+            const { promise, resolve } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+            oauth2.authenticate.mockReturnValue(promise);
+
+            await loadService();
+            const pending = signIn();
+            lobby.server = "wss://alpha.beyondallreason.info";
+            resolve(freshTokens("1"));
+            await pending;
+
+            expect(account.state.server).toBe("wss://server4.beyondallreason.info");
+        });
+    });
+
+    it("keeps nothing from a renewal that finishes after sign out", async () => {
+        account.state.refreshToken = "refresh-0";
+        const { promise, resolve } = Promise.withResolvers<ReturnType<typeof freshTokens>>();
+        oauth2.renewAccessToken.mockResolvedValueOnce(freshTokens("1")).mockReturnValueOnce(promise);
+
+        await loadService();
+        await signIn();
+        await vi.advanceTimersByTimeAsync(RENEWAL_DUE_MS);
+        await ipc.handlers.get("auth:logout")!();
+        resolve(freshTokens("2"));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(account.state.refreshToken).toBe("");
+        expect(ipc.handlers.get("auth:state")!()).toEqual({ authenticated: false });
+    });
+
     // Identity reaches the session over the socket rather than from the token
     // exchange, so it comes in through here instead of past the owner to the store.
     it("stores an identity handed to it", async () => {

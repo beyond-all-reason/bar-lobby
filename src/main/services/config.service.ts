@@ -19,14 +19,14 @@ const log = logger("config.service.ts");
 const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "config.json"), configSchema);
 
 // A config file given on the command line wins outright; no remote fetch is needed.
+// It is only held for this run. config.json caches the remote config, and writing the
+// override there would leave it in force on later launches that can't fetch.
 let localConfig: Static<typeof configSchema> | undefined;
 
 async function init() {
     await configStore.init();
     localConfig = await readConfigOverride();
-    if (localConfig) {
-        await configStore.update(localConfig);
-    } else {
+    if (!localConfig) {
         await fetchConfig();
     }
 }
@@ -79,7 +79,7 @@ async function readConfigOverride() {
  * @returns The current configuration values as properties
  */
 function getConfig() {
-    return configStore.model;
+    return localConfig ?? configStore.model;
 }
 
 async function updateConfig(data: TUpdateConfigSchema) {
