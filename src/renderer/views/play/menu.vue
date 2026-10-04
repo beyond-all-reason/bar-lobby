@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
                     </div>
                 </Panel>
 
-                <Panel :no-padding="true" class="game-mode-card disabled" @click="startMatchmaking">
+                <Panel :no-padding="true" class="game-mode-card" @click="startMatchmaking">
                     <div class="card-content">
                         <h2>
                             {{ t("lobby.views.play.matchmaking") }}
