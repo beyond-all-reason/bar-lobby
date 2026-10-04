@@ -2091,7 +2091,7 @@
                 "info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
                 "labelDefault": " - Default Servers",
                 "labelCustom": " - Custom Servers",
-                "followDefault": "Default ({server})"
+                "useDefaultServer": "Use default server configuration"
             },
             "breadcrumbs": {
                 "back": "Back"

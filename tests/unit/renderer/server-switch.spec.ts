@@ -67,6 +67,7 @@ describe("switching the active server", () => {
         logout.mockClear();
         session.authenticated = true;
         settingsStore.isInitialized = false;
+        settingsStore.useDefaultServer = false;
         settingsStore.lobbyServerOverride = "";
         configStore.isInitialized = false;
         configStore.defaultServers = [];
@@ -161,6 +162,29 @@ describe("switching the active server", () => {
             await changeServerTo("");
 
             expect(logout).toHaveBeenCalledOnce();
+        });
+
+        it("signs out when switching back to the default configuration from another server", async () => {
+            await changeServerTo(OTHER_SERVER);
+            logout.mockClear();
+            session.authenticated = true;
+            me.isAuthenticated = true;
+
+            settingsStore.useDefaultServer = true;
+            await settle();
+
+            expect(logout).toHaveBeenCalledOnce();
+        });
+
+        // The override is kept while it is not in use, and changing it then moves nothing.
+        it("does nothing when the override changes while using the default configuration", async () => {
+            settingsStore.useDefaultServer = true;
+            await settle();
+
+            await changeServerTo(OTHER_SERVER);
+
+            expect(logout).not.toHaveBeenCalled();
+            expect(disconnect).not.toHaveBeenCalled();
         });
     });
 });

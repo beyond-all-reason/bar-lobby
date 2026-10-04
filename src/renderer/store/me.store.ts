@@ -269,7 +269,7 @@ export async function initMeStore() {
     // default server, every launch. Watching the resolved server rather than the
     // override means clearing an override that names the default changes nothing.
     watch(
-        () => resolveLobbyServer(settingsStore.lobbyServerOverride, configStore.defaultServers ?? []),
+        () => resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? []),
         () => {
             if (!settingsStore.isInitialized || !configStore.isInitialized) return;
 

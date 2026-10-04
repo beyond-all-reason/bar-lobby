@@ -22,6 +22,7 @@ export const settingsSchema = Type.Object({
     battlesHidePvE: Type.Boolean({ default: false }),
     battlesHideLocked: Type.Boolean({ default: false }),
     battlesHideEmpty: Type.Boolean({ default: true }),
+    useDefaultServer: Type.Boolean({ default: true }),
     lobbyServerOverride: Type.String({ default: "" }),
     customServerList: Type.Array(Type.String(), { default: [] }),
     endedNormallyFilter: Type.Union([Type.Literal("true"), Type.Literal("false"), Type.Literal("null")], { default: "null" }),

@@ -7,9 +7,12 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal :title="t('lobby.navbar.serverSettings.title')">
         <div class="gridform">
+            <div>{{ t("lobby.navbar.serverSettings.useDefaultServer") }}</div>
+            <Checkbox v-model="useDefaultServer" />
             <div>{{ t("lobby.navbar.serverSettings.activeServer") }}</div>
             <Select
                 v-model="selectedServer"
+                :disabled="settingsStore.useDefaultServer"
                 :options="serversList"
                 optionLabel="label"
                 optionValue="value"
@@ -20,13 +23,16 @@ SPDX-License-Identifier: MIT
             <Textbox
                 type="text"
                 v-model="serverInput"
+                :disabled="settingsStore.useDefaultServer"
                 :placeholder="t('lobby.navbar.serverSettings.placeholder')"
                 @keyup.enter="addServerToList()"
                 class="textbox"
             />
             <div></div>
             <div class="gridform">
-                <Button @click="addServerToList()">{{ t("lobby.navbar.serverSettings.add") }}</Button>
+                <Button @click="addServerToList()" :disabled="settingsStore.useDefaultServer">{{
+                    t("lobby.navbar.serverSettings.add")
+                }}</Button>
                 <Button @click="removeServerFromList()" :disabled="disableRemoveButton">{{
                     t("lobby.navbar.serverSettings.remove")
                 }}</Button>
@@ -45,6 +51,7 @@ SPDX-License-Identifier: MIT
 import { ref, computed } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Select from "@renderer/components/controls/Select.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -62,30 +69,35 @@ const defaultServers: string[] = [...configStore.defaultServers];
 
 const disableRemoveButton = computed(() => {
     // Only custom entries can be removed; the active server may also be one that is in neither list
-    return !settingsStore.customServerList.includes(settingsStore.lobbyServerOverride);
+    return settingsStore.useDefaultServer || !settingsStore.customServerList.includes(settingsStore.lobbyServerOverride);
 });
 
 function serverOption(server: string) {
     return { label: server, value: server };
 }
 
-// The dropdown treats an empty string as no selection, this is a unique value for default
-const FOLLOW_DEFAULT = Symbol("followDefault");
+const useDefaultServer = computed({
+    get: () => settingsStore.useDefaultServer,
+    set: (value: boolean) => {
+        // Start the override from the server already in use, so unticking moves nothing
+        if (!value && !settingsStore.lobbyServerOverride) {
+            settingsStore.lobbyServerOverride = defaultServers[0];
+        }
+        settingsStore.useDefaultServer = value;
+    },
+});
 
 const selectedServer = computed({
-    get: () => settingsStore.lobbyServerOverride || FOLLOW_DEFAULT,
-    set: (value: string | typeof FOLLOW_DEFAULT) => {
-        settingsStore.lobbyServerOverride = value === FOLLOW_DEFAULT ? "" : value;
+    get: () => (settingsStore.useDefaultServer ? defaultServers[0] : settingsStore.lobbyServerOverride || defaultServers[0]),
+    set: (value: string) => {
+        settingsStore.lobbyServerOverride = value;
     },
 });
 
 const serversList = computed(() => [
     {
         label: t("lobby.navbar.serverSettings.labelDefault"),
-        items: [
-            { label: t("lobby.navbar.serverSettings.followDefault", { server: defaultServers[0] }), value: FOLLOW_DEFAULT },
-            ...defaultServers.map(serverOption),
-        ],
+        items: defaultServers.map(serverOption),
     },
     {
         label: t("lobby.navbar.serverSettings.labelCustom"),
@@ -98,8 +110,8 @@ function addServerToList() {
     if (serverInput.value == "") {
         return;
     }
-    //disallow duplicates of the default servers
-    if (defaultServers.includes(serverInput.value)) {
+    //disallow duplicates of the default or custom servers
+    if (defaultServers.includes(serverInput.value) || settingsStore.customServerList.includes(serverInput.value)) {
         return;
     }
     settingsStore.customServerList.push(serverInput.value);
@@ -112,8 +124,8 @@ function removeServerFromList() {
         return;
     }
     settingsStore.customServerList.splice(index, 1);
-    //Go back to following the default when an entry is deleted
-    settingsStore.lobbyServerOverride = "";
+    //Go back to the first default server when an entry is deleted
+    settingsStore.lobbyServerOverride = defaultServers[0];
 }
 </script>
 

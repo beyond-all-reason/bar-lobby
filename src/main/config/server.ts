@@ -10,7 +10,8 @@ export const OAUTH_CLIENT_ID = "generic_lobby";
 export const OAUTH_SCOPE = "tachyon.lobby";
 
 function getLobbyServer() {
-    return resolveLobbyServer(settingsService.getSettings().lobbyServerOverride, configService.getConfig().defaultServers);
+    const { useDefaultServer, lobbyServerOverride } = settingsService.getSettings();
+    return resolveLobbyServer(useDefaultServer, lobbyServerOverride, configService.getConfig().defaultServers);
 }
 
 function isSecure(url) {

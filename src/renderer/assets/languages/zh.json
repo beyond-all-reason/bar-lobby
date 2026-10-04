@@ -4207,7 +4207,7 @@
                 "info": null,
                 "labelDefault": null,
                 "labelCustom": null,
-                "followDefault": null
+                "useDefaultServer": null
             },
             "breadcrumbs": {
                 "back": null
