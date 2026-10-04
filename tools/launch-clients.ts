@@ -175,7 +175,10 @@ build.on("close", (code: number | null) => {
         if (isWin) {
             const windowTitle = `"Client #${i} Log Stream"`;
 
-            spawn("cmd.exe", ["/c", "start", windowTitle, "cmd", "/c", "npx", "electron", ".", ...clientArgs], {
+            // shell: true joins args with spaces unquoted, so quote them to keep paths with spaces whole (Windows paths can't contain ")
+            const quotedArgs = clientArgs.map((arg) => `"${arg}"`);
+
+            spawn("cmd.exe", ["/c", "start", windowTitle, "cmd", "/c", "npx", "electron", ".", ...quotedArgs], {
                 env: customEnv,
                 detached: true,
                 shell: true,
@@ -190,7 +193,8 @@ build.on("close", (code: number | null) => {
                 hasGnomeTerminal = false;
             }
 
-            const runCmd = ["npx electron .", ...clientArgs.map((arg) => `'${arg}'`)].join(" ");
+            // Single-quote each arg for bash, closing and escaping any ' inside it
+            const runCmd = ["npx electron .", ...clientArgs.map((arg) => `'${arg.replace(/'/g, `'\\''`)}'`)].join(" ");
 
             if (hasGnomeTerminal) {
                 // gnome-terminal uses -- to separate terminal flags from the executed command
