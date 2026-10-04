@@ -14,7 +14,7 @@ import {
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
-import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { router } from "@renderer/router";
 
@@ -196,7 +196,10 @@ async function sendListRequest() {
         }
         await triggerAssetsRefresh();
     } catch (error) {
-        console.error("Tachyon error: matchmaking/list:", error);
+        if (!isTachyonError(error)) {
+            console.error("Tachyon error: matchmaking/list:", error);
+        }
+
         notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
         matchmakingStore.queueError = "Failed to retrieve available queues";
     } finally {
@@ -278,10 +281,8 @@ async function sendQueueRequest() {
                 notificationsApi.alert({ text: "Party queue rejected, required assets are missing for the queue.", severity: "error" });
             } else {
                 notificationsApi.alert({ text: `Queue request rejected for reason: ${error.reason}.`, severity: "error" });
-                console.error("Tachyon error: matchmaking/queue:", error);
             }
         } else {
-            console.error("Tachyon error: matchmaking/queue:", error);
             notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
             matchmakingStore.errorMessage = "Error with matchmaking/queue";
         }
@@ -298,8 +299,7 @@ async function sendCancelRequest() {
     try {
         const response = await tachyonRequest("matchmaking/cancel");
         console.log("Tachyon: matchmaking/cancel:", response.status);
-    } catch (error) {
-        console.error("Tachyon: matchmaking/cancel:", error);
+    } catch {
         notificationsApi.alert({ text: "Tachyon error: matchmaking/cancel", severity: "error" });
         matchmakingStore.errorMessage = "Error with matchmaking/cancel";
     }
@@ -314,9 +314,8 @@ async function sendReadyRequest() {
     try {
         const response = await tachyonRequest("matchmaking/ready");
         console.log("Tachyon: matchmaking/ready:", response.status);
-    } catch (error) {
+    } catch {
         matchmakingStore.status = MatchmakingStatus.Idle;
-        console.error("Tachyon error: matchmaking/ready:", error);
         notificationsApi.alert({ text: "Tachyon error: matchmaking/ready", severity: "error" });
         matchmakingStore.errorMessage = "Error with matchmaking/ready";
     }

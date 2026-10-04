@@ -100,6 +100,7 @@ import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 import { friends } from "@renderer/store/me.store";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError } from "@renderer/api/tachyon";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { chat } from "@renderer/store/chat.store";
@@ -142,7 +143,10 @@ async function cancelRequest() {
     try {
         await friends.cancelRequest(props.userId.toString());
     } catch (error) {
-        console.error("Failed to cancel friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to cancel friend request:", error);
+        }
+
         notificationsApi.alert({
             text: t("lobby.navbar.friends.notifications.errors.failedToCancel"),
             severity: "error",
@@ -154,7 +158,10 @@ async function acceptRequest() {
     try {
         await friends.acceptRequest(props.userId.toString());
     } catch (error) {
-        console.error("Failed to accept friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to accept friend request:", error);
+        }
+
         notificationsApi.alert({
             text: t("lobby.navbar.friends.notifications.errors.failedToAccept"),
             severity: "error",
@@ -166,7 +173,10 @@ async function rejectRequest() {
     try {
         await friends.rejectRequest(props.userId.toString());
     } catch (error) {
-        console.error("Failed to reject friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to reject friend request:", error);
+        }
+
         notificationsApi.alert({
             text: t("lobby.navbar.friends.notifications.errors.failedToReject"),
             severity: "error",

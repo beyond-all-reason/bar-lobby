@@ -106,6 +106,7 @@ import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { me, friends } from "@renderer/store/me.store";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError } from "@renderer/api/tachyon";
 import type { Ref } from "vue";
 
 const { t } = useTypedI18n();
@@ -193,7 +194,10 @@ async function addFriend() {
     try {
         await friends.sendRequest(userIdToAdd);
     } catch (error) {
-        console.error("Failed to send friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to send friend request:", error);
+        }
+
         const errorMessage = error instanceof Error ? error.message : String(error);
 
         const errorMessageMap: Record<string, TranslationKey> = {
