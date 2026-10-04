@@ -14,6 +14,15 @@ const store = vi.hoisted(() => ({ dir: "" }));
 vi.mock("@main/config/app", () => ({ CONFIG_PATH: store.dir }));
 vi.mock("@main/typed-ipc", () => ({ ipcMain: { handle: vi.fn() } }));
 
+// Index of the button chosen on the invalid override dialog: 0 quits, 1 continues without it.
+const electronMock = vi.hoisted(() => ({
+    dialog: { showMessageBoxSync: vi.fn() },
+    app: { exit: vi.fn() },
+}));
+vi.mock("electron", () => electronMock);
+const QUIT = 0;
+const CONTINUE = 1;
+
 const configFile = () => path.join(store.dir, "config.json");
 const localConfigFile = () => path.join(store.dir, "local-config.json");
 
@@ -51,6 +60,8 @@ beforeEach(() => {
     process.argv = [originalArgv[0], "app"];
     fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
+    electronMock.dialog.showMessageBoxSync.mockReset().mockReturnValue(CONTINUE);
+    electronMock.app.exit.mockReset();
 });
 
 afterEach(() => {
@@ -80,19 +91,76 @@ describe("local config", () => {
         expect(service.getConfig().rapidGame).toBe(Value.Create(configSchema).rapidGame);
     });
 
-    it("rejects a file with a value of the wrong type", async () => {
+    it("ignores a file with a value of the wrong type and fetches the remote config", async () => {
         useLocalConfig({ defaultServers: "wss://not-a-list" });
+        fetchMock.mockResolvedValue(respondWith({ latestGameVersion: "byar:remote" }));
 
-        await expect(loadService()).rejects.toThrow("Provided config file does not match schema");
+        const service = await loadService();
+
+        expect(fetchMock).toHaveBeenCalled();
+        expect(service.getConfig().latestGameVersion).toBe("byar:remote");
+        expect(service.getConfig().defaultServers).toEqual(Value.Create(configSchema).defaultServers);
+    });
+
+    it("ignores a file that is not JSON and fetches the remote config", async () => {
+        fs.writeFileSync(localConfigFile(), "{ not json");
+        process.argv = [originalArgv[0], "app", `--config=${localConfigFile()}`];
+        fetchMock.mockResolvedValue(respondWith({ latestGameVersion: "byar:remote" }));
+
+        const service = await loadService();
+
+        expect(fetchMock).toHaveBeenCalled();
+        expect(service.getConfig().latestGameVersion).toBe("byar:remote");
+    });
+
+    it("asks before continuing without an invalid file", async () => {
+        useLocalConfig({ defaultServers: [] });
+
+        await loadService();
+
+        expect(electronMock.dialog.showMessageBoxSync).toHaveBeenCalledOnce();
+        expect(electronMock.app.exit).not.toHaveBeenCalled();
+    });
+
+    it("exits when the user chooses to quit over an invalid file", async () => {
+        useLocalConfig({ defaultServers: [] });
+        electronMock.dialog.showMessageBoxSync.mockReturnValue(QUIT);
+
+        await loadService();
+
+        expect(electronMock.app.exit).toHaveBeenCalledWith(1);
+    });
+
+    it("does not ask about a valid file", async () => {
+        useLocalConfig({ latestGameVersion: "byar:local" });
+
+        await loadService();
+
+        expect(electronMock.dialog.showMessageBoxSync).not.toHaveBeenCalled();
+    });
+});
+
+describe("stored config", () => {
+    it("falls back to the defaults when config.json is not JSON", async () => {
+        fs.writeFileSync(configFile(), "{ not json");
+        fetchMock.mockRejectedValue(new Error("offline"));
+
+        const service = await loadService();
+
+        expect(service.getConfig().defaultServers[0]).toBe(Value.Create(configSchema).defaultServers[0]);
+        expect(fs.existsSync(`${configFile()}.invalid`)).toBe(true);
     });
 });
 
 // The first default is the server for everyone without an override, so a config without one is unusable.
 describe("default servers", () => {
-    it("rejects a local file with no default servers", async () => {
+    it("ignores a local file with no default servers", async () => {
         useLocalConfig({ defaultServers: [] });
+        fetchMock.mockRejectedValue(new Error("offline"));
 
-        await expect(loadService()).rejects.toThrow("Provided config file does not match schema");
+        const service = await loadService();
+
+        expect(service.getConfig().defaultServers).toEqual(Value.Create(configSchema).defaultServers);
     });
 
     it("ignores a remote config with no default servers", async () => {

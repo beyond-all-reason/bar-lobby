@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import fs from "node:fs/promises";
+import { app, dialog } from "electron";
 import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
 import { configSchema, updateConfigSchema, TUpdateConfigSchema } from "@main/json/model/config";
@@ -38,16 +39,39 @@ async function readConfigOverride() {
     });
     if (!parsedArgs.values.config) return undefined;
 
+    // An invalid file is never applied. The user chooses whether to quit and fix it, or carry on
+    // as if none was given, remote fetch included.
     const configPath = path.resolve(process.cwd(), parsedArgs.values.config.toString());
-    log.info(`Using config file: ${configPath}, remote config will not be fetched`);
-    const data = JSON.parse(await fs.readFile(configPath, "utf-8"));
-    if (!Value.Check(updateConfigSchema, data)) {
-        for (const err of Value.Errors(updateConfigSchema, data)) {
-            log.error(`Config error: ${err.path} ${err.message} : ${err.value}`);
+    try {
+        const data = JSON.parse(await fs.readFile(configPath, "utf-8"));
+        if (!Value.Check(updateConfigSchema, data)) {
+            for (const err of Value.Errors(updateConfigSchema, data)) {
+                log.error(`Config error: ${err.path} ${err.message} : ${err.value}`);
+            }
+            throw new Error("Provided config file does not match schema");
         }
-        throw new Error("Provided config file does not match schema");
+        log.info(`Using config file: ${configPath}, remote config will not be fetched`);
+        return Value.Cast(configSchema, data);
+    } catch (err) {
+        log.error(`Provided config file is invalid: ${configPath}`, err);
+        const choice = dialog.showMessageBoxSync({
+            type: "warning",
+            title: "Invalid config override",
+            message: "The config file given with --config is invalid and cannot be used.",
+            detail: `${configPath}\n\n${err instanceof Error ? err.message : String(err)}\n\nSee the log for details. Continuing will use the remote, saved, or default config instead.`,
+            buttons: ["Quit", "Continue without override"],
+            defaultId: 0,
+            cancelId: 0,
+            noLink: true,
+        });
+        if (choice === 0) {
+            log.info("Quitting so the config override can be fixed");
+            app.exit(1);
+            return undefined;
+        }
+        log.error(`*** WARNING: your --config override was NOT applied. Client is using remote, saved, or defaults! ***`);
+        return undefined;
     }
-    return Value.Cast(configSchema, data);
 }
 
 /**

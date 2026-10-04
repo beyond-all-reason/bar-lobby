@@ -56,19 +56,33 @@ export class FileStore<T extends TObject> {
         return this.model;
     }
 
+    // Files are only ever written by the client, so an invalid one is rejected outright rather than salvaged.
+    // It is kept alongside as .invalid so the cause can be investigated, and the defaults are used instead.
     protected async read() {
         try {
             const modelStr = await fs.promises.readFile(this.filePath, { encoding: "utf-8" });
             const model = JSON.parse(modelStr);
-            const isValid = this.validator(model);
-            if (isValid) {
+            if (this.validator(model)) {
                 Object.assign(this.model, model);
-            } else {
-                log.error(`Error validating file: ${this.filePath}`, this.validator.errors);
+                return;
             }
+            log.error(`Error validating file: ${this.filePath}`, this.validator.errors);
         } catch (e) {
             log.error(`Error reading file: ${this.filePath}`, e);
         }
+        await this.resetToDefaults();
+    }
+
+    private async resetToDefaults() {
+        const backupPath = `${this.filePath}.invalid`;
+        try {
+            await fs.promises.rename(this.filePath, backupPath);
+            log.warn(`Moved invalid file to ${backupPath}, using defaults instead`);
+        } catch (e) {
+            log.error(`Error backing up invalid file: ${this.filePath}`, e);
+        }
+        this.validator(this.model);
+        await this.write();
     }
 
     // Writes are chained and go through a temp file, so overlapping saves can't
