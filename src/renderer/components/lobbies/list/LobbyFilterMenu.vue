@@ -37,7 +37,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
             <template #footer>
-                <div class="flex-row gap-md fullwidth">
+                <div class="flex-row gap-md fullwidth padding-md">
                     <Button @click="reset">{{ t("lobby.multiplayer.custom.menu.reset") }}</Button>
                     <Button class="blue flex-right" @click="apply">{{ t("lobby.multiplayer.custom.menu.apply") }}</Button>
                 </div>
