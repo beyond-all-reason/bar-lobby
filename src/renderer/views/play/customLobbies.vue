@@ -22,9 +22,10 @@ SPDX-License-Identifier: MIT
                     </Button>
                     <Button
                         :disabled="!tachyonStore.isConnected"
-                        v-tooltip.bottom="
-                            source.pendingCount.value ? t('lobby.multiplayer.custom.newLobbies', source.pendingCount.value) : undefined
-                        "
+                        v-tooltip.bottom="{
+                            value: t('lobby.multiplayer.custom.newLobbies', source.pendingCount.value),
+                            disabled: !source.pendingCount.value,
+                        }"
                         @click="source.refresh()"
                     >
                         <Icon :icon="refreshIcon" height="20" />{{ t("lobby.multiplayer.custom.refresh") }}

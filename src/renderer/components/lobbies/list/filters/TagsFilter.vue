@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
                 :label="tag"
                 removable
                 :class="{ unknown: !availableTags.includes(tag) }"
-                v-tooltip.bottom="availableTags.includes(tag) ? undefined : t('lobby.multiplayer.custom.filters.tags.unknown')"
+                v-tooltip.bottom="{ value: t('lobby.multiplayer.custom.filters.tags.unknown'), disabled: availableTags.includes(tag) }"
                 @remove="remove(tag)"
             />
         </div>
