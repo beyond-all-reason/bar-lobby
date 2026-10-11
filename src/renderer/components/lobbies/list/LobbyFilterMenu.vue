@@ -7,6 +7,9 @@ SPDX-License-Identifier: MIT
 <template>
     <Transition name="fade">
         <Panel v-if="open" class="filter-menu" :no-padding="true">
+            <div class="close" @click="cancel" @mouseenter="sound">
+                <Icon :icon="closeThick" height="23" />
+            </div>
             <div class="body">
                 <div class="flex-col gap-lg margin-md">
                     <section class="flex-col gap-sm">
@@ -47,6 +50,8 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import closeThick from "@iconify-icons/mdi/close-thick";
 import { computed, ref, watch } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -57,6 +62,7 @@ import { lobbyFilterEditors, type LobbyFilterEditorContext } from "@renderer/com
 import { lobbySorts } from "@renderer/components/lobbies/list/lobby-sorts";
 import { cloneLobbyListQuery, DEFAULT_LOBBY_LIST_QUERY, type LobbyListQuery } from "@shared/lobby-list-query";
 import { useTypedI18n } from "@renderer/i18n";
+import { audioApi } from "@renderer/audio/audio";
 const { t } = useTypedI18n();
 
 const props = defineProps<{
@@ -130,6 +136,15 @@ function apply() {
     emit("apply", cloneLobbyListQuery(draft.value));
     emit("update:open", false);
 }
+
+// The draft is retaken on the next open, so closing is all a cancel needs to do.
+function cancel() {
+    emit("update:open", false);
+}
+
+function sound() {
+    return audioApi.play("button-hover");
+}
 </script>
 
 <style lang="scss" scoped>
@@ -140,6 +155,17 @@ function apply() {
     z-index: 10;
     width: 420px;
     max-height: 100%;
+}
+.close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    padding: 5px 10px;
+    &:hover {
+        background: rgba(219, 20, 20, 0.6);
+    }
 }
 // Controls stretch by default, which would spread a checkbox across the menu with its icon cell padded out.
 .inline > :deep(.control) {
