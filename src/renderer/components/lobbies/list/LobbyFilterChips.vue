@@ -66,6 +66,10 @@ const chips = computed(() => {
 <style lang="scss" scoped>
 .filter-chip {
     gap: 6px;
+    padding: 2px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
     &.warning {
         opacity: 0.65;
         font-style: italic;
