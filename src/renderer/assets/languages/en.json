@@ -2156,6 +2156,22 @@
                     "selectAllShown": "Select all shown",
                     "clear": "Clear",
                     "done": "Done"
+                },
+                "preview": {
+                    "membership": "You are in this lobby",
+                    "membershipPlayer": "You are in this lobby as a player",
+                    "membershipSpectator": "You are in this lobby as a spectator",
+                    "membershipQueued": "You are in this lobby, queued to play (#{position})",
+                    "players": "Players: {players}/{max}",
+                    "openSpots": "{count} open",
+                    "waiting": "Waiting to start",
+                    "inBattle": "Battle in progress: {duration}",
+                    "allyTeams": "{count} ally team | {count} ally teams",
+                    "friends": "{count} friend in this lobby | {count} friends in this lobby",
+                    "passworded": "Password protected",
+                    "bossMode": "Boss mode",
+                    "gameVersion": "Game: {version}",
+                    "engineVersion": "Engine: {version}"
                 }
             }
         },

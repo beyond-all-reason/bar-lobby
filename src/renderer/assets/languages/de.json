@@ -2179,6 +2179,22 @@
                     "selectAllShown": null,
                     "clear": null,
                     "done": null
+                },
+                "preview": {
+                    "membership": null,
+                    "membershipPlayer": null,
+                    "membershipSpectator": null,
+                    "membershipQueued": null,
+                    "players": null,
+                    "openSpots": null,
+                    "waiting": null,
+                    "inBattle": null,
+                    "allyTeams": null,
+                    "friends": null,
+                    "passworded": null,
+                    "bossMode": null,
+                    "gameVersion": null,
+                    "engineVersion": null
                 }
             }
         },

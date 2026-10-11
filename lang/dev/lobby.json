@@ -325,6 +325,22 @@
                     "selectAllShown": "Slecet all swhon",
                     "clear": "Celar",
                     "done": "Dnoe"
+                },
+                "preview": {
+                    "membership": "You are in tihs lobby",
+                    "membershipPlayer": "You are in tihs lobby as a pyaler",
+                    "membershipSpectator": "You are in tihs lobby as a satoceptr",
+                    "membershipQueued": "You are in tihs lobby, queued to paly (#{position})",
+                    "players": "Plyreas: {players}/{max}",
+                    "openSpots": "{count} oepn",
+                    "waiting": "Wiaintg to strat",
+                    "inBattle": "Blatte in prsgeros: {duration}",
+                    "allyTeams": "{count} ally team | {count} ally tmaes",
+                    "friends": "{count} finerd in tihs lobby | {count} fienrds in tihs lobby",
+                    "passworded": "Psoaswrd prceotted",
+                    "bossMode": "Boss mode",
+                    "gameVersion": "Gmae: {version}",
+                    "engineVersion": "Egnnie: {version}"
                 }
             }
         },

@@ -67,7 +67,13 @@ SPDX-License-Identifier: MIT
                                 {{ t("lobby.multiplayer.custom.disconnected") }}
                             </p>
                             <!-- Pages hold as many rows as fit here; it only scrolls if a row grows taller than the rest. -->
-                            <div ref="tableArea" class="table-area">
+                            <div
+                                ref="tableArea"
+                                class="table-area"
+                                @mouseover="onTableMouseOver"
+                                @mouseleave="hidePreview"
+                                @scroll="hidePreview"
+                            >
                                 <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady.
                                      Columns have fixed widths too, so they don't resize with whatever is on the page. -->
                                 <DataTable
@@ -79,7 +85,7 @@ SPDX-License-Identifier: MIT
                                     lazy
                                     :sortField="settingsStore.customLobbiesQuery.sort.key"
                                     :sortOrder="settingsStore.customLobbiesQuery.sort.order"
-                                    :rowClass="(row: LobbyListRow) => row.state"
+                                    :rowClass="rowClass"
                                     @sort="onSort"
                                     @row-select="onRowSelect"
                                     @row-dblclick="onRowDoubleClick"
@@ -145,6 +151,12 @@ SPDX-License-Identifier: MIT
                                         </template>
                                     </Column>
                                 </DataTable>
+                                <LobbyOverviewPreview
+                                    v-if="previewLobby && preview"
+                                    :lobby="previewLobby"
+                                    :anchor="preview.anchor"
+                                    :x="preview.x"
+                                />
                             </div>
                             <Paginator
                                 :first="source.first.value"
@@ -177,7 +189,7 @@ import { useNow, useResizeObserver } from "@vueuse/core";
 import Column from "primevue/column";
 import DataTable, { type DataTableRowClickEvent, type DataTableRowSelectEvent, type DataTableSortEvent } from "primevue/datatable";
 import Paginator, { type PageState } from "primevue/paginator";
-import { computed, onActivated, onBeforeUnmount, ref, toRef, useTemplateRef, watch } from "vue";
+import { computed, onActivated, onBeforeUnmount, onDeactivated, ref, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -186,9 +198,10 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import LobbyFilterChips from "@renderer/components/lobbies/list/LobbyFilterChips.vue";
 import LobbyFilterMenu from "@renderer/components/lobbies/list/LobbyFilterMenu.vue";
+import LobbyOverviewPreview from "@renderer/components/lobbies/list/LobbyOverviewPreview.vue";
 import { openSpots, type LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filters";
 import { createLocalLobbyListSource, lobbyMatchContext, reconcileTagsServer } from "@renderer/composables/useLobbyList";
-import type { LobbyListRow } from "@renderer/model/lobby-list";
+import type { LobbyListEntry, LobbyListRow } from "@renderer/model/lobby-list";
 import { configStore } from "@renderer/store/config.store";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -281,6 +294,55 @@ function runningFor(startedAt: number) {
     return getFriendlyDuration(Math.max(0, now.value.getTime() - startedAt / 1000));
 }
 
+// The lobby the user is in stands out in gold.
+function rowClass(row: LobbyListRow) {
+    return [row.state, { "active-lobby": row.state !== "removed" && row.id === lobbyStore.activeLobby?.id }];
+}
+
+// The table has no row hover events, so the table area works out which row the pointer is over.
+// Rows are keyed by lobby id, so a row element stays with its lobby when the list changes.
+const PREVIEW_DELAY_MS = 300;
+type HoveredRow = { element: HTMLTableRowElement; id: string; anchor: { top: number; bottom: number }; x: number };
+const hovered = shallowRef<HoveredRow>();
+const previewShown = ref(false);
+let previewTimer: ReturnType<typeof setTimeout> | undefined;
+
+const preview = computed(() => (previewShown.value ? hovered.value : undefined));
+// Read from the store, so the preview follows the lobby's updates and closes with it.
+const previewLobby = computed(() => (preview.value ? (lobbyStore.lobbies[preview.value.id] as LobbyListEntry | undefined) : undefined));
+
+function onTableMouseOver(event: MouseEvent) {
+    const element = (event.target as Element).closest<HTMLTableRowElement>(".p-datatable-tbody > tr:not(.p-datatable-emptymessage)");
+    if (element && element === hovered.value?.element) return;
+    const row = element ? source.rows.value[element.sectionRowIndex] : undefined;
+    if (!element || !row || row.state === "removed") return hidePreview();
+    const rect = element.getBoundingClientRect();
+    hovered.value = { element, id: row.id, anchor: { top: rect.top, bottom: rect.bottom }, x: event.clientX };
+    // Once a preview is showing, moving to another row swaps it straight away.
+    if (previewShown.value) return;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => (previewShown.value = true), PREVIEW_DELAY_MS);
+}
+
+function hidePreview() {
+    clearTimeout(previewTimer);
+    hovered.value = undefined;
+    previewShown.value = false;
+}
+
+// A re-order or page change can move the hovered row out from under the pointer.
+watch(
+    source.rows,
+    () => {
+        const current = hovered.value;
+        if (current && (!current.element.isConnected || current.element.getBoundingClientRect().top !== current.anchor.top)) hidePreview();
+    },
+    { flush: "post" }
+);
+// The preview lives on the body, so it has to be closed when the page is left without the pointer leaving the table.
+onDeactivated(hidePreview);
+onBeforeUnmount(hidePreview);
+
 function onRowSelect(event: DataTableRowSelectEvent) {
     const row = event.data as LobbyListRow;
     if (row.state === "removed") return;
@@ -362,6 +424,18 @@ onActivated(() => {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+// Specific enough to win over the shared table row styles in _primevue.scss.
+:deep(.p-datatable-tbody > tr.active-lobby) {
+    background: rgba(255, 215, 0, 0.12);
+    outline: 1px solid gold;
+    outline-offset: -1px;
+    &:hover:not(.p-highlight) {
+        background: rgba(255, 215, 0, 0.2);
+    }
+    &.p-highlight {
+        background: rgba(255, 215, 0, 0.28);
+    }
 }
 :deep(tr.stale) {
     opacity: 0.45;
