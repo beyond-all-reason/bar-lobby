@@ -20,8 +20,8 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import type { GameType } from "@main/content/maps/map-metadata";
 import IconFilterCheckbox from "@renderer/components/maps/filters/IconFilterCheckbox.vue";
-import { mapsStore } from "@renderer/store/maps.store";
-const { filters } = mapsStore;
+import { useMapFilters } from "@renderer/store/maps.store";
+const filters = useMapFilters();
 const { gameType: gameTypeFilters } = filters;
 
 const gameTypeOptions: GameType[] = [

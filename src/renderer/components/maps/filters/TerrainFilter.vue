@@ -30,8 +30,8 @@ SPDX-License-Identifier: MIT
 import { type Terrain } from "@main/content/maps/map-metadata";
 import IconFilterCheckbox from "@renderer/components/maps/filters/IconFilterCheckbox.vue";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
-import { mapsStore } from "@renderer/store/maps.store";
-const { filters } = mapsStore;
+import { useMapFilters } from "@renderer/store/maps.store";
+const filters = useMapFilters();
 const { terrain: terrainFilters } = filters;
 
 const terrainOptions: Terrain[] = [

@@ -11,10 +11,10 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import { ref } from "vue";
 import Range from "@renderer/components/controls/Range.vue";
-import { mapsStore } from "@renderer/store/maps.store";
+import { useMapFilters } from "@renderer/store/maps.store";
 import { watchThrottled } from "@vueuse/core";
 
-const { filters } = mapsStore;
+const filters = useMapFilters();
 const range = ref([filters.minPlayers, filters.maxPlayers]);
 
 watchThrottled(

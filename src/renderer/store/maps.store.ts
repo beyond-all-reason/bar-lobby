@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { reactive } from "vue";
+import { inject, reactive, type InjectionKey } from "vue";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
@@ -10,29 +10,44 @@ import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 
-export const mapsStore: {
-    isInitialized: boolean;
-    filters: {
-        terrain: Partial<Record<Terrain, boolean>>;
-        gameType: Partial<Record<GameType, boolean>>;
-        minPlayers: number;
-        maxPlayers: number;
-        favoritesOnly: boolean;
-        downloadedOnly: boolean;
-    };
-    availableMapNames: Set<string>;
-} = reactive({
-    isInitialized: false,
-    filters: {
+export type MapFilterState = {
+    terrain: Partial<Record<Terrain, boolean>>;
+    gameType: Partial<Record<GameType, boolean>>;
+    minPlayers: number;
+    maxPlayers: number;
+    favoritesOnly: boolean;
+    downloadedOnly: boolean;
+};
+
+export function createMapFilterState(): MapFilterState {
+    return reactive({
         terrain: {},
         gameType: {},
         minPlayers: 2,
         maxPlayers: 40,
         favoritesOnly: false,
         downloadedOnly: false,
-    },
+    });
+}
+
+export const mapsStore: {
+    isInitialized: boolean;
+    filters: MapFilterState;
+    availableMapNames: Set<string>;
+} = reactive({
+    isInitialized: false,
+    filters: createMapFilterState(),
     availableMapNames: new Set(),
 });
+
+// The map filter and list components share whatever filter state is provided under this key, so
+// a map picker can have its own without disturbing the maps library. They fall back to the
+// library's filters when nothing is provided.
+export const MAP_FILTERS_KEY: InjectionKey<MapFilterState> = Symbol("mapFilters");
+
+export function useMapFilters(): MapFilterState {
+    return inject(MAP_FILTERS_KEY, mapsStore.filters);
+}
 
 export async function getRandomMap() {
     const mapCount = await db.maps.count();

@@ -48,12 +48,16 @@ export const lobbyStore: {
     selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
     wantsListSubscription: boolean;
+    // Bumped whenever the whole list is replaced or thrown away, so anything holding on to lobby
+    // ids from before (the custom lobbies ordering) knows to start over instead of diffing.
+    listGeneration: number;
 } = reactive({
     isInitialized: false,
     lobbies: {},
     selectedLobby: undefined,
     activeLobby: undefined,
     wantsListSubscription: false,
+    listGeneration: 0,
 });
 
 export async function initLobbyStore() {
@@ -102,6 +106,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
+    lobbyStore.listGeneration++;
     clearSelectedLobbyIfUndefined();
 }
 
@@ -638,6 +643,7 @@ async function requestUnboss(userId?: UserId) {
 export function clearOnlineState() {
     clearUserSubscriptions();
     lobbyStore.lobbies = {};
+    lobbyStore.listGeneration++;
     lobbyStore.selectedLobby = undefined;
     lobbyStore.activeLobby = undefined;
 }

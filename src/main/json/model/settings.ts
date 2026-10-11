@@ -5,6 +5,7 @@
 import { Type } from "@sinclair/typebox";
 
 import { UI_SCALE_MAX, UI_SCALE_MIN } from "@main/config/window";
+import { DEFAULT_LOBBY_LIST_QUERY, lobbyListQuerySchema } from "@shared/lobby-list-query";
 
 export const settingsSchema = Type.Object({
     fullscreen: Type.Boolean({ default: true }),
@@ -18,10 +19,10 @@ export const settingsSchema = Type.Object({
     musicVolume: Type.Number({ default: 5, minimum: 0, maximum: 100 }),
     loginAutomatically: Type.Boolean({ default: true }),
     devMode: Type.Boolean({ default: false }),
-    battlesHideInProgress: Type.Boolean({ default: false }),
-    battlesHidePvE: Type.Boolean({ default: false }),
-    battlesHideLocked: Type.Boolean({ default: false }),
-    battlesHideEmpty: Type.Boolean({ default: true }),
+    customLobbiesQuery: Type.Object(lobbyListQuerySchema.properties, { default: DEFAULT_LOBBY_LIST_QUERY }),
+    // The server the selected lobby tags were chosen on. Tags come from the server, so they mean nothing on another one.
+    customLobbiesTagsServer: Type.String({ default: "" }),
+    customLobbiesAutoRefresh: Type.Boolean({ default: false }),
     useDefaultServer: Type.Boolean({ default: true }),
     lobbyServerOverride: Type.String({ default: "" }),
     customServerList: Type.Array(Type.String(), { default: [] }),
