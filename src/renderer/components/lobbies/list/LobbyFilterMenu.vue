@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
                     </section>
                     <section class="flex-col gap-md">
                         <h6>{{ t("lobby.multiplayer.custom.menu.filters") }}</h6>
-                        <div v-for="item in editors" :key="item.key" class="flex-col gap-xs">
+                        <div v-for="item in editors" :key="item.key" class="flex-col gap-xs" :class="{ inline: item.editor.inlineLabel }">
                             <label v-if="!item.editor.inlineLabel" class="txt-sm">{{ t(item.editor.labelKey) }}</label>
                             <component
                                 :is="item.editor.component"
@@ -136,10 +136,14 @@ function apply() {
 .filter-menu {
     position: absolute;
     top: 0;
-    right: 0;
+    left: 0;
     z-index: 10;
     width: 420px;
     max-height: 100%;
+}
+// Controls stretch by default, which would spread a checkbox across the menu with its icon cell padded out.
+.inline > :deep(.control) {
+    align-self: flex-start;
 }
 .body {
     min-height: 0;

@@ -68,12 +68,12 @@ SPDX-License-Identifier: MIT
                             </p>
                             <!-- Pages hold as many rows as fit here; it only scrolls if a row grows taller than the rest. -->
                             <div ref="tableArea" class="table-area">
-                                <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady. -->
+                                <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady.
+                                     Columns have fixed widths too, so they don't resize with whatever is on the page. -->
                                 <DataTable
                                     :selection="lobbyStore.selectedLobby"
                                     :value="source.rows.value"
                                     data-key="id"
-                                    autoLayout
                                     class="p-datatable-sm"
                                     selectionMode="single"
                                     lazy
@@ -93,12 +93,22 @@ SPDX-License-Identifier: MIT
                                             <span v-else>{{ data.lobby.name }}</span>
                                         </template>
                                     </Column>
-                                    <Column :header="t('lobby.multiplayer.custom.table.map')" sortable sortField="mapName">
+                                    <Column
+                                        :header="t('lobby.multiplayer.custom.table.map')"
+                                        headerClass="col-map"
+                                        sortable
+                                        sortField="mapName"
+                                    >
                                         <template #body="{ data }: { data: LobbyListRow }">
                                             <span v-if="data.state !== 'removed'">{{ data.lobby.mapName }}</span>
                                         </template>
                                     </Column>
-                                    <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount">
+                                    <Column
+                                        :header="t('lobby.multiplayer.custom.table.players')"
+                                        headerClass="col-players"
+                                        sortable
+                                        sortField="playerCount"
+                                    >
                                         <template #body="{ data }: { data: LobbyListRow }">
                                             <div v-if="data.state !== 'removed'" class="flex-row flex-center-items" style="gap: 2px">
                                                 <Icon :icon="account" height="17" />{{ data.lobby.playerCount }}/{{
@@ -107,12 +117,22 @@ SPDX-License-Identifier: MIT
                                             </div>
                                         </template>
                                     </Column>
-                                    <Column :header="t('lobby.multiplayer.custom.table.openSpots')" sortable sortField="openSpots">
+                                    <Column
+                                        :header="t('lobby.multiplayer.custom.table.openSpots')"
+                                        headerClass="col-open-spots"
+                                        sortable
+                                        sortField="openSpots"
+                                    >
                                         <template #body="{ data }: { data: LobbyListRow }">
                                             <span v-if="data.state !== 'removed'">{{ openSpots(data.lobby) }}</span>
                                         </template>
                                     </Column>
-                                    <Column :header="t('lobby.multiplayer.custom.table.status')" sortable sortField="battleDuration">
+                                    <Column
+                                        :header="t('lobby.multiplayer.custom.table.status')"
+                                        headerClass="col-status"
+                                        sortable
+                                        sortField="battleDuration"
+                                    >
                                         <template #body="{ data }: { data: LobbyListRow }">
                                             <template v-if="data.state !== 'removed'">
                                                 <div v-if="data.lobby.currentBattle" class="flex-row flex-center-items gap-xs">
@@ -325,6 +345,23 @@ onActivated(() => {
     margin-bottom: 10px;
     opacity: 0.8;
     font-style: italic;
+}
+// The title takes whatever the other columns leave.
+:deep(.col-map) {
+    width: 30%;
+}
+:deep(.col-players),
+:deep(.col-open-spots) {
+    width: 8.5em;
+}
+:deep(.col-status) {
+    width: 9.5em;
+}
+// One line per row, so long titles and map names don't make some rows taller than others.
+:deep(.p-datatable-tbody > tr > td) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 :deep(tr.stale) {
     opacity: 0.45;
