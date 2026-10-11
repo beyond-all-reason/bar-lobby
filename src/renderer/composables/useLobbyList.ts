@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { computed, ref, shallowRef, watch, type ComputedRef, type Ref } from "vue";
+import { computed, readonly, ref, shallowRef, watch, type ComputedRef, type Ref } from "vue";
 import { watchThrottled } from "@vueuse/core";
 import type { UserId } from "tachyon-protocol/types";
 import { cloneLobbyListQuery, type LobbyListQuery } from "@shared/lobby-list-query";
@@ -17,6 +17,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 /** How often auto-refresh may re-order the list while lobbies are changing. */
 export const AUTO_REFRESH_THROTTLE_MS = 2000;
 
+/** The page size until the page has measured how many rows fit. */
 export const LOBBY_LIST_PAGE_SIZE = 16;
 
 /**
@@ -29,7 +30,7 @@ export interface LobbyListSource {
     rows: ComputedRef<LobbyListRow[]>;
     totalRecords: ComputedRef<number>;
     first: Ref<number>;
-    pageSize: number;
+    pageSize: Readonly<Ref<number>>;
     /** Lobbies added to the bottom of the list since it was last ordered. */
     pendingCount: ComputedRef<number>;
     availableTags: ComputedRef<string[]>;
@@ -38,6 +39,8 @@ export interface LobbyListSource {
     /** Replaces the query and re-orders from the first page. */
     setQuery(query: LobbyListQuery): void;
     setPage(first: number): void;
+    /** Changes how many rows a page holds, keeping the top row of the current page in view. */
+    setPageSize(size: number): void;
     /** Re-orders the list against the current query, dropping placeholders for closed lobbies. */
     refresh(): void;
 }
@@ -67,6 +70,7 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
     const orderedIds = shallowRef<string[]>([]);
     const appendedIds = shallowRef<string[]>([]);
     const first = ref(0);
+    const pageSize = ref(LOBBY_LIST_PAGE_SIZE);
 
     const lobbies = () => Object.values(lobbyStore.lobbies) as LobbyListEntry[];
 
@@ -87,7 +91,7 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
             .sort((a, b) => compareLobbies(a, b, query.value.sort, at))
             .map((lobby) => lobby.id);
         appendedIds.value = [];
-        first.value = Math.min(first.value, Math.max(0, Math.floor((orderedIds.value.length - 1) / LOBBY_LIST_PAGE_SIZE) * LOBBY_LIST_PAGE_SIZE));
+        first.value = Math.min(first.value, Math.max(0, Math.floor((orderedIds.value.length - 1) / pageSize.value) * pageSize.value));
     }
 
     // Once a lobby has been appended it keeps its place like any other row, rather than coming
@@ -138,10 +142,10 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
     refresh();
 
     return {
-        rows: computed(() => allRows.value.slice(first.value, first.value + LOBBY_LIST_PAGE_SIZE)),
+        rows: computed(() => allRows.value.slice(first.value, first.value + pageSize.value)),
         totalRecords: computed(() => allRows.value.length),
         first,
-        pageSize: LOBBY_LIST_PAGE_SIZE,
+        pageSize: readonly(pageSize),
         pendingCount: computed(() => appendedIds.value.filter((id) => matchingIds.value.has(id)).length),
         availableTags: computed(() => sortedUnion(lobbies().flatMap((lobby) => lobby.tags ?? []))),
         availableEngineVersions: computed(() => sortedUnion(lobbies().map((lobby) => lobby.engineVersion))),
@@ -153,6 +157,12 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         },
         setPage(next) {
             first.value = next;
+        },
+        setPageSize(size) {
+            size = Math.max(1, Math.floor(size));
+            if (size === pageSize.value) return;
+            first.value = Math.floor(first.value / size) * size;
+            pageSize.value = size;
         },
         refresh,
     };

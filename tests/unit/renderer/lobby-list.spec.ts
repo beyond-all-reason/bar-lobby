@@ -257,6 +257,17 @@ describe("local lobby list source", () => {
         expect(source.first.value).toBe(0);
     });
 
+    it("keeps the top row of the page in view when the page size changes", () => {
+        reset([1, 2, 3, 4, 5, 6, 7].map((n) => lobbyOf(`l${n}`, { playerCount: n })));
+        const source = create();
+        source.setPageSize(2);
+        source.setPage(4);
+        expect(summary(source.rows.value)).toEqual(["l3:live", "l2:live"]);
+        source.setPageSize(3);
+        expect(source.first.value).toBe(3);
+        expect(summary(source.rows.value)).toEqual(["l4:live", "l3:live", "l2:live"]);
+    });
+
     it("re-orders on every change while auto-refresh is on", async () => {
         vi.useFakeTimers();
         try {

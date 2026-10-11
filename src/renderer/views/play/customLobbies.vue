@@ -61,78 +61,78 @@ SPDX-License-Identifier: MIT
                         @apply="applyQuery"
                     />
                     <Panel class="flex-col fullheight" :no-padding="true">
-                        <div class="margin-md fullheight">
-                            <div class="flex-col flex-grow fullheight flex-top">
-                                <HostBattle v-model="createLobbyModalIsOpen" :mode="'create'" />
-                                <p v-if="!tachyonStore.isConnected" class="disconnected">
-                                    {{ t("lobby.multiplayer.custom.disconnected") }}
-                                </p>
-                                <div class="scroll-container">
-                                    <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady. -->
-                                    <DataTable
-                                        :selection="lobbyStore.selectedLobby"
-                                        :value="source.rows.value"
-                                        data-key="id"
-                                        autoLayout
-                                        class="p-datatable-sm"
-                                        selectionMode="single"
-                                        lazy
-                                        paginator
-                                        :first="source.first.value"
-                                        :rows="source.pageSize"
-                                        :totalRecords="source.totalRecords.value"
-                                        :pageLinkSize="20"
-                                        :sortField="settingsStore.customLobbiesQuery.sort.key"
-                                        :sortOrder="settingsStore.customLobbiesQuery.sort.order"
-                                        :rowClass="(row: LobbyListRow) => row.state"
-                                        @page="(event: DataTablePageEvent) => source.setPage(event.first)"
-                                        @sort="onSort"
-                                        @row-select="onRowSelect"
-                                        @row-dblclick="onRowDoubleClick"
-                                    >
-                                        <template #empty>
-                                            <p>{{ t("lobby.multiplayer.custom.noLobbiesAvailable") }}</p>
+                        <div class="list-body flex-col flex-grow margin-md gap-md">
+                            <HostBattle v-model="createLobbyModalIsOpen" :mode="'create'" />
+                            <p v-if="!tachyonStore.isConnected" class="disconnected">
+                                {{ t("lobby.multiplayer.custom.disconnected") }}
+                            </p>
+                            <!-- Pages hold as many rows as fit here; it only scrolls if a row grows taller than the rest. -->
+                            <div ref="tableArea" class="table-area">
+                                <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady. -->
+                                <DataTable
+                                    :selection="lobbyStore.selectedLobby"
+                                    :value="source.rows.value"
+                                    data-key="id"
+                                    autoLayout
+                                    class="p-datatable-sm"
+                                    selectionMode="single"
+                                    lazy
+                                    :sortField="settingsStore.customLobbiesQuery.sort.key"
+                                    :sortOrder="settingsStore.customLobbiesQuery.sort.order"
+                                    :rowClass="(row: LobbyListRow) => row.state"
+                                    @sort="onSort"
+                                    @row-select="onRowSelect"
+                                    @row-dblclick="onRowDoubleClick"
+                                >
+                                    <template #empty>
+                                        <p>{{ t("lobby.multiplayer.custom.noLobbiesAvailable") }}</p>
+                                    </template>
+                                    <Column :header="t('lobby.multiplayer.custom.table.title')" sortable sortField="name">
+                                        <template #body="{ data }: { data: LobbyListRow }">
+                                            <i v-if="data.state === 'removed'">{{ t("lobby.multiplayer.custom.lobbyUnavailable") }}</i>
+                                            <span v-else>{{ data.lobby.name }}</span>
                                         </template>
-                                        <Column :header="t('lobby.multiplayer.custom.table.title')" sortable sortField="name">
-                                            <template #body="{ data }: { data: LobbyListRow }">
-                                                <i v-if="data.state === 'removed'">{{ t("lobby.multiplayer.custom.lobbyUnavailable") }}</i>
-                                                <span v-else>{{ data.lobby.name }}</span>
-                                            </template>
-                                        </Column>
-                                        <Column :header="t('lobby.multiplayer.custom.table.map')" sortable sortField="mapName">
-                                            <template #body="{ data }: { data: LobbyListRow }">
-                                                <span v-if="data.state !== 'removed'">{{ data.lobby.mapName }}</span>
-                                            </template>
-                                        </Column>
-                                        <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount">
-                                            <template #body="{ data }: { data: LobbyListRow }">
-                                                <div v-if="data.state !== 'removed'" class="flex-row flex-center-items" style="gap: 2px">
-                                                    <Icon :icon="account" height="17" />{{ data.lobby.playerCount }}/{{
-                                                        data.lobby.maxPlayerCount
+                                    </Column>
+                                    <Column :header="t('lobby.multiplayer.custom.table.map')" sortable sortField="mapName">
+                                        <template #body="{ data }: { data: LobbyListRow }">
+                                            <span v-if="data.state !== 'removed'">{{ data.lobby.mapName }}</span>
+                                        </template>
+                                    </Column>
+                                    <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount">
+                                        <template #body="{ data }: { data: LobbyListRow }">
+                                            <div v-if="data.state !== 'removed'" class="flex-row flex-center-items" style="gap: 2px">
+                                                <Icon :icon="account" height="17" />{{ data.lobby.playerCount }}/{{
+                                                    data.lobby.maxPlayerCount
+                                                }}
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column :header="t('lobby.multiplayer.custom.table.openSpots')" sortable sortField="openSpots">
+                                        <template #body="{ data }: { data: LobbyListRow }">
+                                            <span v-if="data.state !== 'removed'">{{ openSpots(data.lobby) }}</span>
+                                        </template>
+                                    </Column>
+                                    <Column :header="t('lobby.multiplayer.custom.table.status')" sortable sortField="battleDuration">
+                                        <template #body="{ data }: { data: LobbyListRow }">
+                                            <template v-if="data.state !== 'removed'">
+                                                <div v-if="data.lobby.currentBattle" class="flex-row flex-center-items gap-xs">
+                                                    <Icon :icon="swordCross" height="17" />{{
+                                                        runningFor(data.lobby.currentBattle.startedAt)
                                                     }}
                                                 </div>
+                                                <span v-else>{{ t("lobby.multiplayer.custom.table.waiting") }}</span>
                                             </template>
-                                        </Column>
-                                        <Column :header="t('lobby.multiplayer.custom.table.openSpots')" sortable sortField="openSpots">
-                                            <template #body="{ data }: { data: LobbyListRow }">
-                                                <span v-if="data.state !== 'removed'">{{ openSpots(data.lobby) }}</span>
-                                            </template>
-                                        </Column>
-                                        <Column :header="t('lobby.multiplayer.custom.table.status')" sortable sortField="battleDuration">
-                                            <template #body="{ data }: { data: LobbyListRow }">
-                                                <template v-if="data.state !== 'removed'">
-                                                    <div v-if="data.lobby.currentBattle" class="flex-row flex-center-items gap-xs">
-                                                        <Icon :icon="swordCross" height="17" />{{
-                                                            runningFor(data.lobby.currentBattle.startedAt)
-                                                        }}
-                                                    </div>
-                                                    <span v-else>{{ t("lobby.multiplayer.custom.table.waiting") }}</span>
-                                                </template>
-                                            </template>
-                                        </Column>
-                                    </DataTable>
-                                </div>
+                                        </template>
+                                    </Column>
+                                </DataTable>
                             </div>
+                            <Paginator
+                                :first="source.first.value"
+                                :rows="source.pageSize.value"
+                                :totalRecords="source.totalRecords.value"
+                                :pageLinkSize="20"
+                                @page="(event: PageState) => source.setPage(event.first)"
+                            />
                         </div>
                     </Panel>
                 </div>
@@ -153,15 +153,11 @@ import account from "@iconify-icons/mdi/account";
 import filterIcon from "@iconify-icons/mdi/filter-variant";
 import refreshIcon from "@iconify-icons/mdi/refresh";
 import swordCross from "@iconify-icons/mdi/sword-cross";
-import { useNow } from "@vueuse/core";
+import { useNow, useResizeObserver } from "@vueuse/core";
 import Column from "primevue/column";
-import DataTable, {
-    type DataTablePageEvent,
-    type DataTableRowClickEvent,
-    type DataTableRowSelectEvent,
-    type DataTableSortEvent,
-} from "primevue/datatable";
-import { computed, onActivated, ref, toRef, watch } from "vue";
+import DataTable, { type DataTableRowClickEvent, type DataTableRowSelectEvent, type DataTableSortEvent } from "primevue/datatable";
+import Paginator, { type PageState } from "primevue/paginator";
+import { computed, onActivated, onBeforeUnmount, ref, toRef, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -206,6 +202,33 @@ const source = createLocalLobbyListSource({
 });
 
 watch(effectiveQuery, (query) => source.setQuery(query));
+
+// Sizes pages to the rows that fit in the table area, measured from a rendered row. Until one
+// has rendered (an empty list) the last measurement, or a typical row height, stands in.
+const tableArea = useTemplateRef<HTMLElement>("tableArea");
+let rowHeight = 37;
+
+function fitPageSize() {
+    const area = tableArea.value;
+    // Zero while the page is kept alive but not shown; keep the size it had.
+    if (!area || area.clientHeight === 0) return;
+    const header = area.querySelector<HTMLElement>(".p-datatable-thead");
+    const row = area.querySelector<HTMLElement>(".p-datatable-tbody > tr:not(.p-datatable-emptymessage)");
+    const wrapper = area.querySelector<HTMLElement>(".p-datatable-wrapper");
+    if (row) rowHeight = row.getBoundingClientRect().height || rowHeight;
+    const borders = wrapper ? wrapper.offsetHeight - wrapper.clientHeight : 0;
+    source.setPageSize((area.clientHeight - (header?.getBoundingClientRect().height ?? 0) - borders) / rowHeight);
+}
+
+// Fitting re-renders the rows, which can resize the area again (its scrollbar coming or going).
+// Doing that inside the observer's callback trips its loop error, so it waits for the next frame.
+let fitFrame = 0;
+useResizeObserver(tableArea, () => {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(fitPageSize);
+});
+onBeforeUnmount(() => cancelAnimationFrame(fitFrame));
+watch(() => source.rows.value.length, fitPageSize, { flush: "post" });
 
 // Lobby tags belong to the server, so ones picked on another server are dropped.
 const currentServer = computed(() =>
@@ -275,9 +298,21 @@ onActivated(() => {
     min-width: 400px;
     max-width: 400px;
 }
+.view {
+    // Down to just above the active lobby preview, rather than the usual space for page content below.
+    padding-bottom: 60px;
+}
 .list-area {
     position: relative;
     min-height: 0;
+}
+.list-body {
+    min-height: 0;
+}
+.table-area {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
 }
 .badge {
     margin-left: 6px;
