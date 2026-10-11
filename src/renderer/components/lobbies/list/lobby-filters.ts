@@ -6,12 +6,14 @@ import type { IconifyIcon } from "@iconify/vue";
 import accountIcon from "@iconify-icons/mdi/account";
 import accountFavoriteIcon from "@iconify-icons/mdi/account-favorite";
 import accountGroupIcon from "@iconify-icons/mdi/account-group";
+import accountMultipleCheckIcon from "@iconify-icons/mdi/account-multiple-check";
 import accountMultipleIcon from "@iconify-icons/mdi/account-multiple";
 import engineOutlineIcon from "@iconify-icons/mdi/engine-outline";
 import hammerIcon from "@iconify-icons/mdi/hammer";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
 import magnifyIcon from "@iconify-icons/mdi/magnify";
 import mapOutlineIcon from "@iconify-icons/mdi/map-outline";
+import locationEnterIcon from "@iconify-icons/mdi/location-enter";
 import swordCrossIcon from "@iconify-icons/mdi/sword-cross";
 import tagOutlineIcon from "@iconify-icons/mdi/tag-outline";
 import type { LobbyFilters, LobbyRange, LobbyTriState } from "@shared/lobby-list-query";
@@ -90,6 +92,11 @@ function matchOptional<T>(field: T | undefined, test: (field: T) => boolean): bo
     return field === undefined || test(field);
 }
 
+/** Player slots still free. Never negative, even if the server briefly reports more players than slots. */
+export function openSpots(lobby: LobbyListEntry): number {
+    return Math.max(0, lobby.maxPlayerCount - lobby.playerCount);
+}
+
 const containsAny = (memberIds: readonly string[], ids: ReadonlySet<string>) => memberIds.some((id) => ids.has(id));
 
 export const lobbyFilters = [
@@ -162,6 +169,37 @@ export const lobbyFilters = [
             },
         ],
         match: (lobby, value) => inRange(lobby.playerCount, value),
+    }),
+    // Nearly full lobbies start sooner, while roomier ones can take a whole party.
+    defineFilter({
+        key: "openSpots",
+        icon: locationEnterIcon,
+        available: true,
+        isActive: isRangeActive,
+        chips: (value, { t }) => [
+            {
+                id: "openSpots",
+                label: t("lobby.multiplayer.custom.filters.openSpots.chip", { value: formatRange(value, t) }),
+                tooltip: t("lobby.multiplayer.custom.filters.openSpots.tooltip", { value: formatRange(value, t) }),
+                remove: clearKey("openSpots"),
+            },
+        ],
+        match: (lobby, value) => inRange(openSpots(lobby), value),
+    }),
+    defineFilter({
+        key: "fitsParty",
+        icon: accountMultipleCheckIcon,
+        available: true,
+        isActive: (value) => value === true,
+        chips: (_value, { t }) => [
+            {
+                id: "fitsParty",
+                label: t("lobby.multiplayer.custom.filters.fitsParty.chip"),
+                tooltip: t("lobby.multiplayer.custom.filters.fitsParty.tooltip"),
+                remove: clearKey("fitsParty"),
+            },
+        ],
+        match: (lobby, _value, { partySize }) => openSpots(lobby) >= partySize,
     }),
     defineFilter({
         key: "allyTeams",

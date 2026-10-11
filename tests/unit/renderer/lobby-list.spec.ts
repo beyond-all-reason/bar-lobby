@@ -43,7 +43,7 @@ function lobbyOf(id: string, overrides: Partial<LobbyListEntry> = {}): LobbyList
     };
 }
 
-const ctx: LobbyMatchContext = { friendIds: new Set(["friend"]), partyMemberIds: new Set(["mate"]), devMode: false };
+const ctx: LobbyMatchContext = { friendIds: new Set(["friend"]), partyMemberIds: new Set(["mate"]), partySize: 1, devMode: false };
 
 function filterDef(key: string) {
     const def = lobbyFilters.find((filter) => filter.key === key);
@@ -66,6 +66,31 @@ describe("lobby filters", () => {
         expect(matchesFilters(lobbyOf("1", { playerCount: 0 }), { players: { min: 1 } }, ctx)).toBe(false);
         expect(matchesFilters(lobbyOf("1", { playerCount: 1 }), { players: { min: 1 } }, ctx)).toBe(true);
         expect(matchesFilters(lobbyOf("1", { playerCount: 9 }), { players: { min: 1, max: 8 } }, ctx)).toBe(false);
+    });
+
+    it("matches open spots within the range", () => {
+        const nearlyFull = lobbyOf("1", { playerCount: 7, maxPlayerCount: 8 });
+        const roomy = lobbyOf("2", { playerCount: 2, maxPlayerCount: 8 });
+        expect(matchesFilters(nearlyFull, { openSpots: { max: 2 } }, ctx)).toBe(true);
+        expect(matchesFilters(roomy, { openSpots: { max: 2 } }, ctx)).toBe(false);
+        expect(matchesFilters(nearlyFull, { openSpots: { min: 4 } }, ctx)).toBe(false);
+        expect(matchesFilters(roomy, { openSpots: { min: 4 } }, ctx)).toBe(true);
+    });
+
+    it("counts an overfull lobby as having no open spots", () => {
+        const overfull = lobbyOf("1", { playerCount: 9, maxPlayerCount: 8 });
+        expect(matchesFilters(overfull, { openSpots: { max: 0 } }, ctx)).toBe(true);
+    });
+
+    it("only matches lobbies with room for the whole party", () => {
+        const lobby = lobbyOf("1", { playerCount: 5, maxPlayerCount: 8 });
+        expect(matchesFilters(lobby, { fitsParty: true }, { ...ctx, partySize: 3 })).toBe(true);
+        expect(matchesFilters(lobby, { fitsParty: true }, { ...ctx, partySize: 4 })).toBe(false);
+    });
+
+    it("needs a spot for the user alone when not in a party", () => {
+        expect(matchesFilters(lobbyOf("1", { playerCount: 8, maxPlayerCount: 8 }), { fitsParty: true }, ctx)).toBe(false);
+        expect(matchesFilters(lobbyOf("1", { playerCount: 7, maxPlayerCount: 8 }), { fitsParty: true }, ctx)).toBe(true);
     });
 
     it("treats null and absent tri-states as no filter", () => {

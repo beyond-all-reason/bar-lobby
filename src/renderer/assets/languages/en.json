@@ -2059,6 +2059,16 @@
                         "chip": "Players: {value}",
                         "tooltip": "Lobbies with {value} players"
                     },
+                    "openSpots": {
+                        "label": "Open spots",
+                        "chip": "Open: {value}",
+                        "tooltip": "Lobbies with {value} open player spots"
+                    },
+                    "fitsParty": {
+                        "label": "Fits my party",
+                        "chip": "Fits my party",
+                        "tooltip": "Lobbies with enough open spots for your whole party, or for you when you aren't in one"
+                    },
                     "allyTeams": {
                         "label": "Ally teams",
                         "chip": "Teams: {value}",

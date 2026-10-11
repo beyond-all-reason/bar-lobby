@@ -228,6 +228,16 @@
                         "chip": "Plyreas: {value}",
                         "tooltip": "Loiebbs wtih {value} plyaers"
                     },
+                    "openSpots": {
+                        "label": "Oepn sopts",
+                        "chip": "Oepn: {value}",
+                        "tooltip": "Loiebbs wtih {value} oepn pyaler sopts"
+                    },
+                    "fitsParty": {
+                        "label": "Ftis my party",
+                        "chip": "Ftis my party",
+                        "tooltip": "Loiebbs wtih eougnh oepn sopts for your wolhe party, or for you wehn you aern't in one"
+                    },
                     "allyTeams": {
                         "label": "Ally tmaes",
                         "chip": "Tmaes: {value}",

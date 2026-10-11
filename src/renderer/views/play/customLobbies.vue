@@ -115,9 +115,7 @@ SPDX-License-Identifier: MIT
                                         </Column>
                                         <Column :header="t('lobby.multiplayer.custom.table.openSpots')" sortable sortField="openSpots">
                                             <template #body="{ data }: { data: LobbyListRow }">
-                                                <span v-if="data.state !== 'removed'">{{
-                                                    Math.max(0, data.lobby.maxPlayerCount - data.lobby.playerCount)
-                                                }}</span>
+                                                <span v-if="data.state !== 'removed'">{{ openSpots(data.lobby) }}</span>
                                             </template>
                                         </Column>
                                         <Column :header="t('lobby.multiplayer.custom.table.status')" sortable sortField="battleDuration">
@@ -172,7 +170,7 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import LobbyFilterChips from "@renderer/components/lobbies/list/LobbyFilterChips.vue";
 import LobbyFilterMenu from "@renderer/components/lobbies/list/LobbyFilterMenu.vue";
-import type { LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filters";
+import { openSpots, type LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filters";
 import { createLocalLobbyListSource, lobbyMatchContext, reconcileTagsServer } from "@renderer/composables/useLobbyList";
 import type { LobbyListRow } from "@renderer/model/lobby-list";
 import { configStore } from "@renderer/store/config.store";

@@ -2082,6 +2082,16 @@
                         "chip": null,
                         "tooltip": null
                     },
+                    "openSpots": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "fitsParty": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
                     "allyTeams": {
                         "label": null,
                         "chip": null,

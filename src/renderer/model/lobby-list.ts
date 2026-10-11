@@ -22,5 +22,7 @@ export type LobbyListRow = { id: string; state: "live" | "stale"; lobby: LobbyLi
 export type LobbyMatchContext = {
     friendIds: ReadonlySet<UserId>;
     partyMemberIds: ReadonlySet<UserId>;
+    // Including the user, so 1 when not in a party.
+    partySize: number;
     devMode: boolean;
 };

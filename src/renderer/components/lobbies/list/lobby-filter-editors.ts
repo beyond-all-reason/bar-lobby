@@ -41,6 +41,17 @@ export const lobbyFilterEditors: Partial<Record<LobbyFilterKey, LobbyFilterEdito
         labelKey: "lobby.multiplayer.custom.filters.players.label",
         props: () => ({ min: 0, max: 16 }),
     },
+    openSpots: {
+        component: RangeFilter,
+        labelKey: "lobby.multiplayer.custom.filters.openSpots.label",
+        props: () => ({ min: 0, max: 16 }),
+    },
+    fitsParty: {
+        component: BooleanFilter,
+        labelKey: "lobby.multiplayer.custom.filters.fitsParty.label",
+        inlineLabel: true,
+        props: ({ t }) => ({ label: t("lobby.multiplayer.custom.filters.fitsParty.label") }),
+    },
     allyTeams: {
         component: RangeFilter,
         labelKey: "lobby.multiplayer.custom.filters.allyTeams.label",

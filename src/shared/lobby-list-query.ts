@@ -22,6 +22,9 @@ export const lobbyFiltersSchema = Type.Object({
     tags: Type.Optional(Type.Array(Type.String())),
     maps: Type.Optional(Type.Array(Type.String())),
     players: Type.Optional(rangeSchema),
+    openSpots: Type.Optional(rangeSchema),
+    // Room for the user's whole party, sized when the list is filtered rather than when this is set.
+    fitsParty: Type.Optional(Type.Boolean()),
     allyTeams: Type.Optional(rangeSchema),
     inProgress: Type.Optional(triStateSchema),
     passworded: Type.Optional(triStateSchema),

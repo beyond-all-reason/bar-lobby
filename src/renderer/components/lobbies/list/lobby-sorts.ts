@@ -5,6 +5,7 @@
 import type { LobbySort, LobbySortKey } from "@shared/lobby-list-query";
 import type { LobbyListEntry } from "@renderer/model/lobby-list";
 import type { TranslationKey } from "@renderer/i18n";
+import { openSpots } from "@renderer/components/lobbies/list/lobby-filters";
 
 export type LobbySortDef = {
     key: LobbySortKey;
@@ -16,7 +17,7 @@ export type LobbySortDef = {
 
 export const lobbySorts: LobbySortDef[] = [
     { key: "playerCount", labelKey: "lobby.multiplayer.custom.sort.playerCount", value: (lobby) => lobby.playerCount },
-    { key: "openSpots", labelKey: "lobby.multiplayer.custom.sort.openSpots", value: (lobby) => lobby.maxPlayerCount - lobby.playerCount },
+    { key: "openSpots", labelKey: "lobby.multiplayer.custom.sort.openSpots", value: openSpots },
     { key: "maxPlayerCount", labelKey: "lobby.multiplayer.custom.sort.maxPlayerCount", value: (lobby) => lobby.maxPlayerCount },
     { key: "name", labelKey: "lobby.multiplayer.custom.sort.name", value: (lobby) => lobby.name },
     { key: "mapName", labelKey: "lobby.multiplayer.custom.sort.mapName", value: (lobby) => lobby.mapName },

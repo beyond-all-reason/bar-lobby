@@ -166,6 +166,7 @@ export function lobbyMatchContext(): LobbyMatchContext {
     return {
         friendIds: me.friendUserIds,
         partyMemberIds,
+        partySize: Math.max(1, party?.members.length ?? 0),
         devMode: settingsStore.devMode,
     };
 }
