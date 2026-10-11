@@ -4131,6 +4131,7 @@
             "custom": {
                 "title": null,
                 "hostBattle": null,
+                "openLobby": null,
                 "removedFromLobby": null,
                 "noLobbiesAvailable": null,
                 "lobbyUnavailable": null,

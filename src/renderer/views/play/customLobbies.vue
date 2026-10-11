@@ -36,13 +36,12 @@ SPDX-License-Identifier: MIT
                         :label="t('lobby.multiplayer.custom.autoRefresh')"
                         v-tooltip.bottom="t('lobby.multiplayer.custom.autoRefreshTooltip')"
                     />
-                    <Button
-                        v-if="lobbyStore.activeLobby == undefined"
-                        class="blue flex-right"
-                        @click="createLobbyModalIsOpen = true"
-                        :disabled="lobbyStore.activeLobby != undefined"
-                        >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
-                    >
+                    <Button v-if="lobbyStore.activeLobby == undefined" class="blue flex-right" @click="createLobbyModalIsOpen = true">{{
+                        t("lobby.multiplayer.custom.hostBattle")
+                    }}</Button>
+                    <Button v-else class="blue flex-right" @click="router.push('/play/lobby')">{{
+                        t("lobby.multiplayer.custom.openLobby")
+                    }}</Button>
                 </div>
                 <LobbyFilterChips
                     :filters="effectiveQuery.filters"
