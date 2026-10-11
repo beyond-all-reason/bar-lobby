@@ -52,7 +52,7 @@ SPDX-License-Identifier: MIT
                 <div class="list-area flex-col flex-grow">
                     <LobbyFilterMenu
                         v-model:open="menuOpen"
-                        :query="settingsStore.customLobbiesQuery"
+                        :query="effectiveQuery"
                         :devMode="settingsStore.devMode"
                         :availableTags="source.availableTags.value"
                         :availableEngineVersions="source.availableEngineVersions.value"

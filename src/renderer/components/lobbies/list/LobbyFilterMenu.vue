@@ -89,12 +89,14 @@ watch(
     }
 );
 
-// A header click while the menu is open sorts straight away, and the menu should show it.
+// A header click or search box edit while the menu is open applies straight away, and the menu
+// should show it. Watched by value, since the query is rebuilt whenever any part of it changes.
+watch([() => props.query.sort.key, () => props.query.sort.order], ([key, order]) => {
+    draft.value.sort = { key, order };
+});
 watch(
-    () => props.query.sort,
-    (sort) => {
-        draft.value.sort = { ...sort };
-    }
+    () => props.query.filters.title,
+    (title) => setFilter("title", title)
 );
 
 const sortOptions = computed(() => lobbySorts.map((sort) => ({ label: t(sort.labelKey), value: sort.key })));

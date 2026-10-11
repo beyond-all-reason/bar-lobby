@@ -9,6 +9,7 @@ import BooleanFilter from "@renderer/components/lobbies/list/filters/BooleanFilt
 import MapsFilter from "@renderer/components/lobbies/list/filters/MapsFilter.vue";
 import RangeFilter from "@renderer/components/lobbies/list/filters/RangeFilter.vue";
 import TagsFilter from "@renderer/components/lobbies/list/filters/TagsFilter.vue";
+import TitleFilter from "@renderer/components/lobbies/list/filters/TitleFilter.vue";
 import TriStateFilter from "@renderer/components/lobbies/list/filters/TriStateFilter.vue";
 import VersionFilter from "@renderer/components/lobbies/list/filters/VersionFilter.vue";
 
@@ -28,8 +29,9 @@ export type LobbyFilterEditor = {
 };
 
 // Kept apart from the filter definitions so those stay free of components and can be tested on
-// their own. Title has no entry: it is edited from the search box above the list.
+// their own.
 export const lobbyFilterEditors: Partial<Record<LobbyFilterKey, LobbyFilterEditor>> = {
+    title: { component: TitleFilter, labelKey: "lobby.multiplayer.custom.filters.title.label" },
     tags: {
         component: TagsFilter,
         labelKey: "lobby.multiplayer.custom.filters.tags.label",
