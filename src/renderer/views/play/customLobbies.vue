@@ -36,7 +36,6 @@ SPDX-License-Identifier: MIT
                         :label="t('lobby.multiplayer.custom.autoRefresh')"
                         v-tooltip.bottom="t('lobby.multiplayer.custom.autoRefreshTooltip')"
                     />
-                    <!-- Disabled buttons get no pointer events, so the tooltip sits on a wrapper. -->
                     <div v-tooltip.bottom="{ value: joinTooltip, disabled: !joinTooltip }" class="join-lobby flex-right">
                         <Button class="green" :disabled="!canJoinSelected" @click="joinSelectedLobby">{{
                             t("lobby.multiplayer.custom.joinLobby")
@@ -77,7 +76,6 @@ SPDX-License-Identifier: MIT
                                 @mouseleave="hidePreview"
                                 @scroll="hidePreview"
                             >
-                                <!-- Lazy so the source controls ordering and paging. Fixed column widths stop resizing between pages. -->
                                 <DataTable
                                     :selection="selectedLobby"
                                     :value="source.rows.value"
@@ -285,12 +283,10 @@ function rowClass(row: LobbyListRow) {
     return [row.state, { "active-lobby": row.state !== "removed" && row.id === lobbyStore.activeLobby?.id }];
 }
 
-// Stops an auto-refresh re-order moving a different lobby under a double-click.
 function onTableMouseDown() {
     if (customLobbiesStore.autoRefresh) source.holdOrder(DOUBLE_CLICK_HOLD_MS);
 }
 
-// The table has no row hover events. Rows are keyed by lobby id, so an element stays with its lobby.
 const PREVIEW_DELAY_MS = 300;
 type HoveredRow = { element: HTMLTableRowElement; id: string; anchor: { top: number; bottom: number }; x: number };
 const hovered = shallowRef<HoveredRow>();
@@ -298,7 +294,6 @@ const previewShown = ref(false);
 let previewTimer: ReturnType<typeof setTimeout> | undefined;
 
 const preview = computed(() => (previewShown.value ? hovered.value : undefined));
-// From the store so it follows updates and closes with the lobby.
 const previewLobby = computed(() => (preview.value ? (lobbyStore.lobbies[preview.value.id] as LobbyListEntry | undefined) : undefined));
 
 function onTableMouseOver(event: MouseEvent) {
@@ -319,7 +314,6 @@ function hidePreview() {
     previewShown.value = false;
 }
 
-// A re-order or page change can move the hovered row out from under the pointer.
 watch(
     source.rows,
     () => {
@@ -328,11 +322,10 @@ watch(
     },
     { flush: "post" }
 );
-// The preview is teleported, so close it when the page is left.
+
 onDeactivated(hidePreview);
 onBeforeUnmount(hidePreview);
 
-// By id so it follows updates and clears when the lobby closes.
 const selectedId = ref<string>();
 const selectedLobby = computed(() => (selectedId.value ? lobbyStore.lobbies[selectedId.value] : undefined));
 
@@ -363,19 +356,15 @@ function joinSelectedLobby() {
 
 function sendLobbyJoinRequest(id: string) {
     if (lobbyStore.activeLobby == undefined) {
-        // No active lobby so we can freely join without worrying about a leave needed first.
         lobby.requestJoinLobby({ id, pushLobbyView: true });
         return;
     } else if (lobbyStore.activeLobby.id === id) {
-        //We are trying to join a lobby we are already in, just open the view, no request needed.
         router.push("/play/lobby");
         return;
     }
-    // TODO: Get user confirmation that they want to leave a current lobby? Or do we just allow them to bounce?
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
-// Refresh so the list doesn't return full of placeholders.
 onActivated(() => {
     lobby.requestSubscribeList();
     source.refresh();
@@ -389,7 +378,6 @@ onActivated(() => {
     max-width: 400px;
 }
 .view {
-    // Stop just above the active lobby preview.
     padding-bottom: 60px;
 }
 .list-area {
@@ -419,7 +407,6 @@ onActivated(() => {
     opacity: 0.8;
     font-style: italic;
 }
-// The title takes whatever the other columns leave.
 :deep(.col-map) {
     width: 30%;
 }

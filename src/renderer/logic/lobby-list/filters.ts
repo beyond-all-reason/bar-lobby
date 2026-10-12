@@ -5,7 +5,7 @@
 import type { LobbyFilters, LobbyRange, LobbyTriState } from "@shared/lobby-list-query";
 import type { LobbyListEntry, LobbyMatchContext } from "@renderer/model/lobby-list";
 
-// Enable each once Tachyon sends its field.
+// Enable or remove once Tachyon sends its field. Hidden if false.
 const TACHYON_TAGS = false;
 const TACHYON_ALLY_TEAMS = false;
 const TACHYON_PASSWORDED = false;
@@ -15,10 +15,8 @@ const TACHYON_HAS_PARTY_MEMBER = false;
 
 export type LobbyFilterKey = keyof LobbyFilters;
 
-// Presentation (icon, chips, editor) lives with the components.
 export type LobbyFilterDef<K extends LobbyFilterKey = LobbyFilterKey> = {
     key: K;
-    // false hides the filter and matches everything.
     available: boolean;
     devOnly?: boolean;
     isActive(value: LobbyFilters[K]): boolean;
@@ -44,7 +42,6 @@ function matchOptional<T>(field: T | undefined, test: (field: T) => boolean): bo
     return field === undefined || test(field);
 }
 
-// The server can briefly report more players than slots.
 export function openSpots(lobby: LobbyListEntry): number {
     return Math.max(0, lobby.maxPlayerCount - lobby.playerCount);
 }
@@ -152,7 +149,6 @@ export function matchesFilters(lobby: LobbyListEntry, filters: LobbyFilters, ctx
     return activeFilters(filters, ctx.devMode).every((def) => def.match(lobby, filters[def.key] as never, ctx));
 }
 
-// Cleared so they don't silently return when the filter is re-enabled.
 export function removeDisabledFilters(filters: LobbyFilters, devMode: boolean): boolean {
     let removed = false;
     for (const def of lobbyFilters) {

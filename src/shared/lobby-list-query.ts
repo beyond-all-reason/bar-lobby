@@ -12,7 +12,7 @@ const rangeSchema = Type.Object({
     max: Type.Optional(Type.Number()),
 });
 
-// true: only these, false: hide these. No null: coerceTypes converts between null and false in unions.
+// No null: coerceTypes converts between null and false in unions. Name is for usage clarity
 const triStateSchema = Type.Boolean();
 
 export const lobbyFiltersSchema = Type.Object({
@@ -21,7 +21,6 @@ export const lobbyFiltersSchema = Type.Object({
     maps: Type.Optional(Type.Array(Type.String())),
     players: Type.Optional(rangeSchema),
     openSpots: Type.Optional(rangeSchema),
-    // Party size is read when filtering, not stored here.
     fitsParty: Type.Optional(Type.Boolean()),
     allyTeams: Type.Optional(rangeSchema),
     inProgress: Type.Optional(triStateSchema),
@@ -59,7 +58,6 @@ export type LobbySortKey = Static<typeof lobbySortKeySchema>;
 export type LobbySort = Static<typeof lobbySortSchema>;
 export type LobbyListQuery = Static<typeof lobbyListQuerySchema>;
 
-// Hiding empty lobbies was the old default, so a minimum of one player carries it over.
 export const DEFAULT_LOBBY_LIST_QUERY: LobbyListQuery = {
     filters: { players: { min: 1 } },
     sort: { key: "playerCount", order: -1 },

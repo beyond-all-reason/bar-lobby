@@ -47,7 +47,6 @@ export const lobbyStore: {
     lobbies: Record<LobbyId, LobbyOverview>;
     activeLobby?: Lobby;
     wantsListSubscription: boolean;
-    // Bumped when the whole list is replaced or cleared, so holders of old lobby ids start over.
     listGeneration: number;
 } = reactive({
     isInitialized: false,

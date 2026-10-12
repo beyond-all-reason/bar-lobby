@@ -171,29 +171,30 @@ function sound() {
     z-index: 1;
     display: flex;
     padding: 5px 10px;
-    // Opaque because it sits over the body's scrollbar.
     &:hover {
         background: rgb(131, 12, 12);
     }
 }
-// Match the order buttons' height.
+
 .sort > .select {
     align-self: stretch;
 }
-// The tooltip is on the content, so let it fill the button.
+
 .sort :deep(.p-selectbutton .p-button) {
     padding: 0;
 }
+
 .order-option {
     display: flex;
     align-items: center;
     height: 100%;
     padding: 0 7px;
 }
-// Stop checkboxes stretching across the menu.
+
 .inline > :deep(.control) {
     align-self: flex-start;
 }
+
 .body {
     min-height: 0;
     flex: 0 1 auto;

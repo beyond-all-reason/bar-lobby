@@ -10,7 +10,6 @@ import { openSpots } from "@renderer/logic/lobby-list/filters";
 export type LobbySortDef = {
     key: LobbySortKey;
     labelKey: TranslationKey;
-    // Ascending. undefined always sorts last, in either order.
     value(lobby: LobbyListEntry, now: number): number | string | undefined;
 };
 
@@ -23,7 +22,7 @@ export const lobbySorts: LobbySortDef[] = [
     {
         key: "battleDuration",
         labelKey: "lobby.multiplayer.custom.sort.battleDuration",
-        // Waiting lobbies are -1; the clamp keeps clock-skewed battles out of them. UnixTime is in microseconds.
+        // Waiting lobbies are -1; the clamp keeps clock-skewed battles out of them.
         value: (lobby, now) => (lobby.currentBattle ? Math.max(0, now - lobby.currentBattle.startedAt / 1000) : -1),
     },
 ];

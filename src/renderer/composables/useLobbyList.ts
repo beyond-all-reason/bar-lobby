@@ -16,7 +16,6 @@ import { settingsStore } from "@renderer/store/settings.store";
 
 export const AUTO_REFRESH_THROTTLE_MS = 2000;
 
-/** Typical OS double-click time (500ms) plus margin; browsers don't expose the user's setting. */
 export const DOUBLE_CLICK_HOLD_MS = 550;
 
 /** Used until the page measures how many rows fit. */
@@ -28,18 +27,14 @@ export interface LobbyListSource {
     totalRecords: ComputedRef<number>;
     first: Ref<number>;
     pageSize: Readonly<Ref<number>>;
-    /** Lobbies appended since the list was last ordered. */
     pendingCount: ComputedRef<number>;
     availableTags: ComputedRef<string[]>;
     availableEngineVersions: ComputedRef<string[]>;
     availableGameVersions: ComputedRef<string[]>;
     setQuery(query: LobbyListQuery): void;
     setPage(first: number): void;
-    /** Keeps the current page's top row in view. */
     setPageSize(size: number): void;
-    /** Re-orders and drops placeholders. */
     refresh(): void;
-    /** Freezes the rows, even with auto-refresh on. Holding again restarts the wait. */
     holdOrder(ms: number): void;
 }
 
@@ -99,7 +94,6 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         first.value = Math.min(first.value, Math.max(0, Math.floor((orderedIds.value.length - 1) / pageSize.value) * pageSize.value));
     }
 
-    // Appended lobbies keep their place rather than coming and going as they match.
     watch(
         matchingIds,
         (ids) => {
@@ -124,7 +118,6 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
     watchThrottled(
         () => lobbyStore.lobbies,
         () => {
-            // A hold refreshes when it ends.
             if (options.autoRefresh.value && !heldIds.value) refresh();
         },
         { deep: true, throttle: AUTO_REFRESH_THROTTLE_MS, trailing: true }
@@ -146,7 +139,6 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         }, ms);
     }
 
-    // Auto-refresh would drop these on its next pass anyway, so drop them now. Not during a hold.
     const allRows = computed<LobbyListRow[]>(() => {
         const matching = matchingIds.value;
         const held = heldIds.value;
@@ -172,7 +164,6 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         totalRecords: computed(() => allRows.value.length),
         first,
         pageSize: readonly(pageSize),
-        // Auto-refresh folds these in itself, so a count would only flicker.
         pendingCount: computed(() => (options.autoRefresh.value ? 0 : appendedIds.value.filter((id) => matchingIds.value.has(id)).length)),
         availableTags: computed(() => sortedUnion(lobbies().flatMap((lobby) => lobby.tags ?? []))),
         availableEngineVersions: computed(() => sortedUnion(lobbies().map((lobby) => lobby.engineVersion))),

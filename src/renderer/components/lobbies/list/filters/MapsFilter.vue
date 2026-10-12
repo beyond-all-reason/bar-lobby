@@ -92,7 +92,6 @@ function onPicked(names: string[]) {
     background-size: cover;
     background-position: center;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    // The overlay sits inside the border, so darken the border too.
     &:hover {
         border-color: black;
         .remove {

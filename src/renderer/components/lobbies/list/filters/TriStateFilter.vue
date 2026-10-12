@@ -54,7 +54,6 @@ function onUpdate(value: Choice) {
 </script>
 
 <style lang="scss" scoped>
-// The tooltip is on the content, so let it fill the button.
 :deep(.p-selectbutton .p-button) {
     padding: 0;
 }
