@@ -67,6 +67,8 @@ const chips = computed(() => {
 .filter-chip {
     gap: 6px;
     padding: 2px 10px;
+    // A whole number of pixels tall, so the list below doesn't land between pixels while chips show.
+    line-height: 20px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.06);
