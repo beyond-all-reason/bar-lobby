@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
                 <div class="flex-col gap-lg margin-md">
                     <section class="flex-col gap-sm">
                         <h6>{{ t("lobby.multiplayer.custom.menu.sortBy") }}</h6>
-                        <div class="flex-row gap-sm">
+                        <div class="sort flex-row gap-sm">
                             <Select v-model="draft.sort.key" :options="sortOptions" optionLabel="label" optionValue="value" />
                             <Options
                                 v-model="draft.sort.order"
@@ -22,7 +22,13 @@ SPDX-License-Identifier: MIT
                                 optionLabel="label"
                                 optionValue="value"
                                 :unselectable="false"
-                            />
+                            >
+                                <template #option="{ option }">
+                                    <span v-tooltip.bottom="option.label" class="order-option">
+                                        <Icon :icon="option.icon" height="20" />
+                                    </span>
+                                </template>
+                            </Options>
                         </div>
                     </section>
                     <section class="flex-col gap-md">
@@ -52,6 +58,8 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
+import sortAscending from "@iconify-icons/mdi/sort-ascending";
+import sortDescending from "@iconify-icons/mdi/sort-descending";
 import { computed, ref, watch } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -101,8 +109,8 @@ watch(
 
 const sortOptions = computed(() => lobbySorts.map((sort) => ({ label: t(sort.labelKey), value: sort.key })));
 const orderOptions = computed(() => [
-    { label: t("lobby.multiplayer.custom.menu.descending"), value: -1 },
-    { label: t("lobby.multiplayer.custom.menu.ascending"), value: 1 },
+    { label: t("lobby.multiplayer.custom.menu.descending"), value: -1, icon: sortDescending },
+    { label: t("lobby.multiplayer.custom.menu.ascending"), value: 1, icon: sortAscending },
 ]);
 
 const editorContext = computed<LobbyFilterEditorContext>(() => ({
@@ -165,9 +173,24 @@ function sound() {
     z-index: 1;
     display: flex;
     padding: 5px 10px;
+    // Opaque, unlike the other close buttons, because this one sits over the body's scrollbar.
     &:hover {
-        background: rgba(219, 20, 20, 0.6);
+        background: rgb(131, 12, 12);
     }
+}
+// Select centres itself by default, which leaves it shorter than the order buttons beside it.
+.sort > .select {
+    align-self: stretch;
+}
+// The tooltip sits on the option's content, so that fills the whole button rather than just the icon.
+.sort :deep(.p-selectbutton .p-button) {
+    padding: 0;
+}
+.order-option {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 7px;
 }
 // Controls stretch by default, which would spread a checkbox across the menu with its icon cell padded out.
 .inline > :deep(.control) {

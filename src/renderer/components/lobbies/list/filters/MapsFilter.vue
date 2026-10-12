@@ -14,7 +14,9 @@ SPDX-License-Identifier: MIT
                 :style="`background-image: url('${imageUrl(name)}')`"
                 v-tooltip.bottom="displayName(name)"
             >
-                <Icon class="remove" :icon="closeThick" height="14" @click="remove(name)" />
+                <div class="remove" @click="remove(name)">
+                    <Icon :icon="closeThick" height="24" />
+                </div>
             </div>
         </div>
         <span v-else class="txt-sm">{{ t("lobby.multiplayer.custom.filters.maps.none") }}</span>
@@ -90,12 +92,23 @@ function onPicked(names: string[]) {
     background-size: cover;
     background-position: center;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    // The overlay sits inside the border, so swap the border to black with it to dim the whole thumbnail.
+    &:hover {
+        border-color: black;
+        .remove {
+            opacity: 1;
+        }
+    }
 }
+// Covers the whole thumbnail so the click lands on this div; the global stylesheet turns off pointer events on svgs.
 .remove {
     position: absolute;
-    top: 0;
-    right: 0;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    opacity: 0;
     background: rgba(0, 0, 0, 0.6);
 }
 </style>
