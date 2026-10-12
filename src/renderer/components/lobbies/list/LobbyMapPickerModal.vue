@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
             <MapListComponent ref="list" compact :selected="picked" @map-selected="toggle" />
         </div>
         <template #footer>
-            <div class="flex-row flex-center-items gap-md fullwidth">
+            <div class="flex-row flex-center-items gap-md fullwidth padding-md">
                 <span>{{ t("lobby.multiplayer.custom.mapPicker.selected", { count: picked.size }) }}</span>
                 <Button class="flex-right" @click="selectAllShown">{{ t("lobby.multiplayer.custom.mapPicker.selectAllShown") }}</Button>
                 <Button :disabled="picked.size === 0" @click="picked = new Set()">{{
