@@ -158,9 +158,7 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         pageSize: readonly(pageSize),
         // Auto-refresh folds appended lobbies in on its own (after a throttle), so it shows no count
         // rather than one that flickers up until that refresh lands.
-        pendingCount: computed(() =>
-            options.autoRefresh.value ? 0 : appendedIds.value.filter((id) => matchingIds.value.has(id)).length
-        ),
+        pendingCount: computed(() => (options.autoRefresh.value ? 0 : appendedIds.value.filter((id) => matchingIds.value.has(id)).length)),
         availableTags: computed(() => sortedUnion(lobbies().flatMap((lobby) => lobby.tags ?? []))),
         availableEngineVersions: computed(() => sortedUnion(lobbies().map((lobby) => lobby.engineVersion))),
         availableGameVersions: computed(() => sortedUnion(lobbies().map((lobby) => lobby.gameVersion))),
