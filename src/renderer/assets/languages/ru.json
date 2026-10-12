@@ -3990,6 +3990,8 @@
                 "title": null,
                 "hostBattle": null,
                 "openLobby": null,
+                "joinLobby": null,
+                "leaveLobbyFirst": null,
                 "removedFromLobby": null,
                 "noLobbiesAvailable": null,
                 "lobbyUnavailable": null,

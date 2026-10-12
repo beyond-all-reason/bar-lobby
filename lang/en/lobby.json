@@ -185,6 +185,8 @@
                 "title": "Multiplayer Custom Battles",
                 "hostBattle": "Host Battle",
                 "openLobby": "Open Lobby",
+                "joinLobby": "Join Lobby",
+                "leaveLobbyFirst": "Leave your current lobby before joining another.",
                 "removedFromLobby": "You have been removed from the lobby.",
                 "noLobbiesAvailable": "No games found.",
                 "lobbyUnavailable": "This lobby is no longer available",

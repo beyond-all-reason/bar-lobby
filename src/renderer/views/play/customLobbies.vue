@@ -36,12 +36,22 @@ SPDX-License-Identifier: MIT
                         :label="t('lobby.multiplayer.custom.autoRefresh')"
                         v-tooltip.bottom="t('lobby.multiplayer.custom.autoRefreshTooltip')"
                     />
-                    <Button v-if="lobbyStore.activeLobby == undefined" class="blue flex-right" @click="createLobbyModalIsOpen = true">{{
+                    <!-- Disabled buttons get no pointer events, so the tooltip sits on a wrapper. -->
+                    <div
+                        v-tooltip.bottom="{
+                            value: t('lobby.multiplayer.custom.leaveLobbyFirst'),
+                            disabled: lobbyStore.activeLobby == undefined,
+                        }"
+                        class="join-lobby flex-right"
+                    >
+                        <Button class="green" :disabled="!canJoinSelected" @click="joinSelectedLobby">{{
+                            t("lobby.multiplayer.custom.joinLobby")
+                        }}</Button>
+                    </div>
+                    <Button v-if="lobbyStore.activeLobby == undefined" class="blue" @click="createLobbyModalIsOpen = true">{{
                         t("lobby.multiplayer.custom.hostBattle")
                     }}</Button>
-                    <Button v-else class="blue flex-right" @click="router.push('/play/lobby')">{{
-                        t("lobby.multiplayer.custom.openLobby")
-                    }}</Button>
+                    <Button v-else class="blue" @click="router.push('/play/lobby')">{{ t("lobby.multiplayer.custom.openLobby") }}</Button>
                 </div>
                 <LobbyFilterChips
                     :filters="effectiveQuery.filters"
@@ -354,6 +364,13 @@ function onRowDoubleClick(event: DataTableRowClickEvent) {
     sendLobbyJoinRequest(row.lobby.id);
 }
 
+const canJoinSelected = computed(() => !!lobbyStore.selectedLobby && lobbyStore.activeLobby == undefined && tachyonStore.isConnected);
+
+function joinSelectedLobby() {
+    if (!canJoinSelected.value || !lobbyStore.selectedLobby) return;
+    sendLobbyJoinRequest(lobbyStore.selectedLobby.id);
+}
+
 function sendLobbyJoinRequest(id: string) {
     if (lobbyStore.activeLobby == undefined) {
         // No active lobby so we can freely join without worrying about a leave needed first.
@@ -401,6 +418,9 @@ onActivated(() => {
     border-radius: 8px;
     font-size: 13px;
     background: rgba(255, 255, 255, 0.25);
+}
+.join-lobby {
+    display: flex;
 }
 .disconnected {
     margin-bottom: 10px;
