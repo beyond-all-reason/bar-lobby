@@ -130,13 +130,23 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         if (enabled) refresh();
     });
 
+    // Auto-refresh would drop closed and no longer matching lobbies on its next pass anyway, so they
+    // go straight away rather than showing as removed or stale until that pass lands.
     const allRows = computed<LobbyListRow[]>(() => {
         const matching = matchingIds.value;
-        return [...orderedIds.value, ...appendedIds.value].map((id) => {
+        const dropInvalid = options.autoRefresh.value;
+        const rows: LobbyListRow[] = [];
+        for (const id of [...orderedIds.value, ...appendedIds.value]) {
             const lobby = lobbyStore.lobbies[id] as LobbyListEntry | undefined;
-            if (!lobby) return { id, state: "removed" };
-            return { id, state: matching.has(id) ? "live" : "stale", lobby };
-        });
+            if (!lobby) {
+                if (!dropInvalid) rows.push({ id, state: "removed" });
+            } else if (matching.has(id)) {
+                rows.push({ id, state: "live", lobby });
+            } else if (!dropInvalid) {
+                rows.push({ id, state: "stale", lobby });
+            }
+        }
+        return rows;
     });
 
     refresh();

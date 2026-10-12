@@ -281,6 +281,14 @@ describe("local lobby list source", () => {
         }
     });
 
+    it("drops closed and no longer matching lobbies straight away while auto-refresh is on", () => {
+        reset([lobbyOf("a", { playerCount: 1 }), lobbyOf("b", { playerCount: 3 }), lobbyOf("c", { playerCount: 2 })]);
+        const source = create(byPlayers, true);
+        patch({ b: null, c: { id: "c", playerCount: 0 } });
+        expect(summary(source.rows.value)).toEqual(["a:live"]);
+        expect(source.totalRecords.value).toBe(1);
+    });
+
     it("starts over when the server resets the list", async () => {
         reset([lobbyOf("a", { playerCount: 1 }), lobbyOf("b", { playerCount: 3 })]);
         const source = create();
