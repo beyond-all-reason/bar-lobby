@@ -23,7 +23,7 @@ export type LobbyFilterEditorContext = {
 export type LobbyFilterEditor = {
     component: Component;
     labelKey: TranslationKey;
-    // Checkboxes carry their label inline, so the menu doesn't put a heading over them.
+    // Checkboxes and tri-state options carry their label inline, so the menu doesn't put a heading over them.
     inlineLabel?: boolean;
     props?(ctx: LobbyFilterEditorContext): Record<string, unknown>;
 };
@@ -63,19 +63,31 @@ export const lobbyFilterEditors: Partial<Record<LobbyFilterKey, LobbyFilterEdito
         component: TriStateFilter,
         labelKey: "lobby.multiplayer.custom.filters.inProgress.label",
         inlineLabel: true,
-        props: ({ t }) => ({ label: t("lobby.multiplayer.custom.filters.inProgress.label") }),
+        props: ({ t }) => ({
+            label: t("lobby.multiplayer.custom.filters.inProgress.label"),
+            hideTooltip: t("lobby.multiplayer.custom.filters.inProgress.tooltipNo"),
+            onlyTooltip: t("lobby.multiplayer.custom.filters.inProgress.tooltipYes"),
+        }),
     },
     passworded: {
         component: TriStateFilter,
         labelKey: "lobby.multiplayer.custom.filters.passworded.label",
         inlineLabel: true,
-        props: ({ t }) => ({ label: t("lobby.multiplayer.custom.filters.passworded.label") }),
+        props: ({ t }) => ({
+            label: t("lobby.multiplayer.custom.filters.passworded.label"),
+            hideTooltip: t("lobby.multiplayer.custom.filters.passworded.tooltipNo"),
+            onlyTooltip: t("lobby.multiplayer.custom.filters.passworded.tooltipYes"),
+        }),
     },
     bossMode: {
         component: TriStateFilter,
         labelKey: "lobby.multiplayer.custom.filters.bossMode.label",
         inlineLabel: true,
-        props: ({ t }) => ({ label: t("lobby.multiplayer.custom.filters.bossMode.label") }),
+        props: ({ t }) => ({
+            label: t("lobby.multiplayer.custom.filters.bossMode.label"),
+            hideTooltip: t("lobby.multiplayer.custom.filters.bossMode.tooltipNo"),
+            onlyTooltip: t("lobby.multiplayer.custom.filters.bossMode.tooltipYes"),
+        }),
     },
     hasFriend: {
         component: BooleanFilter,

@@ -200,7 +200,10 @@
                     "descending": "Dnnedsceig",
                     "filters": "Frietls",
                     "apply": "Apply",
-                    "reset": "Reest"
+                    "reset": "Reest",
+                    "hide": "Hdie",
+                    "any": "Any",
+                    "only": "Olny"
                 },
                 "filters": {
                     "title": {
@@ -245,7 +248,7 @@
                         "tooltip": "Loiebbs wtih {value} ally tmaes"
                     },
                     "inProgress": {
-                        "label": "Blatte in prsgeros",
+                        "label": "In btalte",
                         "chipYes": "In prsgeros",
                         "chipNo": "Not srtetad",
                         "tooltipYes": "Olny leibbos wtih a btalte rniunng",

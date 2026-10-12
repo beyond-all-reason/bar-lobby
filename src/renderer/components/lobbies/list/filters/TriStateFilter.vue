@@ -5,27 +5,64 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <TriStateCheckbox :label="label" :modelValue="asString" @update:modelValue="onUpdate" />
+    <Options
+        :label="label"
+        :modelValue="selected"
+        :options="options"
+        optionLabel="label"
+        optionValue="value"
+        :unselectable="false"
+        @update:modelValue="onUpdate"
+    >
+        <template #option="{ option }">
+            <span v-tooltip.bottom="option.tooltip" class="tri-option">{{ option.label }}</span>
+        </template>
+    </Options>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import TriStateCheckbox from "@renderer/components/controls/TriStateCheckbox.vue";
+import Options from "@renderer/components/controls/Options.vue";
 import type { LobbyTriState } from "@shared/lobby-list-query";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     modelValue?: LobbyTriState;
     label: string;
+    hideTooltip: string;
+    onlyTooltip: string;
 }>();
 
 const emit = defineEmits<{
     (event: "update:modelValue", value: boolean | undefined): void;
 }>();
 
-// TriStateCheckbox speaks in strings.
-const asString = computed(() => (props.modelValue === true ? "true" : props.modelValue === false ? "false" : "null"));
+type Choice = "hide" | "any" | "only";
 
-function onUpdate(value: "true" | "false" | "null") {
-    emit("update:modelValue", value === "null" ? undefined : value === "true");
+// Laid out as a spectrum, with no filter in the middle, so it's clear that both ends narrow the list.
+const options = computed(() => [
+    { label: t("lobby.multiplayer.custom.menu.hide"), value: "hide", tooltip: props.hideTooltip },
+    { label: t("lobby.multiplayer.custom.menu.any"), value: "any" },
+    { label: t("lobby.multiplayer.custom.menu.only"), value: "only", tooltip: props.onlyTooltip },
+]);
+
+const selected = computed<Choice>(() => (props.modelValue === true ? "only" : props.modelValue === false ? "hide" : "any"));
+
+function onUpdate(value: Choice) {
+    emit("update:modelValue", value === "any" ? undefined : value === "only");
 }
 </script>
+
+<style lang="scss" scoped>
+// The tooltip sits on the option's content, so that fills the whole button rather than just the text.
+:deep(.p-selectbutton .p-button) {
+    padding: 0;
+}
+.tri-option {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 10px;
+}
+</style>

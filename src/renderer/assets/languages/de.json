@@ -2054,7 +2054,10 @@
                     "descending": null,
                     "filters": null,
                     "apply": null,
-                    "reset": null
+                    "reset": null,
+                    "hide": null,
+                    "any": null,
+                    "only": null
                 },
                 "filters": {
                     "title": {

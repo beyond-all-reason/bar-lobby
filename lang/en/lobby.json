@@ -200,7 +200,10 @@
                     "descending": "Descending",
                     "filters": "Filters",
                     "apply": "Apply",
-                    "reset": "Reset"
+                    "reset": "Reset",
+                    "hide": "Hide",
+                    "any": "Any",
+                    "only": "Only"
                 },
                 "filters": {
                     "title": {
@@ -245,7 +248,7 @@
                         "tooltip": "Lobbies with {value} ally teams"
                     },
                     "inProgress": {
-                        "label": "Battle in progress",
+                        "label": "In battle",
                         "chipYes": "In progress",
                         "chipNo": "Not started",
                         "tooltipYes": "Only lobbies with a battle running",
