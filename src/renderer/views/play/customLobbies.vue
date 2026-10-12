@@ -69,7 +69,6 @@ SPDX-License-Identifier: MIT
                             <p v-if="!tachyonStore.isConnected" class="disconnected">
                                 {{ t("lobby.multiplayer.custom.disconnected") }}
                             </p>
-                            <!-- Pages hold as many rows as fit here; it only scrolls if a row grows taller than the rest. -->
                             <div
                                 ref="tableArea"
                                 class="table-area"
@@ -78,8 +77,7 @@ SPDX-License-Identifier: MIT
                                 @mouseleave="hidePreview"
                                 @scroll="hidePreview"
                             >
-                                <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady.
-                                     Columns have fixed widths too, so they don't resize with whatever is on the page. -->
+                                <!-- Lazy so the source controls ordering and paging. Fixed column widths stop resizing between pages. -->
                                 <DataTable
                                     :selection="selectedLobby"
                                     :value="source.rows.value"
@@ -178,12 +176,6 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-/**
- * TODO:
- * - Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
- * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
- */
-
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import filterIcon from "@iconify-icons/mdi/filter-variant";
@@ -219,8 +211,7 @@ const router = useRouter();
 
 const { t } = useTypedI18n();
 
-// The search box is the title filter. It isn't saved with the rest, so the list doesn't open
-// already narrowed by something typed in a previous session.
+// The title filter, not persisted so the list doesn't open narrowed by an old search.
 const searchVal = ref<string>("");
 const menuOpen = ref(false);
 const createLobbyModalIsOpen = ref<boolean>(false);
@@ -240,14 +231,13 @@ const source = createLocalLobbyListSource({
 
 watch(effectiveQuery, (query) => source.setQuery(query));
 
-// Sizes pages to the rows that fit in the table area, measured from a rendered row. Until one
-// has rendered (an empty list) the last measurement, or a typical row height, stands in.
+// Last measured or typical height, for when no row has rendered.
 const tableArea = useTemplateRef<HTMLElement>("tableArea");
 let rowHeight = 37;
 
 function fitPageSize() {
     const area = tableArea.value;
-    // Zero while the page is kept alive but not shown; keep the size it had.
+    // Zero while kept alive but hidden.
     if (!area || area.clientHeight === 0) return;
     const header = area.querySelector<HTMLElement>(".p-datatable-thead");
     const row = area.querySelector<HTMLElement>(".p-datatable-tbody > tr:not(.p-datatable-emptymessage)");
@@ -257,8 +247,7 @@ function fitPageSize() {
     source.setPageSize((area.clientHeight - (header?.getBoundingClientRect().height ?? 0) - borders) / rowHeight);
 }
 
-// Fitting re-renders the rows, which can resize the area again (its scrollbar coming or going).
-// Doing that inside the observer's callback trips its loop error, so it waits for the next frame.
+// Fitting can resize the area again, which trips the observer's loop error if done in its callback.
 let fitFrame = 0;
 useResizeObserver(tableArea, () => {
     cancelAnimationFrame(fitFrame);
@@ -292,19 +281,16 @@ function runningFor(startedAt: number) {
     return getFriendlyDuration(Math.max(0, now.value.getTime() - startedAt / 1000));
 }
 
-// The lobby the user is in stands out in gold.
 function rowClass(row: LobbyListRow) {
     return [row.state, { "active-lobby": row.state !== "removed" && row.id === lobbyStore.activeLobby?.id }];
 }
 
-// With auto-refresh on, a re-order between the two clicks of a double-click would join whichever
-// lobby moved under the pointer, so a click holds the list still for long enough to finish one.
+// Stops an auto-refresh re-order moving a different lobby under a double-click.
 function onTableMouseDown() {
     if (customLobbiesStore.autoRefresh) source.holdOrder(DOUBLE_CLICK_HOLD_MS);
 }
 
-// The table has no row hover events, so the table area works out which row the pointer is over.
-// Rows are keyed by lobby id, so a row element stays with its lobby when the list changes.
+// The table has no row hover events. Rows are keyed by lobby id, so an element stays with its lobby.
 const PREVIEW_DELAY_MS = 300;
 type HoveredRow = { element: HTMLTableRowElement; id: string; anchor: { top: number; bottom: number }; x: number };
 const hovered = shallowRef<HoveredRow>();
@@ -312,7 +298,7 @@ const previewShown = ref(false);
 let previewTimer: ReturnType<typeof setTimeout> | undefined;
 
 const preview = computed(() => (previewShown.value ? hovered.value : undefined));
-// Read from the store, so the preview follows the lobby's updates and closes with it.
+// From the store so it follows updates and closes with the lobby.
 const previewLobby = computed(() => (preview.value ? (lobbyStore.lobbies[preview.value.id] as LobbyListEntry | undefined) : undefined));
 
 function onTableMouseOver(event: MouseEvent) {
@@ -322,7 +308,6 @@ function onTableMouseOver(event: MouseEvent) {
     if (!element || !row || row.state === "removed") return hidePreview();
     const rect = element.getBoundingClientRect();
     hovered.value = { element, id: row.id, anchor: { top: rect.top, bottom: rect.bottom }, x: event.clientX };
-    // Once a preview is showing, moving to another row swaps it straight away.
     if (previewShown.value) return;
     clearTimeout(previewTimer);
     previewTimer = setTimeout(() => (previewShown.value = true), PREVIEW_DELAY_MS);
@@ -343,11 +328,11 @@ watch(
     },
     { flush: "post" }
 );
-// The preview lives on the body, so it has to be closed when the page is left without the pointer leaving the table.
+// The preview is teleported, so close it when the page is left.
 onDeactivated(hidePreview);
 onBeforeUnmount(hidePreview);
 
-// Kept by id and read from the store, so it follows the lobby's updates and clears when it closes.
+// By id so it follows updates and clears when the lobby closes.
 const selectedId = ref<string>();
 const selectedLobby = computed(() => (selectedId.value ? lobbyStore.lobbies[selectedId.value] : undefined));
 
@@ -390,8 +375,7 @@ function sendLobbyJoinRequest(id: string) {
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
-// Lobbies keep changing while the page is hidden, so it comes back re-ordered rather than full of
-// placeholders, even without auto-refresh.
+// Refresh so the list doesn't return full of placeholders.
 onActivated(() => {
     lobby.requestSubscribeList();
     source.refresh();
@@ -405,7 +389,7 @@ onActivated(() => {
     max-width: 400px;
 }
 .view {
-    // Down to just above the active lobby preview, rather than the usual space for page content below.
+    // Stop just above the active lobby preview.
     padding-bottom: 60px;
 }
 .list-area {
@@ -446,7 +430,7 @@ onActivated(() => {
 :deep(.col-status) {
     width: 9.5em;
 }
-// One line per row, so long titles and map names don't make some rows taller than others.
+// Uniform row heights for page fitting.
 :deep(.p-datatable-tbody > tr > td) {
     overflow: hidden;
     white-space: nowrap;

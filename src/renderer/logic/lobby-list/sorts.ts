@@ -10,8 +10,7 @@ import { openSpots } from "@renderer/logic/lobby-list/filters";
 export type LobbySortDef = {
     key: LobbySortKey;
     labelKey: TranslationKey;
-    // Ascending order. A lobby with nothing to compare can return undefined from value(), and
-    // always sorts after the rest, whichever way the list is ordered.
+    // Ascending. undefined always sorts last, in either order.
     value(lobby: LobbyListEntry, now: number): number | string | undefined;
 };
 
@@ -24,9 +23,7 @@ export const lobbySorts: LobbySortDef[] = [
     {
         key: "battleDuration",
         labelKey: "lobby.multiplayer.custom.sort.battleDuration",
-        // Waiting lobbies count as below any running battle, so ascending puts them first and
-        // descending puts them last. Running battles never go below zero, which keeps one that a
-        // skewed clock says hasn't started yet out among the waiting ones. UnixTime is in microseconds.
+        // Waiting lobbies are -1; the clamp keeps clock-skewed battles out of them. UnixTime is in microseconds.
         value: (lobby, now) => (lobby.currentBattle ? Math.max(0, now - lobby.currentBattle.startedAt / 1000) : -1),
     },
 ];
@@ -40,10 +37,7 @@ function compareValues(a: number | string, b: number | string): number {
     return (a as number) - (b as number);
 }
 
-/**
- * Orders lobbies by the given sort. Ties fall back to the title and then the id, so the same
- * lobbies always come out in the same order.
- */
+// Ties fall back to title then id for a stable order.
 export function compareLobbies(a: LobbyListEntry, b: LobbyListEntry, sort: LobbySort, now: number): number {
     const def = sortsByKey.get(sort.key);
     if (def) {

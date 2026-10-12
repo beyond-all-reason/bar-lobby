@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <!-- On the body, so a transformed ancestor (the page transition) can't offset its fixed position. -->
+    <!-- Teleported so the page transition's transform can't offset position: fixed. -->
     <Teleport to="body">
         <div ref="box" class="lobby-overview-preview" :class="{ active: isActiveLobby }" :style="position">
             <div class="content flex-row gap-md">
@@ -93,9 +93,9 @@ import { getFriendlyDuration } from "@renderer/utils/misc";
 
 const props = defineProps<{
     lobby: LobbyListEntry;
-    /** The hovered row's screen rect. The preview sits below it, or above when there's no room below. */
+    /** The hovered row's screen rect. */
     anchor: { top: number; bottom: number };
-    /** Where the pointer entered the row, which the preview lines up with horizontally. */
+    /** Pointer x when it entered the row. */
     x: number;
 }>();
 
@@ -146,7 +146,6 @@ const membershipLabel = computed(() => {
 
 const GAP = 4;
 const EDGE_MARGIN = 8;
-// The box starts a little left of the pointer, so the pointer sits over its corner rather than its edge.
 const POINTER_INSET = 24;
 
 const box = useTemplateRef<HTMLElement>("box");
@@ -154,7 +153,7 @@ const { width, height } = useElementBounding(box);
 const { width: windowWidth, height: windowHeight } = useWindowSize();
 
 const position = computed(() => {
-    // Hidden until measured, so it doesn't show for a frame on the wrong side of the row.
+    // Hidden until measured to avoid a frame on the wrong side of the row.
     if (!width.value) return { visibility: "hidden" as const };
     let top = props.anchor.bottom + GAP;
     const above = props.anchor.top - GAP - height.value;
@@ -170,7 +169,7 @@ const position = computed(() => {
     position: fixed;
     z-index: 10;
     width: 440px;
-    // Like a tooltip, it never takes the pointer, so moving between rows isn't interrupted.
+    // Don't interrupt row hover.
     pointer-events: none;
     font-family: Rajdhani, sans-serif;
     background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.9));
@@ -212,7 +211,7 @@ const position = computed(() => {
     left: 0;
     width: 100%;
     transform: translateY(-50%);
-    // The preview can't be clicked, so the "Rejoin" caption would be misleading here.
+    // Not clickable, so "Rejoin" would mislead.
     :deep(.rejoin-label) {
         display: none;
     }

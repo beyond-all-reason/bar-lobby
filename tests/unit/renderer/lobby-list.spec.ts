@@ -180,7 +180,7 @@ describe("lobby sorts", () => {
     describe("by battle duration", () => {
         const long = lobbyOf("a", { currentBattle: { startedAt: 100_000_000 } });
         const short = lobbyOf("b", { currentBattle: { startedAt: 900_000_000 } });
-        // Started after now by the server's clock, which shouldn't place it among the waiting lobbies.
+        // Starts in the future by the server's clock.
         const skewed = lobbyOf("d", { currentBattle: { startedAt: 2_000_000_000 } });
         const waiting = lobbyOf("c");
         const ordered = (order: 1 | -1) => [short, waiting, skewed, long].sort((x, y) => compareLobbies(x, y, { key: "battleDuration", order }, now)).map((lobby) => lobby.id);
@@ -472,7 +472,6 @@ describe("tags across servers", () => {
 });
 
 describe("filter chips", () => {
-    // Echoes the key and its parameters, so the tests can see what would be translated.
     const t = ((key: string, params?: unknown) => (params === undefined ? key : `${key} ${JSON.stringify(params)}`)) as never;
     const chipCtx = { t, mapDisplayName: (name: string) => name, availableTags: new Set(["ranked"]) };
 

@@ -23,13 +23,10 @@ export type LobbyFilterEditorContext = {
 export type LobbyFilterEditor = {
     component: Component;
     labelKey: TranslationKey;
-    // Checkboxes and tri-state options carry their label inline, so the menu doesn't put a heading over them.
     inlineLabel?: boolean;
     props?(ctx: LobbyFilterEditorContext): Record<string, unknown>;
 };
 
-// Kept apart from the filter definitions so those stay free of components and can be tested on
-// their own.
 export const lobbyFilterEditors: Partial<Record<LobbyFilterKey, LobbyFilterEditor>> = {
     title: { component: TitleFilter, labelKey: "lobby.multiplayer.custom.filters.title.label" },
     tags: {

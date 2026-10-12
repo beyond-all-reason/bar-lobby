@@ -51,7 +51,7 @@ const emit = defineEmits<{
     (event: "done", springNames: string[]): void;
 }>();
 
-// Narrowing the maps here shouldn't change what the maps library shows, so this gets its own filters.
+// Separate from the library's filters so picking doesn't change them.
 const filters = ref(createMapFilterState());
 
 const list = ref<InstanceType<typeof MapListComponent> | null>(null);

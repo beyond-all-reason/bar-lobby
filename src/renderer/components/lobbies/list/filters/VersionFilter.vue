@@ -29,7 +29,7 @@ const emit = defineEmits<{
     (event: "update:modelValue", value: string | undefined): void;
 }>();
 
-// The chosen version stays listed even once no lobby uses it, so the selection doesn't go blank.
+// Keep the selection listed even if no lobby uses it, so the select doesn't go blank.
 const options = computed(() => {
     const versions =
         props.modelValue && !props.versions.includes(props.modelValue) ? [props.modelValue, ...props.versions] : props.versions;

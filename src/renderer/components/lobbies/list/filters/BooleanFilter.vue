@@ -20,7 +20,6 @@ defineProps<{
     label: string;
 }>();
 
-// Unchecked means no filter, so it clears the field rather than asking for lobbies without one.
 const emit = defineEmits<{
     (event: "update:modelValue", value: true | undefined): void;
 }>();

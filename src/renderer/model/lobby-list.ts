@@ -4,8 +4,7 @@
 
 import type { LobbyOverview, UserId } from "tachyon-protocol/types";
 
-// Fields the list filters can use once Tachyon sends them. Until then they are always absent,
-// and every filter that reads one lets a lobby without it through.
+// Not sent by Tachyon yet; filters let lobbies without them through.
 export type LobbyListEntry = LobbyOverview &
     Partial<{
         memberIds: UserId[];
@@ -15,14 +14,13 @@ export type LobbyListEntry = LobbyOverview &
         bossMode: boolean;
     }>;
 
-// "stale" lobbies stopped matching the filters after the list was last ordered, and "removed"
-// ones have closed. Both keep their place until the next refresh so the list doesn't jump.
+// stale: stopped matching since the list was ordered. removed: closed. Both hold their place until refresh.
 export type LobbyListRow = { id: string; state: "live" | "stale"; lobby: LobbyListEntry } | { id: string; state: "removed" };
 
 export type LobbyMatchContext = {
     friendIds: ReadonlySet<UserId>;
     partyMemberIds: ReadonlySet<UserId>;
-    // Including the user, so 1 when not in a party.
+    // Includes the user.
     partySize: number;
     devMode: boolean;
 };

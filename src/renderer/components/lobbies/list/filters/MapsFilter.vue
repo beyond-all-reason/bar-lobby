@@ -57,7 +57,7 @@ const cache = useImageBlobUrlCache();
 
 const selected = computed(() => props.modelValue ?? []);
 
-// A lobby can be on a map we have never downloaded, so a name may have nothing behind it here.
+// Lobby maps may not be in the local database.
 const mapData = useDexieLiveQueryWithDeps(selected, (names: string[]) => db.maps.bulkGet(names), {
     initialValue: [] as (MapData | undefined)[],
 });
@@ -92,7 +92,7 @@ function onPicked(names: string[]) {
     background-size: cover;
     background-position: center;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    // The overlay sits inside the border, so swap the border to black with it to dim the whole thumbnail.
+    // The overlay sits inside the border, so darken the border too.
     &:hover {
         border-color: black;
         .remove {
@@ -100,7 +100,7 @@ function onPicked(names: string[]) {
         }
     }
 }
-// Covers the whole thumbnail so the click lands on this div; the global stylesheet turns off pointer events on svgs.
+// Covers the thumbnail so clicks land here; global styles disable pointer events on svgs.
 .remove {
     position: absolute;
     inset: 0;

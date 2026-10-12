@@ -4,19 +4,15 @@
 
 import { Type, type Static } from "@sinclair/typebox";
 
-// The query is kept plain and serializable so it can be sent to the server as-is once
-// filtering moves there. Every field is optional because an absent field means "no filter".
-// It is also persisted, in its own file so that an invalid query only resets the lobby list
-// preferences rather than every setting.
+// Kept plain and serializable so it can be sent to the server once filtering moves there.
+// An absent field means "no filter".
 
 const rangeSchema = Type.Object({
     min: Type.Optional(Type.Number()),
     max: Type.Optional(Type.Number()),
 });
 
-// true asks for only those lobbies, false hides them, and an absent field means "don't care". There
-// is deliberately no null: the saved file is validated with coerceTypes, which turns null and false
-// into each other whichever order a union lists them in.
+// true: only these, false: hide these. No null: coerceTypes converts between null and false in unions.
 const triStateSchema = Type.Boolean();
 
 export const lobbyFiltersSchema = Type.Object({
@@ -25,7 +21,7 @@ export const lobbyFiltersSchema = Type.Object({
     maps: Type.Optional(Type.Array(Type.String())),
     players: Type.Optional(rangeSchema),
     openSpots: Type.Optional(rangeSchema),
-    // Room for the user's whole party, sized when the list is filtered rather than when this is set.
+    // Party size is read when filtering, not stored here.
     fitsParty: Type.Optional(Type.Boolean()),
     allyTeams: Type.Optional(rangeSchema),
     inProgress: Type.Optional(triStateSchema),
@@ -69,9 +65,7 @@ export const DEFAULT_LOBBY_LIST_QUERY: LobbyListQuery = {
     sort: { key: "playerCount", order: -1 },
 };
 
-// A JSON round trip rather than structuredClone, because the query usually comes out of a
-// reactive store and structuredClone refuses proxies. It also drops undefined fields, which
-// keeps the settings file free of keys that mean nothing.
+// structuredClone rejects reactive proxies. JSON also drops undefined fields from the saved file.
 export function cloneLobbyListQuery(query: LobbyListQuery): LobbyListQuery {
     return JSON.parse(JSON.stringify(query));
 }

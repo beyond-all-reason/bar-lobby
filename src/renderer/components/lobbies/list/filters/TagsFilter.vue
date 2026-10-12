@@ -21,7 +21,6 @@ SPDX-License-Identifier: MIT
                 @remove="remove(tag)"
             />
         </div>
-        <!-- The server's tags, narrowed by whatever is typed. They follow the live list, so new ones show up while this is open. -->
         <div v-if="suggestions.length" class="flex-row flex-wrap gap-sm">
             <div v-for="tag in suggestions" :key="tag" class="suggestion" @click="add(tag)">{{ tag }}</div>
         </div>

@@ -68,8 +68,7 @@ import type { MapFilterState } from "@renderer/store/maps.store";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
-// Owned by the caller rather than read from the store, so a map picker can narrow its maps without
-// changing the library's. Each change hands back a new filters object.
+// Caller-owned so a map picker can filter without changing the library's filters.
 const filters = defineModel<MapFilterState>("filters", { required: true });
 
 function update(changes: Partial<MapFilterState>) {

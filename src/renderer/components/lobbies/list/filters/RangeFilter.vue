@@ -13,8 +13,7 @@ import { computed } from "vue";
 import Range from "@renderer/components/controls/Range.vue";
 import type { LobbyRange } from "@shared/lobby-list-query";
 
-// A handle left at either end of the slider means no limit on that side, so the bounds are only
-// what the slider can show, not a cap on what matches.
+// A handle at either end means no limit on that side; min/max only bound the slider.
 const props = defineProps<{
     modelValue?: LobbyRange;
     min: number;

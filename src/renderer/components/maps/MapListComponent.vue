@@ -62,7 +62,6 @@ import { useInfiniteScroll } from "@vueuse/core";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
-// selected marks cards as picked, for callers choosing several maps; compact fits more per row.
 const props = defineProps<{
     filters: MapFilterState;
     selected?: ReadonlySet<string>;
@@ -119,7 +118,7 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, () => prop
 );
 
 defineExpose({
-    /** Every map that passes the current search and filters, not just the ones scrolled into view. */
+    /** All matching maps, not just those scrolled into view. */
     matchingMapNames: () => filteredMaps().primaryKeys() as Promise<string[]>,
 });
 

@@ -18,7 +18,6 @@ defineProps<{
     modelValue?: string;
 }>();
 
-// A blank title means no filter, so it clears the field rather than keeping an empty one.
 const emit = defineEmits<{
     (event: "update:modelValue", value: string | undefined): void;
 }>();

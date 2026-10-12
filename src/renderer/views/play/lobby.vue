@@ -230,9 +230,8 @@ const startBlockedReason = computed(() => {
     return shortfall && t("lobby.multiplayer.custom.lobby.startBoxShortfall", { boxed: shortfall.boxed, teams: shortfall.teams });
 });
 
-// PrimeVue's tooltip stops listening for the mouse leaving once its value goes empty, without
-// hiding a tooltip that is already showing, so it would stay on screen after the shortfall is
-// fixed. Keeping the last reason as the value and disabling the tooltip avoids that.
+// PrimeVue's tooltip stops listening for mouseleave once its value is empty, leaving a shown one
+// stuck. Keep the last reason and disable instead.
 const startBlockedTooltip = ref("");
 watch(
     startBlockedReason,

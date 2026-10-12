@@ -87,7 +87,6 @@ const emit = defineEmits<{
     (event: "apply", query: LobbyListQuery): void;
 }>();
 
-// Nothing changes until Apply, so the menu works on a copy taken each time it opens.
 const draft = ref<LobbyListQuery>(cloneLobbyListQuery(props.query));
 
 watch(
@@ -97,8 +96,8 @@ watch(
     }
 );
 
-// A header click or search box edit while the menu is open applies straight away, and the menu
-// should show it. Watched by value, since the query is rebuilt whenever any part of it changes.
+// Header clicks and search edits apply immediately, so mirror them into the draft. Watched by
+// value since the query object is rebuilt on every change.
 watch([() => props.query.sort.key, () => props.query.sort.order], ([key, order]) => {
     draft.value.sort = { key, order };
 });
@@ -147,7 +146,6 @@ function apply() {
     emit("update:open", false);
 }
 
-// The draft is retaken on the next open, so closing is all a cancel needs to do.
 function cancel() {
     emit("update:open", false);
 }
@@ -173,16 +171,16 @@ function sound() {
     z-index: 1;
     display: flex;
     padding: 5px 10px;
-    // Opaque, unlike the other close buttons, because this one sits over the body's scrollbar.
+    // Opaque because it sits over the body's scrollbar.
     &:hover {
         background: rgb(131, 12, 12);
     }
 }
-// Select centres itself by default, which leaves it shorter than the order buttons beside it.
+// Match the order buttons' height.
 .sort > .select {
     align-self: stretch;
 }
-// The tooltip sits on the option's content, so that fills the whole button rather than just the icon.
+// The tooltip is on the content, so let it fill the button.
 .sort :deep(.p-selectbutton .p-button) {
     padding: 0;
 }
@@ -192,7 +190,7 @@ function sound() {
     height: 100%;
     padding: 0 7px;
 }
-// Controls stretch by default, which would spread a checkbox across the menu with its icon cell padded out.
+// Stop checkboxes stretching across the menu.
 .inline > :deep(.control) {
     align-self: flex-start;
 }

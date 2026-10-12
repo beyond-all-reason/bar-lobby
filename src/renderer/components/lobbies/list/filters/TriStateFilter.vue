@@ -40,7 +40,6 @@ const emit = defineEmits<{
 
 type Choice = "hide" | "any" | "only";
 
-// Laid out as a spectrum, with no filter in the middle, so it's clear that both ends narrow the list.
 const options = computed(() => [
     { label: t("lobby.multiplayer.custom.menu.hide"), value: "hide", tooltip: props.hideTooltip },
     { label: t("lobby.multiplayer.custom.menu.any"), value: "any" },
@@ -55,7 +54,7 @@ function onUpdate(value: Choice) {
 </script>
 
 <style lang="scss" scoped>
-// The tooltip sits on the option's content, so that fills the whole button rather than just the text.
+// The tooltip is on the content, so let it fill the button.
 :deep(.p-selectbutton .p-button) {
     padding: 0;
 }

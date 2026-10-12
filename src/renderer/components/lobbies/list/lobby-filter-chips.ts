@@ -27,13 +27,11 @@ export type LobbyFilterChipContext = {
 };
 
 export type LobbyFilterChip = {
-    // Unique among all chips, for v-for.
     id: string;
     icon: IconifyIcon;
     label: string;
     tooltip: string;
     warning?: boolean;
-    // Takes this chip's part out of the filters, leaving the rest alone.
     remove(filters: LobbyFilters): void;
 };
 
@@ -58,7 +56,6 @@ export function formatRange(range: LobbyRange, t: TypedTranslate): string {
     return t("lobby.multiplayer.custom.filters.range.atMost", range);
 }
 
-// One chip for the whole filter, cleared as a whole.
 function singleChip(key: LobbyFilterKey, labelKey: TranslationKey, tooltipKey: TranslationKey, params?: Record<string, unknown>) {
     return (t: TypedTranslate): ChipContent[] => [{ id: key, label: t(labelKey, params ?? {}), tooltip: t(tooltipKey, params ?? {}), remove: clearKey(key) }];
 }
@@ -85,7 +82,6 @@ function versionChip(key: "engineVersion" | "gameVersion"): LobbyFilterChipDef<t
     return (value, { t }) => singleChip(key, `lobby.multiplayer.custom.filters.${key}.chip`, `lobby.multiplayer.custom.filters.${key}.tooltip`, { value })(t);
 }
 
-// Kept apart from the filter definitions, like the editors, so those stay free of presentation.
 export const lobbyFilterChipDefs: { [K in LobbyFilterKey]: LobbyFilterChipDef<K> } = {
     title: {
         icon: magnifyIcon,
@@ -93,7 +89,7 @@ export const lobbyFilterChipDefs: { [K in LobbyFilterKey]: LobbyFilterChipDef<K>
     },
     tags: {
         icon: tagOutlineIcon,
-        // One chip per tag, so a tag the server has stopped using can be picked out and removed.
+        // Per tag, so ones the server no longer uses can be removed individually.
         chips: (value, { t, availableTags }) =>
             value.map((tag) => {
                 const unknown = !availableTags.has(tag);
@@ -136,7 +132,6 @@ export const lobbyFilterChipDefs: { [K in LobbyFilterKey]: LobbyFilterChipDef<K>
     gameVersion: { icon: engineOutlineIcon, chips: versionChip("gameVersion") },
 };
 
-/** A chip for each part of the active filters, in filter order. */
 export function lobbyFilterChips(filters: LobbyFilters, devMode: boolean, ctx: LobbyFilterChipContext): LobbyFilterChip[] {
     return activeFilters(filters, devMode).flatMap((def) => {
         const chipDef = lobbyFilterChipDefs[def.key] as LobbyFilterChipDef<LobbyFilterKey>;
