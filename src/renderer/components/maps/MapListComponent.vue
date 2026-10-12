@@ -56,16 +56,15 @@ import { type MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { useMapFilters } from "@renderer/store/maps.store";
+import type { MapFilterState } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
-const filters = useMapFilters();
-
 // selected marks cards as picked, for callers choosing several maps; compact fits more per row.
-defineProps<{
+const props = defineProps<{
+    filters: MapFilterState;
     selected?: ReadonlySet<string>;
     compact?: boolean;
 }>();
@@ -93,6 +92,7 @@ useInfiniteScroll(
 );
 
 function filteredMaps() {
+    const filters = props.filters;
     const { terrain, gameType } = filters;
     const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
     const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
@@ -112,7 +112,7 @@ function filteredMaps() {
     });
 }
 
-const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () =>
+const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, () => props.filters], () =>
     filteredMaps()
         .limit(limit.value)
         .sortBy(sortMethod.value?.dbKey || "")

@@ -9,6 +9,7 @@ import { ContentPresence, ContentState } from "@main/content/content-state";
 import { Replay } from "@main/replays/replay";
 import { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 import { Settings } from "@main/services/settings.service";
+import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
@@ -94,6 +95,13 @@ const settingsApi = {
 };
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);
+
+const customLobbiesApi = {
+    get: (): Promise<CustomLobbiesPreferences> => ipcRenderer.invoke("customLobbies:get"),
+    update: (data: Partial<CustomLobbiesPreferences>): Promise<Partial<CustomLobbiesPreferences>> => ipcRenderer.invoke("customLobbies:update", data),
+};
+export type CustomLobbiesApi = typeof customLobbiesApi;
+contextBridge.exposeInMainWorld("customLobbies", customLobbiesApi);
 
 const configApi = {
     getConfig: (): Promise<Config> => ipcRenderer.invoke("config:get"),

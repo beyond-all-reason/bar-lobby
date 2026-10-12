@@ -16,6 +16,7 @@ import type {
     MiscApi,
     ReplaysApi,
     SettingsApi,
+    CustomLobbiesApi,
     ConfigApi,
     ShellApi,
     TachyonApi,
@@ -31,6 +32,7 @@ declare global {
         replays: ReplaysApi;
         auth: AuthApi;
         settings: SettingsApi;
+        customLobbies: CustomLobbiesApi;
         config: ConfigApi;
         content: ContentApi;
         engine: EngineApi;

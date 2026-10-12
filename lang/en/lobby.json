@@ -186,6 +186,7 @@
                 "hostBattle": "Host Battle",
                 "openLobby": "Open Lobby",
                 "joinLobby": "Join Lobby",
+                "joinLobbyNamed": "Join {name}",
                 "leaveLobbyFirst": "Leave your current lobby before joining another.",
                 "removedFromLobby": "You have been removed from the lobby.",
                 "noLobbiesAvailable": "No games found.",

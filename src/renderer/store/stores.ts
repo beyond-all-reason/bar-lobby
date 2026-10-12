@@ -17,11 +17,11 @@ import { initUsersStore } from "@renderer/store/users.store";
 import { initLobbyStore } from "./lobby.store";
 import { initChatStore } from "@renderer/store/chat.store";
 import { initConfigStore } from "@renderer/store/config.store";
+import { initCustomLobbiesStore } from "@renderer/store/custom-lobbies.store";
 
 export async function initPreMountStores() {
     await Promise.all([
-        initConfigStore(),
-        initSettingsStore(),
+        Promise.all([initConfigStore(), initSettingsStore()]).then(() => initCustomLobbiesStore()),
         initInfosStore(),
         initGameStore(),
         initContentsStore(),

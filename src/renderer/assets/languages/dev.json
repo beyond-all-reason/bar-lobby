@@ -186,6 +186,7 @@
                 "hostBattle": "Hsot Blatte",
                 "openLobby": "Oepn Lbboy",
                 "joinLobby": "Jion Lbboy",
+                "joinLobbyNamed": "Jion {name}",
                 "leaveLobbyFirst": "Laeve your crerunt lobby borefe jniniog aonethr.",
                 "removedFromLobby": "You hvae been reovmed form the lobby.",
                 "noLobbiesAvailable": "No geams fnuod.",

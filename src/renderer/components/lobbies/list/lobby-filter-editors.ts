@@ -4,7 +4,7 @@
 
 import type { Component } from "vue";
 import type { TranslationKey, TypedTranslate } from "@renderer/i18n";
-import type { LobbyFilterKey } from "@renderer/components/lobbies/list/lobby-filters";
+import type { LobbyFilterKey } from "@renderer/logic/lobby-list/filters";
 import BooleanFilter from "@renderer/components/lobbies/list/filters/BooleanFilter.vue";
 import MapsFilter from "@renderer/components/lobbies/list/filters/MapsFilter.vue";
 import RangeFilter from "@renderer/components/lobbies/list/filters/RangeFilter.vue";

@@ -13,9 +13,9 @@ SPDX-License-Identifier: MIT
     >
         <div class="layout">
             <div class="map-filters">
-                <MapFiltersComponent />
+                <MapFiltersComponent v-model:filters="filters" />
             </div>
-            <MapListComponent ref="list" compact :selected="picked" @map-selected="toggle" />
+            <MapListComponent ref="list" :filters="filters" compact :selected="picked" @map-selected="toggle" />
         </div>
         <template #footer>
             <div class="flex-row flex-center-items gap-md fullwidth padding-md">
@@ -31,13 +31,13 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { provide, ref, shallowRef, watch } from "vue";
+import { ref, shallowRef, watch } from "vue";
 import type { MapData } from "@main/content/maps/map-data";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import MapFiltersComponent from "@renderer/components/maps/MapFiltersComponent.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
-import { createMapFilterState, MAP_FILTERS_KEY } from "@renderer/store/maps.store";
+import { createMapFilterState } from "@renderer/store/maps.store";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
@@ -52,7 +52,7 @@ const emit = defineEmits<{
 }>();
 
 // Narrowing the maps here shouldn't change what the maps library shows, so this gets its own filters.
-provide(MAP_FILTERS_KEY, createMapFilterState());
+const filters = ref(createMapFilterState());
 
 const list = ref<InstanceType<typeof MapListComponent> | null>(null);
 const picked = shallowRef<Set<string>>(new Set(props.selected));

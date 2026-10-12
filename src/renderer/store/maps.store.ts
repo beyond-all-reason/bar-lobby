@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { inject, reactive, type InjectionKey } from "vue";
+import { reactive } from "vue";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
@@ -19,15 +19,16 @@ export type MapFilterState = {
     downloadedOnly: boolean;
 };
 
+// Callers replace the whole object on each change rather than editing it in place.
 export function createMapFilterState(): MapFilterState {
-    return reactive({
+    return {
         terrain: {},
         gameType: {},
         minPlayers: 2,
         maxPlayers: 40,
         favoritesOnly: false,
         downloadedOnly: false,
-    });
+    };
 }
 
 export const mapsStore: {
@@ -39,15 +40,6 @@ export const mapsStore: {
     filters: createMapFilterState(),
     availableMapNames: new Set(),
 });
-
-// The map filter and list components share whatever filter state is provided under this key, so
-// a map picker can have its own without disturbing the maps library. They fall back to the
-// library's filters when nothing is provided.
-export const MAP_FILTERS_KEY: InjectionKey<MapFilterState> = Symbol("mapFilters");
-
-export function useMapFilters(): MapFilterState {
-    return inject(MAP_FILTERS_KEY, mapsStore.filters);
-}
 
 export async function getRandomMap() {
     const mapCount = await db.maps.count();

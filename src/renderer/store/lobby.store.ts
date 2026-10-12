@@ -45,7 +45,6 @@ type LobbyId = string;
 export const lobbyStore: {
     isInitialized: boolean;
     lobbies: Record<LobbyId, LobbyOverview>;
-    selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
     wantsListSubscription: boolean;
     // Bumped whenever the whole list is replaced or thrown away, so anything holding on to lobby
@@ -54,7 +53,6 @@ export const lobbyStore: {
 } = reactive({
     isInitialized: false,
     lobbies: {},
-    selectedLobby: undefined,
     activeLobby: undefined,
     wantsListSubscription: false,
     listGeneration: 0,
@@ -100,14 +98,12 @@ function onUserSelfEventLobby(lobbyId: PrivateUser["currentLobby"]) {
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     lobbyStore.lobbies = applyPatch(lobbyStore.lobbies, data.lobbies);
-    clearSelectedLobbyIfUndefined();
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
     lobbyStore.listGeneration++;
-    clearSelectedLobbyIfUndefined();
 }
 
 function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
@@ -483,15 +479,6 @@ async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
     }
 }
 
-/**
- * In case a lobby is selected when a list update removes it, this removes it from being selected.
- */
-function clearSelectedLobbyIfUndefined() {
-    if (lobbyStore.selectedLobby && !(lobbyStore.selectedLobby.id in lobbyStore.lobbies)) {
-        lobbyStore.selectedLobby = undefined;
-    }
-}
-
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     console.log("Tachyon event: lobby/updated:", data);
     parseLobbyResponseData(data, true);
@@ -644,7 +631,6 @@ export function clearOnlineState() {
     clearUserSubscriptions();
     lobbyStore.lobbies = {};
     lobbyStore.listGeneration++;
-    lobbyStore.selectedLobby = undefined;
     lobbyStore.activeLobby = undefined;
 }
 

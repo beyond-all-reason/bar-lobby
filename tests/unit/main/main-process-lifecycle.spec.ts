@@ -22,6 +22,10 @@ describe("Main Process Lifecycle", () => {
             getSettings: vi.fn().mockReturnValue({ assetsPath: "", lobbyServerOverride: "", customServerList: [] }),
             updateSettings: vi.fn().mockResolvedValue(undefined),
         },
+        customLobbiesService: {
+            init: vi.fn().mockResolvedValue(undefined),
+            registerIpcHandlers: vi.fn(),
+        },
         configService: {
             init: vi.fn().mockResolvedValue(undefined),
             registerIpcHandlers: vi.fn(),
@@ -168,6 +172,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/content.service", () => ({ default: mockServices.contentService }));
         vi.doMock("@main/content/content-api", () => ({ contentAPI: mockServices.contentAPI }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
+        vi.doMock("@main/services/custom-lobbies.service", () => ({ customLobbiesService: mockServices.customLobbiesService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
         vi.doMock("@main/services/log.service", () => ({ logService: mockServices.logService }));
         vi.doMock("@main/services/auth.service", () => ({ authService: mockServices.authService }));
@@ -256,6 +261,7 @@ describe("Main Process Lifecycle", () => {
 
         expect(mockServices.configService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
+        expect(mockServices.customLobbiesService.init).toHaveBeenCalled();
         expect(mockServices.contentAPI.init).toHaveBeenCalled();
         expect(mockServices.authService.init).toHaveBeenCalled();
         expect(mockServices.replaysService.init).toHaveBeenCalled();
@@ -281,6 +287,7 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.infoService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.settingsService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.customLobbiesService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.authService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.tachyonService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.replaysService.registerIpcHandlers).toHaveBeenCalled();

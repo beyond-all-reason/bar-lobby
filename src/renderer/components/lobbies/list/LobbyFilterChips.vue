@@ -27,7 +27,7 @@ import { computed } from "vue";
 import { Icon } from "@iconify/vue";
 import Chip from "primevue/chip";
 import type { LobbyFilters } from "@shared/lobby-list-query";
-import { activeFilters, type LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filters";
+import { lobbyFilterChips, type LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filter-chips";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
 import { useTypedI18n } from "@renderer/i18n";
@@ -51,16 +51,13 @@ const displayNames = computed(
     () => new Map(mapData.value.filter((map): map is MapData => map !== undefined).map((map) => [map.springName, map.displayName]))
 );
 
-const chips = computed(() => {
-    const ctx = {
+const chips = computed(() =>
+    lobbyFilterChips(props.filters, props.devMode, {
         t,
         mapDisplayName: (springName: string) => displayNames.value.get(springName) ?? springName,
         availableTags: new Set(props.availableTags),
-    };
-    return activeFilters(props.filters, props.devMode).flatMap((def) =>
-        def.chips(props.filters[def.key] as never, ctx).map((chip) => ({ ...chip, icon: def.icon }))
-    );
-});
+    })
+);
 </script>
 
 <style lang="scss" scoped>

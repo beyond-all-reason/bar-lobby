@@ -6,16 +6,18 @@ import { Type, type Static } from "@sinclair/typebox";
 
 // The query is kept plain and serializable so it can be sent to the server as-is once
 // filtering moves there. Every field is optional because an absent field means "no filter".
-// It is also persisted in settings, and an invalid settings file is thrown away whole, so
-// nothing in here is stricter than it has to be.
+// It is also persisted, in its own file so that an invalid query only resets the lobby list
+// preferences rather than every setting.
 
 const rangeSchema = Type.Object({
     min: Type.Optional(Type.Number()),
     max: Type.Optional(Type.Number()),
 });
 
-// null means "don't care", the same as an absent field.
-const triStateSchema = Type.Union([Type.Boolean(), Type.Null()]);
+// true asks for only those lobbies, false hides them, and an absent field means "don't care". There
+// is deliberately no null: the saved file is validated with coerceTypes, which turns null and false
+// into each other whichever order a union lists them in.
+const triStateSchema = Type.Boolean();
 
 export const lobbyFiltersSchema = Type.Object({
     title: Type.Optional(Type.String()),

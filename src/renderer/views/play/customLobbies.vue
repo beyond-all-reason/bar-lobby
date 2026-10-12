@@ -32,18 +32,12 @@ SPDX-License-Identifier: MIT
                         <span v-if="source.pendingCount.value" class="badge">{{ source.pendingCount.value }}</span>
                     </Button>
                     <Checkbox
-                        v-model="settingsStore.customLobbiesAutoRefresh"
+                        v-model="customLobbiesStore.autoRefresh"
                         :label="t('lobby.multiplayer.custom.autoRefresh')"
                         v-tooltip.bottom="t('lobby.multiplayer.custom.autoRefreshTooltip')"
                     />
                     <!-- Disabled buttons get no pointer events, so the tooltip sits on a wrapper. -->
-                    <div
-                        v-tooltip.bottom="{
-                            value: t('lobby.multiplayer.custom.leaveLobbyFirst'),
-                            disabled: lobbyStore.activeLobby == undefined,
-                        }"
-                        class="join-lobby flex-right"
-                    >
+                    <div v-tooltip.bottom="{ value: joinTooltip, disabled: !joinTooltip }" class="join-lobby flex-right">
                         <Button class="green" :disabled="!canJoinSelected" @click="joinSelectedLobby">{{
                             t("lobby.multiplayer.custom.joinLobby")
                         }}</Button>
@@ -79,6 +73,7 @@ SPDX-License-Identifier: MIT
                             <div
                                 ref="tableArea"
                                 class="table-area"
+                                @mousedown="onTableMouseDown"
                                 @mouseover="onTableMouseOver"
                                 @mouseleave="hidePreview"
                                 @scroll="hidePreview"
@@ -86,14 +81,14 @@ SPDX-License-Identifier: MIT
                                 <!-- Lazy, so the table never sorts or pages on its own: the source decides the order and holds it steady.
                                      Columns have fixed widths too, so they don't resize with whatever is on the page. -->
                                 <DataTable
-                                    :selection="lobbyStore.selectedLobby"
+                                    :selection="selectedLobby"
                                     :value="source.rows.value"
                                     data-key="id"
                                     class="p-datatable-sm"
                                     selectionMode="single"
                                     lazy
-                                    :sortField="settingsStore.customLobbiesQuery.sort.key"
-                                    :sortOrder="settingsStore.customLobbiesQuery.sort.order"
+                                    :sortField="customLobbiesStore.query.sort.key"
+                                    :sortOrder="customLobbiesStore.query.sort.order"
                                     :rowClass="rowClass"
                                     @sort="onSort"
                                     @row-select="onRowSelect"
@@ -208,16 +203,16 @@ import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import LobbyFilterChips from "@renderer/components/lobbies/list/LobbyFilterChips.vue";
 import LobbyFilterMenu from "@renderer/components/lobbies/list/LobbyFilterMenu.vue";
 import LobbyOverviewPreview from "@renderer/components/lobbies/list/LobbyOverviewPreview.vue";
-import { openSpots, type LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filters";
-import { createLocalLobbyListSource, lobbyMatchContext, reconcileTagsServer } from "@renderer/composables/useLobbyList";
+import type { LobbyFilterChip } from "@renderer/components/lobbies/list/lobby-filter-chips";
+import { createLocalLobbyListSource, DOUBLE_CLICK_HOLD_MS, lobbyMatchContext } from "@renderer/composables/useLobbyList";
+import { openSpots } from "@renderer/logic/lobby-list/filters";
 import type { LobbyListEntry, LobbyListRow } from "@renderer/model/lobby-list";
-import { configStore } from "@renderer/store/config.store";
+import { customLobbiesStore } from "@renderer/store/custom-lobbies.store";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { getFriendlyDuration } from "@renderer/utils/misc";
-import { resolveLobbyServer } from "@shared/lobby-server";
 import { cloneLobbyListQuery, type LobbyListQuery, type LobbySortKey } from "@shared/lobby-list-query";
 
 const router = useRouter();
@@ -231,7 +226,7 @@ const menuOpen = ref(false);
 const createLobbyModalIsOpen = ref<boolean>(false);
 
 const effectiveQuery = computed<LobbyListQuery>(() => {
-    const query = cloneLobbyListQuery(settingsStore.customLobbiesQuery);
+    const query = cloneLobbyListQuery(customLobbiesStore.query);
     const title = searchVal.value.trim();
     if (title) query.filters.title = title;
     return query;
@@ -239,7 +234,7 @@ const effectiveQuery = computed<LobbyListQuery>(() => {
 
 const source = createLocalLobbyListSource({
     query: effectiveQuery.value,
-    autoRefresh: toRef(settingsStore, "customLobbiesAutoRefresh"),
+    autoRefresh: toRef(customLobbiesStore, "autoRefresh"),
     context: lobbyMatchContext,
 });
 
@@ -272,17 +267,11 @@ useResizeObserver(tableArea, () => {
 onBeforeUnmount(() => cancelAnimationFrame(fitFrame));
 watch(() => source.rows.value.length, fitPageSize, { flush: "post" });
 
-// Lobby tags belong to the server, so ones picked on another server are dropped.
-const currentServer = computed(() =>
-    resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? [])
-);
-watch(currentServer, (server) => reconcileTagsServer(settingsStore, server), { immediate: true });
-
 function applyQuery(query: LobbyListQuery) {
     const next = cloneLobbyListQuery(query);
     searchVal.value = next.filters.title ?? "";
     delete next.filters.title;
-    settingsStore.customLobbiesQuery = next;
+    customLobbiesStore.query = next;
 }
 
 function removeChip(chip: LobbyFilterChip) {
@@ -306,6 +295,12 @@ function runningFor(startedAt: number) {
 // The lobby the user is in stands out in gold.
 function rowClass(row: LobbyListRow) {
     return [row.state, { "active-lobby": row.state !== "removed" && row.id === lobbyStore.activeLobby?.id }];
+}
+
+// With auto-refresh on, a re-order between the two clicks of a double-click would join whichever
+// lobby moved under the pointer, so a click holds the list still for long enough to finish one.
+function onTableMouseDown() {
+    if (customLobbiesStore.autoRefresh) source.holdOrder(DOUBLE_CLICK_HOLD_MS);
 }
 
 // The table has no row hover events, so the table area works out which row the pointer is over.
@@ -352,10 +347,14 @@ watch(
 onDeactivated(hidePreview);
 onBeforeUnmount(hidePreview);
 
+// Kept by id and read from the store, so it follows the lobby's updates and clears when it closes.
+const selectedId = ref<string>();
+const selectedLobby = computed(() => (selectedId.value ? lobbyStore.lobbies[selectedId.value] : undefined));
+
 function onRowSelect(event: DataTableRowSelectEvent) {
     const row = event.data as LobbyListRow;
     if (row.state === "removed") return;
-    lobbyStore.selectedLobby = row.lobby;
+    selectedId.value = row.id;
 }
 
 function onRowDoubleClick(event: DataTableRowClickEvent) {
@@ -364,11 +363,17 @@ function onRowDoubleClick(event: DataTableRowClickEvent) {
     sendLobbyJoinRequest(row.lobby.id);
 }
 
-const canJoinSelected = computed(() => !!lobbyStore.selectedLobby && lobbyStore.activeLobby == undefined && tachyonStore.isConnected);
+const canJoinSelected = computed(() => !!selectedLobby.value && lobbyStore.activeLobby == undefined && tachyonStore.isConnected);
+
+const joinTooltip = computed(() => {
+    if (lobbyStore.activeLobby) return t("lobby.multiplayer.custom.leaveLobbyFirst");
+    if (selectedLobby.value) return t("lobby.multiplayer.custom.joinLobbyNamed", { name: selectedLobby.value.name });
+    return "";
+});
 
 function joinSelectedLobby() {
-    if (!canJoinSelected.value || !lobbyStore.selectedLobby) return;
-    sendLobbyJoinRequest(lobbyStore.selectedLobby.id);
+    if (!canJoinSelected.value || !selectedLobby.value) return;
+    sendLobbyJoinRequest(selectedLobby.value.id);
 }
 
 function sendLobbyJoinRequest(id: string) {
@@ -385,8 +390,11 @@ function sendLobbyJoinRequest(id: string) {
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
+// Lobbies keep changing while the page is hidden, so it comes back re-ordered rather than full of
+// placeholders, even without auto-refresh.
 onActivated(() => {
     lobby.requestSubscribeList();
+    source.refresh();
 });
 </script>
 

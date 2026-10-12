@@ -45,7 +45,6 @@ function populateOnlineState() {
     partyStore.parties.set("party-1", { id: "party-1", members: [], invited: [], seen: true } as never);
 
     lobbyStore.lobbies = { "lobby-1": { id: "lobby-1" } as never };
-    lobbyStore.selectedLobby = { id: "lobby-1" } as never;
     lobbyStore.activeLobby = { id: "lobby-1" } as never;
     lobbyStore.wantsListSubscription = true;
 
@@ -101,7 +100,6 @@ describe("going offline", () => {
             simulateClose();
 
             expect(lobbyStore.activeLobby).toBeDefined();
-            expect(lobbyStore.selectedLobby).toBeDefined();
             expect(Object.keys(lobbyStore.lobbies)).toHaveLength(1);
         });
 
@@ -128,7 +126,6 @@ describe("going offline", () => {
             expect(partyStore.parties.size).toBe(0);
             expect(partyStore.state).toBe(PlayersPartyState.None);
             expect(lobbyStore.activeLobby).toBeUndefined();
-            expect(lobbyStore.selectedLobby).toBeUndefined();
             expect(lobbyStore.lobbies).toEqual({});
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
             expect(matchmakingStore.playlists).toEqual([]);

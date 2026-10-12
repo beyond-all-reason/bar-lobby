@@ -82,7 +82,7 @@ import { useElementBounding, useNow, useWindowSize } from "@vueuse/core";
 import { computed, useTemplateRef } from "vue";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
 import ActiveBattleVideo from "@renderer/components/misc/ActiveBattleVideo.vue";
-import { openSpots } from "@renderer/components/lobbies/list/lobby-filters";
+import { openSpots } from "@renderer/logic/lobby-list/filters";
 import { useActiveLobbyStatus } from "@renderer/composables/useActiveLobbyStatus";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
 import type { LobbyListEntry } from "@renderer/model/lobby-list";

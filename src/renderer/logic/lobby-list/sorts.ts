@@ -5,13 +5,13 @@
 import type { LobbySort, LobbySortKey } from "@shared/lobby-list-query";
 import type { LobbyListEntry } from "@renderer/model/lobby-list";
 import type { TranslationKey } from "@renderer/i18n";
-import { openSpots } from "@renderer/components/lobbies/list/lobby-filters";
+import { openSpots } from "@renderer/logic/lobby-list/filters";
 
 export type LobbySortDef = {
     key: LobbySortKey;
     labelKey: TranslationKey;
-    // Ascending order. Lobbies with nothing to compare (no battle running, say) return undefined
-    // from value() and always sort after the rest, whichever way the list is ordered.
+    // Ascending order. A lobby with nothing to compare can return undefined from value(), and
+    // always sorts after the rest, whichever way the list is ordered.
     value(lobby: LobbyListEntry, now: number): number | string | undefined;
 };
 
@@ -24,8 +24,10 @@ export const lobbySorts: LobbySortDef[] = [
     {
         key: "battleDuration",
         labelKey: "lobby.multiplayer.custom.sort.battleDuration",
-        // UnixTime is in microseconds.
-        value: (lobby, now) => (lobby.currentBattle ? now - lobby.currentBattle.startedAt / 1000 : undefined),
+        // Waiting lobbies count as below any running battle, so ascending puts them first and
+        // descending puts them last. Running battles never go below zero, which keeps one that a
+        // skewed clock says hasn't started yet out among the waiting ones. UnixTime is in microseconds.
+        value: (lobby, now) => (lobby.currentBattle ? Math.max(0, now - lobby.currentBattle.startedAt / 1000) : -1),
     },
 ];
 

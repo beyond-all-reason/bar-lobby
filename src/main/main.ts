@@ -12,6 +12,7 @@ import netFromNode from "node:net";
 import { createWindow } from "@main/main-window";
 import { installApplicationMenu } from "@main/browser-behaviours";
 import { settingsService } from "./services/settings.service";
+import { customLobbiesService } from "./services/custom-lobbies.service";
 import { infoService } from "./services/info.service";
 import { logService } from "@main/services/log.service";
 import contentService from "./services/content.service";
@@ -136,6 +137,7 @@ app.whenReady().then(async () => {
     if (reconciledServers.join("\n") !== customServerList.join("\n")) {
         await settingsService.updateSettings({ customServerList: reconciledServers });
     }
+    await customLobbiesService.init();
     const savedAssetsPath = settingsService.getSettings().assetsPath;
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
         setAssetsPath(savedAssetsPath);
@@ -156,6 +158,7 @@ app.whenReady().then(async () => {
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
+    customLobbiesService.registerIpcHandlers();
     authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);

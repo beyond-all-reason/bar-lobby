@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { computed, readonly, ref, shallowRef, watch, type ComputedRef, type Ref } from "vue";
+import { computed, onScopeDispose, readonly, ref, shallowRef, watch, type ComputedRef, type Ref } from "vue";
 import { watchThrottled } from "@vueuse/core";
 import type { UserId } from "tachyon-protocol/types";
 import { cloneLobbyListQuery, type LobbyListQuery } from "@shared/lobby-list-query";
 import type { LobbyListEntry, LobbyListRow, LobbyMatchContext } from "@renderer/model/lobby-list";
-import { matchesFilters } from "@renderer/components/lobbies/list/lobby-filters";
-import { compareLobbies } from "@renderer/components/lobbies/list/lobby-sorts";
+import { matchesFilters } from "@renderer/logic/lobby-list/filters";
+import { compareLobbies } from "@renderer/logic/lobby-list/sorts";
 import { lobbyStore } from "@renderer/store/lobby.store";
 import { me } from "@renderer/store/me.store";
 import { partyStore } from "@renderer/store/party.store";
@@ -16,6 +16,13 @@ import { settingsStore } from "@renderer/store/settings.store";
 
 /** How often auto-refresh may re-order the list while lobbies are changing. */
 export const AUTO_REFRESH_THROTTLE_MS = 2000;
+
+/**
+ * How long a click holds the list still, so a re-order can't move another lobby under the second
+ * click of a double-click. The usual OS double-click time (500ms on Windows and macOS), plus a
+ * little to spare; browsers don't expose the user's actual setting.
+ */
+export const DOUBLE_CLICK_HOLD_MS = 550;
 
 /** The page size until the page has measured how many rows fit. */
 export const LOBBY_LIST_PAGE_SIZE = 16;
@@ -43,6 +50,11 @@ export interface LobbyListSource {
     setPageSize(size: number): void;
     /** Re-orders the list against the current query, dropping placeholders for closed lobbies. */
     refresh(): void;
+    /**
+     * Keeps the rows where they are for a while, even with auto-refresh on: nothing is re-ordered,
+     * dropped or added until it ends. Holding again before then restarts the wait.
+     */
+    holdOrder(ms: number): void;
 }
 
 export type LocalLobbyListSourceOptions = {
@@ -71,6 +83,9 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
     const appendedIds = shallowRef<string[]>([]);
     const first = ref(0);
     const pageSize = ref(LOBBY_LIST_PAGE_SIZE);
+    // The row ids being shown when a hold started, or null when not held.
+    const heldIds = shallowRef<string[] | null>(null);
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
 
     const lobbies = () => Object.values(lobbyStore.lobbies) as LobbyListEntry[];
 
@@ -83,7 +98,13 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
         );
     });
 
+    function endHold() {
+        clearTimeout(holdTimer);
+        heldIds.value = null;
+    }
+
     function refresh() {
+        endHold();
         const ctx = options.context();
         const at = now();
         orderedIds.value = lobbies()
@@ -121,22 +142,37 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
     watchThrottled(
         () => lobbyStore.lobbies,
         () => {
-            if (options.autoRefresh.value) refresh();
+            // A hold refreshes when it ends, which covers anything that changed during it.
+            if (options.autoRefresh.value && !heldIds.value) refresh();
         },
         { deep: true, throttle: AUTO_REFRESH_THROTTLE_MS, trailing: true }
     );
 
     watch(options.autoRefresh, (enabled) => {
         if (enabled) refresh();
+        else endHold();
     });
 
+    onScopeDispose(() => clearTimeout(holdTimer));
+
+    function holdOrder(ms: number) {
+        if (!heldIds.value) heldIds.value = allRows.value.map((row) => row.id);
+        clearTimeout(holdTimer);
+        holdTimer = setTimeout(() => {
+            if (options.autoRefresh.value) refresh();
+            else endHold();
+        }, ms);
+    }
+
     // Auto-refresh would drop closed and no longer matching lobbies on its next pass anyway, so they
-    // go straight away rather than showing as removed or stale until that pass lands.
+    // go straight away rather than showing as removed or stale until that pass lands. Not during a
+    // hold though, where they keep their place like they would without auto-refresh.
     const allRows = computed<LobbyListRow[]>(() => {
         const matching = matchingIds.value;
-        const dropInvalid = options.autoRefresh.value;
+        const held = heldIds.value;
+        const dropInvalid = options.autoRefresh.value && !held;
         const rows: LobbyListRow[] = [];
-        for (const id of [...orderedIds.value, ...appendedIds.value]) {
+        for (const id of held ?? [...orderedIds.value, ...appendedIds.value]) {
             const lobby = lobbyStore.lobbies[id] as LobbyListEntry | undefined;
             if (!lobby) {
                 if (!dropInvalid) rows.push({ id, state: "removed" });
@@ -177,6 +213,7 @@ export function createLocalLobbyListSource(options: LocalLobbyListSourceOptions)
             pageSize.value = size;
         },
         refresh,
+        holdOrder,
     };
 }
 
@@ -191,14 +228,4 @@ export function lobbyMatchContext(): LobbyMatchContext {
         partySize: Math.max(1, party?.members.length ?? 0),
         devMode: settingsStore.devMode,
     };
-}
-
-/**
- * Tags come from the server, so a tag chosen on one server means nothing on another. Clears the
- * persisted tags when they were chosen on a different server, and records the current one.
- */
-export function reconcileTagsServer(settings: Pick<typeof settingsStore, "customLobbiesQuery" | "customLobbiesTagsServer">, server: string) {
-    if (settings.customLobbiesTagsServer === server) return;
-    delete settings.customLobbiesQuery.filters.tags;
-    settings.customLobbiesTagsServer = server;
 }

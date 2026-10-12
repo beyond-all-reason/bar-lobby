@@ -15,11 +15,11 @@ SPDX-License-Identifier: MIT
         </div>
         <div class="layout">
             <Panel class="map-filters">
-                <MapFiltersComponent />
+                <MapFiltersComponent v-model:filters="mapsStore.filters" />
             </Panel>
             <Panel class="flex-grow">
                 <div class="flex-col fullheight">
-                    <MapListComponent @map-selected="onMapSelected" />
+                    <MapListComponent :filters="mapsStore.filters" @map-selected="onMapSelected" />
                 </div>
             </Panel>
         </div>
@@ -31,6 +31,7 @@ import { MapData } from "@main/content/maps/map-data";
 import Panel from "@renderer/components/common/Panel.vue";
 import MapFiltersComponent from "@renderer/components/maps/MapFiltersComponent.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
+import { mapsStore } from "@renderer/store/maps.store";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();

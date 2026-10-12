@@ -4133,6 +4133,7 @@
                 "hostBattle": null,
                 "openLobby": null,
                 "joinLobby": null,
+                "joinLobbyNamed": null,
                 "leaveLobbyFirst": null,
                 "removedFromLobby": null,
                 "noLobbiesAvailable": null,
