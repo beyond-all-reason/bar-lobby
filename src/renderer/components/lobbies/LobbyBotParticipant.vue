@@ -49,6 +49,7 @@ import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelocirap
 import { computedAsync } from "@vueuse/core";
 import { LobbyUpdateBotRequestData } from "tachyon-protocol/types";
 import { User } from "@main/model/user";
+import { RAPTORS_AI, SCAVENGERS_AI } from "@shared/battle-types";
 import { lobby } from "@renderer/store/lobby.store";
 import { db } from "@renderer/store/db";
 
@@ -160,11 +161,11 @@ function submitBotOptions() {
 }
 
 function isRaptor(bot: LobbyBot): boolean {
-    return bot.shortName === "RaptorsAI";
+    return bot.shortName === RAPTORS_AI;
 }
 
 function isScavenger(bot: LobbyBot): boolean {
-    return bot.shortName === "ScavengersAI";
+    return bot.shortName === SCAVENGERS_AI;
 }
 </script>
 

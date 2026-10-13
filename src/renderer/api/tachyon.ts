@@ -5,6 +5,8 @@
 import { GetCommandData, GetCommandIds, GetCommands, TachyonResponse } from "tachyon-protocol";
 
 type RequestCommandId = GetCommandIds<"user", "server", "request">;
+type EventCommandId = GetCommandIds<"server", "user", "event">;
+type EventData<C extends EventCommandId> = GetCommandData<GetCommands<"server", "user", "event", C>>;
 type SuccessResponse<C extends RequestCommandId> = Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>;
 type FailedResponse<C extends RequestCommandId> = Extract<GetCommands<"server", "user", "response", C>, { status: "failed" }>;
 type AnyFailedResponse = Extract<TachyonResponse, { status: "failed" }>;
@@ -65,4 +67,8 @@ export function isTachyonError(error: unknown): error is TachyonRequestError | T
 
 export function isTachyonErrorForCommand<C extends RequestCommandId>(error: unknown, commandId: C): error is TachyonRequestError<C> {
     return error instanceof TachyonRequestError && error.commandId === commandId;
+}
+
+export function onTachyonEvent<C extends EventCommandId>(commandId: C, handler: (data: EventData<C>) => void): () => void {
+    return window.tachyon.onEvent(commandId, handler);
 }

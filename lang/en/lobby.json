@@ -70,7 +70,13 @@
             "profile": {
                 "status": "Status: ",
                 "clan": "Clan: ",
-                "userNotFound": "User not found"
+                "userNotFound": "User not found",
+                "battleHistory": {
+                    "title": "Battle History",
+                    "empty": "No online battles played this session.",
+                    "viewResults": "View Results",
+                    "bots": "{count} bot | {count} bots"
+                }
             },
             "play": {
                 "comingSoon": "(Coming Soon)",
@@ -199,7 +205,8 @@
                     "gameVersion": "Game Version",
                     "engineVersion": "Engine Version",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Cannot start: only {boxed} of {teams} ally teams have a start box."
                 }
             }
         },
@@ -252,7 +259,8 @@
                 "remove": "Remove",
                 "info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
                 "labelDefault": " - Default Servers",
-                "labelCustom": " - Custom Servers"
+                "labelCustom": " - Custom Servers",
+                "useDefaultServer": "Use default server configuration"
             },
             "breadcrumbs": {
                 "back": "Back"
@@ -476,7 +484,17 @@
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
                     "close": "Close",
-                    "openMapSelector": "Open map selector"
+                    "openMapSelector": "Open map selector",
+                    "startboxOverride": "Start box override",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "These start boxes could not be read."
+                },
+                "startBoxesModal": {
+                    "title": "Start Boxes",
+                    "mapDefault": "Map default",
+                    "editAsRectangles": "Edit as rectangles",
+                    "cancel": "Cancel",
+                    "apply": "Apply"
                 },
                 "hostBattle": {
                     "title": "Host Battle",
@@ -485,9 +503,6 @@
                     "hostButton": "Host Battle",
                     "updateButton": "Update Battle",
                     "name": "Name",
-                    "startBoxes1": "Startboxes are assigned sequentially to AllyTeams.",
-                    "startBoxes2": "Extra startboxes will be dropped.",
-                    "startBoxes3": "AllyTeams without one are full-map startboxes.",
                     "allyTeamCount": "AllyTeam Count: ",
                     "teamsPerAllyTeam": "Teams per AllyTeam: ",
                     "map": "Map",
@@ -621,6 +636,18 @@
                     "description2": "Would you like to attempt to rejoin the battle?",
                     "rejoinButton": "Rejoin",
                     "ignoreButton": "Ignore"
+                },
+                "battleResults": {
+                    "victory": "Victory",
+                    "defeat": "Defeat",
+                    "battleEnded": "Battle Ended",
+                    "draw": "Draw",
+                    "winner": "Winner",
+                    "team": "Team {team}",
+                    "spectators": "Spectators",
+                    "inviteToParty": "Invite to Party",
+                    "partyFull": "Party Full",
+                    "acceptFriendRequest": "Accept Friend Request"
                 }
             },
             "controls": {

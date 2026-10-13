@@ -70,7 +70,13 @@
             "profile": {
                 "status": "Satuts: ",
                 "clan": "Caln: ",
-                "userNotFound": "User not fnuod"
+                "userNotFound": "User not fnuod",
+                "battleHistory": {
+                    "title": "Blatte Htrisoy",
+                    "empty": "No oninle bealtts pleyad tihs sesosin.",
+                    "viewResults": "View Rutelss",
+                    "bots": "{count} bot | {count} btos"
+                }
             },
             "play": {
                 "comingSoon": "(Conimg Soon)",
@@ -199,7 +205,8 @@
                     "gameVersion": "Gmae Vosiren",
                     "engineVersion": "Egnnie Vosiren",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Canont strat: olny {boxed} of {teams} ally tmaes hvae a strat box."
                 }
             }
         },
@@ -252,7 +259,8 @@
                 "remove": "Rmvoee",
                 "info": "Chinnagg the Atvcie Seevrr has imdmiaete eeffct. Remeebmr to log in afetr sthwciing.",
                 "labelDefault": " - Dfuaelt Seevrrs",
-                "labelCustom": " - Cuotsm Seevrrs"
+                "labelCustom": " - Cuotsm Seevrrs",
+                "useDefaultServer": "Use dfauelt sveerr coginfituraon"
             },
             "breadcrumbs": {
                 "back": "Back"
@@ -476,7 +484,17 @@
                     "fixedPositions": "Fiexd piooitsns",
                     "random": "Rdoanm",
                     "close": "Csole",
-                    "openMapSelector": "Oepn map seteoclr"
+                    "openMapSelector": "Oepn map seteoclr",
+                    "startboxOverride": "Strat box odverrie",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "Teshe strat bxeos culod not be raed."
+                },
+                "startBoxesModal": {
+                    "title": "Strat Beoxs",
+                    "mapDefault": "Map dfauelt",
+                    "editAsRectangles": "Eidt as rcnaelegts",
+                    "cancel": "Ceancl",
+                    "apply": "Apply"
                 },
                 "hostBattle": {
                     "title": "Hsot Blatte",
@@ -485,9 +503,6 @@
                     "hostButton": "Hsot Blatte",
                     "updateButton": "Uadpte Blatte",
                     "name": "Name",
-                    "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
-                    "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
-                    "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
                     "map": "Map",
@@ -621,6 +636,18 @@
                     "description2": "Wulod you like to atemtpt to rejoin the btalte?",
                     "rejoinButton": "Reojin",
                     "ignoreButton": "Ingroe"
+                },
+                "battleResults": {
+                    "victory": "Victroy",
+                    "defeat": "Deaeft",
+                    "battleEnded": "Blatte Eednd",
+                    "draw": "Darw",
+                    "winner": "Wiennr",
+                    "team": "Team {team}",
+                    "spectators": "Setptacros",
+                    "inviteToParty": "Iivnte to Party",
+                    "partyFull": "Party Full",
+                    "acceptFriendRequest": "Acepct Finerd Rquseet"
                 }
             },
             "controls": {

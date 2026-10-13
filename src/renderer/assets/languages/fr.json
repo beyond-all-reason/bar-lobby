@@ -3906,7 +3906,13 @@
             "profile": {
                 "status": null,
                 "clan": null,
-                "userNotFound": null
+                "userNotFound": null,
+                "battleHistory": {
+                    "title": null,
+                    "empty": null,
+                    "viewResults": null,
+                    "bots": null
+                }
             },
             "play": {
                 "comingSoon": null,
@@ -4035,7 +4041,8 @@
                     "gameVersion": null,
                     "engineVersion": null,
                     "maps": null,
-                    "map": null
+                    "map": null,
+                    "startBoxShortfall": null
                 }
             }
         },
@@ -4088,7 +4095,8 @@
                 "remove": null,
                 "info": null,
                 "labelDefault": null,
-                "labelCustom": null
+                "labelCustom": null,
+                "useDefaultServer": null
             },
             "breadcrumbs": {
                 "back": null
@@ -4312,7 +4320,17 @@
                     "fixedPositions": null,
                     "random": null,
                     "close": null,
-                    "openMapSelector": null
+                    "openMapSelector": null,
+                    "startboxOverride": null,
+                    "applyStartboxOverride": null,
+                    "unreadableStartboxOverride": null
+                },
+                "startBoxesModal": {
+                    "title": null,
+                    "mapDefault": null,
+                    "editAsRectangles": null,
+                    "cancel": null,
+                    "apply": null
                 },
                 "hostBattle": {
                     "title": null,
@@ -4321,9 +4339,6 @@
                     "hostButton": null,
                     "updateButton": null,
                     "name": null,
-                    "startBoxes1": null,
-                    "startBoxes2": null,
-                    "startBoxes3": null,
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
                     "map": null,
@@ -4457,6 +4472,18 @@
                     "description2": null,
                     "rejoinButton": null,
                     "ignoreButton": null
+                },
+                "battleResults": {
+                    "victory": null,
+                    "defeat": null,
+                    "battleEnded": null,
+                    "draw": null,
+                    "winner": null,
+                    "team": null,
+                    "spectators": null,
+                    "inviteToParty": null,
+                    "partyFull": null,
+                    "acceptFriendRequest": null
                 }
             },
             "controls": {

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { isTachyonError, isTachyonErrorForCommand, TachyonIpcError, TachyonRequestError, tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, isTachyonErrorForCommand, onTachyonEvent, TachyonIpcError, TachyonRequestError, tachyonRequest } from "@renderer/api/tachyon";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 
 const requestStructured = vi.fn();
@@ -106,5 +106,16 @@ describe("isTachyonError", () => {
 
     it("leaves other errors out", () => {
         expect(isTachyonError(new Error("No active vote to cancel"))).toBe(false);
+    });
+});
+
+describe("onTachyonEvent", () => {
+    it("subscribes through the bridge and hands back its unsubscribe", () => {
+        const unsubscribe = vi.fn();
+        const handler = vi.fn();
+        vi.mocked(window.tachyon.onEvent).mockReturnValueOnce(unsubscribe);
+
+        expect(onTachyonEvent("party/updated", handler)).toBe(unsubscribe);
+        expect(window.tachyon.onEvent).toHaveBeenCalledWith("party/updated", handler);
     });
 });

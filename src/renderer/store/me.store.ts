@@ -16,10 +16,13 @@ import {
     FriendRemovedEventData,
 } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
+import { resolveLobbyServer } from "@shared/lobby-server";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
+import { battleHistoryActions } from "@renderer/store/battleHistory.store";
 
 export const me = reactive<
     Me & {
@@ -84,6 +87,7 @@ async function goOnline() {
 }
 
 async function logout() {
+    battleHistoryActions.clearBattleHistory();
     await tachyon.goOffline();
     await window.auth.logout();
     await syncAuthState();
@@ -260,13 +264,20 @@ export async function initMeStore() {
         console.warn("Me store is already initialized. Skipping initialization.");
         return;
     }
-    // Settings load in parallel with this, and the stored server arriving over
-    // the default counts as a change. Reacting to that would sign out everyone
-    // who does not use the default server, every launch.
+    // Settings and config load in parallel with this, and either arriving counts
+    // as a change. Reacting to that would sign out everyone who does not use the
+    // default server, every launch. Each store sets its data and isInitialized in
+    // the same tick, so checking the flags when the watcher fires is too late; the
+    // server only counts as known once both are in, and becoming known isn't a
+    // switch. Watching the resolved server rather than the override means clearing
+    // an override that names the default changes nothing.
     watch(
-        () => settingsStore.lobbyServer,
-        () => {
-            if (!settingsStore.isInitialized) return;
+        () =>
+            settingsStore.isInitialized && configStore.isInitialized
+                ? resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? [])
+                : undefined,
+        (server, previous) => {
+            if (server === undefined || previous === undefined) return;
 
             void serverChanged();
         }
@@ -291,6 +302,7 @@ export async function initMeStore() {
     window.tachyon.onEvent("friend/requestRejected", onFriendRequestRejectedEvent);
     window.tachyon.onEvent("friend/requestCancelled", onFriendRequestCancelledEvent);
     window.tachyon.onEvent("friend/removed", onFriendRemovedEvent);
+    window.tachyon.onEvent("battle/ended", battleHistoryActions.recordBattleEnded);
 
     // Last known, from whenever we were last connected. Absent on a fresh
     // install, in which case the defaults stand in until a socket says otherwise.
