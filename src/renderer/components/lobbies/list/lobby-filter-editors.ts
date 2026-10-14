@@ -27,7 +27,7 @@ export type LobbyFilterEditor = {
     props?(ctx: LobbyFilterEditorContext): Record<string, unknown>;
 };
 
-export const lobbyFilterEditors: Partial<Record<LobbyFilterKey, LobbyFilterEditor>> = {
+export const lobbyFilterEditors: Record<LobbyFilterKey, LobbyFilterEditor> = {
     title: { component: TitleFilter, labelKey: "lobby.multiplayer.custom.filters.title.label" },
     tags: {
         component: TagsFilter,

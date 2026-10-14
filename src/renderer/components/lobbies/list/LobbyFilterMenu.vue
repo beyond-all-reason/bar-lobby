@@ -120,12 +120,7 @@ const editorContext = computed<LobbyFilterEditorContext>(() => ({
 }));
 
 const editors = computed(() =>
-    lobbyFilters
-        .filter((def) => isFilterEnabled(def, props.devMode))
-        .flatMap((def) => {
-            const editor = lobbyFilterEditors[def.key];
-            return editor ? [{ key: def.key, editor }] : [];
-        })
+    lobbyFilters.filter((def) => isFilterEnabled(def, props.devMode)).map((def) => ({ key: def.key, editor: lobbyFilterEditors[def.key] }))
 );
 
 function setFilter(key: LobbyFilterKey, value: unknown) {
