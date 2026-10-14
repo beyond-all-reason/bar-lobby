@@ -106,6 +106,7 @@ import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { me, friends } from "@renderer/store/me.store";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError, isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import type { Ref } from "vue";
 
 const { t } = useTypedI18n();
@@ -193,8 +194,11 @@ async function addFriend() {
     try {
         await friends.sendRequest(userIdToAdd);
     } catch (error) {
-        console.error("Failed to send friend request:", error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to send friend request:", error);
+        }
+
+        const reason = isTachyonErrorForCommand(error, "friend/sendRequest") ? error.reason : undefined;
 
         const errorMessageMap: Record<string, TranslationKey> = {
             already_in_friendlist: "lobby.navbar.friends.notifications.errors.alreadyFriends",
@@ -208,7 +212,7 @@ async function addFriend() {
         };
 
         const notificationText =
-            errorMessage in errorMessageMap ? t(errorMessageMap[errorMessage]) : t("lobby.navbar.friends.notifications.errors.generic");
+            reason && reason in errorMessageMap ? t(errorMessageMap[reason]) : t("lobby.navbar.friends.notifications.errors.generic");
 
         notificationsApi.alert({
             text: notificationText,
