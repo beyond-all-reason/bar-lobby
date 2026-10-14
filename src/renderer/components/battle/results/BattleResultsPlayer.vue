@@ -27,6 +27,7 @@ import { db } from "@renderer/store/db";
 import { friends, me } from "@renderer/store/me.store";
 import { chat } from "@renderer/store/chat.store";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError } from "@renderer/api/tachyon";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { reportUserIconClass, useReportUser } from "@renderer/composables/useReportUser";
 import { usePartyInviteState } from "@renderer/composables/usePartyInviteState";
@@ -118,7 +119,10 @@ async function addFriend() {
     try {
         await friends.sendRequest(props.userId);
     } catch (error) {
-        console.error("Failed to send friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to send friend request:", error);
+        }
+
         notificationsApi.alert({ text: t("lobby.navbar.friends.notifications.errors.generic"), severity: "error" });
     }
 }
@@ -127,7 +131,10 @@ async function acceptFriendRequest() {
     try {
         await friends.acceptRequest(props.userId);
     } catch (error) {
-        console.error("Failed to accept friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to accept friend request:", error);
+        }
+
         notificationsApi.alert({ text: t("lobby.navbar.friends.notifications.errors.failedToAccept"), severity: "error" });
     }
 }

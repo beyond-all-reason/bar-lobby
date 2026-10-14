@@ -25,17 +25,44 @@ export class TachyonRequestError<C extends RequestCommandId = RequestCommandId> 
     }
 }
 
+export class TachyonIpcError<C extends RequestCommandId = RequestCommandId> extends Error {
+    readonly commandId: C;
+
+    constructor(commandId: C, cause: unknown) {
+        super(`${commandId} failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause });
+        this.name = "TachyonIpcError";
+        this.commandId = commandId;
+    }
+}
+
+function logFailure<E extends TachyonRequestError | TachyonIpcError>(error: E): E {
+    console.error(error);
+
+    return error;
+}
+
 export async function tachyonRequest<C extends RequestCommandId>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
 ): Promise<SuccessResponse<C>> {
     const [commandId] = args as [C];
     const requestStructured = window.tachyon.requestStructured as (...args: unknown[]) => Promise<TachyonResponse>;
-    const response = await requestStructured(...args);
+
+    let response: TachyonResponse;
+    try {
+        response = await requestStructured(...args);
+    } catch (cause) {
+        throw logFailure(new TachyonIpcError(commandId, cause));
+    }
+
     if (response.status === "failed") {
-        throw new TachyonRequestError(commandId, response);
+        throw logFailure(new TachyonRequestError(commandId, response));
     }
 
     return response as SuccessResponse<C>;
+}
+
+export function isTachyonError(error: unknown): error is TachyonRequestError | TachyonIpcError {
+    return error instanceof TachyonRequestError || error instanceof TachyonIpcError;
 }
 
 export function isTachyonErrorForCommand<C extends RequestCommandId>(error: unknown, commandId: C): error is TachyonRequestError<C> {

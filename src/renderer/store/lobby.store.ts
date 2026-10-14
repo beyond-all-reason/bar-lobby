@@ -27,7 +27,7 @@ import {
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
 import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest, isTachyonErrorForCommand } from "@renderer/api/tachyon";
+import { tachyonRequest, isTachyonError, isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import { Lobby } from "@renderer/model/lobby";
 import { t } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
@@ -119,8 +119,7 @@ async function requestSubscribeList() {
         const response = await tachyonRequest("lobby/subscribeList");
         //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
         console.log("subscribeList:", response.status);
-    } catch (error) {
-        console.error("Error with request lobby/subscribeList:", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/subscribeList",
             severity: "error",
@@ -135,8 +134,7 @@ async function requestUnsubscribeList() {
     lobbyStore.wantsListSubscription = false;
     try {
         await tachyonRequest("lobby/unsubscribeList");
-    } catch (error) {
-        console.error("Error with request lobby/unsubscribeList:", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/unsubscribeList",
             severity: "error",
@@ -156,7 +154,10 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
         parseLobbyResponseData(response.data, false);
         router.push("/play/lobby");
     } catch (error) {
-        console.error("Error with request lobby/create", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with request lobby/create", error);
+        }
+
         notificationsApi.alert({
             text: "Error with request lobby/create",
             severity: "error",
@@ -179,7 +180,10 @@ async function requestJoinLobby({ id, pushLobbyView }: { id: string; pushLobbyVi
             router.push("/play/lobby");
         }
     } catch (error) {
-        console.error("Error with request lobby/join", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with request lobby/join", error);
+        }
+
         notificationsApi.alert({
             text: "Error with request lobby/join",
             severity: "error",
@@ -195,8 +199,7 @@ async function requestJoinAllyTeam(allyTeam: string) {
     try {
         const response = await tachyonRequest("lobby/joinAllyTeam", { allyTeam: allyTeam });
         console.log("Tachyon: lobby/joinAllyTeam", response);
-    } catch (error) {
-        console.error("Tachyon error: lobby/joinAllyTeam:", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/joinAllyTeam",
             severity: "error",
@@ -211,8 +214,7 @@ async function requestJoinQueue() {
     try {
         const response = await tachyonRequest("lobby/joinQueue");
         console.log("Tachyon: lobby/joinQueue:", response);
-    } catch (error) {
-        console.error("Tachyon error: lobby/joinQueue:", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/joinQueue",
             severity: "error",
@@ -227,8 +229,7 @@ async function requestSpectate() {
     try {
         const response = await tachyonRequest("lobby/spectate");
         console.log("Tachyon: lobby/spectate", response);
-    } catch (error) {
-        console.error("Tachyon error: lobby/spectate:", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/spectate",
             severity: "error",
@@ -357,11 +358,9 @@ async function requestLeaveLobby() {
         console.log("Tachyon: lobby/leave:", response.status);
         removedFromLobby = true;
     } catch (error) {
-        console.error("Error with request lobby/leave", error);
         if (isTachyonErrorForCommand(error, "lobby/leave")) {
             if (error.reason === "not_in_lobby" || error.reason === "invalid_request") removedFromLobby = true; // treat not_in_lobby as a successful leave.
         } else {
-            console.error("Error with request lobby/leave", error);
             notificationsApi.alert({
                 text: "Error with request lobby/leave",
                 severity: "error",
@@ -391,8 +390,7 @@ async function requestStartBattle() {
     try {
         const response = await tachyonRequest("lobby/startBattle");
         console.log("Tachyon: lobby/startBattle:", response.status);
-    } catch (error) {
-        console.error("Error with request lobby/startBattle", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/startBattle",
             severity: "error",
@@ -413,7 +411,6 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
         if (isTachyonErrorForCommand(error, "lobby/addBot")) {
             if (error.reason === "ally_team_full") {
                 useGenericError = false;
-                console.error("Tachyon error for lobby/addBot:", error);
                 notificationsApi.alert({
                     text: "Unable to add bot; team is full",
                     severity: "info",
@@ -421,7 +418,6 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
             }
         }
         if (useGenericError) {
-            console.error("Error with request lobby/addBot", error);
             notificationsApi.alert({
                 text: "Error with request lobby/addBot",
                 severity: "error",
@@ -438,8 +434,7 @@ async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     try {
         const response = await tachyonRequest("lobby/removeBot", data);
         console.log("Tachyon lobby/removeBot:", response);
-    } catch (error) {
-        console.error("Error with request lobby/removeBot", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/removeBot",
             severity: "error",
@@ -455,8 +450,7 @@ async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     try {
         const response = await tachyonRequest("lobby/updateBot", data);
         console.log("Tachyon lobby/updateBot:", response);
-    } catch (error) {
-        console.error("Error with request lobby/updateBot", error);
+    } catch {
         notificationsApi.alert({
             text: "Error with request lobby/updateBot",
             severity: "error",
@@ -472,8 +466,7 @@ async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
     try {
         const response = await tachyonRequest("lobby/update", data);
         console.log("Tachyon lobby/update:", response);
-    } catch (error) {
-        console.error("Error with request lobby/update", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/update", severity: "error" });
     }
 }
@@ -542,8 +535,7 @@ async function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestDat
     try {
         const response = await tachyonRequest("lobby/updateClientStatus", data);
         console.log("Tachyon lobby/updateClientStatus:", response);
-    } catch (error) {
-        console.error("Error with request lobby/updateClientStatus", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/updateClientStatus", severity: "error" });
     }
 }
@@ -556,8 +548,7 @@ async function requestJoinBattle() {
     try {
         const response = await tachyonRequest("lobby/joinBattle");
         console.log("Tachyon lobby/joinBattle:", response);
-    } catch (error) {
-        console.error("Error with request lobby/joinBattle", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/joinBattle", severity: "error" });
     }
 }
@@ -570,8 +561,7 @@ async function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
     try {
         const response = await tachyonRequest("lobby/voteSubmit", data);
         console.log("Tachyon lobby/voteSubmit:", response);
-    } catch (error) {
-        console.error("Error with request lobby/voteSubmit", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/voteSubmit", severity: "error" });
     }
 }
@@ -587,7 +577,10 @@ async function requestVoteCancel() {
         const response = await tachyonRequest("lobby/voteCancel", { id: lobbyStore.activeLobby.currentVote?.id });
         console.log("Tachyon lobby/voteCancel:", response);
     } catch (error) {
-        console.error("Error with request lobby/voteCancel", error);
+        if (!isTachyonError(error)) {
+            console.error("Error with request lobby/voteCancel", error);
+        }
+
         notificationsApi.alert({ text: "Error with request lobby/voteCancel", severity: "error" });
     }
 }
@@ -600,8 +593,7 @@ async function requestAppointBoss(userId: string) {
     try {
         const response = await tachyonRequest("lobby/appointBoss", { userId });
         console.log("Tachyon lobby/appointBoss:", response);
-    } catch (error) {
-        console.error("Error with request lobby/appointBoss", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/appointBoss", severity: "error" });
     }
 }
@@ -615,8 +607,7 @@ async function requestKickBan(userId: string, until?: number) {
     try {
         const response = await tachyonRequest("lobby/kickban", { userId, banUntil: until });
         console.log("Tachyon lobby/kickban:", response);
-    } catch (error) {
-        console.error("Error with request lobby/kickban", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/kickban", severity: "error" });
     }
 }
@@ -629,8 +620,7 @@ async function requestUnboss(userId?: UserId) {
     try {
         const response = await tachyonRequest("lobby/unboss", { userId });
         console.log("Tachyon lobby/unboss:", response);
-    } catch (error) {
-        console.error("Error with request lobby/unboss", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request lobby/unboss", severity: "error" });
     }
 }

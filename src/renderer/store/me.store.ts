@@ -21,7 +21,7 @@ import { resolveLobbyServer } from "@shared/lobby-server";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
-import { tachyonRequest } from "@renderer/api/tachyon";
+import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
 import { battleHistoryActions } from "@renderer/store/battleHistory.store";
 
 export const me = reactive<
@@ -230,7 +230,10 @@ export const friends = {
             await unsubscribeFromUsers([userId]);
             return response;
         } catch (error) {
-            console.log(`Failed to remove friend with userId: ${userId}`, error);
+            if (!isTachyonError(error)) {
+                console.error(`Failed to remove friend with userId: ${userId}`, error);
+            }
+
             notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
         }
     },
@@ -253,7 +256,10 @@ export const friends = {
             }
             return response;
         } catch (error) {
-            console.log(`Failed to fetch friend list`, error);
+            if (!isTachyonError(error)) {
+                console.error(`Failed to fetch friend list`, error);
+            }
+
             notificationsApi.alert({ severity: "error", text: "Failed to fetch friend list." });
         }
     },

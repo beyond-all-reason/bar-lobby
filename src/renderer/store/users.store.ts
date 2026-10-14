@@ -62,8 +62,7 @@ async function requestReportUsers(data: UserReportRequestData) {
         console.log("Tachyon user/report:", response);
 
         return true;
-    } catch (error) {
-        console.error("Error with request user/report", error);
+    } catch {
         notificationsApi.alert({ text: "Error with request user/report", severity: "error" });
 
         return false;
