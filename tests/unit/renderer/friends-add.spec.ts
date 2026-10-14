@@ -54,7 +54,9 @@ async function addFriend(wrapper: ReturnType<typeof render>, userId: number) {
     await flushPromises();
 }
 
-const failed = (reason: string) => ({ type: "response", commandId: "friend/sendRequest", messageId: "1", status: "failed", reason }) as const;
+type SendRequestReason = TachyonRequestError<"friend/sendRequest">["reason"];
+
+const failed = (reason: SendRequestReason) => ({ type: "response", commandId: "friend/sendRequest", messageId: "1", status: "failed", reason }) as const;
 
 describe("Friends add friend", () => {
     beforeEach(() => {
@@ -71,7 +73,7 @@ describe("Friends add friend", () => {
         expect(stubs.alert).not.toHaveBeenCalled();
     });
 
-    it.each([
+    it.each<[SendRequestReason, string]>([
         ["already_in_friendlist", "lobby.navbar.friends.notifications.errors.alreadyFriends"],
         ["invalid_user", "lobby.navbar.friends.notifications.errors.invalidUser"],
         ["outgoing_capacity_reached", "lobby.navbar.friends.notifications.errors.outgoingCapacityReached"],
