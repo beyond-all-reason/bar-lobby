@@ -4,40 +4,16 @@
 
 import { reactive } from "vue";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
-import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 
-export type MapFilterState = {
-    terrain: Partial<Record<Terrain, boolean>>;
-    gameType: Partial<Record<GameType, boolean>>;
-    minPlayers: number;
-    maxPlayers: number;
-    favoritesOnly: boolean;
-    downloadedOnly: boolean;
-};
-
-// Callers replace the whole object on each change rather than editing it in place.
-export function createMapFilterState(): MapFilterState {
-    return {
-        terrain: {},
-        gameType: {},
-        minPlayers: 2,
-        maxPlayers: 40,
-        favoritesOnly: false,
-        downloadedOnly: false,
-    };
-}
-
 export const mapsStore: {
     isInitialized: boolean;
-    filters: MapFilterState;
     availableMapNames: Set<string>;
 } = reactive({
     isInitialized: false,
-    filters: createMapFilterState(),
     availableMapNames: new Set(),
 });
 
@@ -205,8 +181,4 @@ export async function downloadMap(springName: string) {
             notificationsApi.alert({ text: "Map download failed.", severity: "error" });
             dbDelegate.update(springName, { isDownloading: false });
         });
-}
-
-export function getFilters() {
-    return mapsStore.filters;
 }

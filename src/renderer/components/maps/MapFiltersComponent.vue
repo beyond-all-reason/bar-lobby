@@ -64,11 +64,11 @@ import MaxPlayersFilter from "@renderer/components/maps/filters/MaxPlayersFilter
 import TerrainFilter from "@renderer/components/maps/filters/TerrainFilter.vue";
 import FavoritesFilter from "@renderer/components/maps/filters/FavoritesFilter.vue";
 import DownloadedFilter from "@renderer/components/maps/filters/DownloadedFilter.vue";
-import type { MapFilterState } from "@renderer/store/maps.store";
+import type { MapFilterState } from "@renderer/components/maps/filters/map-filter-state";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
-// Caller-owned so a map picker can filter without changing the library's filters.
+// Caller-owned so each view or modal keeps its own filters.
 const filters = defineModel<MapFilterState>("filters", { required: true });
 
 function update(changes: Partial<MapFilterState>) {

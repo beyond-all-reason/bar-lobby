@@ -56,7 +56,7 @@ import { type MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import type { MapFilterState } from "@renderer/store/maps.store";
+import type { MapFilterState } from "@renderer/components/maps/filters/map-filter-state";
 
 import { useInfiniteScroll } from "@vueuse/core";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";

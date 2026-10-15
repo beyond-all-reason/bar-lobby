@@ -37,7 +37,7 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import MapFiltersComponent from "@renderer/components/maps/MapFiltersComponent.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
-import { createMapFilterState } from "@renderer/store/maps.store";
+import { createMapFilterState } from "@renderer/components/maps/filters/map-filter-state";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
@@ -51,7 +51,6 @@ const emit = defineEmits<{
     (event: "done", springNames: string[]): void;
 }>();
 
-// Separate from the library's filters so picking doesn't change them.
 const filters = ref(createMapFilterState());
 
 const list = ref<InstanceType<typeof MapListComponent> | null>(null);
