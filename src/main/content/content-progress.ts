@@ -36,3 +36,38 @@ export function createSettledCounter() {
         return landed.size;
     };
 }
+
+/**
+ * Remembers what has landed this session, for anything that wants to name what finished rather
+ * than just count it.
+ *
+ * Works out what landed the same way the counter above does — from what left the change stream
+ * without failing — but keeps the last state each landed ref was seen in, so a caller can still
+ * say what it was and how far it got. Unlike the counter it does not start over when the queue
+ * drains: a list of what finished is only looked for once nothing is running anymore. Content
+ * asked for again leaves the list while it is outstanding and comes back when it lands again,
+ * and a failure never joins it.
+ */
+export function createSettledTracker() {
+    const landed = new Map<string, ContentState>();
+    let previous = new Map<string, ContentState>();
+
+    return (states: ContentState[]) => {
+        const outstanding = new Map(states.filter(isInProgress).map((state): [string, ContentState] => [contentRefKey(state), state]));
+        const failed = new Set(states.filter(hasFailed).map(contentRefKey));
+
+        for (const [key, state] of previous) {
+            if (!outstanding.has(key) && !failed.has(key)) {
+                landed.set(key, state);
+            }
+        }
+
+        for (const key of outstanding.keys()) {
+            landed.delete(key);
+        }
+
+        previous = outstanding;
+
+        return [...landed.values()];
+    };
+}

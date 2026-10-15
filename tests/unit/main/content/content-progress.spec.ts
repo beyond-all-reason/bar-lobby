@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentState, ContentStatus } from "@main/content/content-state";
-import { createSettledCounter } from "@main/content/content-progress";
+import { createSettledCounter, createSettledTracker } from "@main/content/content-progress";
 import { describe, expect, it } from "vitest";
 
 function map(id: string, status: ContentStatus): ContentState {
@@ -56,5 +56,52 @@ describe("settled counter", () => {
         count([map("a", "acquiring"), map("bad", "acquiring")]);
 
         expect(count([map("bad", "failed")])).toBe(1);
+    });
+});
+
+describe("settled tracker", () => {
+    it("returns the last state of content that has left the change stream", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring"), map("b", "acquiring")]);
+
+        expect(track([map("b", "acquiring")]).map((state) => state.id)).toEqual(["a"]);
+    });
+
+    it("does not track a failure as content that landed", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring"), map("bad", "acquiring")]);
+
+        expect(track([map("a", "acquiring"), map("bad", "failed")])).toEqual([]);
+    });
+
+    // The popover is only opened once nothing is running anymore, so what finished has to
+    // outlast the run it landed in, unlike the counter's tally.
+    it("keeps what landed after the queue has drained", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring")]);
+
+        expect(track([]).map((state) => state.id)).toEqual(["a"]);
+    });
+
+    it("drops content that is asked for again until it lands again", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring"), map("b", "acquiring")]);
+        track([map("b", "acquiring")]);
+
+        expect(track([map("a", "acquiring"), map("b", "acquiring")])).toEqual([]);
+        expect(track([map("b", "acquiring")]).map((state) => state.id)).toEqual(["a"]);
+    });
+
+    it("keeps the order content landed in", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring"), map("b", "acquiring"), map("c", "acquiring")]);
+        track([map("b", "acquiring"), map("c", "acquiring")]);
+
+        expect(track([map("c", "acquiring")]).map((state) => state.id)).toEqual(["a", "b"]);
     });
 });
