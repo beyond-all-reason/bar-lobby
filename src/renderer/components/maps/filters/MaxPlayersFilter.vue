@@ -11,17 +11,16 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import { ref } from "vue";
 import Range from "@renderer/components/controls/Range.vue";
-import { mapsStore } from "@renderer/store/maps.store";
 import { watchThrottled } from "@vueuse/core";
 
-const { filters } = mapsStore;
-const range = ref([filters.minPlayers, filters.maxPlayers]);
+// [min, max] players.
+const players = defineModel<[number, number]>({ required: true });
+const range = ref([...players.value]);
 
 watchThrottled(
     range,
     (newRange) => {
-        filters.minPlayers = newRange[0];
-        filters.maxPlayers = newRange[1];
+        players.value = [newRange[0], newRange[1]];
     },
     {
         throttle: 200,

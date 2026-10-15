@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 <template>
     <Panel>
         <div class="flex flex-row">
-            <div v-tooltip.bottom="startBlockedReason" class="start-game">
+            <div v-tooltip.bottom="{ value: startBlockedTooltip, disabled: !startBlockedReason }" class="start-game">
                 <Button @click="startGame()" class="green" :disabled="isMapNeeded || !!startBlockedReason">Start Game</Button>
             </div>
             <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
@@ -135,7 +135,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
@@ -229,6 +229,17 @@ const startBlockedReason = computed(() => {
 
     return shortfall && t("lobby.multiplayer.custom.lobby.startBoxShortfall", { boxed: shortfall.boxed, teams: shortfall.teams });
 });
+
+// PrimeVue's tooltip stops listening for mouseleave once its value is empty, leaving a shown one
+// stuck. Keep the last reason and disable instead.
+const startBlockedTooltip = ref("");
+watch(
+    startBlockedReason,
+    (reason) => {
+        if (reason) startBlockedTooltip.value = reason;
+    },
+    { immediate: true }
+);
 
 async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.

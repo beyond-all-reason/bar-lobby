@@ -2,23 +2,19 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ref, watch } from "vue";
+import { ref, toValue, watch, type MaybeRefOrGetter } from "vue";
 import { MapData } from "@main/content/maps/map-data";
 import { db } from "@renderer/store/db";
 import { lobbyStore } from "@renderer/store/lobby.store";
 
-/**
- * The MapData for the active lobby's map, or undefined if there is no lobby or the map isn't in the database.
- */
-export function useLobbyMap() {
+export function useLobbyMap(mapName: MaybeRefOrGetter<string | undefined> = () => lobbyStore.activeLobby?.mapName) {
     const map = ref<MapData>();
 
     watch(
-        () => lobbyStore.activeLobby?.mapName,
-        async (mapName) => {
-            const loadedMap = mapName ? await db.maps.get(mapName) : undefined;
-            // Ignore stale lookups if the map changed while we were waiting.
-            if (lobbyStore.activeLobby?.mapName === mapName) {
+        () => toValue(mapName),
+        async (name) => {
+            const loadedMap = name ? await db.maps.get(name) : undefined;
+            if (toValue(mapName) === name) {
                 map.value = loadedMap;
             }
         },

@@ -184,13 +184,128 @@
             "custom": {
                 "title": "Multiplayer Custom Battles",
                 "hostBattle": "Host Battle",
+                "openLobby": "Open Lobby",
+                "joinLobby": "Join Lobby",
+                "joinLobbyNamed": "Join {name}",
+                "leaveLobbyFirst": "Leave your current lobby before joining another.",
                 "removedFromLobby": "You have been removed from the lobby.",
                 "noLobbiesAvailable": "No games found.",
+                "lobbyUnavailable": "This lobby is no longer available",
+                "refresh": "Refresh",
+                "newLobbies": "{count} new lobby since the last refresh | {count} new lobbies since the last refresh",
+                "autoRefresh": "Auto-refresh",
+                "autoRefreshTooltip": "Re-sort the list whenever lobbies change. Rows will move while you read them.",
+                "disconnected": "Not connected. The list will refresh once the connection is back.",
+                "filtersButton": "Filters & Sort",
+                "menu": {
+                    "sortBy": "Sort by",
+                    "ascending": "Ascending",
+                    "descending": "Descending",
+                    "filters": "Filters",
+                    "apply": "Apply",
+                    "reset": "Reset",
+                    "hide": "Hide",
+                    "any": "Any",
+                    "only": "Only"
+                },
                 "filters": {
-                    "hidePvE": "Hide PvE",
-                    "hideLocked": "Hide Locked",
-                    "hideEmpty": "Hide Empty",
-                    "hideInProgress": "Hide Running"
+                    "title": {
+                        "label": "Title",
+                        "chip": "Title: {value}",
+                        "tooltip": "Lobby title contains \"{value}\""
+                    },
+                    "tags": {
+                        "label": "Tags",
+                        "chip": "Tag: {value}",
+                        "tooltip": "Lobby has the tag \"{value}\"",
+                        "placeholder": "Add a tag",
+                        "unknown": "No lobbies currently use this tag"
+                    },
+                    "maps": {
+                        "label": "Maps",
+                        "chipOne": "Map: {value}",
+                        "chipMany": "{count} maps",
+                        "tooltip": "Played on: {value}",
+                        "choose": "Choose maps…",
+                        "clear": "Clear",
+                        "none": "Any map"
+                    },
+                    "players": {
+                        "label": "Players",
+                        "chip": "Players: {value}",
+                        "tooltip": "Lobbies with {value} players"
+                    },
+                    "openSpots": {
+                        "label": "Open spots",
+                        "chip": "Open: {value}",
+                        "tooltip": "Lobbies with {value} open player spots"
+                    },
+                    "fitsParty": {
+                        "label": "Fits my party",
+                        "chip": "Fits my party",
+                        "tooltip": "Lobbies with enough open spots for your whole party, or for you when you aren't in one"
+                    },
+                    "allyTeams": {
+                        "label": "Ally teams",
+                        "chip": "Teams: {value}",
+                        "tooltip": "Lobbies with {value} ally teams"
+                    },
+                    "inProgress": {
+                        "label": "In battle",
+                        "chipYes": "In progress",
+                        "chipNo": "Not started",
+                        "tooltipYes": "Only lobbies with a battle running",
+                        "tooltipNo": "Only lobbies waiting to start"
+                    },
+                    "passworded": {
+                        "label": "Password protected",
+                        "chipYes": "Passworded",
+                        "chipNo": "No password",
+                        "tooltipYes": "Only lobbies that need a password",
+                        "tooltipNo": "Only lobbies anyone can join"
+                    },
+                    "bossMode": {
+                        "label": "Boss mode",
+                        "chipYes": "Boss mode",
+                        "chipNo": "No boss",
+                        "tooltipYes": "Only lobbies with a boss",
+                        "tooltipNo": "Only lobbies without a boss"
+                    },
+                    "hasFriend": {
+                        "label": "Contains a friend",
+                        "chip": "Friends",
+                        "tooltip": "Only lobbies with at least one of your friends"
+                    },
+                    "hasPartyMember": {
+                        "label": "Contains a party member",
+                        "chip": "Party",
+                        "tooltip": "Only lobbies with a member of your party"
+                    },
+                    "engineVersion": {
+                        "label": "Engine version",
+                        "chip": "Engine: {value}",
+                        "tooltip": "Engine version is {value}",
+                        "any": "Any engine"
+                    },
+                    "gameVersion": {
+                        "label": "Game version",
+                        "chip": "Game: {value}",
+                        "tooltip": "Game version is {value}",
+                        "any": "Any game"
+                    },
+                    "range": {
+                        "between": "{min}–{max}",
+                        "atLeast": "{min} or more",
+                        "atMost": "{max} or fewer"
+                    }
+                },
+                "sort": {
+                    "playerCount": "Players",
+                    "openSpots": "Open spots",
+                    "maxPlayerCount": "Max players",
+                    "name": "Title",
+                    "mapName": "Map",
+                    "battleDuration": "Time in progress"
                 },
                 "table": {
                     "bestBattle": "Best Battle",
@@ -198,7 +313,10 @@
                     "map": "Map",
                     "players": "Players",
                     "runningFor": "Running for",
-                    "join": "Join"
+                    "join": "Join",
+                    "openSpots": "Open",
+                    "status": "Status",
+                    "waiting": "Waiting"
                 },
                 "lobby": {
                     "title": "Lobby",
@@ -207,6 +325,29 @@
                     "maps": "Maps",
                     "map": "Map",
                     "startBoxShortfall": "Cannot start: only {boxed} of {teams} ally teams have a start box."
+                },
+                "mapPicker": {
+                    "title": "Choose maps",
+                    "selected": "{count} selected",
+                    "selectAllShown": "Select all shown",
+                    "clear": "Clear",
+                    "done": "Done"
+                },
+                "preview": {
+                    "membership": "You are in this lobby",
+                    "membershipPlayer": "You are in this lobby as a player",
+                    "membershipSpectator": "You are in this lobby as a spectator",
+                    "membershipQueued": "You are in this lobby, queued to play (#{position})",
+                    "players": "Players: {players}/{max}",
+                    "openSpots": "{count} open",
+                    "waiting": "Waiting to start",
+                    "inBattle": "Battle in progress: {duration}",
+                    "allyTeams": "{count} ally team | {count} ally teams",
+                    "friends": "{count} friend in this lobby | {count} friends in this lobby",
+                    "passworded": "Password protected",
+                    "bossMode": "Boss mode",
+                    "gameVersion": "Game: {version}",
+                    "engineVersion": "Engine: {version}"
                 }
             }
         },
