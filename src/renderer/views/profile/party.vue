@@ -174,7 +174,7 @@ SPDX-License-Identifier: MIT
                                 <div
                                     class="flex-col"
                                     v-if="party.invited.some((invitee) => invitee.userId === me.userId)"
-                                    v-in-view.once="() => (party.seen = true)"
+                                    v-in-view.once="() => partyLogic.markSeen(partyId)"
                                 >
                                     <div>
                                         {{ t("lobby.views.party.receivedInvite", { users: getPartyMemberNames(partyId).join(", ") }) }}
@@ -205,7 +205,9 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { useTypedI18n } from "@renderer/i18n";
-import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
+import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 import { computed, ref, watch } from "vue";
 import ChatPanel from "@renderer/components/common/ChatPanel.vue";
 import Panel from "@renderer/components/common/Panel.vue";
@@ -258,16 +260,27 @@ watch(
     { immediate: true }
 );
 
-function acceptInvite(partyId: PartyId) {
-    const data = { partyId: partyId };
-    party.requestAcceptInvite(data);
+async function acceptInvite(partyId: PartyId) {
+    try {
+        await partyLogic.acceptInvite({ partyId });
+    } catch (error) {
+        alertRequestFailure(error, "party/acceptInvite");
+    }
 }
-function declineInvite(partyId: PartyId) {
-    const data = { partyId: partyId };
-    party.requestDeclineInvite(data);
+async function declineInvite(partyId: PartyId) {
+    try {
+        await partyLogic.declineInvite({ partyId });
+    } catch (error) {
+        alertRequestFailure(error, "party/declineInvite");
+    }
 }
 async function leaveParty() {
-    await party.requestLeave();
+    try {
+        await partyLogic.leave();
+    } catch (error) {
+        alertRequestFailure(error, "party/leave");
+    }
+
     if (partyStore.state === PlayersPartyState.None) {
         router.push("/play/menu");
     }
@@ -358,7 +371,7 @@ function hasUnseenUpdates() {
 
 function setPartyUpdateSeen() {
     if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return;
-    partyStore.parties.get(partyStore.activeParty)!.seen = true;
+    partyLogic.markSeen(partyStore.activeParty);
 }
 function getActivePartyMembers() {
     if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return [];

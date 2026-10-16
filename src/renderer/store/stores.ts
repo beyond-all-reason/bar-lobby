@@ -9,7 +9,7 @@ import { initGameStore } from "@renderer/store/game.store";
 import { initInfosStore } from "@renderer/store/infos.store";
 import { initializeMatchmakingStore } from "@renderer/store/matchmaking.store";
 import { initMeStore } from "@renderer/store/me.store";
-import { initPartyStore } from "@renderer/store/party.store";
+import { initPartyLogic } from "@renderer/logic/party";
 
 import { initSettingsStore } from "@renderer/store/settings.store";
 import { initTachyonStore } from "@renderer/store/tachyon.store";
@@ -27,6 +27,6 @@ export async function initPreMountStores() {
         initContentsStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyStore()])),
+        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyLogic()])),
     ]);
 }

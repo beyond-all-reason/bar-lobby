@@ -4,7 +4,7 @@
 
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { effectScope, nextTick, type EffectScope, type Ref } from "vue";
-import { partyStore } from "@renderer/store/party.store";
+import { partyUpdates } from "@renderer/store/party.store";
 import { matchmakingStore } from "@renderer/store/matchmaking.store";
 import { usePartySizeMatchmaking, getPartySize } from "@renderer/composables/usePartySizeMatchmaking";
 
@@ -32,9 +32,14 @@ function makeInvited(count: number) {
     return Array.from({ length: count }, (_, i) => ({ userId: `invitee-${i}`, invitedAt: 0 }));
 }
 
+const myUserId = makeMembers(1)[0].userId;
+
+function makeParty(id: string, memberCount: number, invitedCount = 0) {
+    return { id, members: makeMembers(memberCount), invited: makeInvited(invitedCount), maxMembers: 10 };
+}
+
 function setupParty(memberCount: number, teamSize: number) {
-    partyStore.activeParty = "party-1";
-    partyStore.parties.set("party-1", { id: "party-1", members: makeMembers(memberCount), invited: [], maxMembers: 10, seen: true });
+    partyUpdates.set(makeParty("party-1", memberCount), myUserId);
     matchmakingStore.selectedQueue = "1v1";
     matchmakingStore.playlists = [makePlaylist("1v1", teamSize)];
 }
@@ -43,8 +48,7 @@ let scope: EffectScope;
 let partyTooLarge: Ref<boolean>;
 
 beforeEach(() => {
-    partyStore.activeParty = undefined;
-    partyStore.parties.clear();
+    partyUpdates.clear();
     matchmakingStore.playlists = [];
     matchmakingStore.selectedQueue = "1v1";
 
@@ -62,11 +66,11 @@ describe("usePartySizeMatchmaking", () => {
     describe("reactivity", () => {
         it("re-evaluates when activeParty changes", async () => {
             setupParty(2, 3);
-            partyStore.parties.set("party-2", { id: "party-2", members: makeMembers(4), invited: [], maxMembers: 10, seen: true });
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            partyStore.activeParty = "party-2";
+            partyUpdates.remove("party-1", myUserId);
+            partyUpdates.set(makeParty("party-2", 4), myUserId);
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -100,7 +104,7 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            partyStore.parties.get("party-1")!.members = makeMembers(4);
+            partyUpdates.set(makeParty("party-1", 4), myUserId);
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -111,7 +115,7 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            partyStore.parties.get("party-1")!.invited = makeInvited(1);
+            partyUpdates.set(makeParty("party-1", 2, 1), myUserId);
             await nextTick();
 
             // Invites don't factor into the size comparison, so the result is expected to stay the same.
@@ -128,16 +132,7 @@ describe("usePartySizeMatchmaking", () => {
         });
 
         it("is false when playlists is empty", async () => {
-            partyStore.activeParty = "party-1";
-            partyStore.parties.set("party-1", { id: "party-1", members: makeMembers(2), invited: [], maxMembers: 10, seen: true });
-            await nextTick();
-
-            expect(partyTooLarge.value).toBe(false);
-        });
-
-        it("is false when the active party isn't found in any party's members", async () => {
-            matchmakingStore.playlists = [makePlaylist("1v1", 1)];
-            partyStore.activeParty = "missing-party";
+            partyUpdates.set(makeParty("party-1", 2), myUserId);
             await nextTick();
 
             expect(partyTooLarge.value).toBe(false);
@@ -170,23 +165,15 @@ describe("usePartySizeMatchmaking", () => {
 
 describe("getPartySize", () => {
     beforeEach(() => {
-        partyStore.activeParty = undefined;
-        partyStore.parties.clear();
+        partyUpdates.clear();
     });
 
     it("returns 0 when there is no active party", () => {
         expect(getPartySize()).toBe(0);
     });
 
-    it("returns 0 when the active party isn't in the parties map", () => {
-        partyStore.activeParty = "missing-party";
-
-        expect(getPartySize()).toBe(0);
-    });
-
     it("returns the member count of the active party", () => {
-        partyStore.activeParty = "party-1";
-        partyStore.parties.set("party-1", { id: "party-1", members: makeMembers(3), invited: [], maxMembers: 10, seen: true });
+        partyUpdates.set(makeParty("party-1", 3), myUserId);
 
         expect(getPartySize()).toBe(3);
     });
