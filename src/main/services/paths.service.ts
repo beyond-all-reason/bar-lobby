@@ -4,6 +4,7 @@
 
 import { BrowserWindow, dialog } from "electron";
 import { setAssetsPath, getAssetsPath, STATE_PATH } from "@main/config/app";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import { settingsService } from "./settings.service";
 import { contentAPI } from "@main/content/content-api";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
@@ -76,7 +77,16 @@ function validateAssetsPath(newPath: string): string | null {
     return null;
 }
 
+// Checked before anything is copied or moved, not only before the path is saved.
+function assertAssetsPathChangeable() {
+    if (!EDITION_FEATURES.changeAssetsPath) {
+        throw new Error(`The assets path cannot be changed in the ${EDITION} edition.`);
+    }
+}
+
 async function applyNewPath(newAssetsPath: string) {
+    assertAssetsPathChangeable();
+
     const error = validateAssetsPath(newAssetsPath);
     if (error) {
         throw new Error(error);
@@ -111,6 +121,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 
     ipcMain.handle("paths:moveAndChangePath", async (_, newAssetsPath: string) => {
+        assertAssetsPathChangeable();
         const oldAssetsPath = getAssetsPath();
         await copyWithProgress(oldAssetsPath, newAssetsPath, (copied, total) => {
             webContents.send("paths:copyProgress", { copied, total });
@@ -125,6 +136,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 
     ipcMain.handle("paths:copyAndChangePath", async (_, newAssetsPath: string) => {
+        assertAssetsPathChangeable();
         await copyWithProgress(getAssetsPath(), newAssetsPath, (copied, total) => {
             webContents.send("paths:copyProgress", { copied, total });
         });

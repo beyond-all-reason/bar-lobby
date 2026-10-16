@@ -27,6 +27,14 @@ SPDX-License-Identifier: MIT
             <slot />
         </button>
         <Button
+            v-else-if="needsGameFilesVerified"
+            class="red quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            disabled
+            style="min-height: unset"
+            >{{ t("lobby.components.controls.downloadContentButton.verifyGameFiles") }}</Button
+        >
+        <Button
             v-else
             class="red quick-download-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
@@ -45,6 +53,7 @@ import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { contentRefs, contentsStore, ensureContent, inFlightFor } from "@renderer/store/contents.store";
+import { infosStore } from "@renderer/store/infos.store";
 import { isInProgress } from "@main/content/content-state";
 
 const { t } = useTypedI18n();
@@ -84,6 +93,12 @@ watch(
 );
 
 const ready = computed(() => missing.value.length === 0);
+
+// Engines and games come with the install on an edition that does not download them, so offering a
+// download for one would only fail.
+const needsGameFilesVerified = computed(
+    () => !infosStore.features.downloadEngineAndGame && missing.value.some((ref) => ref.type === "engine" || ref.type === "game")
+);
 
 const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
 

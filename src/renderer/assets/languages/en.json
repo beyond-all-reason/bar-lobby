@@ -2438,7 +2438,8 @@
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Retrying…",
                     "contentRequired": "Engine and game must be downloaded before starting a battle.",
-                    "pathUnusable": "That folder cannot be used for game files. Pick a different one."
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one.",
+                    "installationIncomplete": "Installation incomplete — verify integrity of game files in Steam."
                 }
             },
             "battle": {
@@ -2625,7 +2626,8 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Downloading...",
-                    "download": "Download"
+                    "download": "Download",
+                    "verifyGameFiles": "Game files missing — verify them in Steam"
                 },
                 "select": {
                     "search": "Search"

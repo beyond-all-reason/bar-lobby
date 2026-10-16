@@ -84,6 +84,7 @@ import { contentsStore } from "@renderer/store/contents.store";
 import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 import { settingsStore } from "@renderer/store/settings.store";
+import { infosStore } from "@renderer/store/infos.store";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
@@ -388,9 +389,18 @@ onMounted(async () => {
     isDownloadPhase.value = true;
     titleKey.value = "lobby.components.misc.initialSetup.title";
 
+    // Where engines and games come with the install, nothing here can supply a missing one, so offering
+    // retries or a download would only send the player round in circles.
+    if (!infosStore.features.downloadEngineAndGame && !hasEngineAndGame()) {
+        isDownloadPhase.value = false;
+        stepError.value = "incomplete";
+        text.value = t("lobby.components.misc.initialSetup.installationIncomplete");
+        return;
+    }
+
     const needsEngine = installedEngineVersions.value.length === 0;
 
-    if (needsEngine) {
+    if (needsEngine && infosStore.features.changeAssetsPath) {
         selectedPath.value = await window.paths.getCurrentAssetsPath().catch(() => "");
         state.value = "path-selection";
         await new Promise<void>((resolve) => {
@@ -399,7 +409,14 @@ onMounted(async () => {
         state.value = "engine";
     }
 
-    const stages: DownloadStage[] = [
+    const stageEnabled: Record<DownloadStage["id"], boolean> = {
+        engine: infosStore.features.downloadEngineAndGame,
+        game: infosStore.features.downloadEngineAndGame,
+        maps: true,
+        update: infosStore.features.selfUpdate,
+    };
+
+    const allStages: DownloadStage[] = [
         {
             id: "engine",
             label: t("lobby.components.misc.initialSetup.downloadingEngine"),
@@ -463,6 +480,7 @@ onMounted(async () => {
             },
         },
     ];
+    const stages = allStages.filter((stage) => stageEnabled[stage.id]);
 
     const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
     let cursor = PRELOAD_WEIGHT;

@@ -9,12 +9,13 @@ import { MapData } from "@main/content/maps/map-data";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { getMapsPaths } from "@main/config/app";
+import { getMapsPaths, getRemovableMapsPaths } from "@main/config/app";
 import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { engineProvider } from "@main/content/engine/engine-provider";
 import { calcChecksum, holdChecksums } from "@main/utils/checksums";
+import { fileExists } from "@main/utils/file";
 
 const log = logger("map-provider.ts");
 
@@ -168,6 +169,27 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
         return this.downloadMaps([springName]);
     }
 
+    /**
+     * Whether removing the map would leave it gone. A copy in a directory that is not ours to delete from
+     * (the read-only assets root) would survive, so the map is not removable at all, even when another
+     * copy of it is.
+     */
+    public async isRemovable(springName: string) {
+        const fileName = this.mapNameFileNameLookup[springName];
+        if (!fileName) {
+            return true;
+        }
+
+        const removable = getRemovableMapsPaths();
+        for (const mapsDir of getMapsPaths().filter((dir) => !removable.includes(dir))) {
+            if (await fileExists(path.join(mapsDir, fileName))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public async uninstallVersion(version: MapData | string) {
         const springName = typeof version === "string" ? version : version.springName;
         const fileName = typeof version === "string" ? this.mapNameFileNameLookup[springName] : version.filename;
@@ -178,7 +200,7 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
 
         await this.serialise(() =>
             holdChecksums(async () => {
-                for (const mapsDir of getMapsPaths()) {
+                for (const mapsDir of getRemovableMapsPaths()) {
                     await fs.promises.rm(path.join(mapsDir, fileName), { force: true });
                 }
             })

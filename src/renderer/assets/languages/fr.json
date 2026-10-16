@@ -4443,7 +4443,8 @@
                     "stepFailed": null,
                     "stepRetrying": null,
                     "contentRequired": null,
-                    "pathUnusable": null
+                    "pathUnusable": null,
+                    "installationIncomplete": null
                 }
             },
             "battle": {
@@ -4630,7 +4631,8 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": null,
-                    "download": null
+                    "download": null,
+                    "verifyGameFiles": null
                 },
                 "select": {
                     "search": null

@@ -32,6 +32,7 @@ import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
 import { configService } from "./services/config.service";
+import { EDITION_FEATURES } from "@main/config/edition";
 import { reconcileCustomServers } from "@shared/lobby-server";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
@@ -138,8 +139,10 @@ app.whenReady().then(async () => {
         await settingsService.updateSettings({ customServerList: reconciledServers });
     }
     await customLobbiesService.init();
+    // The state directory is shared between editions, so the saved path may be one a standalone install
+    // chose, which an edition with a fixed assets directory must not pick up.
     const savedAssetsPath = settingsService.getSettings().assetsPath;
-    if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
+    if (savedAssetsPath && !process.env.BAR_ASSETS_PATH && EDITION_FEATURES.changeAssetsPath) {
         setAssetsPath(savedAssetsPath);
     }
     // A saved assets path can point somewhere unavailable, and the screen that lets the user repoint it
