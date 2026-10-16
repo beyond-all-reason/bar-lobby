@@ -70,7 +70,13 @@
             "profile": {
                 "status": "Satuts: ",
                 "clan": "Caln: ",
-                "userNotFound": "User not fnuod"
+                "userNotFound": "User not fnuod",
+                "battleHistory": {
+                    "title": "Blatte Htrisoy",
+                    "empty": "No oninle bealtts pleyad tihs sesosin.",
+                    "viewResults": "View Rutelss",
+                    "bots": "{count} bot | {count} btos"
+                }
             },
             "play": {
                 "comingSoon": "(Conimg Soon)",
@@ -178,13 +184,128 @@
             "custom": {
                 "title": "Meatliyplur Cuotsm Btalets",
                 "hostBattle": "Hsot Blatte",
+                "openLobby": "Oepn Lbboy",
+                "joinLobby": "Jion Lbboy",
+                "joinLobbyNamed": "Jion {name}",
+                "leaveLobbyFirst": "Laeve your crerunt lobby borefe jniniog aonethr.",
                 "removedFromLobby": "You hvae been reovmed form the lobby.",
                 "noLobbiesAvailable": "No geams fnuod.",
+                "lobbyUnavailable": "Tihs lobby is no logner aablviale",
+                "refresh": "Rfeesrh",
+                "newLobbies": "{count} new lobby sicne the lsat reefsrh | {count} new leibbos sicne the lsat reefsrh",
+                "autoRefresh": "Auto-reefsrh",
+                "autoRefreshTooltip": "Re-srot the lsit wehenevr leibbos cagnhe. Rows wlil move wilhe you raed tehm.",
+                "disconnected": "Not cntnoeecd. The lsit wlil reefsrh once the cnentoiocn is back.",
+                "filtersButton": "Frietls & Srot",
+                "menu": {
+                    "sortBy": "Srot by",
+                    "ascending": "Adeinsncg",
+                    "descending": "Dnnedsceig",
+                    "filters": "Frietls",
+                    "apply": "Apply",
+                    "reset": "Reest",
+                    "hide": "Hdie",
+                    "any": "Any",
+                    "only": "Olny"
+                },
                 "filters": {
-                    "hidePvE": "Hdie PvE",
-                    "hideLocked": "Hdie Leockd",
-                    "hideEmpty": "Hdie Etmpy",
-                    "hideInProgress": "Hdie Rnuinng"
+                    "title": {
+                        "label": "Title",
+                        "chip": "Title: {value}",
+                        "tooltip": "Lbboy tilte continas \"{value}\""
+                    },
+                    "tags": {
+                        "label": "Tags",
+                        "chip": "Tag: {value}",
+                        "tooltip": "Lbboy has the tag \"{value}\"",
+                        "placeholder": "Add a tag",
+                        "unknown": "No leibbos crelnrtuy use tihs tag"
+                    },
+                    "maps": {
+                        "label": "Maps",
+                        "chipOne": "Map: {value}",
+                        "chipMany": "{count} maps",
+                        "tooltip": "Plyead on: {value}",
+                        "choose": "Choose maps…",
+                        "clear": "Celar",
+                        "none": "Any map"
+                    },
+                    "players": {
+                        "label": "Plyreas",
+                        "chip": "Plyreas: {value}",
+                        "tooltip": "Loiebbs wtih {value} plyaers"
+                    },
+                    "openSpots": {
+                        "label": "Oepn sopts",
+                        "chip": "Oepn: {value}",
+                        "tooltip": "Loiebbs wtih {value} oepn pyaler sopts"
+                    },
+                    "fitsParty": {
+                        "label": "Ftis my party",
+                        "chip": "Ftis my party",
+                        "tooltip": "Loiebbs wtih eougnh oepn sopts for your wolhe party, or for you wehn you aern't in one"
+                    },
+                    "allyTeams": {
+                        "label": "Ally tmaes",
+                        "chip": "Tmaes: {value}",
+                        "tooltip": "Loiebbs wtih {value} ally tmaes"
+                    },
+                    "inProgress": {
+                        "label": "In btalte",
+                        "chipYes": "In prsgeros",
+                        "chipNo": "Not srtetad",
+                        "tooltipYes": "Olny leibbos wtih a btalte rniunng",
+                        "tooltipNo": "Olny leibbos wiantig to strat"
+                    },
+                    "passworded": {
+                        "label": "Psoaswrd prceotted",
+                        "chipYes": "Pdsrawesod",
+                        "chipNo": "No pawossrd",
+                        "tooltipYes": "Olny leibbos that need a pawossrd",
+                        "tooltipNo": "Olny leibbos aynnoe can jion"
+                    },
+                    "bossMode": {
+                        "label": "Boss mode",
+                        "chipYes": "Boss mode",
+                        "chipNo": "No boss",
+                        "tooltipYes": "Olny leibbos wtih a boss",
+                        "tooltipNo": "Olny leibbos whoutit a boss"
+                    },
+                    "hasFriend": {
+                        "label": "Ctnonias a finerd",
+                        "chip": "Fidnres",
+                        "tooltip": "Olny leibbos wtih at lseat one of your fienrds"
+                    },
+                    "hasPartyMember": {
+                        "label": "Ctnonias a party meembr",
+                        "chip": "Party",
+                        "tooltip": "Olny leibbos wtih a meembr of your party"
+                    },
+                    "engineVersion": {
+                        "label": "Egnnie veoirsn",
+                        "chip": "Egnnie: {value}",
+                        "tooltip": "Egnnie veoirsn is {value}",
+                        "any": "Any egnnie"
+                    },
+                    "gameVersion": {
+                        "label": "Gmae veoirsn",
+                        "chip": "Gmae: {value}",
+                        "tooltip": "Gmae veoirsn is {value}",
+                        "any": "Any gmae"
+                    },
+                    "range": {
+                        "between": "{min}–{max}",
+                        "atLeast": "{min} or more",
+                        "atMost": "{max} or fweer"
+                    }
+                },
+                "sort": {
+                    "playerCount": "Plyreas",
+                    "openSpots": "Oepn sopts",
+                    "maxPlayerCount": "Max plyaers",
+                    "name": "Title",
+                    "mapName": "Map",
+                    "battleDuration": "Time in prsgeros"
                 },
                 "table": {
                     "bestBattle": "Bset Blatte",
@@ -192,14 +313,41 @@
                     "map": "Map",
                     "players": "Plyreas",
                     "runningFor": "Rnuinng for",
-                    "join": "Jion"
+                    "join": "Jion",
+                    "openSpots": "Oepn",
+                    "status": "Satuts",
+                    "waiting": "Wiaintg"
                 },
                 "lobby": {
                     "title": "Lbboy",
                     "gameVersion": "Gmae Vosiren",
                     "engineVersion": "Egnnie Vosiren",
                     "maps": "Maps",
-                    "map": "Map"
+                    "map": "Map",
+                    "startBoxShortfall": "Canont strat: olny {boxed} of {teams} ally tmaes hvae a strat box."
+                },
+                "mapPicker": {
+                    "title": "Choose maps",
+                    "selected": "{count} steelecd",
+                    "selectAllShown": "Slecet all swhon",
+                    "clear": "Celar",
+                    "done": "Dnoe"
+                },
+                "preview": {
+                    "membership": "You are in tihs lobby",
+                    "membershipPlayer": "You are in tihs lobby as a pyaler",
+                    "membershipSpectator": "You are in tihs lobby as a satoceptr",
+                    "membershipQueued": "You are in tihs lobby, queued to paly (#{position})",
+                    "players": "Plyreas: {players}/{max}",
+                    "openSpots": "{count} oepn",
+                    "waiting": "Wiaintg to strat",
+                    "inBattle": "Blatte in prsgeros: {duration}",
+                    "allyTeams": "{count} ally team | {count} ally tmaes",
+                    "friends": "{count} finerd in tihs lobby | {count} fienrds in tihs lobby",
+                    "passworded": "Psoaswrd prceotted",
+                    "bossMode": "Boss mode",
+                    "gameVersion": "Gmae: {version}",
+                    "engineVersion": "Egnnie: {version}"
                 }
             }
         },
@@ -252,7 +400,8 @@
                 "remove": "Rmvoee",
                 "info": "Chinnagg the Atvcie Seevrr has imdmiaete eeffct. Remeebmr to log in afetr sthwciing.",
                 "labelDefault": " - Dfuaelt Seevrrs",
-                "labelCustom": " - Cuotsm Seevrrs"
+                "labelCustom": " - Cuotsm Seevrrs",
+                "useDefaultServer": "Use dfauelt sveerr coginfituraon"
             },
             "breadcrumbs": {
                 "back": "Back"
@@ -476,7 +625,17 @@
                     "fixedPositions": "Fiexd piooitsns",
                     "random": "Rdoanm",
                     "close": "Csole",
-                    "openMapSelector": "Oepn map seteoclr"
+                    "openMapSelector": "Oepn map seteoclr",
+                    "startboxOverride": "Strat box odverrie",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "Teshe strat bxeos culod not be raed."
+                },
+                "startBoxesModal": {
+                    "title": "Strat Beoxs",
+                    "mapDefault": "Map dfauelt",
+                    "editAsRectangles": "Eidt as rcnaelegts",
+                    "cancel": "Ceancl",
+                    "apply": "Apply"
                 },
                 "hostBattle": {
                     "title": "Hsot Blatte",
@@ -485,9 +644,6 @@
                     "hostButton": "Hsot Blatte",
                     "updateButton": "Uadpte Blatte",
                     "name": "Name",
-                    "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
-                    "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
-                    "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
                     "allyTeamCount": "AyaeTllm Cunot: ",
                     "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
                     "map": "Map",
@@ -621,6 +777,18 @@
                     "description2": "Wulod you like to atemtpt to rejoin the btalte?",
                     "rejoinButton": "Reojin",
                     "ignoreButton": "Ingroe"
+                },
+                "battleResults": {
+                    "victory": "Victroy",
+                    "defeat": "Deaeft",
+                    "battleEnded": "Blatte Eednd",
+                    "draw": "Darw",
+                    "winner": "Wiennr",
+                    "team": "Team {team}",
+                    "spectators": "Setptacros",
+                    "inviteToParty": "Iivnte to Party",
+                    "partyFull": "Party Full",
+                    "acceptFriendRequest": "Acepct Finerd Rquseet"
                 }
             },
             "controls": {

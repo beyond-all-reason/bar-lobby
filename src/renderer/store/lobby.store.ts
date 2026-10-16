@@ -36,6 +36,7 @@ import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { decodeLobbyStartboxes } from "@renderer/utils/lobby-startboxes";
 
 const lobbySymbol = Symbol("lobby.store");
 
@@ -44,15 +45,15 @@ type LobbyId = string;
 export const lobbyStore: {
     isInitialized: boolean;
     lobbies: Record<LobbyId, LobbyOverview>;
-    selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
     wantsListSubscription: boolean;
+    listGeneration: number;
 } = reactive({
     isInitialized: false,
     lobbies: {},
-    selectedLobby: undefined,
     activeLobby: undefined,
     wantsListSubscription: false,
+    listGeneration: 0,
 });
 
 export async function initLobbyStore() {
@@ -95,13 +96,12 @@ function onUserSelfEventLobby(lobbyId: PrivateUser["currentLobby"]) {
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     lobbyStore.lobbies = applyPatch(lobbyStore.lobbies, data.lobbies);
-    clearSelectedLobbyIfUndefined();
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
-    clearSelectedLobbyIfUndefined();
+    lobbyStore.listGeneration++;
 }
 
 function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
@@ -302,6 +302,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             battleStore.battleOptions.map = map;
         });
     }
+    if (data.gameOptions) {
+        refreshLobbyStartboxes();
+    }
     if (data.allyTeamConfig) {
         // TODO: we shouldn't have to reset the startboxes like this, but since the player can go into a skirmish
         // setup, and mess with battleStore/Options, we're going to do this here anyway. Later, we want to make
@@ -329,6 +332,19 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     // Manage our User subscriptions after updated/joined/created
     subsManager.setList([...Object.keys(lobbyStore.activeLobby.players), ...Object.keys(lobbyStore.activeLobby.spectators)], lobbySymbol);
     return;
+}
+
+let startboxesDecode = 0;
+
+async function refreshLobbyStartboxes() {
+    const lobby = lobbyStore.activeLobby;
+    if (!lobby) return;
+
+    const decode = ++startboxesDecode;
+    const startboxes = await decodeLobbyStartboxes(lobby.gameOptions);
+    if (decode === startboxesDecode && lobbyStore.activeLobby?.id === lobby.id) {
+        lobbyStore.activeLobby.startboxes = startboxes;
+    }
 }
 
 /**
@@ -451,15 +467,6 @@ async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
         console.log("Tachyon lobby/update:", response);
     } catch {
         notificationsApi.alert({ text: "Error with request lobby/update", severity: "error" });
-    }
-}
-
-/**
- * In case a lobby is selected when a list update removes it, this removes it from being selected.
- */
-function clearSelectedLobbyIfUndefined() {
-    if (lobbyStore.selectedLobby && !(lobbyStore.selectedLobby.id in lobbyStore.lobbies)) {
-        lobbyStore.selectedLobby = undefined;
     }
 }
 
@@ -611,7 +618,7 @@ async function requestUnboss(userId?: UserId) {
 export function clearOnlineState() {
     clearUserSubscriptions();
     lobbyStore.lobbies = {};
-    lobbyStore.selectedLobby = undefined;
+    lobbyStore.listGeneration++;
     lobbyStore.activeLobby = undefined;
 }
 

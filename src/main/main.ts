@@ -12,6 +12,7 @@ import netFromNode from "node:net";
 import { createWindow } from "@main/main-window";
 import { installApplicationMenu } from "@main/browser-behaviours";
 import { settingsService } from "./services/settings.service";
+import { customLobbiesService } from "./services/custom-lobbies.service";
 import { infoService } from "./services/info.service";
 import { logService } from "@main/services/log.service";
 import contentService from "./services/content.service";
@@ -31,6 +32,7 @@ import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
 import { configService } from "./services/config.service";
+import { reconcileCustomServers } from "@shared/lobby-server";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -130,6 +132,12 @@ app.whenReady().then(async () => {
     // Config is fetched first because it contains URLs and other values that other services may depend on.
     await configService.init();
     await settingsService.init();
+    const { lobbyServerOverride, customServerList } = settingsService.getSettings();
+    const reconciledServers = reconcileCustomServers(lobbyServerOverride, customServerList, configService.getConfig().defaultServers);
+    if (reconciledServers.join("\n") !== customServerList.join("\n")) {
+        await settingsService.updateSettings({ customServerList: reconciledServers });
+    }
+    await customLobbiesService.init();
     const savedAssetsPath = settingsService.getSettings().assetsPath;
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
         setAssetsPath(savedAssetsPath);
@@ -150,6 +158,7 @@ app.whenReady().then(async () => {
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
+    customLobbiesService.registerIpcHandlers();
     authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);

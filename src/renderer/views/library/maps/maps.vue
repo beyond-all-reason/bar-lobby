@@ -15,11 +15,11 @@ SPDX-License-Identifier: MIT
         </div>
         <div class="layout">
             <Panel class="map-filters">
-                <MapFiltersComponent />
+                <MapFiltersComponent v-model:filters="filters" />
             </Panel>
             <Panel class="flex-grow">
                 <div class="flex-col fullheight">
-                    <MapListComponent @map-selected="onMapSelected" />
+                    <MapListComponent :filters="filters" @map-selected="onMapSelected" />
                 </div>
             </Panel>
         </div>
@@ -27,15 +27,19 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { ref } from "vue";
 import { MapData } from "@main/content/maps/map-data";
 import Panel from "@renderer/components/common/Panel.vue";
 import MapFiltersComponent from "@renderer/components/maps/MapFiltersComponent.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
+import { createMapFilterState } from "@renderer/components/maps/filters/map-filter-state";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
 const router = useRouter();
+
+const filters = ref(createMapFilterState());
 
 async function onMapSelected(map: MapData) {
     await router.push(`/library/maps/${map.springName}`);

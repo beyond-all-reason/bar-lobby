@@ -183,7 +183,7 @@ function onLogoClick() {
     if (tachyonStore.springConnectionDetails) {
         tachyonStore.rejoinModalOpen = true;
     } else {
-        router.push("/play");
+        router.push("/play/menu");
     }
 }
 </script>

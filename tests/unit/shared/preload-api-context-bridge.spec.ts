@@ -15,7 +15,25 @@ type MockIpcRenderer = {
 
 describe("Preload API Context Bridge", () => {
     // List of all APIs exposed in the preload script
-    const apiNames = ["log", "info", "mainWindow", "shell", "replays", "settings", "auth", "content", "engine", "game", "maps", "misc", "barNavigation", "tachyon", "autoUpdater", "notifications"];
+    const apiNames = [
+        "log",
+        "info",
+        "mainWindow",
+        "shell",
+        "replays",
+        "settings",
+        "customLobbies",
+        "auth",
+        "content",
+        "engine",
+        "game",
+        "maps",
+        "misc",
+        "barNavigation",
+        "tachyon",
+        "autoUpdater",
+        "notifications",
+    ];
 
     let mockWindow: any;
     let mockIpcRenderer: MockIpcRenderer;
@@ -156,6 +174,16 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:get");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:update", { foo: "bar" });
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:toggleFullscreen");
+    });
+
+    it("should expose custom lobbies API", async () => {
+        await import("@preload/preload");
+
+        mockWindow.customLobbies.get();
+        mockWindow.customLobbies.update({ autoRefresh: true });
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("customLobbies:get");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("customLobbies:update", { autoRefresh: true });
     });
 
     it("should expose auth API", async () => {

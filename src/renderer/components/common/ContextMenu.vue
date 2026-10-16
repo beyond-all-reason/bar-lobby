@@ -5,14 +5,20 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <ContextMenu ref="contextMenu" :model="model" v-bind="$attrs" />
+    <ContextMenu ref="contextMenu" :model="model" v-bind="$attrs" @hide="onHide" />
 </template>
+
+<script lang="ts">
+// Shared by every instance so only one menu is open at a time. PrimeVue's show() stops the contextmenu
+// event propagating, so an open menu never hears the right click that opens another and would stay open.
+let closeOpenMenu: (() => void) | undefined;
+</script>
 
 <script lang="ts" setup>
 // https://primefaces.org/primevue/contextmenu
 
 import ContextMenu, { ContextMenuProps } from "primevue/contextmenu";
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 
 // model is declared as a prop, so Vue excludes it from $attrs and it must be forwarded explicitly
 const { model } = defineProps<ContextMenuProps>();
@@ -39,12 +45,21 @@ function hide(): void {
 }
 
 function show(event: Event): void {
+    if (closeOpenMenu !== hide) closeOpenMenu?.();
+    closeOpenMenu = hide;
     contextMenu.value!.show(event);
 }
 
 function toggle(event: Event): void {
-    contextMenu.value!.toggle(event);
+    if (closeOpenMenu === hide) hide();
+    else show(event);
 }
+
+function onHide(): void {
+    if (closeOpenMenu === hide) closeOpenMenu = undefined;
+}
+
+onBeforeUnmount(onHide);
 </script>
 
 <style lang="scss">
