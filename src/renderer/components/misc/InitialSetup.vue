@@ -241,6 +241,18 @@ onUnmounted(() => {
     if (extractionTimer) clearInterval(extractionTimer);
 });
 
+// A stage that only sometimes downloads starts out naming what it always does, and names the download
+// once one actually starts, so nobody is told something is downloading when nothing is. Each attempt
+// sets its opening label again, so a retry does not inherit the last attempt's.
+function relabelStage(stage: DownloadStage, label: string) {
+    stage.label = label;
+    if (currentStage !== stage || stepError.value) {
+        return;
+    }
+
+    text.value = stepRetrying.value ? t("lobby.components.misc.initialSetup.stepRetrying", { step: label }) : label;
+}
+
 function beginStage(start: number, end: number) {
     stageStart = start;
     stageEnd = end;
@@ -446,10 +458,11 @@ onMounted(async () => {
         },
         {
             id: "maps",
-            label: t("lobby.components.misc.initialSetup.downloadingMaps"),
+            label: t("lobby.components.misc.initialSetup.updatingMapList"),
             weight: 2,
             canSkip: () => true,
             async run() {
+                relabelStage(this, t("lobby.components.misc.initialSetup.updatingMapList"));
                 try {
                     await syncMapsMetadata();
                 } catch (error) {
@@ -457,6 +470,7 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingMaps"));
                     await window.maps.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
@@ -468,12 +482,14 @@ onMounted(async () => {
         },
         {
             id: "update",
-            label: t("lobby.components.misc.initialSetup.downloadingUpdate"),
+            label: t("lobby.components.misc.initialSetup.checkingForUpdates"),
             weight: 1,
             canSkip: () => true,
             async run() {
+                relabelStage(this, t("lobby.components.misc.initialSetup.checkingForUpdates"));
                 const updateAvailable = await window.autoUpdater.checkForUpdates();
                 if (updateAvailable) {
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingUpdate"));
                     await window.autoUpdater.downloadUpdate();
                     await window.autoUpdater.installUpdates();
                 }
