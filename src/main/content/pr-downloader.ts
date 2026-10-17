@@ -12,7 +12,8 @@ import { AbstractContentAPI } from "./abstract-content";
 import { engineProvider } from "./engine/engine-provider";
 import { logger } from "@main/utils/logger";
 import { configService } from "@main/services/config.service";
-import { getAssetsPath, getEnginePath, getCaCertPath, getPackagePath } from "@main/config/app";
+import { getAssetsPath, getContentWriteRoot, getEnginePath, getCaCertPath, getPackagePath } from "@main/config/app";
+import { EDITION_FEATURES } from "@main/config/edition";
 import { holdChecksums } from "@main/utils/checksums";
 
 const log = logger("pr-downloader.ts");
@@ -80,7 +81,8 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
                 const caCertPath = getCaCertPath();
                 const downloadArgs = names.flatMap((asset) => [downloadArg, asset]);
-                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getAssetsPath(), ...downloadArgs], {
+                // The state directory when the assets root is read-only. The engine searches both.
+                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getContentWriteRoot(), ...downloadArgs], {
                     env: {
                         ...process.env,
                         PRD_RAPID_USE_STREAMER: configService.getConfig().prdRapidUseStreamer,
@@ -177,6 +179,11 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
     // Resolution happens against the local install, so an md5 is the only name that cannot come back
     // ambiguous or go missing once a rapid tag stops being published.
     protected async uninstallContent(packageMd5: string) {
+        // Games are only ever installed under the assets root.
+        if (EDITION_FEATURES.assetsReadOnly) {
+            throw new Error(`Refusing to uninstall ${packageMd5}: the assets directory is read-only in this edition.`);
+        }
+
         const binaryPath = this.getPrdBinaryPath();
 
         if (!(await PrDownloaderAPI.supportsUninstall(binaryPath))) {

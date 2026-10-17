@@ -5,8 +5,13 @@
 import { ContentRef } from "@main/content/content-ref";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { contentsStore } from "@renderer/store/contents.store";
+import { infosStore } from "@renderer/store/infos.store";
+import type { EditionFeatures } from "@main/config/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
+const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
 
 const { missing, ensure } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn() }));
 
@@ -43,6 +48,7 @@ describe("DownloadContentButton", () => {
         ensure.mockReset().mockResolvedValue(undefined);
         contentsStore.inFlight = [];
         contentsStore.revision = 0;
+        infosStore.features = standalone;
     });
 
     it("offers the download until the content is known to be present", async () => {
@@ -133,5 +139,38 @@ describe("DownloadContentButton", () => {
         await flushPromises();
 
         expect(wrapper.text()).toContain("downloading");
+    });
+
+    describe("on an edition that does not download engines or games", () => {
+        beforeEach(() => {
+            infosStore.features = steam;
+        });
+
+        it("sends the player to verify their game files instead of offering a download", async () => {
+            missing.mockResolvedValue([{ type: "engine", id: "2025.01.3" }]);
+
+            const wrapper = mountButton({ maps: ["Quicksilver"], engines: ["2025.01.3"] });
+            await flushPromises();
+
+            expect(wrapper.text()).toContain("verifyGameFiles");
+            expect(wrapper.text()).not.toContain("downloadContentButton.download");
+
+            await wrapper.get(".quick-download-button").trigger("click");
+            await flushPromises();
+
+            expect(ensure).not.toHaveBeenCalled();
+        });
+
+        it("still offers to download a missing map", async () => {
+            missing.mockResolvedValue([{ type: "map", id: "Quicksilver" }]);
+
+            const wrapper = mountButton();
+            await flushPromises();
+
+            await wrapper.get(".quick-download-button").trigger("click");
+            await flushPromises();
+
+            expect(ensure).toHaveBeenCalledWith([{ type: "map", id: "Quicksilver" }]);
+        });
     });
 });

@@ -4,6 +4,7 @@
 
 import { Downloader } from "@main/content/abstract-content";
 import { logger } from "@main/utils/logger";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import { app } from "electron";
 import electronUpdater from "electron-updater";
 const { autoUpdater } = electronUpdater;
@@ -19,6 +20,10 @@ export class AutoUpdaterAPI extends Downloader {
 
     public async init() {
         log.info("Initializing AutoUpdaterAPI");
+        if (!EDITION_FEATURES.selfUpdate) {
+            log.info(`Self-update is disabled in the ${EDITION} edition. Skipping initialization`);
+            return this;
+        }
         if (!app.isPackaged) {
             log.info("App is not packaged. Skipping initializaion");
             return this;
@@ -107,10 +112,12 @@ export class AutoUpdaterAPI extends Downloader {
     }
 
     public installUpdates(): void {
+        if (!this.initialized) return;
         autoUpdater.quitAndInstall(true, true);
     }
 
     public quitAndInstall(): void {
+        if (!this.initialized) return;
         autoUpdater.quitAndInstall();
     }
 }

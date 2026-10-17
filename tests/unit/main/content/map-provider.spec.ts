@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // path.join decides the separator, so nothing here may assume which one it used.
-const { dir, parser, checksums, gate, basename } = vi.hoisted(() => {
+const { dir, parser, checksums, gate, layout, basename, posix } = vi.hoisted(() => {
     const dir = new Set<string>();
     const parser = { unreadable: new Set<string>(), parsed: [] as string[] };
     // Mirrors the real lock rather than asserting it was consulted: held work runs inside, and the order
@@ -25,10 +25,23 @@ const { dir, parser, checksums, gate, basename } = vi.hoisted(() => {
     // Lets a test hold a parse open so a second sync can be started while the first is mid-pass.
     const gate: { held: Promise<void> | null } = { held: null };
 
-    return { dir, parser, checksums, gate, basename: (filePath: string) => filePath.split(/[\\/]/).pop() ?? filePath };
+    // Map directories as app.ts reports them. The read-only edition tests add a bundled one the provider
+    // may read but never delete from; readdir only ever lists /maps.
+    const layout = { mapsPaths: ["/maps"], removable: ["/maps"], bundledFiles: new Set<string>(), removedFrom: [] as string[] };
+
+    return {
+        dir,
+        parser,
+        checksums,
+        gate,
+        layout,
+        basename: (filePath: string) => filePath.split(/[\\/]/).pop() ?? filePath,
+        posix: (filePath: string) => filePath.replace(/\\/g, "/"),
+    };
 });
 
-vi.mock("@main/config/app", () => ({ getMapsPaths: () => ["/maps"] }));
+vi.mock("@main/config/app", () => ({ getMapsPaths: () => layout.mapsPaths, getRemovableMapsPaths: () => layout.removable }));
+vi.mock("@main/utils/file", () => ({ fileExists: async (filePath: string) => layout.bundledFiles.has(posix(filePath)) }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
@@ -63,6 +76,7 @@ vi.mock("fs", () => ({
             return [...dir];
         },
         rm: async (path: string) => {
+            layout.removedFrom.push(posix(path));
             checksums.events.push("deleted");
             dir.delete(basename(path));
         },
@@ -216,5 +230,41 @@ describe("MapProvider map index", () => {
 
     it("refuses to remove a map it has no file for", async () => {
         await expect(provider.uninstallVersion("never installed")).rejects.toThrow("No installed map file");
+    });
+});
+
+describe("MapProvider with a read-only bundled maps directory", () => {
+    let provider: MapProvider;
+
+    beforeEach(async () => {
+        dir.clear();
+        layout.mapsPaths = ["/maps", "/bundled"];
+        layout.removable = ["/maps"];
+        layout.bundledFiles.clear();
+        layout.removedFrom.length = 0;
+        provider = new MapProvider();
+        dir.add("quicksilver.sd7");
+        await provider.syncMaps();
+    });
+
+    afterEach(() => {
+        layout.mapsPaths = ["/maps"];
+        layout.removable = ["/maps"];
+    });
+
+    it("calls a map removable when only the downloaded copy exists", async () => {
+        expect(await provider.isRemovable("quicksilver")).toBe(true);
+    });
+
+    it("does not call a map removable when the bundled directory has a copy", async () => {
+        layout.bundledFiles.add("/bundled/quicksilver.sd7");
+
+        expect(await provider.isRemovable("quicksilver")).toBe(false);
+    });
+
+    it("deletes only from the removable directories", async () => {
+        await provider.uninstallVersion("quicksilver");
+
+        expect(layout.removedFrom).toEqual(["/maps/quicksilver.sd7"]);
     });
 });

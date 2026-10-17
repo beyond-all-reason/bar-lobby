@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Everything the vi.mock factories touch has to be hoisted with them, otherwise the factories run
 // before these bindings are initialised.
-const { installed, unresolvable, acquired, removed, progress, retry, watcher, disk, gate, used, usage, defaultEngine, stubProvider } = vi.hoisted(() => {
+const { installed, unresolvable, bundled, edition, acquired, removed, progress, retry, watcher, disk, gate, used, usage, defaultEngine, stubProvider } = vi.hoisted(() => {
     type Listener = (data: unknown) => void;
 
     function fakeSignal() {
@@ -35,6 +35,10 @@ const { installed, unresolvable, acquired, removed, progress, retry, watcher, di
     // Content the transport cannot resolve: it comes back reporting nothing wrong, having installed
     // nothing, which is what the queue settles against.
     const unresolvable = new Set<string>();
+    // Maps with a copy in the read-only assets root, which the map provider will not call removable.
+    const bundled = new Set<string>();
+    // Swapped wholesale by the edition tests; everything else runs as standalone.
+    const edition = { features: { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false } };
     const acquired: string[] = [];
     const removed: string[] = [];
     const progress = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
@@ -62,6 +66,8 @@ const { installed, unresolvable, acquired, removed, progress, retry, watcher, di
     return {
         installed,
         unresolvable,
+        bundled,
+        edition,
         acquired,
         removed,
         progress,
@@ -153,6 +159,7 @@ vi.mock("@main/content/maps/map-provider", () => {
             downloadMap: stub.acquire,
             downloadMaps: stub.acquireMany,
             uninstallVersion: stub.remove,
+            isRemovable: async (id: string) => !bundled.has(id),
             init: async () => {},
             reinit: async () => {},
             onMapAdded: watcher.added,
@@ -168,7 +175,8 @@ vi.mock("@main/content/pr-downloader", () => ({
 }));
 vi.mock("@main/config/default-versions", () => ({ DEFAULT_ENGINE_VERSION: defaultEngine }));
 vi.mock("@main/config/content-policy", () => ({ MAX_CONCURRENT_DOWNLOADS: 3, CONTENT_RETENTION_DAYS: 90, MIN_FREE_BYTES_TO_ACQUIRE: 2 * 1024 * 1024 * 1024 }));
-vi.mock("@main/config/app", () => ({ getAssetsPath: () => "/assets" }));
+vi.mock("@main/config/app", () => ({ getContentWriteRoot: () => "/assets" }));
+vi.mock("@main/config/edition", () => ({ EDITION_FEATURES: edition.features }));
 vi.mock("@main/utils/disk-space", () => ({ freeBytes: () => disk.free(), formatBytes: (bytes: number) => `${bytes}B` }));
 vi.mock("@main/content/content-usage", () => ({ contentUsage: usage }));
 vi.mock("@main/utils/logger", () => ({
@@ -634,5 +642,116 @@ describe("contentAPI free space", () => {
         await contentAPI.ensure([{ type: "map", id: "Unmeasurable 1.0" }]);
 
         expect(acquired).toEqual(["map:Unmeasurable 1.0"]);
+    });
+});
+
+describe("contentAPI on an edition with read-only bundled assets", () => {
+    beforeEach(async () => {
+        const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+        Object.assign(edition.features, editionFeatures("steam"));
+        installed.clear();
+        installed.add("engine:2025.01.3");
+        installed.add("game:Beyond All Reason test-1-abc");
+        bundled.clear();
+        acquired.length = 0;
+        removed.length = 0;
+        used.clear();
+    });
+
+    afterEach(async () => {
+        const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+        Object.assign(edition.features, editionFeatures("standalone"));
+    });
+
+    it("refuses to acquire a missing engine and points at verifying the install", async () => {
+        await expect(contentAPI.ensure([{ type: "engine", id: "2099.12.1" }])).rejects.toThrow("verify the integrity of the game files");
+
+        expect(acquired).toEqual([]);
+        expect(contentAPI.state()).toEqual(expect.arrayContaining([expect.objectContaining({ type: "engine", id: "2099.12.1", status: "failed" })]));
+    });
+
+    it("refuses to acquire a missing game", async () => {
+        await expect(contentAPI.ensure([{ type: "game", id: "Beyond All Reason test-2-def" }])).rejects.toThrow("Steam");
+
+        expect(acquired).toEqual([]);
+    });
+
+    it("still resolves engine and game refs that are installed", async () => {
+        await expect(
+            contentAPI.ensure([
+                { type: "engine", id: "2025.01.3" },
+                { type: "game", id: "Beyond All Reason test-1-abc" },
+            ])
+        ).resolves.toBeUndefined();
+    });
+
+    it("acquires maps", async () => {
+        await contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }]);
+
+        expect(acquired).toEqual(["map:Not Bundled 1.0"]);
+    });
+
+    it("acquires the maps in a request whose engine it refuses", async () => {
+        await expect(
+            contentAPI.ensure([
+                { type: "engine", id: "2099.12.1" },
+                { type: "map", id: "Not Bundled 1.0" },
+            ])
+        ).rejects.toThrow("Steam");
+
+        expect(acquired).toEqual(["map:Not Bundled 1.0"]);
+    });
+
+    it("does not fetch an engine to get pr-downloader when none is installed", async () => {
+        installed.delete("engine:2025.01.3");
+
+        await expect(contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }])).rejects.toThrow("Steam");
+
+        expect(acquired).toEqual([]);
+    });
+
+    it("leaves engines and games alone when asked to remove them", async () => {
+        installed.add("engine:2025.01.2");
+
+        await contentAPI.remove([
+            { type: "engine", id: "2025.01.2" },
+            { type: "game", id: "Beyond All Reason test-1-abc" },
+        ]);
+
+        expect(removed).toEqual([]);
+        expect(installed.has("engine:2025.01.2")).toBe(true);
+        expect(installed.has("game:Beyond All Reason test-1-abc")).toBe(true);
+    });
+
+    it("leaves a bundled map alone when asked to remove it", async () => {
+        installed.add("map:Bundled 1.0");
+        bundled.add("Bundled 1.0");
+
+        await expect(contentAPI.remove([{ type: "map", id: "Bundled 1.0" }])).resolves.toBeUndefined();
+
+        expect(removed).toEqual([]);
+        expect(installed.has("map:Bundled 1.0")).toBe(true);
+    });
+
+    it("removes a downloaded map", async () => {
+        installed.add("map:Downloaded 1.0");
+
+        await contentAPI.remove([{ type: "map", id: "Downloaded 1.0" }]);
+
+        expect(removed).toEqual(["map:Downloaded 1.0"]);
+    });
+
+    it("sweeps only downloaded maps", async () => {
+        const ancient = new Date(Date.now() - 200 * 24 * 60 * 60 * 1000);
+        installed.add("engine:2025.01.2");
+        installed.add("map:Bundled 1.0");
+        installed.add("map:Downloaded 1.0");
+        bundled.add("Bundled 1.0");
+        for (const key of installed) {
+            used.set(key, ancient);
+        }
+
+        expect(await contentAPI.sweep()).toEqual([{ type: "map", id: "Downloaded 1.0" }]);
+        expect(removed).toEqual(["map:Downloaded 1.0"]);
     });
 });

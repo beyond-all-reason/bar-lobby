@@ -17,11 +17,18 @@ import { contentUsage } from "@main/content/content-usage";
 import { findPrdBinary } from "@main/content/pr-downloader";
 import { CONTENT_RETENTION_DAYS, MIN_FREE_BYTES_TO_ACQUIRE } from "@main/config/content-policy";
 import { configService } from "@main/services/config.service";
-import { getAssetsPath } from "@main/config/app";
+import { getContentWriteRoot } from "@main/config/app";
+import { EDITION_FEATURES } from "@main/config/edition";
 import { formatBytes, freeBytes } from "@main/utils/disk-space";
 import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
+
+// Engines and games arrive with the install on an edition that does not download them, so a missing one
+// means the install is damaged and only the store that installed it can put it back.
+function notDownloadable(ref: ContentRef) {
+    return new Error(`${ref.type} '${ref.id}' is missing. Engines and games come with the Steam install: verify the integrity of the game files in Steam.`);
+}
 
 // A provider dispatches progress for everything it is downloading on one signal, so acquisitions that
 // run alongside each other hear the others and have to ignore what is not theirs. A pr-downloader batch
@@ -194,7 +201,7 @@ class ContentAPI {
 
         const cutoff = Date.now() - CONTENT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
         const unseen: ContentRef[] = [];
-        const stale: ContentRef[] = [];
+        const aged: ContentRef[] = [];
 
         for (const ref of installed) {
             if (claimed.has(contentRefKey(ref))) {
@@ -210,11 +217,12 @@ class ContentAPI {
             if (!used) {
                 unseen.push(ref);
             } else if (used.getTime() <= cutoff) {
-                stale.push(ref);
+                aged.push(ref);
             }
         }
 
         await this.markUsed(unseen);
+        const stale = await this.removableOf(aged);
 
         // pr-downloader comes out of an engine, so removing the last one takes away the means of ever
         // getting another. Keep the newest regardless of how long it has sat unused.
@@ -270,16 +278,22 @@ class ContentAPI {
     // find the startup flow that would have done it. Checked without awaiting first, so the usual case
     // still enqueues in the same tick as the caller asked.
     public async ensure(refs: ContentRef[]) {
-        if (this.missing(refs).length > 0) {
+        const acquirable = refs.filter((ref) => this.canAcquire(ref));
+
+        if (this.missing(acquirable).length > 0) {
             await this.assertRoomToAcquire();
         }
 
-        if (this.missing(refs).some((ref) => ref.type !== "engine") && !findPrdBinary()) {
+        if (this.missing(acquirable).some((ref) => ref.type !== "engine") && !findPrdBinary()) {
             log.info("No pr-downloader available, acquiring the default engine first");
             await this.ensure([{ type: "engine", id: configService.getConfig().defaultEngineVersion }]);
         }
 
-        const acquisitions = await Promise.allSettled(this.missing(refs).map((ref) => this.track(this.queue.enqueue("acquire", ref), ref)));
+        // Refused through track like any other failure, so the renderer sees why next to the content it
+        // asked for, and whatever in the same call can be acquired still is.
+        const acquisitions = await Promise.allSettled(
+            this.missing(refs).map((ref) => this.track(this.canAcquire(ref) ? this.queue.enqueue("acquire", ref) : Promise.reject(notDownloadable(ref)), ref))
+        );
 
         // Stamped by what is on disk now rather than by what was asked for, so content that landed is
         // not left unrecorded because something else in the same call did not.
@@ -294,8 +308,12 @@ class ContentAPI {
     // Refusing up front beats a transport failing partway with whatever error the filesystem gave it.
     // A volume we cannot measure is not treated as full: being unable to check is not a reason to stop
     // someone downloading.
+    private canAcquire(ref: ContentRef) {
+        return EDITION_FEATURES.downloadEngineAndGame || (ref.type !== "engine" && ref.type !== "game");
+    }
+
     private async assertRoomToAcquire() {
-        const assetsPath = getAssetsPath();
+        const assetsPath = getContentWriteRoot();
         let free: number;
 
         try {
@@ -315,8 +333,32 @@ class ContentAPI {
     // and skip the queue, which is the one thing keeping the two operations from overlapping. The
     // queue settles a removal on the content being gone, so removing what was never there is fine.
     public async remove(refs: ContentRef[]) {
-        this.assertAnEngineSurvives(refs);
-        await Promise.all(refs.map((ref) => this.track(this.queue.enqueue("remove", ref), ref)));
+        // Awaited only when there is something to check, so a removal still enqueues in the same tick
+        // as the caller asked whenever the whole assets root is ours.
+        const removable = EDITION_FEATURES.assetsReadOnly ? await this.removableOf(refs) : refs;
+
+        this.assertAnEngineSurvives(removable);
+        await Promise.all(removable.map((ref) => this.track(this.queue.enqueue("remove", ref), ref)));
+    }
+
+    // Under a read-only assets root only maps downloaded into the state directory are ours. Asking to
+    // remove anything else does nothing rather than failing: the bundled copy is the one the install is
+    // meant to have.
+    private async removableOf(refs: ContentRef[]) {
+        if (!EDITION_FEATURES.assetsReadOnly) {
+            return refs;
+        }
+
+        const removable: ContentRef[] = [];
+        for (const ref of refs) {
+            if (ref.type === "map" && (await mapProvider.isRemovable(ref.id))) {
+                removable.push(ref);
+            } else {
+                log.info(`Leaving ${contentRefKey(ref)} alone: it is part of the read-only assets directory`);
+            }
+        }
+
+        return removable;
     }
 
     // pr-downloader ships inside an engine, so a client with none cannot fetch a game or a map. Enforced

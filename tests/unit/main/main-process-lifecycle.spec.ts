@@ -47,10 +47,12 @@ describe("Main Process Lifecycle", () => {
         navigationService: { registerIpcHandlers: vi.fn() },
         pathsService: { registerIpcHandlers: vi.fn() },
     };
+    const mockSetAssetsPath = vi.fn();
 
     beforeEach(async () => {
         vi.clearAllMocks();
         vi.resetModules();
+        mockServices.settingsService.getSettings.mockReturnValue({ assetsPath: "", lobbyServerOverride: "", customServerList: [] });
 
         vi.stubGlobal("SPLASH_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/splash.html");
         vi.stubGlobal("MAIN_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/index.html");
@@ -159,7 +161,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/config/app", () => ({
             APP_NAME: "Test App",
             SCENARIO_IMAGE_PATH: "/test/path",
-            setAssetsPath: vi.fn(),
+            setAssetsPath: mockSetAssetsPath,
         }));
 
         // Mock all services
@@ -278,6 +280,26 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.contentAPI.init).toHaveBeenCalled();
         expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled();
+    });
+
+    it("should apply a saved assets path on the standalone edition", async () => {
+        mockServices.settingsService.getSettings.mockReturnValue({ assetsPath: "/saved/assets", lobbyServerOverride: "", customServerList: [] });
+
+        await import("@main/main");
+
+        expect(mockSetAssetsPath).toHaveBeenCalledWith("/saved/assets");
+    });
+
+    // The state directory is shared with the standalone client, so the saved path may be one it chose.
+    it("should ignore a saved assets path on an edition with a fixed assets directory", async () => {
+        const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+        vi.doMock("@main/config/edition", () => ({ EDITION: "steam", EDITION_FEATURES: editionFeatures("steam") }));
+        mockServices.settingsService.getSettings.mockReturnValue({ assetsPath: "/saved/assets", lobbyServerOverride: "", customServerList: [] });
+
+        await import("@main/main");
+
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
+        expect(mockSetAssetsPath).not.toHaveBeenCalled();
     });
 
     it("should register IPC handlers when app is ready", async () => {

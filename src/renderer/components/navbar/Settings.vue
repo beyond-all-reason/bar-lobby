@@ -75,7 +75,9 @@ SPDX-License-Identifier: MIT
             <div>{{ t("lobby.navbar.settings.assetsPath") }}</div>
             <div class="path-row">
                 <Textbox :model-value="currentAssetsPath" readonly class="path-input" />
-                <Button class="slim" :disabled="isBusy" @click="browseForNewAssetsPath">{{ t("lobby.navbar.settings.browse") }}</Button>
+                <Button v-if="infosStore.features.changeAssetsPath" class="slim" :disabled="isBusy" @click="browseForNewAssetsPath">{{
+                    t("lobby.navbar.settings.browse")
+                }}</Button>
             </div>
 
             <template v-if="pendingAssetsPath && pendingAssetsPath !== currentAssetsPath">
@@ -141,6 +143,7 @@ import {
     WINDOW_HEIGHT_STEPS,
 } from "@main/config/window";
 import { contentsStore } from "@renderer/store/contents.store";
+import { infosStore } from "@renderer/store/infos.store";
 import { isUnsettled } from "@main/content/content-state";
 import { refreshEnginesStore } from "@renderer/store/engine.store";
 import { refreshGameStore } from "@renderer/store/game.store";

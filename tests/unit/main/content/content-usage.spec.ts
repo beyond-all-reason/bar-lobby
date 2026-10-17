@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { files } = vi.hoisted(() => ({ files: new Map<string, string>() }));
 
-vi.mock("@main/config/app", () => ({ getAssetsPath: () => "/assets" }));
+vi.mock("@main/config/app", () => ({ getContentWriteRoot: () => "/assets" }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));

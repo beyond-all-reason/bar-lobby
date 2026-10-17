@@ -58,6 +58,9 @@ SPDX-License-Identifier: MIT
                     <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
                 </div>
             </template>
+            <div v-else-if="installationIncomplete" class="action-slot">
+                <Button class="red" @click="quitToDesktop">{{ t("lobby.components.misc.initialSetup.quitToDesktop") }}</Button>
+            </div>
         </template>
     </div>
 </template>
@@ -84,6 +87,7 @@ import { contentsStore } from "@renderer/store/contents.store";
 import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 import { settingsStore } from "@renderer/store/settings.store";
+import { infosStore } from "@renderer/store/infos.store";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
@@ -120,6 +124,8 @@ const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
+// Verifying the game files in Steam needs the client closed, so quitting is the only way forward.
+const installationIncomplete = ref(false);
 
 // Playing offline without an engine and a game is not playing anything: every launch path needs both,
 // and nothing else in the client can fetch them once this screen has been left behind. Any installed
@@ -177,6 +183,10 @@ function skipCurrentStep() {
         resolveStepError("skip");
         resolveStepError = null;
     }
+}
+
+function quitToDesktop() {
+    window.close();
 }
 
 function skipAllSteps() {
@@ -239,6 +249,18 @@ watch(totalDownloadPercent, (pct) => {
 onUnmounted(() => {
     if (extractionTimer) clearInterval(extractionTimer);
 });
+
+// A stage that only sometimes downloads starts out naming what it always does, and names the download
+// once one actually starts, so nobody is told something is downloading when nothing is. Each attempt
+// sets its opening label again, so a retry does not inherit the last attempt's.
+function relabelStage(stage: DownloadStage, label: string) {
+    stage.label = label;
+    if (currentStage !== stage || stepError.value) {
+        return;
+    }
+
+    text.value = stepRetrying.value ? t("lobby.components.misc.initialSetup.stepRetrying", { step: label }) : label;
+}
 
 function beginStage(start: number, end: number) {
     stageStart = start;
@@ -388,9 +410,19 @@ onMounted(async () => {
     isDownloadPhase.value = true;
     titleKey.value = "lobby.components.misc.initialSetup.title";
 
+    // Where engines and games come with the install, nothing here can supply a missing one, so offering
+    // retries or a download would only send the player round in circles.
+    if (!infosStore.features.downloadEngineAndGame && !hasEngineAndGame()) {
+        isDownloadPhase.value = false;
+        installationIncomplete.value = true;
+        stepError.value = "incomplete";
+        text.value = t("lobby.components.misc.initialSetup.installationIncomplete");
+        return;
+    }
+
     const needsEngine = installedEngineVersions.value.length === 0;
 
-    if (needsEngine) {
+    if (needsEngine && infosStore.features.changeAssetsPath) {
         selectedPath.value = await window.paths.getCurrentAssetsPath().catch(() => "");
         state.value = "path-selection";
         await new Promise<void>((resolve) => {
@@ -399,7 +431,14 @@ onMounted(async () => {
         state.value = "engine";
     }
 
-    const stages: DownloadStage[] = [
+    const stageEnabled: Record<DownloadStage["id"], boolean> = {
+        engine: infosStore.features.downloadEngineAndGame,
+        game: infosStore.features.downloadEngineAndGame,
+        maps: true,
+        update: infosStore.features.selfUpdate,
+    };
+
+    const allStages: DownloadStage[] = [
         {
             id: "engine",
             label: t("lobby.components.misc.initialSetup.downloadingEngine"),
@@ -429,10 +468,11 @@ onMounted(async () => {
         },
         {
             id: "maps",
-            label: t("lobby.components.misc.initialSetup.downloadingMaps"),
+            label: t("lobby.components.misc.initialSetup.updatingMapList"),
             weight: 2,
             canSkip: () => true,
             async run() {
+                relabelStage(this, t("lobby.components.misc.initialSetup.updatingMapList"));
                 try {
                     await syncMapsMetadata();
                 } catch (error) {
@@ -440,6 +480,7 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingMaps"));
                     await window.maps.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
@@ -451,18 +492,21 @@ onMounted(async () => {
         },
         {
             id: "update",
-            label: t("lobby.components.misc.initialSetup.downloadingUpdate"),
+            label: t("lobby.components.misc.initialSetup.checkingForUpdates"),
             weight: 1,
             canSkip: () => true,
             async run() {
+                relabelStage(this, t("lobby.components.misc.initialSetup.checkingForUpdates"));
                 const updateAvailable = await window.autoUpdater.checkForUpdates();
                 if (updateAvailable) {
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingUpdate"));
                     await window.autoUpdater.downloadUpdate();
                     await window.autoUpdater.installUpdates();
                 }
             },
         },
     ];
+    const stages = allStages.filter((stage) => stageEnabled[stage.id]);
 
     const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
     let cursor = PRELOAD_WEIGHT;
