@@ -2441,7 +2441,8 @@
                     "stepRetrying": "{step} — Retrying…",
                     "contentRequired": "Engine and game must be downloaded before starting a battle.",
                     "pathUnusable": "That folder cannot be used for game files. Pick a different one.",
-                    "installationIncomplete": "Installation incomplete — verify integrity of game files in Steam."
+                    "installationIncomplete": "Installation incomplete — verify integrity of game files in Steam.",
+                    "quitToDesktop": "Quit to Desktop"
                 }
             },
             "battle": {

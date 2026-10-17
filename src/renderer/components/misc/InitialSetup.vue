@@ -58,6 +58,9 @@ SPDX-License-Identifier: MIT
                     <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
                 </div>
             </template>
+            <div v-else-if="installationIncomplete" class="action-slot">
+                <Button class="red" @click="quitToDesktop">{{ t("lobby.components.misc.initialSetup.quitToDesktop") }}</Button>
+            </div>
         </template>
     </div>
 </template>
@@ -121,6 +124,8 @@ const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
+// Verifying the game files in Steam needs the client closed, so quitting is the only way forward.
+const installationIncomplete = ref(false);
 
 // Playing offline without an engine and a game is not playing anything: every launch path needs both,
 // and nothing else in the client can fetch them once this screen has been left behind. Any installed
@@ -178,6 +183,10 @@ function skipCurrentStep() {
         resolveStepError("skip");
         resolveStepError = null;
     }
+}
+
+function quitToDesktop() {
+    window.close();
 }
 
 function skipAllSteps() {
@@ -405,6 +414,7 @@ onMounted(async () => {
     // retries or a download would only send the player round in circles.
     if (!infosStore.features.downloadEngineAndGame && !hasEngineAndGame()) {
         isDownloadPhase.value = false;
+        installationIncomplete.value = true;
         stepError.value = "incomplete";
         text.value = t("lobby.components.misc.initialSetup.installationIncomplete");
         return;

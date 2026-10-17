@@ -15,6 +15,8 @@ const { setup, held } = vi.hoisted(() => {
     const setup = {
         requested: [] as string[],
         installedMaps: 0,
+        hasEngine: true,
+        hasGame: true,
         features: {} as EditionFeatures,
     };
     // Lets a test stop a step part way, so the label shown while it runs can be read.
@@ -69,14 +71,27 @@ vi.mock("@renderer/store/db", () => ({
 }));
 vi.mock("@renderer/store/config.store", () => ({ configStore: { defaultMaps: ["Quicksilver"], latestGameVersion: "byar:test", defaultEngineVersion: "2025.01.3" } }));
 vi.mock("@renderer/store/battle.store", () => ({ initBattleStore: vi.fn() }));
-vi.mock("@renderer/store/engine.store", async () => {
-    const { computed, ref } = await import("vue");
-
-    return { defaultEngineInstalled: computed(() => true), installedEngineVersions: ref([{ id: "2025.01.3", installed: true, ais: [] }]) };
-});
+// Getters rather than computeds, which would cache whatever the first test installed.
+vi.mock("@renderer/store/engine.store", () => ({
+    defaultEngineInstalled: {
+        get value() {
+            return setup.hasEngine;
+        },
+    },
+    installedEngineVersions: {
+        get value() {
+            return setup.hasEngine ? [{ id: "2025.01.3", installed: true, ais: [] }] : [];
+        },
+    },
+}));
 vi.mock("@renderer/store/game.store", () => ({
     downloadGame: vi.fn(),
-    gameStore: { availableGameVersions: new Map([["byar:test", {}]]), selectedGameVersion: {} },
+    gameStore: {
+        get availableGameVersions() {
+            return setup.hasGame ? new Map([["byar:test", {}]]) : new Map();
+        },
+        selectedGameVersion: {},
+    },
 }));
 vi.mock("@renderer/store/contents.store", () => ({ contentsStore: { inFlight: [] } }));
 vi.mock("@renderer/store/settings.store", () => ({ settingsStore: { language: "en" } }));
@@ -95,19 +110,25 @@ const checkForUpdates = vi.fn(async () => {
     return false;
 });
 const downloadUpdate = vi.fn();
+const downloadEngine = vi.fn();
+const preloadPool = vi.fn();
+const getCurrentAssetsPath = vi.fn(async () => "/assets");
 
 vi.stubGlobal(
     "window",
     Object.assign(window, {
         barNavigation: { signalReady: vi.fn() },
         maps: { downloadMaps },
+        engine: { downloadEngine },
+        content: { preloadPool },
+        paths: { getCurrentAssetsPath },
         autoUpdater: { checkForUpdates, downloadUpdate, installUpdates: vi.fn() },
     })
 );
 
 function mountSetup() {
     return mount(InitialSetup, {
-        global: { stubs: { Button: true, Textbox: true, Loader: true, Progress: true, Select: true, Icon: true } },
+        global: { stubs: { Button: { template: "<button><slot /></button>" }, Textbox: true, Loader: true, Progress: true, Select: true, Icon: true } },
     });
 }
 
@@ -117,6 +138,8 @@ describe("InitialSetup stage labels", () => {
     beforeEach(() => {
         setup.requested.length = 0;
         setup.installedMaps = 3;
+        setup.hasEngine = true;
+        setup.hasGame = true;
         setup.features = steam;
         held.clear();
         downloadMaps.mockClear();
@@ -183,5 +206,78 @@ describe("InitialSetup stage labels", () => {
         expect(downloadUpdate).not.toHaveBeenCalled();
         expect(setup.requested).not.toContain("lobby.components.misc.initialSetup.downloadingUpdate");
         expect(wrapper.emitted("complete")).toHaveLength(1);
+    });
+});
+
+describe("InitialSetup on an edition that does not download engines or games", () => {
+    beforeEach(() => {
+        setup.requested.length = 0;
+        setup.installedMaps = 3;
+        setup.hasEngine = true;
+        setup.hasGame = true;
+        setup.features = steam;
+        held.clear();
+        vi.clearAllMocks();
+    });
+
+    it("skips the engine and game stages", async () => {
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(wrapper.emitted("complete")).toHaveLength(1);
+        expect(downloadEngine).not.toHaveBeenCalled();
+        expect(preloadPool).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ["engine", { hasEngine: false, hasGame: true }],
+        ["game", { hasEngine: true, hasGame: false }],
+    ])("says the installation is incomplete when the %s is missing, without asking for a folder", async (_, installed) => {
+        Object.assign(setup, installed);
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(status(wrapper)).toBe("lobby.components.misc.initialSetup.installationIncomplete");
+        expect(getCurrentAssetsPath).not.toHaveBeenCalled();
+        expect(downloadEngine).not.toHaveBeenCalled();
+        expect(downloadMaps).not.toHaveBeenCalled();
+        expect(wrapper.emitted("complete")).toBeUndefined();
+    });
+
+    // Steam can only verify the game files once the client is closed, so retrying from here goes nowhere.
+    it("offers only to quit when the installation is incomplete", async () => {
+        setup.hasEngine = false;
+        const close = vi.spyOn(window, "close").mockImplementation(() => {});
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        const buttons = wrapper.findAll("button");
+        expect(buttons.map((button) => button.text())).toEqual(["lobby.components.misc.initialSetup.quitToDesktop"]);
+
+        await buttons[0].trigger("click");
+
+        expect(close).toHaveBeenCalledOnce();
+        close.mockRestore();
+    });
+});
+
+describe("InitialSetup on the standalone edition", () => {
+    beforeEach(() => {
+        setup.requested.length = 0;
+        setup.hasEngine = false;
+        setup.hasGame = false;
+        setup.features = standalone;
+        held.clear();
+        vi.clearAllMocks();
+    });
+
+    it("asks where to put the game files when there is no engine", async () => {
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(getCurrentAssetsPath).toHaveBeenCalledOnce();
+        expect(setup.requested).toContain("lobby.components.misc.initialSetup.selectAssetsPathDescription");
+        expect(setup.requested).not.toContain("lobby.components.misc.initialSetup.installationIncomplete");
+        wrapper.unmount();
     });
 });

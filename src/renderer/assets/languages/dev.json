@@ -610,7 +610,8 @@
                     "stepRetrying": "{step} — Rtyneirg…",
                     "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte.",
                     "pathUnusable": "That fdelor caonnt be used for gmae fleis. Pick a dnieferft one.",
-                    "installationIncomplete": "Ialltsaotinn icmotlpene — virefy iegttnriy of gmae fleis in Steam."
+                    "installationIncomplete": "Ialltsaotinn icmotlpene — virefy iegttnriy of gmae fleis in Steam.",
+                    "quitToDesktop": "Quit to Dektosp"
                 }
             },
             "battle": {

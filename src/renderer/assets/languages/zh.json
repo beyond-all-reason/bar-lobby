@@ -4557,7 +4557,8 @@
                     "stepRetrying": null,
                     "contentRequired": null,
                     "pathUnusable": null,
-                    "installationIncomplete": null
+                    "installationIncomplete": null,
+                    "quitToDesktop": null
                 }
             },
             "battle": {
