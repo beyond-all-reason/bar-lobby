@@ -15,9 +15,10 @@ export function suppressBrowserBehaviours(window: BrowserWindow, appUrl: string,
     const appDocument = new URL(appUrl);
 
     // Routes live in the router and never navigate the document, so anything that would is foreign:
-    // a file or link dropped onto the window, most often.
+    // a file or link dropped onto the window, most often. Only the window itself is held to this: the
+    // app has no frames of its own, and the Vue devtools panel is one served from a path of its own.
     webContents.on("will-frame-navigate", (event) => {
-        if (!isAppDocument(event.url, appDocument)) event.preventDefault();
+        if (event.isMainFrame && !isAppDocument(event.url, appDocument)) event.preventDefault();
     });
 
     // Whether dev tools may open is a setting that can change at any time, so the window keeps them
