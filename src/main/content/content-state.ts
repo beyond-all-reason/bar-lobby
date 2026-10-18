@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentRef } from "@main/content/content-ref";
+import { EditionRefusal } from "@shared/edition";
 
 export type ContentStatus = "queued" | "acquiring" | "removing" | "failed";
 
@@ -20,6 +21,10 @@ export type ContentState = ContentRef & ContentProgress & { status: ContentStatu
 // Whether content is installed, read from disk at the moment it is reported. Shared by both signals
 // that announce a change so a listener does not have to know which one it heard.
 export type ContentPresence = ContentRef & { present: boolean };
+
+// Content this edition will not acquire, and why, as a code the renderer words for itself. An error
+// thrown in main reaches the renderer as its message alone, so the reason travels as data instead.
+export type RefusedContent = { refusal: EditionRefusal; refs: ContentRef[] };
 
 // Three different questions get asked of a snapshot and the answers differ, so each one is named. Reading
 // status directly at a call site is how they get confused for each other.

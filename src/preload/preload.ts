@@ -5,7 +5,7 @@
 import { contextBridge, type IpcRendererEvent } from "electron";
 import { ipcRenderer, IpcResult, type IPCEvents } from "@main/typed-ipc";
 import { ContentRef } from "@main/content/content-ref";
-import { ContentPresence, ContentState } from "@main/content/content-state";
+import { ContentPresence, ContentState, RefusedContent } from "@main/content/content-state";
 import { Replay } from "@main/replays/replay";
 import { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 import { Settings } from "@main/services/settings.service";
@@ -138,6 +138,7 @@ const contentApi = {
 
     onChanged: (callback: (state: ContentState[]) => void) => subscribe("content:changed", callback),
     onSettled: (callback: (refs: ContentPresence[]) => void) => subscribe("content:settled", callback),
+    onRefused: (callback: (refused: RefusedContent) => void) => subscribe("content:refused", callback),
 
     preloadPool: (): Promise<void> => ipcRenderer.invoke("content:preloadPool"),
     onPoolPrefetch: (callback: (downloadInfo: DownloadInfo | null) => void) => subscribe("content:poolPrefetch", callback),

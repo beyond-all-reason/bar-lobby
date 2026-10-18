@@ -20,12 +20,23 @@ import { onMounted } from "vue";
 import AlertComponent from "@renderer/components/notifications/Alert.vue";
 import EventComponent from "@renderer/components/notifications/Event.vue";
 import { notificationsApi } from "@renderer/api/notifications";
+import { contentApi } from "@renderer/api/content";
+import { editionLogic } from "@renderer/logic/edition";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const notifications = notificationsApi;
 
 onMounted(() => {
     window.notifications.onShowAlert((alertConfig) => {
         notificationsApi.alert(alertConfig);
+    });
+    // Whatever asked for the content only learns that its request failed, so the reason is told here,
+    // once for every path that can ask: a download, a launch or a replay.
+    contentApi.onRefused(({ refusal, refs }) => {
+        const content = refs.map((ref) => ref.id).join(", ");
+        notificationsApi.alert({ text: t(editionLogic.refusalMessageKey(refusal), { content }, refs.length), severity: "error" });
     });
 });
 </script>

@@ -1,5 +1,13 @@
 {
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": "{content} is misnsig. It cmeos wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam. | {content} are misnsig. Tehy cmoe wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam.",
+                    "assetsPathFixed": "The gmae fleis fdelor is mngaaed by Steam and caonnt be cngeahd."
+                }
+            }
+        },
         "api": {
             "shell": {
                 "openFailed": "Culod not oepn that: {details}"

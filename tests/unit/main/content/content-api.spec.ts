@@ -670,6 +670,27 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
         expect(contentAPI.state()).toEqual(expect.arrayContaining([expect.objectContaining({ type: "engine", id: "2099.12.1", status: "failed" })]));
     });
 
+    it("reports each refusal with its code and the refused refs only", async () => {
+        const refusals: unknown[] = [];
+        const binding = contentAPI.onRefused.add((refused) => refusals.push(refused));
+
+        try {
+            for (let request = 0; request < 2; request++) {
+                await expect(
+                    contentAPI.ensure([
+                        { type: "engine", id: "2099.12.1" },
+                        { type: "map", id: "Not Bundled 1.0" },
+                    ])
+                ).rejects.toThrow("content_bundled_with_install");
+            }
+        } finally {
+            binding.destroy();
+        }
+
+        const expected = { refusal: "content_bundled_with_install", refs: [{ type: "engine", id: "2099.12.1" }] };
+        expect(refusals).toEqual([expected, expected]);
+    });
+
     it("refuses to acquire a missing game", async () => {
         await expect(contentAPI.ensure([{ type: "game", id: "Beyond All Reason test-2-def" }])).rejects.toThrow("content_bundled_with_install");
 

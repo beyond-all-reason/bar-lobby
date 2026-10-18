@@ -8,7 +8,7 @@ import { ClaimSource } from "@main/content/content-claims";
 import { ContentProvider } from "@main/content/content-provider";
 import { ContentQueue, ContentQueueEntry } from "@main/content/content-queue";
 import { ContentRef, contentRefKey, ContentType } from "@main/content/content-ref";
-import { ContentPresence, ContentReporter, ContentState, isUnsettled } from "@main/content/content-state";
+import { ContentPresence, ContentReporter, ContentState, isUnsettled, RefusedContent } from "@main/content/content-state";
 import { engineProvider } from "@main/content/engine/engine-provider";
 import { compareEngineVersions } from "@main/content/engine/engine-version-order";
 import { gameProvider } from "@main/content/game/game-provider";
@@ -147,6 +147,10 @@ class ContentAPI {
     // Content appearing or going away without anyone asking, which only the maps directory is watched
     // for today. Anything else growing a watcher reports through the same signal.
     public readonly onPresenceChanged: Signal<ContentPresence> = new Signal();
+
+    // Fires for every request that asked for content the edition will not acquire, repeats included,
+    // which a failed state left unchanged from the last refusal cannot show.
+    public readonly onRefused: Signal<RefusedContent> = new Signal();
 
     public constructor() {
         this.queue.onChanged.add((entries) => this.syncFromQueue(entries));
@@ -289,8 +293,13 @@ class ContentAPI {
             await this.ensure([{ type: "engine", id: configService.getConfig().defaultEngineVersion }]);
         }
 
-        // Refused through track like any other failure, so the renderer sees why next to the content it
-        // asked for, and whatever in the same call can be acquired still is.
+        const refused = this.missing(refs).filter((ref) => !this.canAcquire(ref));
+        if (refused.length > 0) {
+            this.onRefused.dispatch({ refusal: "content_bundled_with_install", refs: refused });
+        }
+
+        // Refused through track like any other failure, so the content shows as failed, and whatever in
+        // the same call can be acquired still is.
         const acquisitions = await Promise.allSettled(this.missing(refs).map((ref) => this.track(this.canAcquire(ref) ? this.queue.enqueue("acquire", ref) : Promise.reject(notAcquirable(ref)), ref)));
 
         // Stamped by what is on disk now rather than by what was asked for, so content that landed is

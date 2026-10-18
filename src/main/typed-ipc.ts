@@ -7,7 +7,7 @@ import type { StoredIdentity } from "@main/model/user";
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { ContentRef } from "@main/content/content-ref";
-import type { ContentPresence, ContentState } from "@main/content/content-state";
+import type { ContentPresence, ContentState, RefusedContent } from "@main/content/content-state";
 import type { DownloadInfo } from "@main/content/downloads";
 import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
@@ -36,6 +36,7 @@ export type IPCEvents = {
     "content:changed": (state: ContentState[]) => void;
     "content:poolPrefetch": (downloadInfo: DownloadInfo | null) => void;
     "content:settled": (refs: ContentPresence[]) => void;
+    "content:refused": (refused: RefusedContent) => void;
     "downloads:update:progress": (downloadInfo: DownloadInfo | null) => void;
     "game:closed": () => void;
     "game:launched": () => void;

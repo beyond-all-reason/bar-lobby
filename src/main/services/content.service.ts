@@ -23,6 +23,9 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     contentAPI.onSettled.add((refs) => {
         webContents.send("content:settled", refs);
     });
+    contentAPI.onRefused.add((refused) => {
+        webContents.send("content:refused", refused);
+    });
 
     ipcMain.handle("content:preloadPool", () => poolCdnDownloader.preloadPoolData());
 

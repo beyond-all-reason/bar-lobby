@@ -1983,6 +1983,14 @@
         }
     },
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": null,
+                    "assetsPathFixed": null
+                }
+            }
+        },
         "api": {
             "shell": {
                 "openFailed": null
