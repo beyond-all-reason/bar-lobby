@@ -21,6 +21,7 @@ import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/on
 import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
+import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 import { Config } from "@main/services/config.service";
@@ -122,6 +123,8 @@ export type IPCCommands = {
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
+    "customLobbies:get": () => CustomLobbiesPreferences;
+    "customLobbies:update": (data: Partial<CustomLobbiesPreferences>) => Partial<CustomLobbiesPreferences>;
     "config:get": () => Config;
     "config:fetch": () => void;
     "shell:openConfigFile": () => IpcResult;

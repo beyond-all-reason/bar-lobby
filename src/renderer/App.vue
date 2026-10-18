@@ -198,13 +198,6 @@ function onInitialSetupDone() {
     console.debug("Initial setup done");
 }
 
-// Currently we support multiplayer only in dev mode, as it's very not finished.
-// We do it here and not in index.vue to avoid flashing login page for user before
-// continuing to overview.
-if (!settingsStore.devMode) {
-    router.push("/play");
-}
-
 function unseenPartyMessages() {
     if (!partyStore.activeParty) return false;
     const messages = chatStore.partyChats.get(partyStore.activeParty);

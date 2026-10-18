@@ -104,3 +104,37 @@ describe("file store", () => {
         expect(second.model.count).toBe(7);
     });
 });
+
+describe("invalid file", () => {
+    const defaults = { first: "", second: "", count: 0 };
+
+    it("uses the defaults when the file is not JSON, keeping the original as .invalid", async () => {
+        fs.writeFileSync(file, "{ not json");
+
+        const store = await newStore();
+
+        expect(store.model).toEqual(defaults);
+        expect(onDisk()).toEqual(defaults);
+        expect(fs.readFileSync(`${file}.invalid`, "utf-8")).toBe("{ not json");
+    });
+
+    it("rejects the whole file when any value does not match the schema", async () => {
+        const original = JSON.stringify({ first: "kept?", count: "abc" });
+        fs.writeFileSync(file, original);
+
+        const store = await newStore();
+
+        expect(store.model).toEqual(defaults);
+        expect(onDisk()).toEqual(defaults);
+        expect(fs.readFileSync(`${file}.invalid`, "utf-8")).toBe(original);
+    });
+
+    it("leaves no .invalid behind for a valid file", async () => {
+        fs.writeFileSync(file, JSON.stringify({ first: "ok" }));
+
+        const store = await newStore();
+
+        expect(store.model.first).toBe("ok");
+        expect(fs.existsSync(`${file}.invalid`)).toBe(false);
+    });
+});

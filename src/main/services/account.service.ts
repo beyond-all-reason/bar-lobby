@@ -18,6 +18,7 @@ export interface StoredTokens {
     token: string;
     refreshToken: string;
     expiresAt: number;
+    server: string;
 }
 
 async function init() {
@@ -52,7 +53,7 @@ function readStoredValue(value: string, label: string): string {
 
 // The server drops the old refresh token as soon as a renewal succeeds, so the
 // pair is written in a single update. Half-applied state locks the user out.
-async function saveTokens({ token, refreshToken, expiresAt }: StoredTokens) {
+async function saveTokens({ token, refreshToken, expiresAt, server }: StoredTokens) {
     const encrypted = safeStorage.isEncryptionAvailable();
     if (!encrypted) {
         log.warn("Encryption is not available, storing tokens in plain text");
@@ -65,6 +66,7 @@ async function saveTokens({ token, refreshToken, expiresAt }: StoredTokens) {
         refreshToken: encode(refreshToken),
         expiresAt,
         encrypted,
+        server,
     });
 }
 
@@ -78,6 +80,10 @@ function getRefreshToken(): string {
 
 function getExpiresAt(): number {
     return accountStore.model.expiresAt;
+}
+
+function getServer(): string | undefined {
+    return accountStore.model.server;
 }
 
 async function saveIdentity(identity: StoredIdentity) {
@@ -95,6 +101,7 @@ async function wipe() {
         token: "",
         refreshToken: "",
         expiresAt: 0,
+        server: undefined,
         identity: undefined,
     });
 }
@@ -106,6 +113,7 @@ export const accountService = {
     getToken,
     getRefreshToken,
     getExpiresAt,
+    getServer,
     saveIdentity,
     getIdentity,
     wipe,

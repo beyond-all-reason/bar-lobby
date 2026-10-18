@@ -10,11 +10,30 @@ import { beforeEach, describe, it, vi, expect, afterEach } from "vitest";
 type MockIpcRenderer = {
     invoke: Function;
     on: Function;
+    removeListener: Function;
 };
 
 describe("Preload API Context Bridge", () => {
     // List of all APIs exposed in the preload script
-    const apiNames = ["log", "info", "mainWindow", "shell", "replays", "settings", "auth", "content", "engine", "game", "maps", "misc", "barNavigation", "tachyon", "autoUpdater", "notifications"];
+    const apiNames = [
+        "log",
+        "info",
+        "mainWindow",
+        "shell",
+        "replays",
+        "settings",
+        "customLobbies",
+        "auth",
+        "content",
+        "engine",
+        "game",
+        "maps",
+        "misc",
+        "barNavigation",
+        "tachyon",
+        "autoUpdater",
+        "notifications",
+    ];
 
     let mockWindow: any;
     let mockIpcRenderer: MockIpcRenderer;
@@ -30,6 +49,7 @@ describe("Preload API Context Bridge", () => {
         mockIpcRenderer = {
             invoke: vi.fn(),
             on: vi.fn(),
+            removeListener: vi.fn(),
         };
 
         vi.doMock("electron", () => ({
@@ -61,6 +81,10 @@ describe("Preload API Context Bridge", () => {
         vi.clearAllMocks();
         vi.resetModules();
     });
+
+    function listenersFor(channel: string) {
+        return (mockIpcRenderer.on as ReturnType<typeof vi.fn>).mock.calls.filter(([name]) => name === channel).map(([, listener]) => listener);
+    }
 
     it("should expose all APIs in the main world via contextBridge", async () => {
         await import("@preload/preload");
@@ -150,6 +174,16 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:get");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:update", { foo: "bar" });
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:toggleFullscreen");
+    });
+
+    it("should expose custom lobbies API", async () => {
+        await import("@preload/preload");
+
+        mockWindow.customLobbies.get();
+        mockWindow.customLobbies.update({ autoRefresh: true });
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("customLobbies:get");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("customLobbies:update", { autoRefresh: true });
     });
 
     it("should expose auth API", async () => {
@@ -269,6 +303,73 @@ describe("Preload API Context Bridge", () => {
         expect(typeof mockWindow.tachyon.onDisconnected).toBe("function");
         expect(typeof mockWindow.tachyon.onEvent).toBe("function");
         expect(typeof mockWindow.tachyon.onBattleStart).toBe("function");
+    });
+
+    it("should route tachyon events to the callbacks registered for that command", async () => {
+        await import("@preload/preload");
+
+        const partyUpdated = vi.fn();
+        const lobbyUpdated = vi.fn();
+        mockWindow.tachyon.onEvent("party/updated", partyUpdated);
+        mockWindow.tachyon.onEvent("lobby/updated", lobbyUpdated);
+
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, { type: "event", commandId: "party/updated", messageId: "1", data: { id: "p1" } });
+
+        expect(partyUpdated).toHaveBeenCalledWith({ id: "p1" });
+        expect(lobbyUpdated).not.toHaveBeenCalled();
+    });
+
+    it("should pass the whole event to callbacks when it carries no data", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        mockWindow.tachyon.onEvent("matchmaking/lost", callback);
+
+        const event = { type: "event", commandId: "matchmaking/lost", messageId: "1" };
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, event);
+
+        expect(callback).toHaveBeenCalledWith(event);
+    });
+
+    it("should listen for tachyon events once however many subscriptions there are", async () => {
+        await import("@preload/preload");
+
+        mockWindow.tachyon.onEvent("party/updated", vi.fn());
+        mockWindow.tachyon.onEvent("party/removed", vi.fn());
+        mockWindow.tachyon.onEvent("lobby/updated", vi.fn());
+
+        expect(listenersFor("tachyon:event")).toHaveLength(1);
+    });
+
+    it("should stop delivering a tachyon event once unsubscribed", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        const unsubscribe = mockWindow.tachyon.onEvent("party/updated", callback);
+
+        unsubscribe();
+
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, { type: "event", commandId: "party/updated", messageId: "1", data: { id: "p1" } });
+
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("should hand back an unsubscribe from other event subscriptions", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        const unsubscribe = mockWindow.mainWindow.onScaleRangeChanged(callback);
+
+        const [listener] = listenersFor("mainWindow:scaleRangeChanged");
+        listener({}, { min: 0.75, max: 2.5, os: 1 });
+
+        unsubscribe();
+
+        expect(callback).toHaveBeenCalledWith({ min: 0.75, max: 2.5, os: 1 });
+        expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith("mainWindow:scaleRangeChanged", listener);
     });
 
     it("should expose autoUpdater API", async () => {

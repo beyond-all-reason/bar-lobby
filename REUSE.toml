@@ -17,6 +17,7 @@ path = [
     "PULL_REQUEST_TEMPLATE.md",
     "playwright.config.ts",
     "remoteConfig/config.json",
+    "configs/*.json",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "NONE"

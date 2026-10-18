@@ -5,19 +5,20 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="map">
+    <div class="map" :class="{ selected, compact }">
         <div class="background" :style="`background-image: url('${imageUrl}')`"></div>
         <Icon class="favorite" v-if="map?.isFavorite" :icon="heartIcon" />
+        <Icon class="selected-check" v-if="selected" :icon="checkIcon" />
         <div class="name">
             {{ map?.displayName }}
         </div>
-        <div class="attributes bl">
+        <div v-if="!compact" class="attributes bl">
             <div class="flex-row flex-center-items gap-sm"><Icon :icon="gridIcon" />{{ mapSize }}</div>
             <div class="flex-row flex-center-items gap-sm">
                 <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
             </div>
         </div>
-        <div class="attributes br flex-row gap-sm">
+        <div v-if="!compact" class="attributes br flex-row gap-sm">
             <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
         </div>
     </div>
@@ -33,11 +34,14 @@ import { Icon } from "@iconify/vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import heartIcon from "@iconify-icons/mdi/heart";
+import checkIcon from "@iconify-icons/mdi/check-bold";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
 const props = defineProps<{
     map: MapData | undefined;
+    selected?: boolean;
+    compact?: boolean;
 }>();
 
 const cache = useImageBlobUrlCache();
@@ -108,6 +112,22 @@ const imageUrl = computed(() =>
         transition: 0.2s opacity ease-in-out;
     }
     transition: 0.2s ease-in-out;
+}
+.selected-check {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 6;
+    font-size: 22px;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.5);
+}
+.map.selected:after {
+    border-color: rgba(255, 255, 255, 0.85);
+}
+.map.compact .name {
+    font-size: 16px;
+    padding: 6px;
 }
 .favorite {
     position: absolute;

@@ -120,8 +120,7 @@ async function fetchServerStats() {
         tachyonStore.error = undefined;
         const response = await tachyonRequest("system/serverStats");
         tachyonStore.serverStats = response.data;
-    } catch (error) {
-        console.error("Error fetching server stats:", error);
+    } catch {
         tachyonStore.error = "Error fetching server stats";
         tachyonStore.serverStats = undefined;
     }
@@ -238,8 +237,7 @@ export async function initTachyonStore() {
         try {
             const response = await tachyonRequest("user/subscribeUpdates", { userIds: users });
             console.log("Tachyon: user/subscribeUpdates", response);
-        } catch (error) {
-            console.error("Tachyon error: 'user/subscribeUpdates'", error);
+        } catch {
             notificationsApi.alert({ text: "Tachyon error with user/subscribeUpdates", severity: "error" });
         }
     });
@@ -251,8 +249,7 @@ export async function initTachyonStore() {
         try {
             const response = await tachyonRequest("user/unsubscribeUpdates", { userIds: users });
             console.log("Tachyon: user/unsubscribeUpdates", response);
-        } catch (error) {
-            console.error("Tachyon error: 'user/unsubscribeUpdates'", error);
+        } catch {
             notificationsApi.alert({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
         }
     });

@@ -8,7 +8,8 @@ SPDX-License-Identifier: MIT
     <div class="game-type-container gap-md">
         <IconFilterCheckbox
             v-for="gameType in gameTypeOptions"
-            v-model:checked="gameTypeFilters[gameType]"
+            :checked="!!selected[gameType]"
+            @update:checked="(checked: boolean | undefined) => toggle(gameType, !!checked)"
             v-bind:key="gameType"
             class="game-type-option"
         >
@@ -20,9 +21,11 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import type { GameType } from "@main/content/maps/map-metadata";
 import IconFilterCheckbox from "@renderer/components/maps/filters/IconFilterCheckbox.vue";
-import { mapsStore } from "@renderer/store/maps.store";
-const { filters } = mapsStore;
-const { gameType: gameTypeFilters } = filters;
+const selected = defineModel<Partial<Record<GameType, boolean>>>({ required: true });
+
+function toggle(gameType: GameType, checked: boolean) {
+    selected.value = { ...selected.value, [gameType]: checked };
+}
 
 const gameTypeOptions: GameType[] = [
     "1v1",
