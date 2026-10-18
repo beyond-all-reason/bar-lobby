@@ -108,7 +108,49 @@ describe("settled tracker", () => {
         track([map("bad", "failed")]);
 
         expect(track([map("bad", "queued")])).toEqual([]);
+        track([map("bad", "acquiring")]);
         expect(outcomes(track([]))).toEqual(["bad:complete"]);
+    });
+
+    // A queued ref does not say whether it is waiting to be fetched or removed, and a removal leaving
+    // the stream is not a download that landed.
+    it("does not track a removal", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "queued")]);
+        track([map("a", "removing")]);
+
+        expect(track([])).toEqual([]);
+    });
+
+    it("does not track a removal that failed", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "queued")]);
+        track([map("a", "removing")]);
+        track([]);
+
+        expect(track([map("a", "failed")])).toEqual([]);
+    });
+
+    it("drops a download once it is removed, and does not bring it back", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring")]);
+        expect(outcomes(track([]))).toEqual(["a:complete"]);
+
+        expect(track([map("a", "queued")])).toEqual([]);
+        expect(track([map("a", "removing")])).toEqual([]);
+        expect(track([])).toEqual([]);
+    });
+
+    it("tracks a download that was queued before it was acquired", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "queued")]);
+        track([map("a", "acquiring")]);
+
+        expect(outcomes(track([]))).toEqual(["a:complete"]);
     });
 
     // Otherwise the list would empty the moment the last download ended, unlike the counter's tally,

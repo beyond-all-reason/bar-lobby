@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ContentState, hasFailed, isInProgress } from "@main/content/content-state";
+import { ContentState, hasFailed, isAcquiring, isInProgress } from "@main/content/content-state";
 import { contentRefKey } from "@main/content/content-ref";
 
 /**
@@ -46,35 +46,48 @@ export type SettledContent = { state: ContentState; outcome: SettledOutcome };
  * Remembers what this session is done downloading and how each one ended, for anything that wants to
  * name what finished rather than just count it.
  *
- * Content that left the change stream without failing landed, the same way the counter above works it
- * out, and is kept in the last state it was seen in. A failure is kept in its failed state. Unlike the
- * counter nothing is forgotten when the queue drains. Content asked for again leaves the list while it
- * is outstanding and comes back with however that attempt ended.
+ * Only content seen acquiring is followed. A queued ref does not say whether it is to be fetched or
+ * removed, so anything that never got as far as acquiring, a removal among them, is not a download
+ * and never joins the list. A followed ref that left the change stream without failing landed and is
+ * kept in the last state it was seen in; one that failed is kept in its failed state. Unlike the counter
+ * nothing is forgotten when the queue drains. Content asked for again, for whatever operation, leaves
+ * the list, and comes back only if that request is a download too.
  */
 export function createSettledTracker() {
     const settled = new Map<string, SettledContent>();
-    let previous = new Map<string, ContentState>();
+    let acquiring = new Map<string, ContentState>();
 
     return (states: ContentState[]) => {
-        const outstanding = new Map(states.filter(isInProgress).map((state): [string, ContentState] => [contentRefKey(state), state]));
+        const stillAcquiring = new Map<string, ContentState>();
 
-        for (const [key, state] of previous) {
-            if (!outstanding.has(key)) {
+        for (const state of states) {
+            const key = contentRefKey(state);
+
+            if (!hasFailed(state)) {
+                settled.delete(key);
+            }
+            if (isAcquiring(state)) {
+                stillAcquiring.set(key, state);
+            }
+        }
+
+        for (const [key, state] of acquiring) {
+            if (!stillAcquiring.has(key)) {
                 settled.set(key, { state, outcome: "complete" });
             }
         }
 
-        // A failure is reported a snapshot after the ref has already left the stream, so a ref taken for
-        // landed is corrected here. Setting an existing key keeps its place in the order.
+        // A failure is reported a snapshot after the ref has already left the stream, so a download taken
+        // for landed is corrected here. Setting an existing key keeps its place in the order.
         for (const state of states.filter(hasFailed)) {
-            settled.set(contentRefKey(state), { state, outcome: "failed" });
+            const key = contentRefKey(state);
+
+            if (settled.has(key)) {
+                settled.set(key, { state, outcome: "failed" });
+            }
         }
 
-        for (const key of outstanding.keys()) {
-            settled.delete(key);
-        }
-
-        previous = outstanding;
+        acquiring = stillAcquiring;
 
         return [...settled.values()];
     };
