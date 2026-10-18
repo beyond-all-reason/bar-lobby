@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
-import type { PartyInviteRequestData } from "tachyon-protocol/types";
-import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
+import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 
 export function usePartyInviteState(userId: MaybeRefOrGetter<string>) {
     const activeParty = computed(() => (partyStore.activeParty ? partyStore.parties.get(partyStore.activeParty) : undefined));
@@ -18,12 +19,15 @@ export function usePartyInviteState(userId: MaybeRefOrGetter<string>) {
 
     const userInvited = computed(() => activeParty.value?.invited?.some((invited) => invited.userId === toValue(userId)) || false);
 
-    function inviteToParty() {
-        if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
-            const data: PartyInviteRequestData = { userId: toValue(userId) };
-            party.requestInvite(data);
-        } else {
-            party.requestCreateAndInvite(toValue(userId));
+    async function inviteToParty() {
+        try {
+            if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
+                await partyLogic.invite({ userId: toValue(userId) });
+            } else {
+                await partyLogic.createAndInvite(toValue(userId));
+            }
+        } catch (error) {
+            alertRequestFailure(error, "party/invite");
         }
     }
 

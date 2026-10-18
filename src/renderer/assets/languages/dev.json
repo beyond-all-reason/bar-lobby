@@ -421,7 +421,12 @@
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
                 "etaSeconds": "{seconds}s left",
-                "queued": "Quueed"
+                "queued": "Quueed",
+                "finished": "Fneiishd",
+                "complete": "Cemotple",
+                "failed": "Failed",
+                "retry": "Rrtey",
+                "clearAll": "Celar All"
             },
             "serverStatus": {
                 "playersOnline": "Plyreas Oinnle",

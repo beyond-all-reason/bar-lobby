@@ -5,7 +5,9 @@
 import { computed } from "vue";
 
 import { contentsStore } from "@renderer/store/contents.store";
-import { hasFailed, isInProgress, isQueued } from "@main/content/content-state";
+import { isInProgress, isQueued } from "@main/content/content-state";
+import { SettledOutcome } from "@main/content/content-progress";
+import { ContentRef } from "@main/content/content-ref";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -25,6 +27,16 @@ export type DownloadView = {
     phase?: "downloading" | "extracting";
     // Waiting its turn, with no figures of its own yet, so there is nothing truthful to draw a bar from.
     queued: boolean;
+};
+
+// Done with, so there are no figures left to show, only how it ended. Carries its ref so a failure can
+// be asked for again.
+export type FinishedDownloadView = {
+    key: string;
+    ref: ContentRef;
+    name: string;
+    type: string;
+    outcome: SettledOutcome;
 };
 
 interface SpeedEntry {
@@ -72,11 +84,29 @@ export function useDownloadProgress() {
         })),
     ]);
 
+    // What this session is done downloading, in the order each one ended, split by how it ended.
+    function settledDownloads(wanted: SettledOutcome): FinishedDownloadView[] {
+        return contentsStore.finishedDownloads
+            .filter(({ outcome }) => outcome === wanted)
+            .map(({ state, outcome }) => ({
+                key: `${state.type}:${state.id}`,
+                ref: { type: state.type, id: state.id },
+                name: state.id,
+                type: state.type,
+                outcome,
+            }));
+    }
+
+    const completedDownloads = computed(() => settledDownloads("complete"));
+    const failedDownloads = computed(() => settledDownloads("failed"));
+
     // The same set the fractions below are summed over. A status counted here but not there, as a
     // failure used to be, holds the figure short of full for everything downloading beside it.
     const outstandingCount = computed(() => contentsStore.inFlight.filter(isInProgress).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
 
-    const failedCount = computed(() => contentsStore.inFlight.filter(hasFailed).length);
+    // The failures listed in the popover, not every one still in flight: clearing them there dismisses
+    // them, and a warning with nothing left to act on it from is not worth showing.
+    const failedCount = computed(() => failedDownloads.value.length);
 
     const anythingRunning = computed(
         () =>
@@ -188,6 +218,8 @@ export function useDownloadProgress() {
 
     return {
         allDownloads,
+        completedDownloads,
+        failedDownloads,
         totalDownloadPercent,
         failedDownloadPercent,
         downloadPercent,

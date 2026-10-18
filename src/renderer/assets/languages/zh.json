@@ -4368,7 +4368,12 @@
                 "etaHoursMinutes": null,
                 "etaMinutesSeconds": null,
                 "etaSeconds": null,
-                "queued": null
+                "queued": null,
+                "finished": null,
+                "complete": null,
+                "failed": null,
+                "retry": null,
+                "clearAll": null
             },
             "serverStatus": {
                 "playersOnline": null,

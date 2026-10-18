@@ -4,28 +4,39 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
-import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
+import type { PartyState } from "tachyon-protocol/types";
+import { partyUpdates, PlayersPartyState } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
 import { usePartyInviteState } from "@renderer/composables/usePartyInviteState";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 const USER = "user-1";
+const SELF = "self";
+
+function makeParty(id: string, members: string[], invited: string[] = [], maxMembers = 4): PartyState {
+    return {
+        id,
+        members: members.map((userId) => ({ userId, joinedAt: 0 })),
+        invited: invited.map((userId) => ({ userId, invitedAt: 0 })),
+        maxMembers,
+    };
+}
 
 function setParty({ members = 1, invited = 0, maxMembers = 4, memberIds = [] as string[], invitedIds = [] as string[] } = {}) {
-    partyStore.activeParty = "party-1";
-    partyStore.parties.set("party-1", {
-        id: "party-1",
-        members: [...memberIds, ...Array.from({ length: members }, (_, i) => `member-${i}`)].map((userId) => ({ userId, joinedAt: 0 })),
-        invited: [...invitedIds, ...Array.from({ length: invited }, (_, i) => `invitee-${i}`)].map((userId) => ({ userId, invitedAt: 0 })),
-        maxMembers,
-        seen: true,
-    });
+    const party = makeParty(
+        "party-1",
+        [...memberIds, ...Array.from({ length: members }, (_, i) => `member-${i}`)],
+        [...invitedIds, ...Array.from({ length: invited }, (_, i) => `invitee-${i}`)],
+        maxMembers
+    );
+
+    // "member-0" plays the current user so this party becomes the active party.
+    partyUpdates.set(party, "member-0");
 }
 
 beforeEach(() => {
-    partyStore.activeParty = undefined;
-    partyStore.parties.clear();
-    partyStore.state = PlayersPartyState.None;
+    partyUpdates.clear();
 });
 
 afterEach(() => {
@@ -86,21 +97,27 @@ describe("usePartyInviteState", () => {
 
     describe("inviteToParty", () => {
         it.each([PlayersPartyState.JoinedOnly, PlayersPartyState.JoinedAndInvited])("invites into the current party when %s", (state) => {
-            partyStore.state = state;
-            const requestInvite = vi.spyOn(party, "requestInvite").mockResolvedValue(undefined);
+            if (state === PlayersPartyState.JoinedOnly) {
+                partyUpdates.replaceAll([makeParty("joined", [SELF])], SELF);
+            } else {
+                partyUpdates.replaceAll([makeParty("joined", [SELF]), makeParty("invited", [], [SELF])], SELF);
+            }
+            const invite = vi.spyOn(partyLogic, "invite").mockResolvedValue(undefined);
 
             usePartyInviteState(USER).inviteToParty();
 
-            expect(requestInvite).toHaveBeenCalledWith({ userId: USER });
+            expect(invite).toHaveBeenCalledWith({ userId: USER });
         });
 
         it.each([PlayersPartyState.None, PlayersPartyState.InvitedOnly])("creates a party first when %s", (state) => {
-            partyStore.state = state;
-            const requestCreateAndInvite = vi.spyOn(party, "requestCreateAndInvite").mockResolvedValue(undefined);
+            if (state === PlayersPartyState.InvitedOnly) {
+                partyUpdates.replaceAll([makeParty("invited", [], [SELF])], SELF);
+            }
+            const createAndInvite = vi.spyOn(partyLogic, "createAndInvite").mockResolvedValue(undefined);
 
             usePartyInviteState(USER).inviteToParty();
 
-            expect(requestCreateAndInvite).toHaveBeenCalledWith(USER);
+            expect(createAndInvite).toHaveBeenCalledWith(USER);
         });
     });
 });

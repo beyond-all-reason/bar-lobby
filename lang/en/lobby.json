@@ -421,7 +421,12 @@
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
                 "etaSeconds": "{seconds}s left",
-                "queued": "Queued"
+                "queued": "Queued",
+                "finished": "Finished",
+                "complete": "Complete",
+                "failed": "Failed",
+                "retry": "Retry",
+                "clearAll": "Clear All"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
