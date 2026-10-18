@@ -41,6 +41,12 @@ export function isQueued(state: ContentState) {
     return state.status === "queued";
 }
 
+// Being fetched. Queued does not say which operation is waiting, so this is the first point at which
+// content is known to be a download.
+export function isAcquiring(state: ContentState) {
+    return state.status === "acquiring";
+}
+
 // Given up on, and kept that way until the content is asked for again.
 export function hasFailed(state: ContentState) {
     return state.status === "failed";
