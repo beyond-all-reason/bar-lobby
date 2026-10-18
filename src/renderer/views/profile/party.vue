@@ -246,15 +246,15 @@ const showParty = computed(() => {
 
 const tabIndex = ref(0);
 
+// Keyed on the party rather than showParty, so accepting an invite while already in a party still opens the new one.
 watch(
-    [showParty, showInvites],
-    ([canShowParty, canShowInvites]) => {
-        if (canShowParty) {
+    () => partyStore.activeParty,
+    (activeParty) => {
+        if (activeParty) {
             tabIndex.value = 0;
-        } else if (canShowInvites) {
-            tabIndex.value = 1;
         } else {
-            tabIndex.value = 0;
+            // With no party, stay on invites even once they've all gone, so it shows that there are none.
+            tabIndex.value = 1;
         }
     },
     { immediate: true }
