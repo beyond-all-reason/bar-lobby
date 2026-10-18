@@ -4,6 +4,7 @@
 
 import { ContentState, ContentStatus } from "@main/content/content-state";
 import { createSettledCounter, createSettledTracker, SettledContent } from "@main/content/content-progress";
+import { contentRefKey } from "@main/content/content-ref";
 import { describe, expect, it } from "vitest";
 
 function map(id: string, status: ContentStatus): ContentState {
@@ -56,6 +57,27 @@ describe("settled counter", () => {
         count([map("a", "acquiring"), map("bad", "acquiring")]);
 
         expect(count([map("bad", "failed")])).toBe(1);
+    });
+
+    // The queue drops a ref the moment its operation ends and the failure is only recorded after, so the
+    // stream sees the ref gone, which reads as landed, before it sees it fail.
+    it("takes back content counted as landed once it is reported as failed", () => {
+        const count = createSettledCounter();
+
+        count([map("a", "acquiring"), map("bad", "acquiring")]);
+        expect(count([map("a", "acquiring")])).toBe(1);
+
+        expect(count([map("a", "acquiring"), map("bad", "failed")])).toBe(0);
+    });
+
+    it("stops counting what it is told to forget", () => {
+        const count = createSettledCounter();
+
+        count([map("a", "acquiring"), map("b", "acquiring"), map("c", "acquiring")]);
+        expect(count([map("c", "acquiring")])).toBe(2);
+
+        expect(count.forget([contentRefKey(map("a", "acquiring"))])).toBe(1);
+        expect(count([map("c", "acquiring")])).toBe(1);
     });
 });
 

@@ -177,7 +177,37 @@ describe("aggregate download progress", () => {
 
         clearFinishedDownloads("complete");
 
+        expect(percent()).toBe(0);
+        expect(failedPercent()).toBe(1);
+    });
+
+    // Each failure reaches the renderer as the ref vanishing, then as failed a snapshot later, which is
+    // how the queue reports it.
+    it("does not count failures as landed when they vanish before failing", () => {
+        push(["a", "b", "c", "d"].map((id) => acquiring(id, 50, 100)));
+        push([acquiring("c", 50, 100), acquiring("d", 50, 100)]);
+        push([acquiring("d", 50, 100)]);
+        push([map("c", "failed", 50, 100), acquiring("d", 50, 100)]);
+        push([map("c", "failed", 50, 100)]);
+        push([map("c", "failed", 50, 100), map("d", "failed", 50, 100)]);
+
+        expect(percent()).toBeCloseTo(0.5);
         expect(failedPercent()).toBeCloseTo(0.5);
+
+        clearFinishedDownloads("complete");
+
+        expect(percent()).toBe(0);
+        expect(failedPercent()).toBe(1);
+    });
+
+    it("leaves only what is still running once what finished is cleared", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 50, 100)]);
+        push([acquiring("b", 50, 100)]);
+        expect(percent()).toBeCloseTo(0.75);
+
+        clearFinishedDownloads("complete");
+
+        expect(percent()).toBeCloseTo(0.5);
     });
 
     it("does not count an old failure against the next run", () => {

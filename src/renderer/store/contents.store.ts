@@ -79,6 +79,12 @@ function withoutDismissedFailures(states: ContentState[]) {
 }
 
 export function clearFinishedDownloads(outcome: SettledOutcome) {
+    // What finished is dismissed from the figure as well as the list, so a run left with only its
+    // failures reads as entirely failed.
+    if (outcome === "complete") {
+        countSettled.forget(contentsStore.finishedDownloads.filter((entry) => entry.outcome === "complete").map(({ state }) => contentRefKey(state)));
+    }
+
     contentsStore.finishedDownloads = settledTracker.clear(outcome);
     // Counted again against the same snapshot so a run with nothing left in it starts over now, not at
     // the next change, which would be the next run's first.

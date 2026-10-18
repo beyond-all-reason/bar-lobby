@@ -11,12 +11,23 @@ import { contentRefKey } from "@main/content/content-ref";
  * The change stream only ever describes work still outstanding, so content vanishes from it the moment
  * it lands. A figure averaged over what is left restarts from nothing every time the queue moves to its
  * next batch, which is why what landed has to be remembered and counted on both sides of the fraction.
+ *
+ * What landed can also be forgotten before the run is over, for a figure that should only describe
+ * what is still being shown.
  */
 export function createSettledCounter() {
     let landed = new Set<string>();
     let previous = new Set<string>();
 
-    return (states: ContentState[]) => {
+    function forget(keys: Iterable<string>) {
+        for (const key of keys) {
+            landed.delete(key);
+        }
+
+        return landed.size;
+    }
+
+    const count = (states: ContentState[]) => {
         const outstanding = new Set(states.filter(isInProgress).map(contentRefKey));
         const failed = new Set(states.filter(hasFailed).map(contentRefKey));
 
@@ -28,6 +39,12 @@ export function createSettledCounter() {
         }
         previous = outstanding;
 
+        // A failure is reported a snapshot after the ref has already left the stream, so content taken
+        // for landed is taken back here.
+        for (const key of failed) {
+            landed.delete(key);
+        }
+
         // Nothing moving and nothing failed means this run is over, so the next one starts from zero.
         if (outstanding.size === 0 && failed.size === 0) {
             landed = new Set();
@@ -35,6 +52,8 @@ export function createSettledCounter() {
 
         return landed.size;
     };
+
+    return Object.assign(count, { forget });
 }
 
 // How a download this session is done with ended.
