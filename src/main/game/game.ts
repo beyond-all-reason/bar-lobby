@@ -99,12 +99,14 @@ export class GameAPI {
         applyDefaultSpringsettings();
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
-        const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
-        log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
+        // A full path, never a bare name: Windows only finds a bare name in cwd by searching the current
+        // directory, which NoDefaultCurrentDirectoryInExePath turns off, and then falls back to PATH.
+        const binaryPath = path.join(enginePath, process.platform === "win32" ? "spring.exe" : "spring");
+        log.debug(`Running binary: ${binaryPath}, args: ${args}`);
 
         return new Promise<void>((resolve, reject) => {
             try {
-                this.gameProcess = spawn(binaryName, args, {
+                this.gameProcess = spawn(binaryPath, args, {
                     cwd: enginePath,
                     stdio: "pipe",
                     detached: true,
