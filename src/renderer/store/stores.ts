@@ -6,7 +6,7 @@ import { initContentsStore } from "@renderer/store/contents.store";
 import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";
-import { initInfosStore } from "@renderer/store/infos.store";
+import { initInfosLogic } from "@renderer/logic/infos";
 import { initializeMatchmakingStore } from "@renderer/store/matchmaking.store";
 import { initMeStore } from "@renderer/store/me.store";
 import { initPartyLogic } from "@renderer/logic/party";
@@ -22,7 +22,7 @@ import { initCustomLobbiesStore } from "@renderer/store/custom-lobbies.store";
 export async function initPreMountStores() {
     await Promise.all([
         Promise.all([initConfigStore(), initSettingsStore()]).then(() => initCustomLobbiesStore()),
-        initInfosStore(),
+        initInfosLogic(),
         initGameStore(),
         initContentsStore(),
         initDownloadsStore(),

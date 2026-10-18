@@ -5,7 +5,6 @@
 import { ContentRef } from "@main/content/content-ref";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { contentsStore } from "@renderer/store/contents.store";
-import { infosStore } from "@renderer/store/infos.store";
 import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,7 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
 const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
 
-const { missing, ensure } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn() }));
+const { missing, ensure, edition } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn(), edition: { features: {} as EditionFeatures } }));
 
 vi.mock("@renderer/i18n", () => ({
     useTypedI18n: () => ({ t: (key: string) => key }),
@@ -25,6 +24,14 @@ vi.mock("@renderer/api/notifications", () => ({
 }));
 // Cuts off the chat -> lobby -> battle store chain pulled in transitively, which this component has nothing to do with.
 vi.mock("@renderer/store/lobby.store", () => ({ lobbyStore: { activeLobby: undefined } }));
+
+vi.mock("@renderer/store/infos.store", () => ({
+    infosStore: {
+        get features() {
+            return edition.features;
+        },
+    },
+}));
 
 vi.stubGlobal("window", Object.assign(window, { content: { missing, ensure } }));
 
@@ -48,7 +55,7 @@ describe("DownloadContentButton", () => {
         ensure.mockReset().mockResolvedValue(undefined);
         contentsStore.inFlight = [];
         contentsStore.revision = 0;
-        infosStore.features = standalone;
+        edition.features = standalone;
     });
 
     it("offers the download until the content is known to be present", async () => {
@@ -143,7 +150,7 @@ describe("DownloadContentButton", () => {
 
     describe("on an edition that does not download engines or games", () => {
         beforeEach(() => {
-            infosStore.features = steam;
+            edition.features = steam;
         });
 
         it("sends the player to verify their game files instead of offering a download", async () => {
