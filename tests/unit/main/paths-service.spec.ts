@@ -21,8 +21,7 @@ const { edition, handlers, fsPromises, setAssetsPath, updateSettings, reinit } =
     reinit: vi.fn(async () => undefined),
 }));
 
-// edition.ts reads app at import time.
-vi.mock("electron", () => ({ app: { isPackaged: false, getAppPath: () => process.cwd() }, BrowserWindow: { fromWebContents: () => null }, dialog: {} }));
+vi.mock("electron", () => ({ BrowserWindow: { fromWebContents: () => null }, dialog: {} }));
 vi.mock("fs", () => ({ default: { promises: fsPromises } }));
 vi.mock("@main/typed-ipc", () => ({
     ipcMain: {
@@ -31,21 +30,16 @@ vi.mock("@main/typed-ipc", () => ({
 }));
 // app.ts calls app.setPath at module scope, so it can't be imported in a test.
 vi.mock("@main/config/app", () => ({ setAssetsPath, getAssetsPath: () => "/install/assets", STATE_PATH: "/state" }));
-vi.mock("@main/config/edition", async (importOriginal) => {
-    const actual = await importOriginal<typeof import("@main/config/edition")>();
-
-    return {
-        ...actual,
-        get EDITION() {
-            return edition.name;
-        },
-        EDITION_FEATURES: edition.features,
-    };
-});
+vi.mock("@main/config/edition", () => ({
+    get EDITION() {
+        return edition.name;
+    },
+    EDITION_FEATURES: edition.features,
+}));
 vi.mock("@main/services/settings.service", () => ({ settingsService: { updateSettings } }));
 vi.mock("@main/content/content-api", () => ({ contentAPI: { reinit } }));
 
-const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+const { editionFeatures } = await vi.importActual<typeof import("@shared/edition")>("@shared/edition");
 const { pathsService } = await import("@main/services/paths.service");
 
 pathsService.registerIpcHandlers({ send: vi.fn() } as never);
@@ -74,7 +68,7 @@ describe("pathsService", () => {
         beforeEach(() => asEdition("steam"));
 
         it.each(["paths:changePath", "paths:copyAndChangePath", "paths:moveAndChangePath"])("refuses %s before touching anything", async (channel) => {
-            await expect(invoke(channel, "/elsewhere")).rejects.toThrow(/cannot be changed/);
+            await expect(invoke(channel, "/elsewhere")).rejects.toThrow("assets_path_fixed");
 
             expect(touchedDisk()).toBe(false);
             expect(updateSettings).not.toHaveBeenCalled();

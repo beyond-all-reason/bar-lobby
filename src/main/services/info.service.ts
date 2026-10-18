@@ -6,7 +6,8 @@ import { app, screen, BrowserWindow } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import os from "os";
 import { STATE_PATH, getAssetsPath } from "@main/config/app";
-import { EDITION, EDITION_FEATURES, Edition, EditionFeatures } from "@main/config/edition";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import { Edition, EditionFeatures } from "@shared/edition";
 
 export type Info = {
     edition: Edition;

@@ -6,7 +6,7 @@ import { ContentRef } from "@main/content/content-ref";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { contentsStore } from "@renderer/store/contents.store";
 import { infosStore } from "@renderer/store/infos.store";
-import type { EditionFeatures } from "@main/config/edition";
+import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

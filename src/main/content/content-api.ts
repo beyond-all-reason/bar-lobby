@@ -19,15 +19,15 @@ import { CONTENT_RETENTION_DAYS, MIN_FREE_BYTES_TO_ACQUIRE } from "@main/config/
 import { configService } from "@main/services/config.service";
 import { getContentWriteRoot } from "@main/config/app";
 import { EDITION_FEATURES } from "@main/config/edition";
+import { canAcquireInEdition, EditionRefusalError } from "@shared/edition";
 import { formatBytes, freeBytes } from "@main/utils/disk-space";
 import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
 
-// Engines and games arrive with the install on an edition that does not download them, so a missing one
-// means the install is damaged and only the store that installed it can put it back.
-function notDownloadable(ref: ContentRef) {
-    return new Error(`${ref.type} '${ref.id}' is missing. Engines and games come with the Steam install: verify the integrity of the game files in Steam.`);
+// Only the store that installed the client can put back an engine or game it bundled.
+function notAcquirable(ref: ContentRef) {
+    return new EditionRefusalError("content_bundled_with_install", contentRefKey(ref));
 }
 
 // A provider dispatches progress for everything it is downloading on one signal, so acquisitions that
@@ -291,9 +291,7 @@ class ContentAPI {
 
         // Refused through track like any other failure, so the renderer sees why next to the content it
         // asked for, and whatever in the same call can be acquired still is.
-        const acquisitions = await Promise.allSettled(
-            this.missing(refs).map((ref) => this.track(this.canAcquire(ref) ? this.queue.enqueue("acquire", ref) : Promise.reject(notDownloadable(ref)), ref))
-        );
+        const acquisitions = await Promise.allSettled(this.missing(refs).map((ref) => this.track(this.canAcquire(ref) ? this.queue.enqueue("acquire", ref) : Promise.reject(notAcquirable(ref)), ref)));
 
         // Stamped by what is on disk now rather than by what was asked for, so content that landed is
         // not left unrecorded because something else in the same call did not.
@@ -305,13 +303,13 @@ class ContentAPI {
         }
     }
 
+    private canAcquire(ref: ContentRef) {
+        return canAcquireInEdition(EDITION_FEATURES, ref.type);
+    }
+
     // Refusing up front beats a transport failing partway with whatever error the filesystem gave it.
     // A volume we cannot measure is not treated as full: being unable to check is not a reason to stop
     // someone downloading.
-    private canAcquire(ref: ContentRef) {
-        return EDITION_FEATURES.downloadEngineAndGame || (ref.type !== "engine" && ref.type !== "game");
-    }
-
     private async assertRoomToAcquire() {
         const assetsPath = getContentWriteRoot();
         let free: number;

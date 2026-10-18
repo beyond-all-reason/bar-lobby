@@ -53,7 +53,8 @@ import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { contentRefs, contentsStore, ensureContent, inFlightFor } from "@renderer/store/contents.store";
-import { infosStore } from "@renderer/store/infos.store";
+import { contentApi } from "@renderer/api/content";
+import { editionLogic } from "@renderer/logic/edition";
 import { isInProgress } from "@main/content/content-state";
 
 const { t } = useTypedI18n();
@@ -84,7 +85,7 @@ watch(
         let superseded = false;
         onCleanup(() => (superseded = true));
 
-        const answer = await window.content.missing(refs.value);
+        const answer = await contentApi.missing(refs.value);
         if (!superseded) {
             missing.value = answer;
         }
@@ -94,11 +95,7 @@ watch(
 
 const ready = computed(() => missing.value.length === 0);
 
-// Engines and games come with the install on an edition that does not download them, so offering a
-// download for one would only fail.
-const needsGameFilesVerified = computed(
-    () => !infosStore.features.downloadEngineAndGame && missing.value.some((ref) => ref.type === "engine" || ref.type === "game")
-);
+const needsGameFilesVerified = computed(() => missing.value.some((ref) => !editionLogic.canAcquire(ref.type)));
 
 const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
 

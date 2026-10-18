@@ -5,6 +5,7 @@
 import { BrowserWindow, dialog } from "electron";
 import { setAssetsPath, getAssetsPath, STATE_PATH } from "@main/config/app";
 import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import { EditionRefusalError } from "@shared/edition";
 import { settingsService } from "./settings.service";
 import { contentAPI } from "@main/content/content-api";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
@@ -80,7 +81,7 @@ function validateAssetsPath(newPath: string): string | null {
 // Checked before anything is copied or moved, not only before the path is saved.
 function assertAssetsPathChangeable() {
     if (!EDITION_FEATURES.changeAssetsPath) {
-        throw new Error(`The assets path cannot be changed in the ${EDITION} edition.`);
+        throw new EditionRefusalError("assets_path_fixed", EDITION);
     }
 }
 

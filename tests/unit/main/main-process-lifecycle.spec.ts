@@ -292,7 +292,7 @@ describe("Main Process Lifecycle", () => {
 
     // The state directory is shared with the standalone client, so the saved path may be one it chose.
     it("should ignore a saved assets path on an edition with a fixed assets directory", async () => {
-        const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+        const { editionFeatures } = await vi.importActual<typeof import("@shared/edition")>("@shared/edition");
         vi.doMock("@main/config/edition", () => ({ EDITION: "steam", EDITION_FEATURES: editionFeatures("steam") }));
         mockServices.settingsService.getSettings.mockReturnValue({ assetsPath: "/saved/assets", lobbyServerOverride: "", customServerList: [] });
 

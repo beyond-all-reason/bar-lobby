@@ -647,7 +647,7 @@ describe("contentAPI free space", () => {
 
 describe("contentAPI on an edition with read-only bundled assets", () => {
     beforeEach(async () => {
-        const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+        const { editionFeatures } = await vi.importActual<typeof import("@shared/edition")>("@shared/edition");
         Object.assign(edition.features, editionFeatures("steam"));
         installed.clear();
         installed.add("engine:2025.01.3");
@@ -659,19 +659,19 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
     });
 
     afterEach(async () => {
-        const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+        const { editionFeatures } = await vi.importActual<typeof import("@shared/edition")>("@shared/edition");
         Object.assign(edition.features, editionFeatures("standalone"));
     });
 
-    it("refuses to acquire a missing engine and points at verifying the install", async () => {
-        await expect(contentAPI.ensure([{ type: "engine", id: "2099.12.1" }])).rejects.toThrow("verify the integrity of the game files");
+    it("refuses to acquire a missing engine as content bundled with the install", async () => {
+        await expect(contentAPI.ensure([{ type: "engine", id: "2099.12.1" }])).rejects.toThrow("content_bundled_with_install");
 
         expect(acquired).toEqual([]);
         expect(contentAPI.state()).toEqual(expect.arrayContaining([expect.objectContaining({ type: "engine", id: "2099.12.1", status: "failed" })]));
     });
 
     it("refuses to acquire a missing game", async () => {
-        await expect(contentAPI.ensure([{ type: "game", id: "Beyond All Reason test-2-def" }])).rejects.toThrow("Steam");
+        await expect(contentAPI.ensure([{ type: "game", id: "Beyond All Reason test-2-def" }])).rejects.toThrow("content_bundled_with_install");
 
         expect(acquired).toEqual([]);
     });
@@ -697,7 +697,7 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
                 { type: "engine", id: "2099.12.1" },
                 { type: "map", id: "Not Bundled 1.0" },
             ])
-        ).rejects.toThrow("Steam");
+        ).rejects.toThrow("content_bundled_with_install");
 
         expect(acquired).toEqual(["map:Not Bundled 1.0"]);
     });
@@ -705,7 +705,7 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
     it("does not fetch an engine to get pr-downloader when none is installed", async () => {
         installed.delete("engine:2025.01.3");
 
-        await expect(contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }])).rejects.toThrow("Steam");
+        await expect(contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }])).rejects.toThrow("content_bundled_with_install");
 
         expect(acquired).toEqual([]);
     });

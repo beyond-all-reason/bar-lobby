@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { editionFeatures, parseEditionMetadata, resolveEdition } from "@main/config/edition";
+import { editionFeatures, parseEditionMetadata, resolveEdition } from "@shared/edition";
 
 describe("parseEditionMetadata", () => {
     it("reads the steam edition from the packaged metadata", () => {

@@ -88,6 +88,13 @@ import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
+import { editionLogic } from "@renderer/logic/edition";
+import { autoUpdaterApi } from "@renderer/api/auto-updater";
+import { barNavigationApi } from "@renderer/api/bar-navigation";
+import { contentApi } from "@renderer/api/content";
+import { engineApi } from "@renderer/api/engine";
+import { mapsApi } from "@renderer/api/maps";
+import { pathsApi } from "@renderer/api/paths";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
@@ -130,7 +137,9 @@ const installationIncomplete = ref(false);
 // Playing offline without an engine and a game is not playing anything: every launch path needs both,
 // and nothing else in the client can fetch them once this screen has been left behind. Any installed
 // engine counts, so a player whose client just bumped its default is not held here by that alone.
-const hasEngineAndGame = () => installedEngineVersions.value.length > 0 && gameStore.availableGameVersions.size > 0;
+const hasEngine = () => installedEngineVersions.value.length > 0;
+const hasGame = () => gameStore.availableGameVersions.size > 0;
+const hasEngineAndGame = () => hasEngine() && hasGame();
 const canPlayOffline = computed(hasEngineAndGame);
 
 const overallProgress = ref(0);
@@ -345,13 +354,12 @@ async function runStage(stage: DownloadStage): Promise<boolean> {
 
 async function browseForFolder() {
     try {
-        const chosen = await window.paths.selectFolder();
+        const chosen = await pathsApi.selectFolder();
         if (chosen) {
             pathError.value = "";
             selectedPath.value = chosen;
         }
-    } catch (error) {
-        console.error("Could not open the folder picker", error);
+    } catch {
         pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
     }
 }
@@ -360,9 +368,8 @@ async function confirmPath() {
     pathError.value = "";
 
     try {
-        await window.paths.changePath(selectedPath.value);
-    } catch (error) {
-        console.error("Could not change the assets path", error);
+        await pathsApi.changePath(selectedPath.value);
+    } catch {
         pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
 
         return;
@@ -403,16 +410,14 @@ onMounted(async () => {
         overallProgress.value += preloadStepWeight;
     }
     audioApi.load();
-    window.barNavigation.signalReady();
+    barNavigationApi.signalReady();
     overallProgress.value = PRELOAD_WEIGHT;
 
     // Phase 2: Downloads
     isDownloadPhase.value = true;
     titleKey.value = "lobby.components.misc.initialSetup.title";
 
-    // Where engines and games come with the install, nothing here can supply a missing one, so offering
-    // retries or a download would only send the player round in circles.
-    if (!infosStore.features.downloadEngineAndGame && !hasEngineAndGame()) {
+    if (editionLogic.isInstallationIncomplete({ engine: hasEngine(), game: hasGame() })) {
         isDownloadPhase.value = false;
         installationIncomplete.value = true;
         stepError.value = "incomplete";
@@ -423,7 +428,7 @@ onMounted(async () => {
     const needsEngine = installedEngineVersions.value.length === 0;
 
     if (needsEngine && infosStore.features.changeAssetsPath) {
-        selectedPath.value = await window.paths.getCurrentAssetsPath().catch(() => "");
+        selectedPath.value = await pathsApi.getCurrentAssetsPath().catch(() => "");
         state.value = "path-selection";
         await new Promise<void>((resolve) => {
             resolvePathConfirm = resolve;
@@ -432,8 +437,8 @@ onMounted(async () => {
     }
 
     const stageEnabled: Record<DownloadStage["id"], boolean> = {
-        engine: infosStore.features.downloadEngineAndGame,
-        game: infosStore.features.downloadEngineAndGame,
+        engine: editionLogic.canAcquire("engine"),
+        game: editionLogic.canAcquire("game"),
         maps: true,
         update: infosStore.features.selfUpdate,
     };
@@ -446,7 +451,7 @@ onMounted(async () => {
             canSkip: () => installedEngineVersions.value.length > 0,
             async run() {
                 if (!defaultEngineInstalled.value) {
-                    await window.engine.downloadEngine();
+                    await engineApi.downloadEngine();
                 }
             },
         },
@@ -459,7 +464,7 @@ onMounted(async () => {
                 if (gameStore.availableGameVersions.size > 0) {
                     return;
                 }
-                await window.content.preloadPool();
+                await contentApi.preloadPool();
                 await downloadGame(configStore.latestGameVersion);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");
@@ -481,7 +486,7 @@ onMounted(async () => {
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
                     relabelStage(this, t("lobby.components.misc.initialSetup.downloadingMaps"));
-                    await window.maps.downloadMaps([...configStore.defaultMaps]);
+                    await mapsApi.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
                     await fetchMissingMapImages();
@@ -497,11 +502,11 @@ onMounted(async () => {
             canSkip: () => true,
             async run() {
                 relabelStage(this, t("lobby.components.misc.initialSetup.checkingForUpdates"));
-                const updateAvailable = await window.autoUpdater.checkForUpdates();
+                const updateAvailable = await autoUpdaterApi.checkForUpdates();
                 if (updateAvailable) {
                     relabelStage(this, t("lobby.components.misc.initialSetup.downloadingUpdate"));
-                    await window.autoUpdater.downloadUpdate();
-                    await window.autoUpdater.installUpdates();
+                    await autoUpdaterApi.downloadUpdate();
+                    await autoUpdaterApi.installUpdates();
                 }
             },
         },

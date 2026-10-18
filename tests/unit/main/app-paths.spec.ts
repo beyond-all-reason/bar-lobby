@@ -4,7 +4,7 @@
 
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Edition, editionFeatures } from "@main/config/edition";
+import { Edition, editionFeatures } from "@shared/edition";
 
 // Absolute on every host, so path.resolve leaves it where it is.
 const root = path.resolve("/bar-test");

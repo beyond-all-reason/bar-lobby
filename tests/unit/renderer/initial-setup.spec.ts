@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import InitialSetup from "@renderer/components/misc/InitialSetup.vue";
-import type { EditionFeatures } from "@main/config/edition";
+import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

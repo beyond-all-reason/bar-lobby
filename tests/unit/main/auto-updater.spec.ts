@@ -18,19 +18,14 @@ const { edition, updater } = vi.hoisted(() => ({
 
 vi.mock("electron", () => ({ app: { isPackaged: true } }));
 vi.mock("electron-updater", () => ({ default: { autoUpdater: updater } }));
-vi.mock("@main/config/edition", async (importOriginal) => {
-    const actual = await importOriginal<typeof import("@main/config/edition")>();
+vi.mock("@main/config/edition", () => ({
+    get EDITION() {
+        return edition.name;
+    },
+    EDITION_FEATURES: edition.features,
+}));
 
-    return {
-        ...actual,
-        get EDITION() {
-            return edition.name;
-        },
-        EDITION_FEATURES: edition.features,
-    };
-});
-
-const { editionFeatures } = await vi.importActual<typeof import("@main/config/edition")>("@main/config/edition");
+const { editionFeatures } = await vi.importActual<typeof import("@shared/edition")>("@shared/edition");
 const { AutoUpdaterAPI } = await import("@main/content/auto-updater");
 
 function asEdition(name: "standalone" | "steam") {
