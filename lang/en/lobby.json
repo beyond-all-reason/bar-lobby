@@ -283,7 +283,8 @@
                 "finished": "Finished",
                 "complete": "Complete",
                 "failed": "Failed",
-                "retry": "Retry"
+                "retry": "Retry",
+                "clearAll": "Clear All"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",

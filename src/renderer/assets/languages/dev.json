@@ -283,7 +283,8 @@
                 "finished": "Fneiishd",
                 "complete": "Cemotple",
                 "failed": "Failed",
-                "retry": "Rrtey"
+                "retry": "Rrtey",
+                "clearAll": "Celar All"
             },
             "serverStatus": {
                 "playersOnline": "Plyreas Oinnle",

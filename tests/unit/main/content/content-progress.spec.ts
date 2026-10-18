@@ -65,7 +65,7 @@ describe("settled tracker", () => {
     }
 
     it("returns the last state of content that has left the change stream", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring"), map("b", "acquiring")]);
 
@@ -73,7 +73,7 @@ describe("settled tracker", () => {
     });
 
     it("tracks a failure as failed, not complete", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring"), map("bad", "acquiring")]);
 
@@ -83,7 +83,7 @@ describe("settled tracker", () => {
     // The queue drops a ref the moment its operation ends and the failure is only recorded after, so the
     // stream sees the ref gone, which reads as landed, before it sees it fail.
     it("corrects content taken for landed once it is reported as failed", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring"), map("bad", "acquiring")]);
         expect(outcomes(track([map("a", "acquiring")]))).toEqual(["bad:complete"]);
@@ -92,7 +92,7 @@ describe("settled tracker", () => {
     });
 
     it("keeps a corrected failure in the place it first landed in", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("bad", "acquiring"), map("b", "acquiring"), map("c", "acquiring")]);
         track([map("b", "acquiring"), map("c", "acquiring")]);
@@ -102,7 +102,7 @@ describe("settled tracker", () => {
     });
 
     it("drops a failure once it is asked for again, and tracks how the retry ended", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("bad", "acquiring")]);
         track([map("bad", "failed")]);
@@ -115,7 +115,7 @@ describe("settled tracker", () => {
     // A queued ref does not say whether it is waiting to be fetched or removed, and a removal leaving
     // the stream is not a download that landed.
     it("does not track a removal", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "queued")]);
         track([map("a", "removing")]);
@@ -124,7 +124,7 @@ describe("settled tracker", () => {
     });
 
     it("does not track a removal that failed", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "queued")]);
         track([map("a", "removing")]);
@@ -134,7 +134,7 @@ describe("settled tracker", () => {
     });
 
     it("drops a download once it is removed, and does not bring it back", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring")]);
         expect(outcomes(track([]))).toEqual(["a:complete"]);
@@ -145,7 +145,7 @@ describe("settled tracker", () => {
     });
 
     it("tracks a download that was queued before it was acquired", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "queued")]);
         track([map("a", "acquiring")]);
@@ -156,7 +156,7 @@ describe("settled tracker", () => {
     // Otherwise the list would empty the moment the last download ended, unlike the counter's tally,
     // which is only wanted while something is running.
     it("keeps what landed after the queue has drained", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring")]);
 
@@ -164,7 +164,7 @@ describe("settled tracker", () => {
     });
 
     it("drops content that is asked for again until it lands again", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring"), map("b", "acquiring")]);
         track([map("b", "acquiring")]);
@@ -174,11 +174,45 @@ describe("settled tracker", () => {
     });
 
     it("keeps the order content landed in", () => {
-        const track = createSettledTracker();
+        const { track } = createSettledTracker();
 
         track([map("a", "acquiring"), map("b", "acquiring"), map("c", "acquiring")]);
         track([map("b", "acquiring"), map("c", "acquiring")]);
 
         expect(outcomes(track([map("c", "acquiring")]))).toEqual(["a:complete", "b:complete"]);
+    });
+
+    it("clears one outcome and leaves the other", () => {
+        const { track, clear } = createSettledTracker();
+
+        track([map("a", "acquiring"), map("bad", "acquiring")]);
+        track([map("bad", "failed")]);
+
+        expect(outcomes(clear("complete"))).toEqual(["bad:failed"]);
+        expect(outcomes(track([map("bad", "failed")]))).toEqual(["bad:failed"]);
+    });
+
+    // The failure is still in the change stream after it is cleared, and every snapshot carries it.
+    it("does not bring back a cleared failure", () => {
+        const { track, clear } = createSettledTracker();
+
+        track([map("bad", "acquiring")]);
+        track([map("bad", "failed")]);
+
+        expect(clear("failed")).toEqual([]);
+        expect(track([map("bad", "failed")])).toEqual([]);
+    });
+
+    it("tracks cleared content again once it is downloaded again", () => {
+        const { track, clear } = createSettledTracker();
+
+        track([map("bad", "acquiring")]);
+        track([map("bad", "failed")]);
+        clear("failed");
+
+        track([map("bad", "queued")]);
+        track([map("bad", "acquiring")]);
+
+        expect(outcomes(track([]))).toEqual(["bad:complete"]);
     });
 });

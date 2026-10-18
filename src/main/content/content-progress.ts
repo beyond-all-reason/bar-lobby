@@ -51,13 +51,14 @@ export type SettledContent = { state: ContentState; outcome: SettledOutcome };
  * and never joins the list. A followed ref that left the change stream without failing landed and is
  * kept in the last state it was seen in; one that failed is kept in its failed state. Unlike the counter
  * nothing is forgotten when the queue drains. Content asked for again, for whatever operation, leaves
- * the list, and comes back only if that request is a download too.
+ * the list, and comes back only if that request is a download too. What is cleared stays cleared until
+ * it is downloaded again.
  */
 export function createSettledTracker() {
     const settled = new Map<string, SettledContent>();
     let acquiring = new Map<string, ContentState>();
 
-    return (states: ContentState[]) => {
+    function track(states: ContentState[]) {
         const stillAcquiring = new Map<string, ContentState>();
 
         for (const state of states) {
@@ -90,5 +91,19 @@ export function createSettledTracker() {
         acquiring = stillAcquiring;
 
         return [...settled.values()];
-    };
+    }
+
+    // A cleared failure is still in the change stream, but the correction above only rewrites what is
+    // already listed, so it is not brought back.
+    function clear(outcome: SettledOutcome) {
+        for (const [key, entry] of settled) {
+            if (entry.outcome === outcome) {
+                settled.delete(key);
+            }
+        }
+
+        return [...settled.values()];
+    }
+
+    return { track, clear };
 }

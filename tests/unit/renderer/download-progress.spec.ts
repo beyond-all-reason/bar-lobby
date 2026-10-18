@@ -13,7 +13,7 @@ vi.mock("@renderer/store/downloads.store", () => ({ downloadsStore: { updateDown
 vi.stubGlobal("window", Object.assign(window, { content: { state, onChanged, onPoolPrefetch: vi.fn() } }));
 
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
-import { contentsStore, initContentsStore } from "@renderer/store/contents.store";
+import { clearFinishedDownloads, contentsStore, initContentsStore } from "@renderer/store/contents.store";
 
 function map(id: string, status: ContentStatus, currentBytes: number, totalBytes: number): ContentState {
     return { type: "map", id, status, currentBytes, totalBytes, progress: 0, attempts: 1 };
@@ -104,6 +104,7 @@ describe("aggregate download progress", () => {
     // contentAPI keeps a failure until its ref is asked for again, and the content that did land leaves
     // inFlight well before that, so the share has to survive the run it belongs to.
     it("holds both shares once everything else has stopped", () => {
+        push(["a", "b", "c", "d"].map((id) => acquiring(id, 50, 100)));
         push([acquiring("a", 100, 100), acquiring("b", 100, 100), acquiring("c", 100, 100), map("d", "failed", 50, 100)]);
 
         push([map("d", "failed", 50, 100)]);
@@ -113,7 +114,9 @@ describe("aggregate download progress", () => {
     });
 
     it("clears the failed share when the content is asked for again", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 50, 100)]);
         push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
+        expect(failedPercent()).toBeCloseTo(0.5);
         push([map("b", "failed", 50, 100)]);
 
         push([map("b", "queued", 0, 0)]);
@@ -122,6 +125,7 @@ describe("aggregate download progress", () => {
     });
 
     it("empties once a retry settles and nothing is left", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 50, 100)]);
         push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
         push([map("b", "queued", 0, 0)]);
 
@@ -134,7 +138,44 @@ describe("aggregate download progress", () => {
 
     // How far it got before giving up says nothing about how much of the run it was.
     it("does not size a failure by the bytes it managed", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 1, 100)]);
         push([acquiring("a", 100, 100), map("b", "failed", 1, 100)]);
+
+        expect(failedPercent()).toBeCloseTo(0.5);
+    });
+
+    // Clearing failures in the popover dismisses them, and a warning left with nothing to act on it
+    // from is not worth showing.
+    it("drops the failed share once failures are cleared", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 50, 100)]);
+        push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
+        push([map("b", "failed", 50, 100)]);
+
+        clearFinishedDownloads("failed");
+
+        expect(failedPercent()).toBe(0);
+        expect(percent()).toBe(0);
+    });
+
+    it("does not count a cleared failure's run against the next one", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 50, 100)]);
+        push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
+        push([map("b", "failed", 50, 100)]);
+
+        clearFinishedDownloads("failed");
+        push([map("b", "failed", 50, 100), acquiring("c", 50, 100)]);
+
+        expect(contentsStore.settledCount).toBe(0);
+        expect(percent()).toBeCloseTo(0.5);
+        expect(failedPercent()).toBe(0);
+    });
+
+    it("keeps the failed share when only what finished is cleared", () => {
+        push([acquiring("a", 50, 100), acquiring("b", 50, 100)]);
+        push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
+        push([map("b", "failed", 50, 100)]);
+
+        clearFinishedDownloads("complete");
 
         expect(failedPercent()).toBeCloseTo(0.5);
     });

@@ -2266,7 +2266,8 @@
                 "finished": null,
                 "complete": null,
                 "failed": null,
-                "retry": null
+                "retry": null,
+                "clearAll": null
             },
             "serverStatus": {
                 "playersOnline": null,

@@ -5,7 +5,7 @@
 import { computed } from "vue";
 
 import { contentsStore } from "@renderer/store/contents.store";
-import { hasFailed, isInProgress, isQueued } from "@main/content/content-state";
+import { isInProgress, isQueued } from "@main/content/content-state";
 import { SettledOutcome } from "@main/content/content-progress";
 import { ContentRef } from "@main/content/content-ref";
 import { downloadsStore } from "@renderer/store/downloads.store";
@@ -84,22 +84,29 @@ export function useDownloadProgress() {
         })),
     ]);
 
-    // What this session is done downloading, in the order each one ended.
-    const finishedDownloads = computed<FinishedDownloadView[]>(() =>
-        contentsStore.finishedDownloads.map(({ state, outcome }) => ({
-            key: `${state.type}:${state.id}`,
-            ref: { type: state.type, id: state.id },
-            name: state.id,
-            type: state.type,
-            outcome,
-        }))
-    );
+    // What this session is done downloading, in the order each one ended, split by how it ended.
+    function settledDownloads(wanted: SettledOutcome): FinishedDownloadView[] {
+        return contentsStore.finishedDownloads
+            .filter(({ outcome }) => outcome === wanted)
+            .map(({ state, outcome }) => ({
+                key: `${state.type}:${state.id}`,
+                ref: { type: state.type, id: state.id },
+                name: state.id,
+                type: state.type,
+                outcome,
+            }));
+    }
+
+    const completedDownloads = computed(() => settledDownloads("complete"));
+    const failedDownloads = computed(() => settledDownloads("failed"));
 
     // The same set the fractions below are summed over. A status counted here but not there, as a
     // failure used to be, holds the figure short of full for everything downloading beside it.
     const outstandingCount = computed(() => contentsStore.inFlight.filter(isInProgress).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
 
-    const failedCount = computed(() => contentsStore.inFlight.filter(hasFailed).length);
+    // The failures listed in the popover, not every one still in flight: clearing them there dismisses
+    // them, and a warning with nothing left to act on it from is not worth showing.
+    const failedCount = computed(() => failedDownloads.value.length);
 
     const anythingRunning = computed(
         () =>
@@ -211,7 +218,8 @@ export function useDownloadProgress() {
 
     return {
         allDownloads,
-        finishedDownloads,
+        completedDownloads,
+        failedDownloads,
         totalDownloadPercent,
         failedDownloadPercent,
         downloadPercent,
