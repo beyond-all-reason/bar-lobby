@@ -2263,7 +2263,10 @@
                 "etaMinutesSeconds": null,
                 "etaSeconds": null,
                 "queued": null,
-                "finished": null
+                "finished": null,
+                "complete": null,
+                "failed": null,
+                "retry": null
             },
             "serverStatus": {
                 "playersOnline": null,

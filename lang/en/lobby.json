@@ -280,7 +280,10 @@
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
                 "etaSeconds": "{seconds}s left",
                 "queued": "Queued",
-                "finished": "Finished"
+                "finished": "Finished",
+                "complete": "Complete",
+                "failed": "Failed",
+                "retry": "Retry"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",

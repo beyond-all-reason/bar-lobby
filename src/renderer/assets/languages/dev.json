@@ -280,7 +280,10 @@
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
                 "etaSeconds": "{seconds}s left",
                 "queued": "Quueed",
-                "finished": "Fneiishd"
+                "finished": "Fneiishd",
+                "complete": "Cemotple",
+                "failed": "Failed",
+                "retry": "Rrtey"
             },
             "serverStatus": {
                 "playersOnline": "Plyreas Oinnle",

@@ -4,7 +4,7 @@
 
 import { ContentRef } from "@main/content/content-ref";
 import { ContentPresence, ContentProgress, ContentState } from "@main/content/content-state";
-import { createSettledCounter, createSettledTracker } from "@main/content/content-progress";
+import { createSettledCounter, createSettledTracker, SettledContent } from "@main/content/content-progress";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
@@ -22,9 +22,9 @@ export const contentsStore: {
     // Content that landed this run, counted on both sides of the fraction so it does not drop as content
     // leaves inFlight. Held while a failure is unretried so the share it takes up stays put.
     settledCount: number;
-    // Content that landed this session, last seen as it left inFlight, so what finished can be
-    // named and not just counted. Kept after the queue drains, unlike settledCount's run.
-    finishedDownloads: ContentState[];
+    // Downloads this session is done with and how each ended, so what finished can be named and not
+    // just counted. Kept after the queue drains, unlike settledCount's run.
+    finishedDownloads: SettledContent[];
 } = reactive({
     isInitialized: false,
     inFlight: [],

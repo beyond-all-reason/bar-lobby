@@ -37,37 +37,45 @@ export function createSettledCounter() {
     };
 }
 
+// How a download this session is done with ended.
+export type SettledOutcome = "complete" | "failed";
+
+export type SettledContent = { state: ContentState; outcome: SettledOutcome };
+
 /**
- * Remembers what has landed this session, for anything that wants to name what finished rather
- * than just count it.
+ * Remembers what this session is done downloading and how each one ended, for anything that wants to
+ * name what finished rather than just count it.
  *
- * Works out what landed the same way the counter above does — from what left the change stream
- * without failing — but keeps the last state each landed ref was seen in, so a caller can still
- * say what it was and how far it got. Unlike the counter it does not start over when the queue
- * drains: a list of what finished is only looked for once nothing is running anymore. Content
- * asked for again leaves the list while it is outstanding and comes back when it lands again,
- * and a failure never joins it.
+ * Content that left the change stream without failing landed, the same way the counter above works it
+ * out, and is kept in the last state it was seen in. A failure is kept in its failed state. Unlike the
+ * counter nothing is forgotten when the queue drains. Content asked for again leaves the list while it
+ * is outstanding and comes back with however that attempt ended.
  */
 export function createSettledTracker() {
-    const landed = new Map<string, ContentState>();
+    const settled = new Map<string, SettledContent>();
     let previous = new Map<string, ContentState>();
 
     return (states: ContentState[]) => {
         const outstanding = new Map(states.filter(isInProgress).map((state): [string, ContentState] => [contentRefKey(state), state]));
-        const failed = new Set(states.filter(hasFailed).map(contentRefKey));
 
         for (const [key, state] of previous) {
-            if (!outstanding.has(key) && !failed.has(key)) {
-                landed.set(key, state);
+            if (!outstanding.has(key)) {
+                settled.set(key, { state, outcome: "complete" });
             }
         }
 
+        // A failure is reported a snapshot after the ref has already left the stream, so a ref taken for
+        // landed is corrected here. Setting an existing key keeps its place in the order.
+        for (const state of states.filter(hasFailed)) {
+            settled.set(contentRefKey(state), { state, outcome: "failed" });
+        }
+
         for (const key of outstanding.keys()) {
-            landed.delete(key);
+            settled.delete(key);
         }
 
         previous = outstanding;
 
-        return [...landed.values()];
+        return [...settled.values()];
     };
 }

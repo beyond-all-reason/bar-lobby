@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentState, ContentStatus } from "@main/content/content-state";
-import { createSettledCounter, createSettledTracker } from "@main/content/content-progress";
+import { createSettledCounter, createSettledTracker, SettledContent } from "@main/content/content-progress";
 import { describe, expect, it } from "vitest";
 
 function map(id: string, status: ContentStatus): ContentState {
@@ -60,30 +60,65 @@ describe("settled counter", () => {
 });
 
 describe("settled tracker", () => {
+    function outcomes(settled: SettledContent[]) {
+        return settled.map(({ state, outcome }) => `${state.id}:${outcome}`);
+    }
+
     it("returns the last state of content that has left the change stream", () => {
         const track = createSettledTracker();
 
         track([map("a", "acquiring"), map("b", "acquiring")]);
 
-        expect(track([map("b", "acquiring")]).map((state) => state.id)).toEqual(["a"]);
+        expect(outcomes(track([map("b", "acquiring")]))).toEqual(["a:complete"]);
     });
 
-    it("does not track a failure as content that landed", () => {
+    it("tracks a failure as failed, not complete", () => {
         const track = createSettledTracker();
 
         track([map("a", "acquiring"), map("bad", "acquiring")]);
 
-        expect(track([map("a", "acquiring"), map("bad", "failed")])).toEqual([]);
+        expect(outcomes(track([map("a", "acquiring"), map("bad", "failed")]))).toEqual(["bad:failed"]);
     });
 
-    // The popover is only opened once nothing is running anymore, so what finished has to
-    // outlast the run it landed in, unlike the counter's tally.
+    // The queue drops a ref the moment its operation ends and the failure is only recorded after, so the
+    // stream sees the ref gone, which reads as landed, before it sees it fail.
+    it("corrects content taken for landed once it is reported as failed", () => {
+        const track = createSettledTracker();
+
+        track([map("a", "acquiring"), map("bad", "acquiring")]);
+        expect(outcomes(track([map("a", "acquiring")]))).toEqual(["bad:complete"]);
+
+        expect(outcomes(track([map("a", "acquiring"), map("bad", "failed")]))).toEqual(["bad:failed"]);
+    });
+
+    it("keeps a corrected failure in the place it first landed in", () => {
+        const track = createSettledTracker();
+
+        track([map("bad", "acquiring"), map("b", "acquiring"), map("c", "acquiring")]);
+        track([map("b", "acquiring"), map("c", "acquiring")]);
+        track([map("c", "acquiring")]);
+
+        expect(outcomes(track([map("c", "acquiring"), map("bad", "failed")]))).toEqual(["bad:failed", "b:complete"]);
+    });
+
+    it("drops a failure once it is asked for again, and tracks how the retry ended", () => {
+        const track = createSettledTracker();
+
+        track([map("bad", "acquiring")]);
+        track([map("bad", "failed")]);
+
+        expect(track([map("bad", "queued")])).toEqual([]);
+        expect(outcomes(track([]))).toEqual(["bad:complete"]);
+    });
+
+    // Otherwise the list would empty the moment the last download ended, unlike the counter's tally,
+    // which is only wanted while something is running.
     it("keeps what landed after the queue has drained", () => {
         const track = createSettledTracker();
 
         track([map("a", "acquiring")]);
 
-        expect(track([]).map((state) => state.id)).toEqual(["a"]);
+        expect(outcomes(track([]))).toEqual(["a:complete"]);
     });
 
     it("drops content that is asked for again until it lands again", () => {
@@ -93,7 +128,7 @@ describe("settled tracker", () => {
         track([map("b", "acquiring")]);
 
         expect(track([map("a", "acquiring"), map("b", "acquiring")])).toEqual([]);
-        expect(track([map("b", "acquiring")]).map((state) => state.id)).toEqual(["a"]);
+        expect(outcomes(track([map("b", "acquiring")]))).toEqual(["a:complete"]);
     });
 
     it("keeps the order content landed in", () => {
@@ -102,6 +137,6 @@ describe("settled tracker", () => {
         track([map("a", "acquiring"), map("b", "acquiring"), map("c", "acquiring")]);
         track([map("b", "acquiring"), map("c", "acquiring")]);
 
-        expect(track([map("c", "acquiring")]).map((state) => state.id)).toEqual(["a", "b"]);
+        expect(outcomes(track([map("c", "acquiring")]))).toEqual(["a:complete", "b:complete"]);
     });
 });

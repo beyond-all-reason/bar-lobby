@@ -38,7 +38,13 @@ SPDX-License-Identifier: MIT
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
                         </div>
-                        <Progress :percent="downloadPercent(download)" :text="finishedText(download)" :height="20" themed />
+                        <div v-if="download.outcome === 'failed'" class="downloads__outcome">
+                            <span class="downloads__failed">{{ t("lobby.navbar.downloads.failed") }}</span>
+                            <Button class="slim" @click="ensureContent([download.ref])">{{ t("lobby.navbar.downloads.retry") }}</Button>
+                        </div>
+                        <div v-else class="downloads__outcome">
+                            <span class="downloads__complete">{{ t("lobby.navbar.downloads.complete") }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -51,10 +57,12 @@ SPDX-License-Identifier: MIT
 import { inject, Ref } from "vue";
 
 import Loader from "@renderer/components/common/Loader.vue";
+import Button from "@renderer/components/controls/Button.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { ensureContent } from "@renderer/store/contents.store";
 
 const { t } = useTypedI18n();
 const { allDownloads, finishedDownloads, downloadPercent, progressText } = useDownloadProgress();
@@ -67,12 +75,6 @@ function barText(download: DownloadView): string {
 function detailText(download: DownloadView): string {
     if (download.currentBytes === 0) return "";
     return progressText(download);
-}
-
-function finishedText(download: DownloadView): string {
-    // A download whose size was never reported has no truthful percentage to show.
-    if (download.totalBytes <= 0) return t("lobby.navbar.downloads.finished");
-    return barText(download);
 }
 
 const props = defineProps<{
@@ -139,6 +141,19 @@ toggleDownloads.value = async (open?: boolean) => {
         // Empty until the first figures arrive, and a row that grows a line the moment they do drags
         // every row under it down with it.
         min-height: 1.2em;
+    }
+    &__outcome {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 13px;
+    }
+    &__complete {
+        color: rgba(255, 255, 255, 0.45);
+    }
+    &__failed {
+        color: rgb(239, 83, 80);
     }
     &__waiting {
         font-size: 13px;
