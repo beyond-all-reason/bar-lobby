@@ -15,7 +15,8 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { party } from "@renderer/store/party.store";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 import { db } from "@renderer/store/db";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
@@ -30,9 +31,12 @@ const props = defineProps<{
 
 const user = await db.users.get(props.userId);
 
-function cancelInvite() {
-    const data = { userId: props.userId };
-    party.requestCancelInvite(data);
+async function cancelInvite() {
+    try {
+        await partyLogic.cancelInvite({ userId: props.userId });
+    } catch (error) {
+        alertRequestFailure(error, "party/cancelInvite");
+    }
 }
 </script>
 

@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 
 import { contentLayerRules } from "./eslint/content-layer.mjs";
+import { layerBoundaryRules } from "./eslint/layer-boundaries.mjs";
 import { restrictedSyntaxRules } from "./eslint/restricted-syntax.mjs";
 
 export default [
@@ -61,4 +62,5 @@ export default [
     },
     ...contentLayerRules,
     ...restrictedSyntaxRules,
+    ...layerBoundaryRules,
 ];
