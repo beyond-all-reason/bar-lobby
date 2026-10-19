@@ -8,6 +8,7 @@ vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn
 
 const { notificationsApi } = await import("@renderer/api/notifications");
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
+const { IpcCallError } = await import("@renderer/api/ipc-call");
 const { alertRequestFailure } = await import("@renderer/utils/alert-request-failure");
 
 describe("alertRequestFailure", () => {
@@ -36,6 +37,13 @@ describe("alertRequestFailure", () => {
 
         expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Error with request party/invite", severity: "error" });
         expect(consoleError).not.toHaveBeenCalled();
+    });
+
+    it("doesn't log a failed main-process call again", () => {
+        alertRequestFailure(new IpcCallError("content:missing", new Error("main went away")), "content:missing");
+
+        expect(consoleError).not.toHaveBeenCalled();
+        expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Error with request content:missing", severity: "error" });
     });
 
     it("logs other errors and falls back to the command it was given", () => {
