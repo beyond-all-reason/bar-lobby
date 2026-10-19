@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 
 import { beforeEach, describe, it, vi, expect, afterEach } from "vitest";
+import { preloadNamespaces } from "../../../eslint/layer-boundaries.mjs";
 
 type MockIpcRenderer = {
     invoke: Function;
@@ -14,27 +15,6 @@ type MockIpcRenderer = {
 };
 
 describe("Preload API Context Bridge", () => {
-    // List of all APIs exposed in the preload script
-    const apiNames = [
-        "log",
-        "info",
-        "mainWindow",
-        "shell",
-        "replays",
-        "settings",
-        "customLobbies",
-        "auth",
-        "content",
-        "engine",
-        "game",
-        "maps",
-        "misc",
-        "barNavigation",
-        "tachyon",
-        "autoUpdater",
-        "notifications",
-    ];
-
     let mockWindow: any;
     let mockIpcRenderer: MockIpcRenderer;
     let mockExposeInMainWorld: any;
@@ -86,12 +66,10 @@ describe("Preload API Context Bridge", () => {
         return (mockIpcRenderer.on as ReturnType<typeof vi.fn>).mock.calls.filter(([name]) => name === channel).map(([, listener]) => listener);
     }
 
-    it("should expose all APIs in the main world via contextBridge", async () => {
+    it("should expose exactly the namespaces the layer boundary lint checks", async () => {
         await import("@preload/preload");
 
-        for (const api of apiNames) {
-            expect(mockWindow[api]).toBeDefined();
-        }
+        expect(Object.keys(mockWindow).sort(), "preloadNamespaces in eslint/layer-boundaries.mjs").toEqual([...preloadNamespaces].sort());
     });
 
     it("should expose application logs API", async () => {

@@ -2,15 +2,30 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { readFileSync } from "node:fs";
-
 // The renderer layer boundaries from #727, as warnings until the renderer has moved over.
 
-const preload = readFileSync(new URL("../src/preload/preload.ts", import.meta.url), "utf8");
-const preloadNamespaces = [...preload.matchAll(/exposeInMainWorld\("(\w+)"/g)].map(([, name]) => name);
-if (preloadNamespaces.length === 0) {
-    throw new Error("layer-boundaries.mjs found no exposeInMainWorld calls in src/preload/preload.ts");
-}
+// The namespaces preload.ts exposes through contextBridge.exposeInMainWorld.
+export const preloadNamespaces = [
+    "auth",
+    "autoUpdater",
+    "barNavigation",
+    "config",
+    "content",
+    "customLobbies",
+    "engine",
+    "game",
+    "info",
+    "log",
+    "mainWindow",
+    "maps",
+    "misc",
+    "notifications",
+    "paths",
+    "replays",
+    "settings",
+    "shell",
+    "tachyon",
+];
 
 const storeUpdateImports = {
     group: ["@renderer/store/*"],
