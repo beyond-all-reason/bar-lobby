@@ -6,8 +6,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import PrimeVue from "primevue/config";
 
-const triggerAssetsRefresh = vi.fn();
-const sendListRequest = vi.fn();
+const refreshRequiredDownloads = vi.fn();
+const listQueues = vi.fn();
 const alertRequestFailure = vi.fn();
 
 vi.mock("@renderer/store/matchmaking.store", () => ({
@@ -17,9 +17,12 @@ vi.mock("@renderer/store/matchmaking.store", () => ({
         selectedQueue: "1v1",
         status: "Idle",
     },
-    matchmaking: { triggerAssetsRefresh, sendListRequest },
     MatchmakingStatus: { Idle: "Idle" },
     getPlaylistName: () => "",
+}));
+vi.mock("@renderer/logic/matchmaking", () => ({
+    matchmakingLogic: { refreshRequiredDownloads, listQueues },
+    MatchmakingJoinRefused: class {},
 }));
 vi.mock("@renderer/composables/usePartySizeMatchmaking", () => ({ usePartySizeMatchmaking: () => ({ partyTooLarge: false }), getPartySize: () => 0 }));
 vi.mock("@renderer/utils/alert-request-failure", () => ({ alertRequestFailure }));
@@ -38,15 +41,15 @@ function mountView() {
 
 describe("matchmaking view after downloads complete", () => {
     beforeEach(() => {
-        triggerAssetsRefresh.mockReset();
-        sendListRequest.mockReset();
+        refreshRequiredDownloads.mockReset();
+        listQueues.mockReset();
         alertRequestFailure.mockReset();
     });
 
     // An escaped rejection here reaches Error.vue's unhandledrejection listener as a fatal modal.
     it("alerts instead of rejecting when the content check fails", async () => {
         const error = new Error("content:missing failed");
-        triggerAssetsRefresh.mockRejectedValue(error);
+        refreshRequiredDownloads.mockRejectedValue(error);
         const wrapper = mountView();
 
         wrapper.findComponent({ name: "DownloadContentButton" }).vm.$emit("downloads-complete");
@@ -57,25 +60,25 @@ describe("matchmaking view after downloads complete", () => {
 
     // A failed refresh leaves downloadsRequired listing content that is now installed.
     it("re-lists the queues to rebuild what downloads are required when the content check fails", async () => {
-        triggerAssetsRefresh.mockRejectedValue(new Error("content:missing failed"));
+        refreshRequiredDownloads.mockRejectedValue(new Error("content:missing failed"));
         const wrapper = mountView();
-        sendListRequest.mockClear();
+        listQueues.mockClear();
 
         wrapper.findComponent({ name: "DownloadContentButton" }).vm.$emit("downloads-complete");
         await flushPromises();
 
-        expect(sendListRequest).toHaveBeenCalledOnce();
+        expect(listQueues).toHaveBeenCalledOnce();
     });
 
     it("refreshes without alerting when the content check succeeds", async () => {
-        triggerAssetsRefresh.mockResolvedValue(undefined);
+        refreshRequiredDownloads.mockResolvedValue(undefined);
         const wrapper = mountView();
 
         wrapper.findComponent({ name: "DownloadContentButton" }).vm.$emit("downloads-complete");
         await flushPromises();
 
-        expect(triggerAssetsRefresh).toHaveBeenCalledOnce();
+        expect(refreshRequiredDownloads).toHaveBeenCalledOnce();
         expect(alertRequestFailure).not.toHaveBeenCalled();
-        expect(sendListRequest).not.toHaveBeenCalled();
+        expect(listQueues).not.toHaveBeenCalled();
     });
 });

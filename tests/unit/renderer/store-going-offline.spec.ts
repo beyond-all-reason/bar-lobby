@@ -6,6 +6,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
+vi.mock("@renderer/api/game", () => ({ gameApi: { onClosed: vi.fn() } }));
 
 const disconnectHandlers: Array<() => void> = [];
 const connectHandlers: Array<() => void> = [];
@@ -24,7 +25,8 @@ Object.assign(window.tachyon, {
 
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
-const { matchmakingStore, MatchmakingStatus, initializeMatchmakingStore } = await import("@renderer/store/matchmaking.store");
+const { matchmakingStore, matchmakingUpdates, MatchmakingStatus } = await import("@renderer/store/matchmaking.store");
+const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
 const { partyStore, partyUpdates, PlayersPartyState } = await import("@renderer/store/party.store");
 const { initPartyLogic } = await import("@renderer/logic/party");
 const { lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
@@ -35,11 +37,13 @@ const { onWentOffline } = await import("@renderer/utils/offline-signal");
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
 
 function populateOnlineState() {
-    matchmakingStore.status = MatchmakingStatus.Searching;
-    matchmakingStore.playlists = [{ id: "1v1", name: "Duel", version: "3" }] as typeof matchmakingStore.playlists;
-    matchmakingStore.playersQueued = 12;
-    matchmakingStore.selectedQueue = "2v2";
-    matchmakingStore.downloadsRequired = { "2v2": { engines: [], games: [], maps: ["somemap"] } };
+    matchmakingUpdates.set({
+        status: MatchmakingStatus.Searching,
+        playlists: [{ id: "1v1", name: "Duel", version: "3" }] as never,
+        playersQueued: 12,
+        selectedQueue: "2v2",
+    });
+    matchmakingUpdates.setDownloadsRequired("2v2", { engines: [], games: [], maps: ["somemap"] });
 
     partyUpdates.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
 
@@ -54,7 +58,7 @@ function populateOnlineState() {
 
 describe("going offline", () => {
     beforeAll(async () => {
-        await Promise.all([initPartyLogic(), initLobbyStore(), initializeMatchmakingStore(), initChatStore(), initTachyonStore()]);
+        await Promise.all([initPartyLogic(), initLobbyStore(), initMatchmakingLogic(), initChatStore(), initTachyonStore()]);
     });
 
     beforeEach(() => {

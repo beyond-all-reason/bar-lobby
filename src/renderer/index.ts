@@ -17,12 +17,16 @@ import { elementInViewDirective } from "@renderer/utils/element-in-view-directiv
 import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
+import { provideUi } from "@renderer/logic/ui";
+import { appUi } from "@renderer/ui";
 import { i18n } from "@renderer/i18n";
 
 setupVue();
 
 async function setupVue() {
     const app = createApp(App);
+
+    provideUi(appUi);
 
     // Init stores before mounting app
     await initPreMountStores();

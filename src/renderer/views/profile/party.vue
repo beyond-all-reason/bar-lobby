@@ -102,7 +102,7 @@ SPDX-License-Identifier: MIT
                                             :class="{
                                                 disabled: !matchmakingStore.selectedQueue,
                                             }"
-                                            @click="matchmaking.sendQueueRequest"
+                                            @click="matchmaking.joinQueue"
                                         >
                                             {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                                         </button>
@@ -123,7 +123,7 @@ SPDX-License-Identifier: MIT
                                         <button
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                                             class="quick-play-button"
-                                            @click="matchmaking.sendReadyRequest"
+                                            @click="matchmaking.ready"
                                         >
                                             {{
                                                 t("lobby.multiplayer.ranked.buttons.matchFound", {
@@ -148,7 +148,7 @@ SPDX-License-Identifier: MIT
                                             :class="{
                                                 disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                                             }"
-                                            @click="matchmaking.sendCancelRequest"
+                                            @click="matchmaking.cancel"
                                         >
                                             {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                                         </button>
@@ -223,7 +223,8 @@ import { UserId } from "tachyon-protocol/types";
 import TabPanel from "primevue/tabpanel";
 import TabView from "@renderer/components/common/TabView.vue";
 import { me } from "@renderer/store/me.store";
-import { matchmakingStore, matchmaking, MatchmakingStatus, getPlaylistName } from "@renderer/store/matchmaking.store";
+import { MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
+import { useMatchmakingActions } from "@renderer/composables/useMatchmakingActions";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
 import informationIcon from "@iconify-icons/mdi/information";
@@ -233,6 +234,7 @@ import { chatStore } from "@renderer/store/chat.store";
 import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 
 const { t } = useTypedI18n();
+const matchmaking = useMatchmakingActions();
 
 const showInvites = computed(() => {
     if (partyStore.state === PlayersPartyState.InvitedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) return true;
@@ -305,7 +307,9 @@ const displayNames = useDexieLiveQueryWithDeps(partyStore.parties, async () => {
 const isQueueDownloadsModalOpen = ref(false);
 
 const availableQueueIds = computed(() => {
-    return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+    return [...matchmakingStore.playlists]
+        .sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams)
+        .map((playlist) => playlist.id);
 });
 
 const downloadsRequired = computed(() => {
@@ -326,7 +330,7 @@ function queueSelected(queue: string) {
     // Switching the active queue during a download cannot be allowed because it messes with state.
     if (downloading.value) {
         return;
-    } else matchmakingStore.selectedQueue = queue;
+    } else matchmaking.selectQueue(queue);
 }
 
 function handleDownloadsStarted() {
@@ -335,19 +339,14 @@ function handleDownloadsStarted() {
 // After downloads are done, we need to refresh the required list.
 async function handleDownloadsComplete() {
     try {
-        await matchmaking.triggerAssetsRefresh();
-    } catch (error) {
-        alertRequestFailure(error, "content:missing");
-        // downloadsRequired is stale after a failed refresh, so rebuild it rather than leave the download button
-        // up for content that is installed. sendListRequest catches its own failures. See triggerAssetsRefresh.
-        await matchmaking.sendListRequest();
+        await matchmaking.refreshRequiredDownloads();
     } finally {
         downloading.value = false;
     }
 }
 
 function requestMatchmakingQueues() {
-    matchmaking.sendListRequest();
+    matchmaking.listQueues();
 }
 
 function onInfoClick() {
