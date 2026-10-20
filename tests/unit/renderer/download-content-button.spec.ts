@@ -63,14 +63,16 @@ describe("DownloadContentButton", () => {
         missing.mockResolvedValue(held);
 
         const wrapper = mountButton();
+        await flushPromises();
 
         expect(wrapper.find(".quick-play-button").exists()).toBe(false);
+        expect(wrapper.find(".quick-download-button").exists()).toBe(true);
 
         missing.mockResolvedValue([]);
         contentsStore.revision++;
         await flushPromises();
 
-        expect(wrapper.find(".quick-play-button").exists()).toBe(true);
+        expect(wrapper.get(".quick-play-button").attributes("disabled")).toBeUndefined();
     });
 
     // Several checks can be outstanding at once and nothing orders their answers, so the newest question
@@ -97,12 +99,15 @@ describe("DownloadContentButton", () => {
         expect(wrapper.find(".quick-play-button").exists()).toBe(true);
     });
 
-    it("does not offer to play before the presence check has answered", () => {
+    // Nor does it flash a download prompt for content that may turn out to be installed.
+    it("does not offer to play before the presence check has answered", async () => {
         missing.mockReturnValue(new Promise(() => {}));
 
         const wrapper = mountButton();
+        await flushPromises();
 
-        expect(wrapper.find(".quick-play-button").exists()).toBe(false);
+        expect(wrapper.get(".quick-play-button").attributes("disabled")).toBeDefined();
+        expect(wrapper.find(".quick-download-button").exists()).toBe(false);
     });
 
     it("asks for every requested ref when the download is clicked", async () => {
