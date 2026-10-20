@@ -18,10 +18,10 @@ SPDX-License-Identifier: MIT
             >{{ t("lobby.components.controls.downloadContentButton.downloading") }}</Button
         >
         <button
-            v-else-if="ready"
+            v-else-if="ready || missing === undefined"
             class="quick-play-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
-            :disabled="disabled"
+            :disabled="disabled || !ready"
             @click="onClick"
         >
             <slot />
@@ -54,6 +54,7 @@ import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { contentRefs, contentsStore, ensureContent, inFlightFor } from "@renderer/store/contents.store";
 import { contentApi } from "@renderer/api/content";
+import { ContentRef } from "@main/content/content-ref";
 import { editionLogic } from "@renderer/logic/edition";
 import { isInProgress } from "@main/content/content-state";
 
@@ -73,9 +74,10 @@ const emit = defineEmits(["downloads-started", "downloads-complete"]);
 
 const refs = computed(() => contentRefs({ maps, engines, games }));
 
-// Starts out assuming everything is missing so the button never offers to play content that has not
-// been checked yet.
-const missing = ref(refs.value);
+// Undefined until the first answer comes back. Meanwhile the play button shows but stays disabled, so the
+// button never offers to play unchecked content, nor flashes a download or verify prompt for content
+// that turns out to be installed.
+const missing = ref<ContentRef[] | undefined>(undefined);
 
 watch(
     [refs, () => contentsStore.revision],
@@ -93,9 +95,9 @@ watch(
     { immediate: true }
 );
 
-const ready = computed(() => missing.value.length === 0);
+const ready = computed(() => missing.value?.length === 0);
 
-const needsGameFilesVerified = computed(() => missing.value.some((ref) => !editionLogic.canAcquire(ref.type)));
+const needsGameFilesVerified = computed(() => !!missing.value?.some((ref) => !editionLogic.canAcquire(ref.type)));
 
 const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
 
