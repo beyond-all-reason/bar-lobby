@@ -15,8 +15,16 @@ export function provideUi(ui: Ui) {
     implementation = ui;
 }
 
+function provided(): Ui | undefined {
+    if (!implementation) {
+        console.warn("A ui moment was reported before provideUi was called, so nothing shows for it.");
+    }
+
+    return implementation;
+}
+
 export const ui: Ui = {
-    matchWaiting: () => implementation?.matchWaiting(),
-    queuesJoined: () => implementation?.queuesJoined(),
-    queueListFailed: () => implementation?.queueListFailed(),
+    matchWaiting: () => provided()?.matchWaiting(),
+    queuesJoined: () => provided()?.queuesJoined(),
+    queueListFailed: () => provided()?.queueListFailed(),
 };

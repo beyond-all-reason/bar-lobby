@@ -159,12 +159,11 @@ async function joinQueue() {
 
         matchmakingUpdates.set({ status: MatchmakingStatus.Searching });
     } catch (error) {
-        if (isTachyonErrorForCommand(error, "matchmaking/queue") && error.reason === "version_mismatch") {
+        if (!isTachyonErrorForCommand(error, "matchmaking/queue")) {
+            matchmakingUpdates.set({ errorMessage: "Error with matchmaking/queue", status: MatchmakingStatus.Idle });
+        } else if (error.reason === "version_mismatch") {
             refreshQueues().then(() => matchmakingUpdates.set({ status: MatchmakingStatus.Idle }));
         } else {
-            if (!isTachyonErrorForCommand(error, "matchmaking/queue")) {
-                matchmakingUpdates.set({ errorMessage: "Error with matchmaking/queue" });
-            }
             matchmakingUpdates.set({ status: MatchmakingStatus.Idle });
         }
 
@@ -291,7 +290,9 @@ function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
 
     // Current design is a single queue joined at a time. If the user has a *different* queue selected when their party joins, we switch so they match their party's selection.
     matchmakingUpdates.set({ selectedQueue: data.queues[0] });
+
     ui.queuesJoined();
+
     matchmakingUpdates.set({ status: MatchmakingStatus.Searching });
 }
 
@@ -314,7 +315,6 @@ export async function initMatchmakingLogic() {
     }
 
     onWentOffline.add(clearOnlineState);
-    onTachyonConnected.add(() => refreshQueues());
     gameApi.onClosed(onGameClosed);
     onTachyonEvent("matchmaking/queueUpdate", onQueueUpdateEvent);
     onTachyonEvent("matchmaking/lost", onLostEvent);
@@ -328,6 +328,7 @@ export async function initMatchmakingLogic() {
         await refreshQueues();
     }
 
+    onTachyonConnected.add(() => refreshQueues());
     isInitialized = true;
 }
 
