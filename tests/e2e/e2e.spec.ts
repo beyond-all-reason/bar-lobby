@@ -37,32 +37,31 @@ describe("Electron App", async () => {
     });
 
     test("Main window state", async () => {
-        const windowState: { isVisible: boolean; isDevToolsOpened: boolean; isCrashed: boolean } = await electronApp.evaluate(async ({ BrowserWindow }) => {
-            const windows = BrowserWindow.getAllWindows();
-            const targetMainWindow =
-                windows.find((w) => {
-                    const url = w.webContents.getURL();
-                    return url.includes("index.html") && !url.includes("splash");
-                }) || windows[windows.length - 1];
+        function getWindowState() {
+            return electronApp.evaluate(({ BrowserWindow }) => {
+                const windows = BrowserWindow.getAllWindows();
+                const targetMainWindow =
+                    windows.find((w) => {
+                        const url = w.webContents.getURL();
+                        return url.includes("index.html") && !url.includes("splash");
+                    }) || windows[windows.length - 1];
 
-            if (!targetMainWindow) {
-                throw new Error("Could not find the main window process.");
-            }
+                if (!targetMainWindow) {
+                    throw new Error("Could not find the main window process.");
+                }
 
-            function getState() {
                 return {
                     isVisible: targetMainWindow.isVisible(),
                     isDevToolsOpened: targetMainWindow.webContents.isDevToolsOpened(),
                     isCrashed: targetMainWindow.webContents.isCrashed(),
                 };
-            }
-
-            return new Promise((resolve) => {
-                if (targetMainWindow.isVisible()) {
-                    resolve(getState());
-                } else targetMainWindow.once("ready-to-show", () => setTimeout(() => resolve(getState()), 0));
             });
-        });
+        }
+
+        // Polled rather than waiting on ready-to-show: the event can fire before the test subscribes,
+        // and under Xvfb the window can still report hidden just after show(), which hung the wait forever.
+        await expect.poll(async () => (await getWindowState()).isVisible, { message: "The main window was not visible", timeout: 20_000 }).toBeTruthy();
+        const windowState = await getWindowState();
 
         expect(windowState.isCrashed, "The app has crashed").toBeFalsy();
         expect(windowState.isVisible, "The main window was not visible").toBeTruthy();
