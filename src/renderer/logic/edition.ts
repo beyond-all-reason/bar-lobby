@@ -11,7 +11,6 @@ import { canAcquireInEdition, EditionRefusal } from "@shared/edition";
 // message takes the refused names as {content} and is pluralised on how many there are.
 const refusalMessageKeys: Record<EditionRefusal, TranslationKey> = {
     content_bundled_with_install: "lobby.logic.edition.refusals.contentBundledWithInstall",
-    assets_path_fixed: "lobby.logic.edition.refusals.assetsPathFixed",
 };
 
 // Whether this client can fetch content of this type at all. Engines and games come with the install on

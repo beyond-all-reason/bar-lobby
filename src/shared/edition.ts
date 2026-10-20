@@ -60,7 +60,7 @@ export function canAcquireInEdition(features: EditionFeatures, contentType: "eng
 }
 
 // What main refuses to do because of the edition. Sent as codes so the renderer words them itself.
-export type EditionRefusal = "content_bundled_with_install" | "assets_path_fixed";
+export type EditionRefusal = "content_bundled_with_install";
 
 export class EditionRefusalError extends Error {
     readonly refusal: EditionRefusal;

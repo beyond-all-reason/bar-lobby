@@ -53,7 +53,9 @@ export const APP_NAME = "BeyondAllReason";
  *   - Assets: <install dir>/assets, read-only: Steam installs, patches and
  *     verifies it, so content we download goes under the state dir instead.
  *   - State: the same as the standalone client on that platform, so a player
- *     moving between editions keeps their settings, replays and maps.
+ *     moving between editions keeps their settings and replays. Maps the
+ *     standalone client downloaded stay in its assets dir, which Steam does
+ *     not read, so they have to be downloaded again.
  */
 function getDefaultLocations(): { state: string; assets: string } {
     // We separate the development installation from production installation

@@ -3,8 +3,7 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam.",
-                    "assetsPathFixed": "The game files folder is managed by Steam and cannot be changed."
+                    "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam."
                 }
             }
         },

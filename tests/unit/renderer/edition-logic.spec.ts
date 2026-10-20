@@ -15,8 +15,4 @@ describe("editionLogic.refusalMessageKey", () => {
             "2099.12.1, Beyond All Reason test-2-def are missing. They come with the Steam install: verify the integrity of the game files in Steam."
         );
     });
-
-    it("words a refused assets path change", () => {
-        expect(t(editionLogic.refusalMessageKey("assets_path_fixed"), { content: "steam" }, 1)).toBe("The game files folder is managed by Steam and cannot be changed.");
-    });
 });

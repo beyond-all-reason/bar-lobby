@@ -3950,8 +3950,7 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": null,
-                    "assetsPathFixed": null
+                    "contentBundledWithInstall": null
                 }
             }
         },

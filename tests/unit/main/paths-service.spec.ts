@@ -68,7 +68,7 @@ describe("pathsService", () => {
         beforeEach(() => asEdition("steam"));
 
         it.each(["paths:changePath", "paths:copyAndChangePath", "paths:moveAndChangePath"])("refuses %s before touching anything", async (channel) => {
-            await expect(invoke(channel, "/elsewhere")).rejects.toThrow("assets_path_fixed");
+            await expect(invoke(channel, "/elsewhere")).rejects.toThrow("cannot be changed in the steam edition");
 
             expect(touchedDisk()).toBe(false);
             expect(updateSettings).not.toHaveBeenCalled();
