@@ -1831,6 +1831,13 @@
         }
     },
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam."
+                }
+            }
+        },
         "api": {
             "shell": {
                 "openFailed": "Could not open that: {details}"
@@ -2431,7 +2438,9 @@
                     "installingEngine": "Installing engine",
                     "downloadingGame": "Downloading game",
                     "installingGame": "Installing game",
+                    "updatingMapList": "Updating map list",
                     "downloadingMaps": "Downloading maps",
+                    "checkingForUpdates": "Checking for updates",
                     "downloadingUpdate": "Downloading update",
                     "installingUpdate": "Installing update",
                     "selectAssetsPathDescription": "Choose where game files (engine, maps, game) will be downloaded.",
@@ -2443,7 +2452,9 @@
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Retrying…",
                     "contentRequired": "Engine and game must be downloaded before starting a battle.",
-                    "pathUnusable": "That folder cannot be used for game files. Pick a different one."
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one.",
+                    "installationIncomplete": "Installation incomplete — verify integrity of game files in Steam.",
+                    "quitToDesktop": "Quit to Desktop"
                 }
             },
             "battle": {
@@ -2630,7 +2641,8 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Downloading...",
-                    "download": "Download"
+                    "download": "Download",
+                    "verifyGameFiles": "Game files missing — verify them in Steam"
                 },
                 "select": {
                     "search": "Search"

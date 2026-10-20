@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { getAssetsPath } from "@main/config/app";
+import { getContentWriteRoot } from "@main/config/app";
 import { ContentRef, contentRefKey } from "@main/content/content-ref";
 import { FileStore } from "@main/json/file-store";
 import { contentUsageSchema } from "@main/json/model/content-usage";
@@ -10,6 +10,7 @@ import path from "path";
 
 /**
  * Last-wanted timestamps, kept beside the content so repointing the assets directory carries its history.
+ * When the assets directory is read-only they live with the content we download instead.
  *
  * No entry means unseen, not old.
  */
@@ -18,7 +19,7 @@ class ContentUsage {
 
     // Re-read rather than reused, because the assets directory can be repointed while running.
     public async init() {
-        this.store = await new FileStore(path.join(getAssetsPath(), "content-usage.json"), contentUsageSchema).init();
+        this.store = await new FileStore(path.join(getContentWriteRoot(), "content-usage.json"), contentUsageSchema).init();
     }
 
     public lastUsed(ref: ContentRef) {

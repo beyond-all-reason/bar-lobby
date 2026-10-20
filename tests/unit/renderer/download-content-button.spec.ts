@@ -5,10 +5,14 @@
 import { ContentRef } from "@main/content/content-ref";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { contentsStore } from "@renderer/store/contents.store";
+import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { missing, ensure } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn() }));
+const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
+const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
+
+const { missing, ensure, edition } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn(), edition: { features: {} as EditionFeatures } }));
 
 vi.mock("@renderer/i18n", () => ({
     useTypedI18n: () => ({ t: (key: string) => key }),
@@ -20,6 +24,14 @@ vi.mock("@renderer/api/notifications", () => ({
 }));
 // Cuts off the chat -> lobby -> battle store chain pulled in transitively, which this component has nothing to do with.
 vi.mock("@renderer/store/lobby.store", () => ({ lobbyStore: { activeLobby: undefined } }));
+
+vi.mock("@renderer/store/infos.store", () => ({
+    infosStore: {
+        get features() {
+            return edition.features;
+        },
+    },
+}));
 
 vi.stubGlobal("window", Object.assign(window, { content: { missing, ensure } }));
 
@@ -43,6 +55,7 @@ describe("DownloadContentButton", () => {
         ensure.mockReset().mockResolvedValue(undefined);
         contentsStore.inFlight = [];
         contentsStore.revision = 0;
+        edition.features = standalone;
     });
 
     it("offers the download until the content is known to be present", async () => {
@@ -50,14 +63,16 @@ describe("DownloadContentButton", () => {
         missing.mockResolvedValue(held);
 
         const wrapper = mountButton();
+        await flushPromises();
 
         expect(wrapper.find(".quick-play-button").exists()).toBe(false);
+        expect(wrapper.find(".quick-download-button").exists()).toBe(true);
 
         missing.mockResolvedValue([]);
         contentsStore.revision++;
         await flushPromises();
 
-        expect(wrapper.find(".quick-play-button").exists()).toBe(true);
+        expect(wrapper.get(".quick-play-button").attributes("disabled")).toBeUndefined();
     });
 
     // Several checks can be outstanding at once and nothing orders their answers, so the newest question
@@ -84,12 +99,15 @@ describe("DownloadContentButton", () => {
         expect(wrapper.find(".quick-play-button").exists()).toBe(true);
     });
 
-    it("does not offer to play before the presence check has answered", () => {
+    // Nor does it flash a download prompt for content that may turn out to be installed.
+    it("does not offer to play before the presence check has answered", async () => {
         missing.mockReturnValue(new Promise(() => {}));
 
         const wrapper = mountButton();
+        await flushPromises();
 
-        expect(wrapper.find(".quick-play-button").exists()).toBe(false);
+        expect(wrapper.get(".quick-play-button").attributes("disabled")).toBeDefined();
+        expect(wrapper.find(".quick-download-button").exists()).toBe(false);
     });
 
     it("asks for every requested ref when the download is clicked", async () => {
@@ -133,5 +151,38 @@ describe("DownloadContentButton", () => {
         await flushPromises();
 
         expect(wrapper.text()).toContain("downloading");
+    });
+
+    describe("on an edition that does not download engines or games", () => {
+        beforeEach(() => {
+            edition.features = steam;
+        });
+
+        it("sends the player to verify their game files instead of offering a download", async () => {
+            missing.mockResolvedValue([{ type: "engine", id: "2025.01.3" }]);
+
+            const wrapper = mountButton({ maps: ["Quicksilver"], engines: ["2025.01.3"] });
+            await flushPromises();
+
+            expect(wrapper.text()).toContain("verifyGameFiles");
+            expect(wrapper.text()).not.toContain("downloadContentButton.download");
+
+            await wrapper.get(".quick-download-button").trigger("click");
+            await flushPromises();
+
+            expect(ensure).not.toHaveBeenCalled();
+        });
+
+        it("still offers to download a missing map", async () => {
+            missing.mockResolvedValue([{ type: "map", id: "Quicksilver" }]);
+
+            const wrapper = mountButton();
+            await flushPromises();
+
+            await wrapper.get(".quick-download-button").trigger("click");
+            await flushPromises();
+
+            expect(ensure).toHaveBeenCalledWith([{ type: "map", id: "Quicksilver" }]);
+        });
     });
 });

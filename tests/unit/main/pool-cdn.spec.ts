@@ -4,7 +4,8 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-const { mockExtract7z, mockMkdir, mockRm } = vi.hoisted(() => ({
+const { mockExtract7z, mockMkdir, mockRm, features } = vi.hoisted(() => ({
+    features: { downloadEngineAndGame: true },
     mockExtract7z: vi.fn().mockResolvedValue(undefined),
     mockMkdir: vi.fn().mockResolvedValue(undefined),
     mockRm: vi.fn().mockResolvedValue(undefined),
@@ -28,6 +29,7 @@ vi.mock("@main/config/app", () => ({
     getPoolPath: () => "/assets/pool",
 }));
 vi.mock("fs", () => ({ promises: { mkdir: mockMkdir, rm: mockRm } }));
+vi.mock("@main/config/edition", () => ({ EDITION: "test", EDITION_FEATURES: features }));
 vi.mock("@main/utils/extract-7z", () => ({ extract7z: mockExtract7z }));
 vi.mock("@main/utils/file", () => ({ fileExists: vi.fn().mockResolvedValue(false) }));
 vi.mock("@main/services/config.service", () => {
@@ -53,5 +55,23 @@ describe("PoolCdnDownloader", () => {
         expect(startedDownloads).toHaveLength(1);
         expect(startedDownloads[0]).toMatchObject({ name: "pool-data", currentBytes: 0, totalBytes: 1 });
         expect(progressed).toEqual(expect.arrayContaining([expect.objectContaining({ name: "pool-data", currentBytes: 64, totalBytes: 128 })]));
+    });
+
+    // The seed writes into the assets directory and only serves a game download.
+    it("does nothing on an edition that does not download games", async () => {
+        features.downloadEngineAndGame = false;
+        mockMkdir.mockClear();
+        const downloader = new PoolCdnDownloader();
+        const started = vi.fn();
+        downloader.onDownloadStart.add(started);
+
+        try {
+            await downloader.preloadPoolData();
+        } finally {
+            features.downloadEngineAndGame = true;
+        }
+
+        expect(started).not.toHaveBeenCalled();
+        expect(mockMkdir).not.toHaveBeenCalled();
     });
 });

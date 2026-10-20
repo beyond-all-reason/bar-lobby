@@ -216,7 +216,7 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
 import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
-import { catchIpcFailure } from "@renderer/api/ipc-result";
+import { replaysApi } from "@renderer/api/replays";
 import { useTypedI18n } from "@renderer/i18n";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import { users } from "@renderer/store/users.store";
@@ -421,13 +421,14 @@ async function selectReason(section: ReportSection["id"]) {
     const requestId = ++searchRequestId;
     searchFailed.value = false;
     isLoadingMatches.value = true;
-    const found = await catchIpcFailure(() => window.replays.searchOnlineByPlayer(reportedUser.value!.username, matchesToList));
+    // A call that never reached main counts as a failed search. replaysApi has already logged it.
+    const found = await replaysApi.searchOnlineByPlayer(reportedUser.value.username, matchesToList).catch(() => undefined);
 
     if (requestId !== searchRequestId) return;
 
     isLoadingMatches.value = false;
 
-    if (found.status === "failed") {
+    if (found?.status !== "success") {
         searchFailed.value = true;
         return;
     }
@@ -443,11 +444,11 @@ async function selectMatch(match: OnlineReplayOverview | null) {
 
     if (!match) return;
 
-    const details = await catchIpcFailure(() => window.replays.getOnline(match.id));
+    const details = await replaysApi.getOnline(match.id).catch(() => undefined);
 
     if (requestId !== detailsRequestId) return;
 
-    matchDetails.value = details.status === "success" ? details.data : null;
+    matchDetails.value = details?.status === "success" ? details.data : null;
 }
 
 const backStages = {

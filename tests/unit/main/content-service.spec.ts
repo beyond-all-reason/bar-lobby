@@ -20,7 +20,7 @@ const { signals, handle } = vi.hoisted(() => {
         };
     }
 
-    const names = ["contentChanged", "contentSettled", "poolStart", "poolProgress", "poolComplete", "poolFail", "updateProgress", "updateComplete", "updateFail"] as const;
+    const names = ["contentChanged", "contentSettled", "contentRefused", "poolStart", "poolProgress", "poolComplete", "poolFail", "updateProgress", "updateComplete", "updateFail"] as const;
     const signals = Object.fromEntries(names.map((name) => [name, fakeSignal()])) as Record<(typeof names)[number], ReturnType<typeof fakeSignal>>;
 
     return { signals, handle: vi.fn() };
@@ -28,7 +28,7 @@ const { signals, handle } = vi.hoisted(() => {
 
 vi.mock("@main/typed-ipc", () => ({ ipcMain: { handle } }));
 vi.mock("@main/content/content-api", () => ({
-    contentAPI: { onChanged: signals.contentChanged, onSettled: signals.contentSettled, missing: vi.fn(), state: vi.fn(), ensure: vi.fn(), remove: vi.fn() },
+    contentAPI: { onChanged: signals.contentChanged, onSettled: signals.contentSettled, onRefused: signals.contentRefused, missing: vi.fn(), state: vi.fn(), ensure: vi.fn(), remove: vi.fn() },
 }));
 vi.mock("@main/content/game/pool-cdn", () => ({
     poolCdnDownloader: {
@@ -113,6 +113,14 @@ describe("content service", () => {
         signals.contentChanged.dispatch([]);
 
         expect(send).toHaveBeenCalledWith("content:changed", []);
+    });
+
+    it("forwards refusals with their code", () => {
+        const refused = { refusal: "content_bundled_with_install", refs: [{ type: "engine", id: "2099.12.1" }] };
+
+        signals.contentRefused.dispatch(refused);
+
+        expect(send).toHaveBeenCalledWith("content:refused", refused);
     });
 
     // The renderer's download list totals content and app updates together, so an update that reports

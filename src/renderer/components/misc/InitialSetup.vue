@@ -58,6 +58,9 @@ SPDX-License-Identifier: MIT
                     <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
                 </div>
             </template>
+            <div v-else-if="installationIncomplete" class="action-slot">
+                <Button class="red" @click="quitToDesktop">{{ t("lobby.components.misc.initialSetup.quitToDesktop") }}</Button>
+            </div>
         </template>
     </div>
 </template>
@@ -84,6 +87,14 @@ import { contentsStore } from "@renderer/store/contents.store";
 import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 import { settingsStore } from "@renderer/store/settings.store";
+import { infosStore } from "@renderer/store/infos.store";
+import { editionLogic } from "@renderer/logic/edition";
+import { autoUpdaterApi } from "@renderer/api/auto-updater";
+import { barNavigationApi } from "@renderer/api/bar-navigation";
+import { contentApi } from "@renderer/api/content";
+import { engineApi } from "@renderer/api/engine";
+import { mapsApi } from "@renderer/api/maps";
+import { pathsApi } from "@renderer/api/paths";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
@@ -120,11 +131,15 @@ const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
+// Verifying the game files in Steam needs the client closed, so quitting is the only way forward.
+const installationIncomplete = ref(false);
 
 // Playing offline without an engine and a game is not playing anything: every launch path needs both,
 // and nothing else in the client can fetch them once this screen has been left behind. Any installed
 // engine counts, so a player whose client just bumped its default is not held here by that alone.
-const hasEngineAndGame = () => installedEngineVersions.value.length > 0 && gameStore.availableGameVersions.size > 0;
+const hasEngine = () => installedEngineVersions.value.length > 0;
+const hasGame = () => gameStore.availableGameVersions.size > 0;
+const hasEngineAndGame = () => hasEngine() && hasGame();
 const canPlayOffline = computed(hasEngineAndGame);
 
 const overallProgress = ref(0);
@@ -177,6 +192,10 @@ function skipCurrentStep() {
         resolveStepError("skip");
         resolveStepError = null;
     }
+}
+
+function quitToDesktop() {
+    window.close();
 }
 
 function skipAllSteps() {
@@ -239,6 +258,18 @@ watch(totalDownloadPercent, (pct) => {
 onUnmounted(() => {
     if (extractionTimer) clearInterval(extractionTimer);
 });
+
+// A stage that only sometimes downloads starts out naming what it always does, and names the download
+// once one actually starts, so nobody is told something is downloading when nothing is. Each attempt
+// sets its opening label again, so a retry does not inherit the last attempt's.
+function relabelStage(stage: DownloadStage, label: string) {
+    stage.label = label;
+    if (currentStage !== stage || stepError.value) {
+        return;
+    }
+
+    text.value = stepRetrying.value ? t("lobby.components.misc.initialSetup.stepRetrying", { step: label }) : label;
+}
 
 function beginStage(start: number, end: number) {
     stageStart = start;
@@ -323,13 +354,12 @@ async function runStage(stage: DownloadStage): Promise<boolean> {
 
 async function browseForFolder() {
     try {
-        const chosen = await window.paths.selectFolder();
+        const chosen = await pathsApi.selectFolder();
         if (chosen) {
             pathError.value = "";
             selectedPath.value = chosen;
         }
-    } catch (error) {
-        console.error("Could not open the folder picker", error);
+    } catch {
         pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
     }
 }
@@ -338,9 +368,8 @@ async function confirmPath() {
     pathError.value = "";
 
     try {
-        await window.paths.changePath(selectedPath.value);
-    } catch (error) {
-        console.error("Could not change the assets path", error);
+        await pathsApi.changePath(selectedPath.value);
+    } catch {
         pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
 
         return;
@@ -381,17 +410,25 @@ onMounted(async () => {
         overallProgress.value += preloadStepWeight;
     }
     audioApi.load();
-    window.barNavigation.signalReady();
+    barNavigationApi.signalReady();
     overallProgress.value = PRELOAD_WEIGHT;
 
     // Phase 2: Downloads
     isDownloadPhase.value = true;
     titleKey.value = "lobby.components.misc.initialSetup.title";
 
+    if (editionLogic.isInstallationIncomplete({ engine: hasEngine(), game: hasGame() })) {
+        isDownloadPhase.value = false;
+        installationIncomplete.value = true;
+        stepError.value = "incomplete";
+        text.value = t("lobby.components.misc.initialSetup.installationIncomplete");
+        return;
+    }
+
     const needsEngine = installedEngineVersions.value.length === 0;
 
-    if (needsEngine) {
-        selectedPath.value = await window.paths.getCurrentAssetsPath().catch(() => "");
+    if (needsEngine && infosStore.features.changeAssetsPath) {
+        selectedPath.value = await pathsApi.getCurrentAssetsPath().catch(() => "");
         state.value = "path-selection";
         await new Promise<void>((resolve) => {
             resolvePathConfirm = resolve;
@@ -399,7 +436,14 @@ onMounted(async () => {
         state.value = "engine";
     }
 
-    const stages: DownloadStage[] = [
+    const stageEnabled: Record<DownloadStage["id"], boolean> = {
+        engine: editionLogic.canAcquire("engine"),
+        game: editionLogic.canAcquire("game"),
+        maps: true,
+        update: infosStore.features.selfUpdate,
+    };
+
+    const allStages: DownloadStage[] = [
         {
             id: "engine",
             label: t("lobby.components.misc.initialSetup.downloadingEngine"),
@@ -407,7 +451,7 @@ onMounted(async () => {
             canSkip: () => installedEngineVersions.value.length > 0,
             async run() {
                 if (!defaultEngineInstalled.value) {
-                    await window.engine.downloadEngine();
+                    await engineApi.downloadEngine();
                 }
             },
         },
@@ -420,7 +464,7 @@ onMounted(async () => {
                 if (gameStore.availableGameVersions.size > 0) {
                     return;
                 }
-                await window.content.preloadPool();
+                await contentApi.preloadPool();
                 await downloadGame(configStore.latestGameVersion);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");
@@ -429,10 +473,11 @@ onMounted(async () => {
         },
         {
             id: "maps",
-            label: t("lobby.components.misc.initialSetup.downloadingMaps"),
+            label: t("lobby.components.misc.initialSetup.updatingMapList"),
             weight: 2,
             canSkip: () => true,
             async run() {
+                relabelStage(this, t("lobby.components.misc.initialSetup.updatingMapList"));
                 try {
                     await syncMapsMetadata();
                 } catch (error) {
@@ -440,7 +485,8 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
-                    await window.maps.downloadMaps([...configStore.defaultMaps]);
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingMaps"));
+                    await mapsApi.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
                     await fetchMissingMapImages();
@@ -451,18 +497,21 @@ onMounted(async () => {
         },
         {
             id: "update",
-            label: t("lobby.components.misc.initialSetup.downloadingUpdate"),
+            label: t("lobby.components.misc.initialSetup.checkingForUpdates"),
             weight: 1,
             canSkip: () => true,
             async run() {
-                const updateAvailable = await window.autoUpdater.checkForUpdates();
+                relabelStage(this, t("lobby.components.misc.initialSetup.checkingForUpdates"));
+                const updateAvailable = await autoUpdaterApi.checkForUpdates();
                 if (updateAvailable) {
-                    await window.autoUpdater.downloadUpdate();
-                    await window.autoUpdater.installUpdates();
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingUpdate"));
+                    await autoUpdaterApi.downloadUpdate();
+                    await autoUpdaterApi.installUpdates();
                 }
             },
         },
     ];
+    const stages = allStages.filter((stage) => stageEnabled[stage.id]);
 
     const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
     let cursor = PRELOAD_WEIGHT;

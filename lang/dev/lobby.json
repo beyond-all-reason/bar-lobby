@@ -1,5 +1,12 @@
 {
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": "{content} is misnsig. It cmeos wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam. | {content} are misnsig. Tehy cmoe wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam."
+                }
+            }
+        },
         "api": {
             "shell": {
                 "openFailed": "Culod not oepn that: {details}"
@@ -600,7 +607,9 @@
                     "installingEngine": "Intslliang egnnie",
                     "downloadingGame": "Doanondlwig gmae",
                     "installingGame": "Intslliang gmae",
+                    "updatingMapList": "Uintpdag map lsit",
                     "downloadingMaps": "Doanondlwig maps",
+                    "checkingForUpdates": "Cineckhg for uedptas",
                     "downloadingUpdate": "Doanondlwig upadte",
                     "installingUpdate": "Intslliang upadte",
                     "selectAssetsPathDescription": "Choose werhe gmae fleis (egnnie, maps, gmae) wlil be dodolnwaed.",
@@ -612,7 +621,9 @@
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Rtyneirg…",
                     "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte.",
-                    "pathUnusable": "That fdelor caonnt be used for gmae fleis. Pick a dnieferft one."
+                    "pathUnusable": "That fdelor caonnt be used for gmae fleis. Pick a dnieferft one.",
+                    "installationIncomplete": "Ialltsaotinn icmotlpene — virefy iegttnriy of gmae fleis in Steam.",
+                    "quitToDesktop": "Quit to Dektosp"
                 }
             },
             "battle": {
@@ -799,7 +810,8 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Doanondlwig...",
-                    "download": "Dlawonod"
+                    "download": "Dlawonod",
+                    "verifyGameFiles": "Gmae fleis misnsig — virefy tehm in Steam"
                 },
                 "select": {
                     "search": "Sacreh"

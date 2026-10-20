@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { getAssetsPath, getPoolPath } from "@main/config/app";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -22,8 +23,16 @@ export class PoolCdnDownloader extends Downloader {
      * Download and extract pool data from the pool CDN.
      *
      * Will try to reuse an existing archive download if it exists (DownloadHelper will resume download).
+     *
+     * Only seeds a game download, so an edition that does not download games has no use for it, and it
+     * writes into the assets directory.
      */
-    public preloadPoolData() {
+    public async preloadPoolData() {
+        if (!EDITION_FEATURES.downloadEngineAndGame) {
+            log.info(`Skipping pool data: the ${EDITION} edition does not download games`);
+            return;
+        }
+
         return downloadSlots.use(() => this.downloadPoolData());
     }
 

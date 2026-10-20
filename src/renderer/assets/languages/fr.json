@@ -3836,6 +3836,13 @@
         "scavDecoyCommanderNameTag": null
     },
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": null
+                }
+            }
+        },
         "api": {
             "shell": {
                 "openFailed": null
@@ -4436,7 +4443,9 @@
                     "installingEngine": null,
                     "downloadingGame": null,
                     "installingGame": null,
+                    "updatingMapList": null,
                     "downloadingMaps": null,
+                    "checkingForUpdates": null,
                     "downloadingUpdate": null,
                     "installingUpdate": null,
                     "selectAssetsPathDescription": null,
@@ -4448,7 +4457,9 @@
                     "stepFailed": null,
                     "stepRetrying": null,
                     "contentRequired": null,
-                    "pathUnusable": null
+                    "pathUnusable": null,
+                    "installationIncomplete": null,
+                    "quitToDesktop": null
                 }
             },
             "battle": {
@@ -4635,7 +4646,8 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": null,
-                    "download": null
+                    "download": null,
+                    "verifyGameFiles": null
                 },
                 "select": {
                     "search": null

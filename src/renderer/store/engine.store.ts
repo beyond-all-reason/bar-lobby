@@ -5,6 +5,7 @@ import { configStore } from "@renderer/store/config.store";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
+import { isEditionRefusal } from "@shared/edition";
 import { computed, reactive } from "vue";
 
 export const enginesStore: {
@@ -51,7 +52,9 @@ export async function downloadEngine(engineString: string) {
         .then(refreshEnginesStore)
         .catch((error) => {
             console.error("Failed to download engine:", engineString, error);
-            notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
+            if (!isEditionRefusal(error)) {
+                notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
+            }
         });
 }
 
