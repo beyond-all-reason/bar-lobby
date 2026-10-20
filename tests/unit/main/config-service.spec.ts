@@ -67,6 +67,7 @@ beforeEach(() => {
 afterEach(() => {
     process.argv = originalArgv;
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
 });
 
 describe("local config", () => {
@@ -152,6 +153,28 @@ describe("local config", () => {
         await loadService();
 
         expect(electronMock.dialog.showMessageBoxSync).not.toHaveBeenCalled();
+    });
+});
+
+describe("remote config", () => {
+    it("gives up on a fetch that hangs and starts with the cached config", async () => {
+        fetchMock.mockResolvedValue(respondWith({ latestGameVersion: "byar:cached" }));
+        await loadService();
+
+        const timeout = new AbortController();
+        vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeout.signal);
+        // Never settles on its own, only when the timeout signal fires, which it does once the fetch has started.
+        fetchMock.mockImplementation((_url: string, init: RequestInit) => {
+            const hung = new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)));
+            timeout.abort(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+            return hung;
+        });
+
+        const service = await loadService();
+
+        expect(fetchMock).toHaveBeenLastCalledWith(expect.any(String), { signal: timeout.signal });
+
+        expect(service.getConfig().latestGameVersion).toBe("byar:cached");
     });
 });
 

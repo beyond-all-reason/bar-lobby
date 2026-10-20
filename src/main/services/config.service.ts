@@ -16,6 +16,9 @@ import { parseArgs } from "node:util";
 
 const log = logger("config.service.ts");
 
+// Startup waits on this fetch before opening the window, and the cached config is there to fall back on.
+const FETCH_CONFIG_TIMEOUT_MS = 10_000;
+
 const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "config.json"), configSchema);
 
 // A config file given on the command line wins outright; no remote fetch is needed.
@@ -92,7 +95,7 @@ async function updateConfig(data: TUpdateConfigSchema) {
 async function fetchConfig() {
     if (localConfig) return;
     try {
-        const response = await fetch(getConfig().configUrl);
+        const response = await fetch(getConfig().configUrl, { signal: AbortSignal.timeout(FETCH_CONFIG_TIMEOUT_MS) });
         if (!response.ok) {
             throw Error(`${response.status} ${response.statusText}`);
         }
