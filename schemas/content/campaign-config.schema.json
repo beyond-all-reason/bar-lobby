@@ -1,0 +1,148 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/campaign-config.schema.json",
+    "title": "Campaign config",
+    "description": "campaignConfig.json in a campaign folder: the campaign's details and how its missions unlock.",
+    "type": "object",
+    "properties": {
+        "$schema": { "title": "Schema", "description": "Path or URL of the JSON Schema for this file, for editor autocomplete and errors. The client ignores it.", "type": "string" },
+        "formatVersion": {
+            "minimum": 1,
+            "title": "Format version",
+            "description": "Version of the content format this file follows. Leave it out for version 1. A client that supports an older version reports the content as needing a newer client. This client supports version 1.",
+            "type": "integer"
+        },
+        "campaignId": { "minLength": 1, "title": "Campaign id", "description": "Id of the campaign. Must equal the campaign's folder name, and stays the same once released.", "type": "string" },
+        "titleKey": { "minLength": 1, "title": "Title key", "description": "Language key of the campaign's title, looked up in shared/language/.", "type": "string" },
+        "descriptionKey": { "minLength": 1, "title": "Description key", "description": "Language key of the campaign's description, looked up in shared/language/.", "type": "string" },
+        "backgroundImage": { "minLength": 1, "title": "Background image", "description": "Image file in the campaign's shared/media/ folder.", "type": "string" },
+        "logo": { "minLength": 1, "title": "Logo", "description": "Image file in the campaign's shared/media/ folder.", "type": "string" },
+        "players": {
+            "minItems": 1,
+            "uniqueItems": true,
+            "title": "Player counts",
+            "description": "Every number of human players the campaign supports. Each mission needs a config for each count, or a default config.",
+            "type": "array",
+            "items": { "minimum": 1, "title": "Player count", "description": "A number of human players the campaign can be played with.", "type": "integer" }
+        },
+        "settings": {
+            "title": "Campaign settings",
+            "description": "Settings that apply to every mission unless the mission overrides them.",
+            "type": "object",
+            "properties": { "replayableMissions": { "title": "Replayable missions", "description": "Whether missions stay available after they are won. Defaults to false.", "type": "boolean" } }
+        },
+        "missions": {
+            "minProperties": 1,
+            "title": "Missions",
+            "description": "Every mission in the campaign, keyed by mission id. Each id must equal a mission folder name and that mission's `missionId`, and stays the same once released.",
+            "type": "object",
+            "patternProperties": {
+                "^(.*)$": {
+                    "title": "Campaign mission",
+                    "description": "How a mission unlocks and is unlocked. A mission becomes available when any mission that unlocks it is played, or when all its prerequisites are won.",
+                    "type": "object",
+                    "properties": {
+                        "settings": {
+                            "title": "Mission settings",
+                            "description": "Settings for this mission that override the campaign's.",
+                            "type": "object",
+                            "properties": {
+                                "replayable": {
+                                    "title": "Replayable",
+                                    "description": "Whether the mission stays available after it is won. Overrides the campaign's `settings.replayableMissions`.",
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "victoryUnlocks": {
+                            "uniqueItems": true,
+                            "title": "Unlocked on victory",
+                            "description": "Missions that become available when this mission is won.",
+                            "type": "array",
+                            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+                        },
+                        "victoryRemoves": {
+                            "uniqueItems": true,
+                            "title": "Removed on victory",
+                            "description": "Missions that stop being available when this mission is won.",
+                            "type": "array",
+                            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+                        },
+                        "failureUnlocks": {
+                            "uniqueItems": true,
+                            "title": "Unlocked on failure",
+                            "description": "Missions that become available when this mission is lost.",
+                            "type": "array",
+                            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+                        },
+                        "failureRemoves": {
+                            "uniqueItems": true,
+                            "title": "Removed on failure",
+                            "description": "Missions that stop being available when this mission is lost.",
+                            "type": "array",
+                            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+                        },
+                        "prerequisites": {
+                            "uniqueItems": true,
+                            "title": "Prerequisites",
+                            "description": "Missions that must all be won before this mission becomes available.",
+                            "type": "array",
+                            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+                        }
+                    }
+                }
+            }
+        },
+        "startMission": {
+            "minItems": 1,
+            "uniqueItems": true,
+            "title": "Start missions",
+            "description": "Missions available when the campaign starts.",
+            "type": "array",
+            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+        },
+        "finalMission": {
+            "uniqueItems": true,
+            "title": "Final missions",
+            "description": "Missions that finish the campaign when won.",
+            "type": "array",
+            "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
+        },
+        "compatibility": {
+            "minItems": 1,
+            "title": "Compatibility",
+            "description": "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once.",
+            "type": "array",
+            "items": {
+                "title": "Compatible engine and games",
+                "description": "One engine version and the game versions that work with it.",
+                "type": "object",
+                "properties": {
+                    "engineVersion": {
+                        "minLength": 1,
+                        "pattern": "^[^:]+$",
+                        "title": "Engine version",
+                        "description": "Exact engine version, as the client names installed engines. Rapid tags and wildcards are not accepted.",
+                        "type": "string"
+                    },
+                    "gameVersions": {
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "title": "Game versions",
+                        "description": "Every game version that works with this engine version. A game listed here pairs with this engine only.",
+                        "type": "array",
+                        "items": {
+                            "minLength": 1,
+                            "pattern": "^[^:]+$",
+                            "title": "Game version",
+                            "description": "Exact game version, the full version string of the game archive. Rapid tags such as `byar:test` are not accepted.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["engineVersion", "gameVersions"]
+            }
+        }
+    },
+    "required": ["campaignId", "titleKey", "descriptionKey", "players", "missions", "startMission", "finalMission", "compatibility"]
+}

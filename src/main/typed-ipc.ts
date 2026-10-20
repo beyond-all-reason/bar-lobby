@@ -21,6 +21,7 @@ import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/on
 import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
+import type { ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "@shared/content/singleplayer";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
@@ -122,6 +123,10 @@ export type IPCCommands = {
     "replays:searchOnlineByPlayer": (username: string, limit: number) => IpcResult<OnlineReplayOverview[]>;
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
+    "singleplayer:list": () => SingleplayerContent;
+    "singleplayer:getCampaign": (source: ContentSource, rootId: string, id: string) => SingleplayerCampaign | undefined;
+    "singleplayer:getScenario": (source: ContentSource, rootId: string, id: string) => SingleplayerScenario | undefined;
+    "singleplayer:getTutorial": (source: ContentSource, rootId: string, id: string) => SingleplayerScenario | undefined;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;

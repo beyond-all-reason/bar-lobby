@@ -1,0 +1,10 @@
+{
+    "missionId": "no-compatibility",
+    "titleKey": "missions.no-compatibility.title",
+    "descriptionKey": "missions.no-compatibility.description",
+    "entryPoint": "mission.lua",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    }
+}

@@ -10,6 +10,7 @@ import { homedir } from "os";
 import { Type, Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import type { ContentRoot } from "@shared/content/singleplayer";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -137,6 +138,26 @@ export const getRapidIndexPath = () => path.join(ASSETS_PATH, "rapid");
 export const getMapsPaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
 export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
+
+/**
+ * Where singleplayer content is read from, one root per source the edition reads. Official content is the
+ * content depot, which in practice only the premium edition has anything in. Custom content is the
+ * player's own. Where the depot finally lands is decided here and nowhere else.
+ *
+ * As with BAR_EDITION, the overrides only work from `npm start`.
+ */
+export function getContentRoots(): ContentRoot[] {
+    const override = (name: "BAR_CONTENT_PATH" | "BAR_CUSTOM_CONTENT_PATH") => (app.isPackaged ? undefined : process.env[name]);
+    const roots: ContentRoot[] = [];
+    if (EDITION_FEATURES.officialContent) {
+        roots.push({ source: "official", rootId: "official", path: path.resolve(override("BAR_CONTENT_PATH") || path.join(ASSETS_PATH, "content")) });
+    }
+    if (EDITION_FEATURES.customContent) {
+        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override("BAR_CUSTOM_CONTENT_PATH") || path.join(WRITE_DATA_PATH, "content")) });
+    }
+
+    return roots;
+}
 
 /**
  * Where content this client acquires itself lands. pr-downloader lays it out under the root the same way

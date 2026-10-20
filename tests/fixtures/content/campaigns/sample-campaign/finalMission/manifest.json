@@ -1,0 +1,14 @@
+{
+    "missionId": "finalMission",
+    "titleKey": "missions.finalMission.title",
+    "descriptionKey": "missions.finalMission.description",
+    "entryPoint": "mission.lua",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json",
+        "numPlayers": {
+            "1": "onePlayerConfig.json",
+            "2": "twoPlayerConfig.json"
+        }
+    }
+}

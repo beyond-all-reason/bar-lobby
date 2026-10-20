@@ -1,0 +1,11 @@
+{
+    "campaign": {
+        "title": "Sample Campaign",
+        "description": "Every unlock rule the campaign format has, on placeholder missions."
+    },
+    "missions": {
+        "tutorial": {
+            "title": "Campaign-wide tutorial title"
+        }
+    }
+}

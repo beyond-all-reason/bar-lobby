@@ -23,6 +23,7 @@ import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
+import type { ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -193,6 +194,16 @@ const mapsApi = {
 };
 export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
+
+const singleplayerApi = {
+    // Rescans the content roots.
+    list: (): Promise<SingleplayerContent> => ipcRenderer.invoke("singleplayer:list"),
+    getCampaign: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerCampaign | undefined> => ipcRenderer.invoke("singleplayer:getCampaign", source, rootId, id),
+    getScenario: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getScenario", source, rootId, id),
+    getTutorial: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getTutorial", source, rootId, id),
+};
+export type SingleplayerApi = typeof singleplayerApi;
+contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);
 
 const miscApi = {
     getNewsRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),

@@ -1,0 +1,10 @@
+{
+    "missionId": "tutorial",
+    "titleKey": "missions.tutorial.title",
+    "descriptionKey": "missions.tutorial.description",
+    "entryPoint": "mission.lua",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    }
+}

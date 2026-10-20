@@ -1,0 +1,8 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/language-file.schema.json",
+    "type": "object",
+    "additionalProperties": { "anyOf": [{ "type": "string" }, { "$ref": "#" }] },
+    "title": "Content language file",
+    "description": "language/<locale>.json: translated text for content, such as en.json or fr.json. Keys may be nested objects or flat dotted keys, and `a.b` finds the same text either way."
+}

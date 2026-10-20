@@ -1,0 +1,17 @@
+{
+    "campaignId": "sample-campaign",
+    "titleKey": "campaign.title",
+    "descriptionKey": "campaign.description",
+    "players": [1],
+    "missions": {
+        "mission01": {}
+    },
+    "startMission": ["mission01"],
+    "finalMission": ["mission01"],
+    "compatibility": [
+        {
+            "engineVersion": "2025.04.10",
+            "gameVersions": ["Beyond All Reason test-28000-aaaaaaa", "Beyond All Reason test-28100-bbbbbbb"]
+        }
+    ]
+}
