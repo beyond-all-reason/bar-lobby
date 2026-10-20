@@ -264,6 +264,7 @@ describe("InitialSetup on an edition that does not download engines or games", (
 describe("InitialSetup on the standalone edition", () => {
     beforeEach(() => {
         setup.requested.length = 0;
+        setup.installedMaps = 3;
         setup.hasEngine = false;
         setup.hasGame = false;
         setup.features = standalone;

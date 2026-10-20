@@ -57,7 +57,8 @@ describe("AutoUpdaterAPI", () => {
     });
 
     it("checks for updates in a packaged standalone build", async () => {
-        updater.checkForUpdates.mockImplementation(() => {
+        // Once, because clearAllMocks keeps implementations and later tests expect no updater activity.
+        updater.checkForUpdates.mockImplementationOnce(() => {
             const [, onNotAvailable] = updater.on.mock.calls.find(([event]) => event === "update-not-available")!;
             onNotAvailable({ version: "1.0.0" });
         });

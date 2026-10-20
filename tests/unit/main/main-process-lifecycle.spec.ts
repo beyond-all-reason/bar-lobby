@@ -164,6 +164,11 @@ describe("Main Process Lifecycle", () => {
             setAssetsPath: mockSetAssetsPath,
         }));
 
+        // resetModules leaves the mock registry alone, so a test that mocks another edition would otherwise
+        // leave every later test on it. doUnmock would drop the setup file's mock too and let BAR_EDITION in.
+        const { editionFeatures } = await vi.importActual<typeof import("@shared/edition")>("@shared/edition");
+        vi.doMock("@main/config/edition", () => ({ EDITION: "standalone", EDITION_FEATURES: editionFeatures("standalone") }));
+
         // Mock all services
         vi.doMock("@main/services/replays.service", () => ({ default: mockServices.replaysService }));
         vi.doMock("@main/services/game.service", () => ({ default: mockServices.gameService }));
@@ -189,8 +194,6 @@ describe("Main Process Lifecycle", () => {
 
     afterEach(() => {
         vi.clearAllMocks();
-        // resetModules clears the module cache but not the mock registry, so a per-test doMock would leak.
-        vi.doUnmock("@main/config/edition");
         vi.resetModules();
     });
 
