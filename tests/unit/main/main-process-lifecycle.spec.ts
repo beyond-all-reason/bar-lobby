@@ -189,6 +189,8 @@ describe("Main Process Lifecycle", () => {
 
     afterEach(() => {
         vi.clearAllMocks();
+        // resetModules clears the module cache but not the mock registry, so a per-test doMock would leak.
+        vi.doUnmock("@main/config/edition");
         vi.resetModules();
     });
 
