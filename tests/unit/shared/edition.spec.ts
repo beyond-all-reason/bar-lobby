@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { editionFeatures, parseEditionMetadata, resolveEdition } from "@shared/edition";
+import { EditionRefusalError, editionFeatures, isEditionRefusal, parseEditionMetadata, resolveEdition } from "@shared/edition";
 
 describe("parseEditionMetadata", () => {
     it("reads the steam edition from the packaged metadata", () => {
@@ -74,5 +74,23 @@ describe("editionFeatures", () => {
             assetsReadOnly: true,
             assetsBesideExecutable: true,
         });
+    });
+});
+
+describe("isEditionRefusal", () => {
+    it("recognises a refusal thrown in main", () => {
+        expect(isEditionRefusal(new EditionRefusalError("content_bundled_with_install", "engine:2099.12.1"))).toBe(true);
+    });
+
+    // Electron rejects an invoke with a plain Error carrying the thrown error's name and message.
+    it("recognises a refusal that has crossed IPC as a message", () => {
+        const refusal = new EditionRefusalError("content_bundled_with_install", "engine:2099.12.1");
+
+        expect(isEditionRefusal(new Error(`Error invoking remote method 'content:ensure': ${refusal}`))).toBe(true);
+    });
+
+    it("does not take other failures for a refusal", () => {
+        expect(isEditionRefusal(new Error("Error invoking remote method 'content:ensure': Error: Not enough free space"))).toBe(false);
+        expect(isEditionRefusal("EditionRefusalError: content_bundled_with_install: engine:2099.12.1")).toBe(false);
     });
 });

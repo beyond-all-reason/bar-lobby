@@ -6,6 +6,7 @@ import { ContentRef, contentRefKey } from "@main/content/content-ref";
 import { ContentPresence, ContentProgress, ContentState, hasFailed } from "@main/content/content-state";
 import { createSettledCounter, createSettledTracker, SettledContent, SettledOutcome } from "@main/content/content-progress";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isEditionRefusal } from "@shared/edition";
 import { reactive } from "vue";
 
 export const contentsStore: {
@@ -52,7 +53,9 @@ export async function ensureContent(refs: ContentRef[]) {
         await window.content.ensure(refs);
     } catch (error) {
         console.error("Failed to acquire content:", refs, error);
-        notificationsApi.alert({ text: "Content download failed.", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "Content download failed.", severity: "error" });
+        }
     }
 }
 

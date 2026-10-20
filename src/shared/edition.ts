@@ -71,3 +71,11 @@ export class EditionRefusalError extends Error {
         this.refusal = refusal;
     }
 }
+
+// An error thrown in main reaches the renderer as its message alone, prefixed by whatever carried it,
+// so past the IPC boundary a refusal is recognised by the name and code it was written with.
+const refusalInMessage = /EditionRefusalError: \w+:/;
+
+export function isEditionRefusal(error: unknown) {
+    return error instanceof EditionRefusalError || (error instanceof Error && refusalInMessage.test(error.message));
+}

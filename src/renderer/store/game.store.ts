@@ -8,6 +8,7 @@ import { Replay } from "@main/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
+import { isEditionRefusal } from "@shared/edition";
 import { reactive, watch } from "vue";
 import { matchmakingStore, MatchmakingStatus } from "./matchmaking.store";
 
@@ -67,7 +68,9 @@ export async function downloadGame(version: string) {
         await refreshStore();
     } catch (error) {
         console.error(`DownloadGame for ${version} failed:`, error);
-        notificationsApi.alert({ text: "Game download failed.", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "Game download failed.", severity: "error" });
+        }
     }
 }
 
@@ -79,7 +82,9 @@ export async function startBattle(battle: BattleWithMetadata) {
     } catch (error) {
         console.error("Failed to start battle:", error);
         gameStore.status = GameStatus.CLOSED;
-        notificationsApi.alert({ text: "startBattle failed", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "startBattle failed", severity: "error" });
+        }
     }
 }
 
@@ -91,7 +96,9 @@ export async function watchReplay(replay: Replay) {
     } catch (error) {
         console.error("Failed to watch replay:", error);
         gameStore.status = GameStatus.CLOSED;
-        notificationsApi.alert({ text: "watchReplay failed", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "watchReplay failed", severity: "error" });
+        }
     }
 }
 

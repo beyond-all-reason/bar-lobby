@@ -723,6 +723,11 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
         expect(acquired).toEqual(["map:Not Bundled 1.0"]);
     });
 
+    // The refusal has been reported on its own, so the caller is left to report what else went wrong.
+    it("throws another failure in the request over the refusal", async () => {
+        await expect(contentAPI.ensure([{ type: "engine", id: "2099.12.1" }, { type: "nope", id: "boom" } as unknown as ContentRef])).rejects.toThrow("No content provider");
+    });
+
     it("does not fetch an engine to get pr-downloader when none is installed", async () => {
         installed.delete("engine:2025.01.3");
 

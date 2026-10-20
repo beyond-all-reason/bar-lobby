@@ -19,7 +19,7 @@ import { CONTENT_RETENTION_DAYS, MIN_FREE_BYTES_TO_ACQUIRE } from "@main/config/
 import { configService } from "@main/services/config.service";
 import { getContentWriteRoot } from "@main/config/app";
 import { EDITION_FEATURES } from "@main/config/edition";
-import { canAcquireInEdition, EditionRefusalError } from "@shared/edition";
+import { canAcquireInEdition, EditionRefusalError, isEditionRefusal } from "@shared/edition";
 import { formatBytes, freeBytes } from "@main/utils/disk-space";
 import { logger } from "@main/utils/logger";
 
@@ -306,9 +306,11 @@ class ContentAPI {
         // not left unrecorded because something else in the same call did not.
         await this.markUsed(refs.filter((ref) => this.isPresent(ref)));
 
-        const failed = acquisitions.find((acquisition) => acquisition.status === "rejected");
-        if (failed) {
-            throw failed.reason;
+        // A refusal has already been told to the user through onRefused, so any other failure is the one
+        // thrown, letting the caller still report what went wrong besides.
+        const failures = acquisitions.flatMap((acquisition) => (acquisition.status === "rejected" ? [acquisition.reason] : []));
+        if (failures.length > 0) {
+            throw failures.find((failure) => !isEditionRefusal(failure)) ?? failures[0];
         }
     }
 
