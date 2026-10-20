@@ -5,12 +5,13 @@
 // The renderer layer boundaries from #727, as warnings until the renderer has moved over.
 
 // The namespaces preload.ts exposes through contextBridge.exposeInMainWorld.
-const preloadNamespaces = [
+export const preloadNamespaces = [
     "auth",
     "autoUpdater",
     "barNavigation",
     "config",
     "content",
+    "customLobbies",
     "engine",
     "game",
     "info",
@@ -28,7 +29,7 @@ const preloadNamespaces = [
 
 const storeUpdateImports = {
     group: ["@renderer/store/*"],
-    importNamePattern: "Updates$",
+    importNamePattern: "(Updates|Actions)$",
     message: "Only logic changes a store. Call the matching action in @renderer/logic instead.",
 };
 
