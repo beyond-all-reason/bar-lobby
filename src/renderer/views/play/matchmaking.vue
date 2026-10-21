@@ -120,6 +120,7 @@ import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/use
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 import { computed, onActivated, ref } from "vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
@@ -160,9 +161,17 @@ function handleDownloadsStarted() {
     downloading.value = true;
 }
 // After downloads are done, we need to refresh the required list.
-function handleDownloadsComplete() {
-    matchmaking.triggerAssetsRefresh();
-    downloading.value = false;
+async function handleDownloadsComplete() {
+    try {
+        await matchmaking.triggerAssetsRefresh();
+    } catch (error) {
+        alertRequestFailure(error, "content:missing");
+        // downloadsRequired is stale after a failed refresh, so rebuild it rather than leave the download button
+        // up for content that is installed. sendListRequest catches its own failures. See triggerAssetsRefresh.
+        await matchmaking.sendListRequest();
+    } finally {
+        downloading.value = false;
+    }
 }
 
 onActivated(() => {
