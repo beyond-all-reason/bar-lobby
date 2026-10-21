@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { isApiFailure } from "@renderer/api/failures";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError } from "@renderer/api/tachyon";
 
@@ -9,7 +10,7 @@ export function alertRequestFailure(error: unknown, commandId: string) {
     let failedCommand = commandId;
     if (isTachyonError(error)) {
         failedCommand = error.commandId;
-    } else {
+    } else if (!isApiFailure(error)) {
         console.error(`Error with request ${commandId}`, error);
     }
 

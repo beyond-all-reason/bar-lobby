@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { MatchmakingListOkResponseData } from "tachyon-protocol/types";
 import { effectScope, nextTick, type EffectScope, type Ref } from "vue";
 import { partyUpdates } from "@renderer/store/party.store";
-import { matchmakingStore } from "@renderer/store/matchmaking.store";
+import { matchmakingStore, matchmakingUpdates } from "@renderer/store/matchmaking.store";
 import { usePartySizeMatchmaking, getPartySize } from "@renderer/composables/usePartySizeMatchmaking";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
@@ -21,7 +22,7 @@ function makePlaylist(id: string, teamSize: number) {
         engines: [],
         games: [],
         maps: [],
-    } as (typeof matchmakingStore.playlists)[number];
+    } as MatchmakingListOkResponseData["playlists"][number];
 }
 
 function makeMembers(count: number) {
@@ -40,8 +41,7 @@ function makeParty(id: string, memberCount: number, invitedCount = 0) {
 
 function setupParty(memberCount: number, teamSize: number) {
     partyUpdates.set(makeParty("party-1", memberCount), myUserId);
-    matchmakingStore.selectedQueue = "1v1";
-    matchmakingStore.playlists = [makePlaylist("1v1", teamSize)];
+    matchmakingUpdates.set({ selectedQueue: "1v1", playlists: [makePlaylist("1v1", teamSize)] });
 }
 
 let scope: EffectScope;
@@ -49,8 +49,7 @@ let partyTooLarge: Ref<boolean>;
 
 beforeEach(() => {
     partyUpdates.clear();
-    matchmakingStore.playlists = [];
-    matchmakingStore.selectedQueue = "1v1";
+    matchmakingUpdates.set({ playlists: [], selectedQueue: "1v1" });
 
     scope = effectScope();
     scope.run(() => {
@@ -78,11 +77,11 @@ describe("usePartySizeMatchmaking", () => {
 
         it("re-evaluates when the selected queue changes", async () => {
             setupParty(2, 3);
-            matchmakingStore.playlists.push(makePlaylist("2v2", 1));
+            matchmakingUpdates.set({ playlists: [...matchmakingStore.playlists, makePlaylist("2v2", 1)] as MatchmakingListOkResponseData["playlists"] });
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            matchmakingStore.selectedQueue = "2v2";
+            matchmakingUpdates.set({ selectedQueue: "2v2" });
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -93,7 +92,7 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            matchmakingStore.playlists = [makePlaylist("1v1", 1)];
+            matchmakingUpdates.set({ playlists: [makePlaylist("1v1", 1)] });
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -125,7 +124,7 @@ describe("usePartySizeMatchmaking", () => {
 
     describe("false-guard cases", () => {
         it("is false when there is no active party", async () => {
-            matchmakingStore.playlists = [makePlaylist("1v1", 1)];
+            matchmakingUpdates.set({ playlists: [makePlaylist("1v1", 1)] });
             await nextTick();
 
             expect(partyTooLarge.value).toBe(false);
