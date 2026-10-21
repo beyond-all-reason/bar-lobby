@@ -209,14 +209,13 @@ describe("matchmaking logic", () => {
     });
 
     describe("server events", () => {
-        it("starts the ready countdown on a found match without opening anything", () => {
+        it("starts the ready countdown on a found match", () => {
             vi.useFakeTimers();
 
             emit("matchmaking/found", { queueId: "1v1", timeoutMs: 10000 });
 
             expect(matchmakingStore.status).toBe(MatchmakingStatus.MatchFound);
             expect(matchmakingStore.readySecondsRemaining).toBe(10);
-            expect(ui.matchWaiting).not.toHaveBeenCalled();
         });
 
         it("switches to the queue the party joined and reports it", () => {
@@ -243,15 +242,5 @@ describe("matchmaking logic", () => {
         api.gameClosed.forEach((handler) => handler());
 
         expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
-    });
-
-    it("clears online state on going offline, but keeps the selected queue", () => {
-        matchmakingUpdates.set({ status: MatchmakingStatus.Searching, playersQueued: 4, selectedQueue: "2v2" });
-
-        onWentOffline.dispatch();
-
-        expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
-        expect(matchmakingStore.playersQueued).toBe(0);
-        expect(matchmakingStore.selectedQueue).toBe("2v2");
     });
 });

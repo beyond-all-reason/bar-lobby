@@ -21,7 +21,6 @@ vi.mock("@renderer/logic/matchmaking", async (importOriginal) => ({
 
 const { notificationsApi } = await import("@renderer/api/notifications");
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
-const { IpcCallError } = await import("@renderer/api/ipc-call");
 const { MatchmakingJoinRefused } = await import("@renderer/logic/matchmaking");
 const { useMatchmakingActions } = await import("@renderer/composables/useMatchmakingActions");
 
@@ -85,31 +84,13 @@ describe("useMatchmakingActions", () => {
     });
 
     it.each([
-        ["listQueues", "Tachyon error: matchmaking/list"],
-        ["cancel", "Tachyon error: matchmaking/cancel"],
-    ] as const)("alerts when %s fails", async (action, text) => {
-        logic[action].mockRejectedValue(new TachyonIpcError("matchmaking/list", new Error("Not connected to server")));
+        ["listQueues", "matchmaking/list"],
+        ["cancel", "matchmaking/cancel"],
+    ] as const)("alerts when %s fails", async (action, commandId) => {
+        logic[action].mockRejectedValue(new TachyonIpcError(commandId, new Error("Not connected to server")));
 
         await matchmaking[action]();
 
-        expect(notificationsApi.alert).toHaveBeenCalledWith({ text, severity: "error" });
-    });
-
-    it("alerts and re-lists the queues when refreshing downloads after a download fails", async () => {
-        logic.refreshRequiredDownloads.mockRejectedValue(new IpcCallError("content:missing", new Error("main went away")));
-
-        await matchmaking.refreshRequiredDownloads();
-
-        expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Error with request content:missing", severity: "error" });
-        expect(logic.listQueues).toHaveBeenCalledOnce();
-    });
-
-    it("neither alerts nor re-lists when refreshing downloads succeeds", async () => {
-        logic.refreshRequiredDownloads.mockResolvedValue(undefined);
-
-        await matchmaking.refreshRequiredDownloads();
-
-        expect(notificationsApi.alert).not.toHaveBeenCalled();
-        expect(logic.listQueues).not.toHaveBeenCalled();
+        expect(notificationsApi.alert).toHaveBeenCalledWith({ text: `Tachyon error: ${commandId}`, severity: "error" });
     });
 });

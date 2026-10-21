@@ -132,6 +132,7 @@ describe("going offline", () => {
             expect(lobbyStore.lobbies).toEqual({});
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
             expect(matchmakingStore.playlists).toEqual([]);
+            expect(matchmakingStore.playersQueued).toBe(0);
         });
 
         // Going offline ends the session that held the server's only copy of these
