@@ -21,6 +21,7 @@ vi.mock("@renderer/logic/matchmaking", async (importOriginal) => ({
 
 const { notificationsApi } = await import("@renderer/api/notifications");
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
+const { IpcCallError } = await import("@renderer/api/ipc-call");
 const { MatchmakingJoinRefused } = await import("@renderer/logic/matchmaking");
 const { useMatchmakingActions } = await import("@renderer/composables/useMatchmakingActions");
 
@@ -92,5 +93,23 @@ describe("useMatchmakingActions", () => {
         await matchmaking[action]();
 
         expect(notificationsApi.alert).toHaveBeenCalledWith({ text, severity: "error" });
+    });
+
+    it("alerts and re-lists the queues when refreshing downloads after a download fails", async () => {
+        logic.refreshRequiredDownloads.mockRejectedValue(new IpcCallError("content:missing", new Error("main went away")));
+
+        await matchmaking.refreshRequiredDownloads();
+
+        expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Error with request content:missing", severity: "error" });
+        expect(logic.listQueues).toHaveBeenCalledOnce();
+    });
+
+    it("neither alerts nor re-lists when refreshing downloads succeeds", async () => {
+        logic.refreshRequiredDownloads.mockResolvedValue(undefined);
+
+        await matchmaking.refreshRequiredDownloads();
+
+        expect(notificationsApi.alert).not.toHaveBeenCalled();
+        expect(logic.listQueues).not.toHaveBeenCalled();
     });
 });

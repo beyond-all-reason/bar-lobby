@@ -103,10 +103,10 @@ async function refreshQueues() {
 // disagree. The views only show the button while downloadsRequired lists something, and the button answers for itself,
 // re-checking whenever contentsStore.revision changes. If this refresh fails after a download (#751), downloadsRequired
 // keeps the finished content while the button has already seen it installed, so it renders as "ready" and shows its
-// placeholder slot ("This string should never be visible"). The views currently paper over this by re-listing queues
-// on failure, which still leaves the stale entries if that refresh fails too. One check should decide whether a queue
-// needs downloads: either the views hide the button from its downloads-complete event, or the button owns that
-// decision.
+// placeholder slot ("This string should never be visible"). useMatchmakingActions currently papers over this by
+// re-listing queues on failure, which still leaves the stale entries if that refresh fails too. One check should decide
+// whether a queue needs downloads: either the views hide the button from its downloads-complete event, or the button owns
+// that decision.
 /**
  * Refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
  * Rejects with an IpcCallError when the content check fails, so callers must catch it or it reaches Error.vue.

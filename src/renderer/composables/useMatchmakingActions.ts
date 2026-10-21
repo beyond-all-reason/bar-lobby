@@ -81,7 +81,7 @@ export function useMatchmakingActions() {
         } catch (error) {
             alertRequestFailure(error, "content:missing");
             // downloadsRequired is stale after a failed refresh, so rebuild it rather than leave the download button
-            // up for content that is installed. listQueues catches its own failures. See refreshRequiredDownloads.
+            // up for content that is installed. listQueues catches its own failures.
             await listQueues();
         }
     }
