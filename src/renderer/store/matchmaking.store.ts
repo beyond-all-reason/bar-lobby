@@ -13,6 +13,7 @@ import {
     PrivateUser,
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { contentApi } from "@renderer/api/content";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError, isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -207,8 +208,18 @@ async function sendListRequest() {
     }
 }
 
+// TODO: moves into renderer/logic with the rest of matchmaking's actions, per #727. Fix this root cause when it
+// does: the views and DownloadContentButton each run their own content:missing check and can disagree. The views
+// only show the button while downloadsRequired lists something, and the button answers for itself, re-checking
+// whenever contentsStore.revision changes. If this refresh fails after a download (#751), downloadsRequired keeps
+// the finished content while the button has already seen it installed, so it renders as "ready" and shows its
+// placeholder slot ("This string should never be visible"). The views currently paper over this by re-listing
+// queues on failure, which still leaves the stale entries if that refresh fails too. One check should decide
+// whether a queue needs downloads: either the views hide the button from its downloads-complete event, or the
+// button owns that decision.
 /**
  * Refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
+ * Rejects with an IpcCallError when the content check fails, so callers must catch it or it reaches Error.vue.
  */
 async function triggerAssetsRefresh() {
     for (const queue of matchmakingStore.playlists) {
@@ -217,7 +228,7 @@ async function triggerAssetsRefresh() {
 }
 
 async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
-    const missing = await window.content.missing([
+    const missing = await contentApi.missing([
         ...engines.map((engine) => ({ type: "engine" as const, id: engine.version })),
         ...games.map((game) => ({ type: "game" as const, id: game.springName })),
         ...maps.map((map) => ({ type: "map" as const, id: map.springName })),

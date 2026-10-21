@@ -333,9 +333,17 @@ function handleDownloadsStarted() {
     downloading.value = true;
 }
 // After downloads are done, we need to refresh the required list.
-function handleDownloadsComplete() {
-    matchmaking.triggerAssetsRefresh();
-    downloading.value = false;
+async function handleDownloadsComplete() {
+    try {
+        await matchmaking.triggerAssetsRefresh();
+    } catch (error) {
+        alertRequestFailure(error, "content:missing");
+        // downloadsRequired is stale after a failed refresh, so rebuild it rather than leave the download button
+        // up for content that is installed. sendListRequest catches its own failures. See triggerAssetsRefresh.
+        await matchmaking.sendListRequest();
+    } finally {
+        downloading.value = false;
+    }
 }
 
 function requestMatchmakingQueues() {
