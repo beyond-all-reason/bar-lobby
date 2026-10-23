@@ -17,8 +17,20 @@ export type CampaignState = {
     completed: string[];
     // A final mission has been won.
     finished: boolean;
+    // Missions a result took away after they had been unlocked, in the order `missions` lists them.
+    removed: string[];
     // History entries for missions the campaign no longer has, in history order.
     ignored: MissionResult[];
+};
+
+// Where one mission stands, for showing it. Every flag is independent: a removed mission can still have been completed.
+export type MissionStatus = {
+    available: boolean;
+    completed: boolean;
+    replayable: boolean;
+    removed: boolean;
+    start: boolean;
+    final: boolean;
 };
 
 export function isReplayable(config: CampaignConfig, missionId: string): boolean {
@@ -35,6 +47,7 @@ export function isReplayable(config: CampaignConfig, missionId: string): boolean
 export function evaluateCampaign(config: CampaignConfig, history: readonly MissionResult[]): CampaignState {
     const known = (id: string) => Object.hasOwn(config.missions, id);
     const unlocked = new Set(config.startMission.filter(known));
+    const everUnlocked = new Set(unlocked);
     const completed = new Set<string>();
     const ignored: MissionResult[] = [];
     let finished = false;
@@ -48,6 +61,7 @@ export function evaluateCampaign(config: CampaignConfig, history: readonly Missi
             if (!prerequisitesMet.has(id) && prerequisites.length > 0 && prerequisites.every((p) => completed.has(p))) {
                 prerequisitesMet.add(id);
                 unlocked.add(id);
+                everUnlocked.add(id);
             }
         }
     };
@@ -68,7 +82,10 @@ export function evaluateCampaign(config: CampaignConfig, history: readonly Missi
 
         const unlocks = result.outcome === "victory" ? mission.victoryUnlocks : mission.failureUnlocks;
         const removes = result.outcome === "victory" ? mission.victoryRemoves : mission.failureRemoves;
-        unlocks?.filter(known).forEach((id) => unlocked.add(id));
+        unlocks?.filter(known).forEach((id) => {
+            unlocked.add(id);
+            everUnlocked.add(id);
+        });
         removes?.forEach((id) => unlocked.delete(id));
 
         unlockByPrerequisites();
@@ -80,6 +97,23 @@ export function evaluateCampaign(config: CampaignConfig, history: readonly Missi
         available: order.filter((id) => unlocked.has(id) && (!completed.has(id) || isReplayable(config, id))),
         completed: order.filter((id) => completed.has(id)),
         finished,
+        removed: order.filter((id) => everUnlocked.has(id) && !unlocked.has(id)),
         ignored,
     };
+}
+
+export function missionStatus(config: CampaignConfig, state: CampaignState, missionId: string): MissionStatus {
+    return {
+        available: state.available.includes(missionId),
+        completed: state.completed.includes(missionId),
+        replayable: isReplayable(config, missionId),
+        removed: state.removed.includes(missionId),
+        start: config.startMission.includes(missionId),
+        final: config.finalMission.includes(missionId),
+    };
+}
+
+// A scenario or tutorial has no unlock rules, so it can always be played, and played again.
+export function itemStatus(completed: boolean): MissionStatus {
+    return { available: true, completed, replayable: true, removed: false, start: false, final: false };
 }

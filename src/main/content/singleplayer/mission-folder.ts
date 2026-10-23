@@ -10,7 +10,7 @@ import { LanguageFile } from "../../../shared/content/schema/language-file";
 import { MissionConfig } from "../../../shared/content/schema/mission-config";
 import { MissionManifest } from "../../../shared/content/schema/mission-manifest";
 import type { MissionConfigs, SingleplayerMission } from "../../../shared/content/singleplayer";
-import { fileInside, isHidden, readContentJson } from "./files";
+import { fileInside, isHidden, readContentJson, toBarUrl } from "./files";
 import type { Problems } from "./problems";
 
 export const MANIFEST_FILE = "manifest.json";
@@ -137,6 +137,7 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         }
     }
     const language = await readLanguageFolder(folder, problems);
+    const imagePath = manifest.image === undefined ? undefined : await fileInside(path.join(folder, "media"), manifest.image, problems, manifestPath, "image");
 
     if (problems.hasErrors || !entryPointPath || !defaultConfig) {
         return undefined;
@@ -149,6 +150,7 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         configs: { default: defaultConfig, numPlayers },
         entryPointPath,
         language,
+        imageUrl: imagePath && toBarUrl(imagePath),
         springDataPaths: [...options.springDataPathsBefore, folder],
     };
 }

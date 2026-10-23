@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { evaluateCampaign, MissionResult } from "@shared/content/campaign-progress";
+import { evaluateCampaign, itemStatus, MissionResult, missionStatus } from "@shared/content/campaign-progress";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 
@@ -16,7 +16,7 @@ const lose = (missionId: string): MissionResult => ({ missionId, outcome: "failu
 
 describe("evaluateCampaign", () => {
     it("starts with the start missions available", () => {
-        expect(evaluateCampaign(config, [])).toEqual({ available: ["tutorial", "mission01"], completed: [], finished: false, ignored: [] });
+        expect(evaluateCampaign(config, [])).toEqual({ available: ["tutorial", "mission01"], completed: [], finished: false, removed: [], ignored: [] });
     });
 
     it("keeps a replayable mission available after it is won", () => {
@@ -46,6 +46,18 @@ describe("evaluateCampaign", () => {
         const state = evaluateCampaign(config, [win("mission01"), win("mission02"), win("missionA"), lose("optionalMissionA")]);
 
         expect(state.available).toEqual(["missionB"]);
+        expect(state.removed).toEqual(["tutorial", "optionalMissionA"]);
+    });
+
+    it("tells a removed mission apart from one never unlocked", () => {
+        const state = evaluateCampaign(config, [win("mission01")]);
+
+        expect(state.removed).toEqual(["tutorial"]);
+        expect(state.removed).not.toContain("missionA");
+    });
+
+    it("no longer lists a mission as removed once it is unlocked again", () => {
+        expect(evaluateCampaign(config, [win("mission01"), lose("mission02")]).removed).toEqual([]);
     });
 
     it("unlocks the final mission once every prerequisite is won, and finishes on winning it", () => {
@@ -96,5 +108,38 @@ describe("evaluateCampaign", () => {
         };
 
         expect(evaluateCampaign(replayable, [win("mission01"), win("mission02")]).available).toEqual(["mission01", "missionA", "missionB"]);
+    });
+});
+
+describe("missionStatus", () => {
+    it("describes a start mission that has not been played", () => {
+        expect(missionStatus(config, evaluateCampaign(config, []), "mission01")).toEqual({
+            available: true,
+            completed: false,
+            replayable: false,
+            removed: false,
+            start: true,
+            final: false,
+        });
+    });
+
+    it("describes a won mission that cannot be replayed", () => {
+        const status = missionStatus(config, evaluateCampaign(config, [win("mission01")]), "mission01");
+
+        expect(status).toMatchObject({ available: false, completed: true, replayable: false });
+    });
+
+    it("describes a removed mission and a locked final mission", () => {
+        const state = evaluateCampaign(config, [win("mission01")]);
+
+        expect(missionStatus(config, state, "tutorial")).toMatchObject({ available: false, removed: true, replayable: true });
+        expect(missionStatus(config, state, "finalMission")).toMatchObject({ available: false, removed: false, completed: false, final: true });
+    });
+});
+
+describe("itemStatus", () => {
+    it("keeps a scenario or tutorial available and replayable whether or not it is completed", () => {
+        expect(itemStatus(false)).toMatchObject({ available: true, completed: false, replayable: true });
+        expect(itemStatus(true)).toMatchObject({ available: true, completed: true, replayable: true });
     });
 });

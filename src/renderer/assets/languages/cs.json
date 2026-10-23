@@ -2351,6 +2351,23 @@
                 "faction": null,
                 "difficulty": null,
                 "launch": null
+            },
+            "content": {
+                "campaigns": null,
+                "customCampaigns": null,
+                "scenarios": null,
+                "tutorials": null,
+                "credits": null,
+                "completed": null,
+                "pass": null,
+                "fail": null,
+                "showCredits": null,
+                "resetProgress": null,
+                "back": null,
+                "notInEdition": null,
+                "empty": null,
+                "notFound": null,
+                "problems": null
             }
         },
         "navbar": {

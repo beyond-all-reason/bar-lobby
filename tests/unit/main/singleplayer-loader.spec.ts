@@ -154,6 +154,27 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([]);
         });
 
+        it("gives an item's image from its own media folder, and reports one that is missing", async () => {
+            for (const [name, image] of [
+                ["alpha", "preview.png"],
+                ["beta", "missing.png"],
+            ]) {
+                const manifestPath = path.join(root, "scenarios", name, "manifest.json");
+                const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+                await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, image }));
+            }
+            await fs.mkdir(path.join(root, "scenarios", "alpha", "media"));
+            await fs.writeFile(path.join(root, "scenarios", "alpha", "media", "preview.png"), "");
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.scenarios.map((s) => [s.id, s.imageUrl])).toEqual([
+                ["alpha", `bar://${encodeURIComponent(path.join(root, "scenarios", "alpha", "media", "preview.png"))}`],
+                ["gamma", undefined],
+            ]);
+            expect(content.problems).toEqual([{ path: path.join(root, "scenarios", "beta", "manifest.json"), severity: "error", message: 'image "missing.png" does not exist' }]);
+        });
+
         it("warns about a campaign folder that is not one of its missions", async () => {
             const campaign = path.join(root, "campaigns", "sample-campaign");
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });

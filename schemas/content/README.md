@@ -64,7 +64,7 @@ A JSON Schema sees one file at a time. These checks span files or need more than
 - A campaign's `campaignId` equals its folder name, and every key in `missions` equals a mission folder name and that mission's `missionId`. A scenario's or tutorial's `missionId` equals its folder name.
 - Every mission named in `startMission`, `finalMission`, unlocks, removes and prerequisites is in `missions`, and every mission is reachable from `startMission`.
 - No mission is called `shared`, and every mission folder is listed in `missions`.
-- The `entryPoint`, mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Images are looked up in the campaign's `shared/media/`.
+- The `entryPoint`, mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images are looked up in the campaign's `shared/media/`, and a mission, scenario or tutorial `image` in its own folder's `media/`.
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
 - `compatibility` is required in a scenario or tutorial manifest. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
 

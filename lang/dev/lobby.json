@@ -368,6 +368,23 @@
                 "faction": "Faticon",
                 "difficulty": "Difulcfity",
                 "launch": "Lacnuh"
+            },
+            "content": {
+                "campaigns": "Cnpaigams",
+                "customCampaigns": "Cuotsm Cnpaigams",
+                "scenarios": "Srnaoecis",
+                "tutorials": "Ttlruaios",
+                "credits": "Crdeits",
+                "completed": "Cltmeeopd",
+                "pass": "Pass",
+                "fail": "Fial",
+                "showCredits": "Show cterids",
+                "resetProgress": "Reest prsgeros",
+                "back": "Back",
+                "notInEdition": "Oiafficl cgamianps are not part of tihs etidoin.",
+                "empty": "No ctnnoet fnuod.",
+                "notFound": "Tihs ctnnoet culod not be fnuod.",
+                "problems": "Cnteont plmobers: {count}"
             }
         },
         "navbar": {

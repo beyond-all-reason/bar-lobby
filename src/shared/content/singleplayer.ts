@@ -45,6 +45,8 @@ export type SingleplayerMission = {
     configs: MissionConfigs;
     entryPointPath: string;
     language: LanguageTables;
+    // The manifest's image as a bar:// URL.
+    imageUrl?: string;
     // The folders to add to SpringData when launching, most specific last. Never a whole content root.
     springDataPaths: string[];
 };

@@ -2199,6 +2199,23 @@
                 "faction": "Faction",
                 "difficulty": "Difficulty",
                 "launch": "Launch"
+            },
+            "content": {
+                "campaigns": "Campaigns",
+                "customCampaigns": "Custom Campaigns",
+                "scenarios": "Scenarios",
+                "tutorials": "Tutorials",
+                "credits": "Credits",
+                "completed": "Completed",
+                "pass": "Pass",
+                "fail": "Fail",
+                "showCredits": "Show credits",
+                "resetProgress": "Reset progress",
+                "back": "Back",
+                "notInEdition": "Official campaigns are not part of this edition.",
+                "empty": "No content found.",
+                "notFound": "This content could not be found.",
+                "problems": "Content problems: {count}"
             }
         },
         "navbar": {

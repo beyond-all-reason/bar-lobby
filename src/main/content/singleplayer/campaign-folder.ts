@@ -6,17 +6,13 @@ import path from "node:path";
 import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
-import { fileInside, isFolder, listFolders, readContentJson } from "./files";
+import { fileInside, isFolder, listFolders, readContentJson, toBarUrl } from "./files";
 import { checkCompatibility, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
 export const CAMPAIGN_CONFIG_FILE = "campaignConfig.json";
 export const CREDITS_FILE = "credits.json";
 export const SHARED_FOLDER = "shared";
-
-export function toBarUrl(filePath: string) {
-    return `bar://${encodeURIComponent(filePath)}`;
-}
 
 // Every mission id the config names outside `missions` itself, with where it was named.
 function missionReferences(config: CampaignConfig): { id: string; where: string }[] {
