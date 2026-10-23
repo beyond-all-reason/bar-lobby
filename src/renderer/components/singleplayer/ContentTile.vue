@@ -6,7 +6,12 @@ SPDX-License-Identifier: MIT
 
 <!-- One campaign, tutorial group or scenario to pick. Layout only: what it shows is worked out by the view. -->
 <template>
-    <Panel class="content-tile" :class="{ selected }" @click="emit('select')">
+    <Panel
+        class="content-tile"
+        :class="{ selected }"
+        :style="backgroundImageUrl ? { backgroundImage: `url('${backgroundImageUrl}')` } : {}"
+        @click="emit('select')"
+    >
         <div class="flex-col gap-md">
             <img v-if="imageUrl" :src="imageUrl" class="tile-image" alt="" />
             <h3>{{ title }}</h3>
@@ -26,6 +31,8 @@ defineProps<{
     title: string;
     description?: string;
     imageUrl?: string;
+    // Fills the whole tile, behind its content.
+    backgroundImageUrl?: string;
     completed: boolean;
     selected?: boolean;
 }>();
@@ -38,6 +45,8 @@ const emit = defineEmits<{
 <style lang="scss" scoped>
 .content-tile {
     cursor: pointer;
+    background-size: cover;
+    background-position: center;
     &.selected {
         outline: 1px solid rgba(255, 255, 255, 0.6);
     }

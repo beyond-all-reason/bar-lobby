@@ -27,11 +27,14 @@ function readJson(...parts: string[]) {
 
 describe("exported content schemas", () => {
     const campaign = path.join(sample, "campaigns", "sample-campaign");
+    const secondCampaign = path.join(sample, "campaigns", "second-campaign");
     const missionFolders = [
-        ...fs
-            .readdirSync(campaign, { withFileTypes: true })
-            .filter((entry) => entry.isDirectory() && entry.name !== "shared")
-            .map((entry) => path.join(campaign, entry.name)),
+        ...[campaign, secondCampaign].flatMap((folder) =>
+            fs
+                .readdirSync(folder, { withFileTypes: true })
+                .filter((entry) => entry.isDirectory() && entry.name !== "shared")
+                .map((entry) => path.join(folder, entry.name))
+        ),
         path.join(sample, "scenarios", "sample-scenario"),
         path.join(sample, "tutorials", "sample-tutorial"),
     ];
@@ -44,12 +47,12 @@ describe("exported content schemas", () => {
         }
     });
 
-    it("accept the sample campaign config and credits, $schema key included", () => {
-        const config = readJson(campaign, "campaignConfig.json");
+    it.each([campaign, secondCampaign])("accept the sample campaign config and credits in %s, $schema key included", (folder) => {
+        const config = readJson(folder, "campaignConfig.json");
 
         expect(config.$schema).toBeDefined();
         expect(validatorFor("campaign-config")(config)).toBe(true);
-        expect(validatorFor("credits")(readJson(campaign, "credits.json"))).toBe(true);
+        expect(validatorFor("credits")(readJson(folder, "credits.json"))).toBe(true);
     });
 
     it("accept every sample mission manifest and mission config", () => {
@@ -105,15 +108,16 @@ describe("validate-content --bundle", () => {
         const content = await loadSample();
         const failures = unbundledItems(content, [{ engineVersion: "2025.04.10", gameVersions: ["Beyond All Reason test-28200-ccccccc"] }]);
 
-        expect(failures).toHaveLength(3);
+        expect(failures).toHaveLength(4);
         expect(failures[0]).toMatch(/^campaign sample-campaign .* It accepts: engine 2025\.04\.10 with games .*; engine 2025\.06\.01 with games /);
-        expect(failures[1]).toMatch(/^scenario sample-scenario /);
-        expect(failures[2]).toMatch(/^tutorial sample-tutorial /);
+        expect(failures[1]).toMatch(/^campaign second-campaign /);
+        expect(failures[2]).toMatch(/^scenario sample-scenario /);
+        expect(failures[3]).toMatch(/^tutorial sample-tutorial /);
     });
 
     it("fails every item when the engine is not bundled", async () => {
         const content = await loadSample();
 
-        expect(unbundledItems(content, [{ engineVersion: "2099.01.01", gameVersions: ["Beyond All Reason test-28000-aaaaaaa"] }])).toHaveLength(3);
+        expect(unbundledItems(content, [{ engineVersion: "2099.01.01", gameVersions: ["Beyond All Reason test-28000-aaaaaaa"] }])).toHaveLength(4);
     });
 });

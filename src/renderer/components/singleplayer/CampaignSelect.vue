@@ -31,6 +31,7 @@ grouped by source, so a new kind of source shows up here without changes.
                     :title="text(campaign.config.titleKey, campaign.language)"
                     :description="text(campaign.config.descriptionKey, campaign.language)"
                     :image-url="campaign.logoUrl"
+                    :background-image-url="campaign.backgroundImageUrl"
                     :completed="singleplayerLogic.campaignCompleted(campaign)"
                     @select="router.push(`/play/campaigns/${campaign.source}/${campaign.rootId}/${campaign.id}`)"
                 />

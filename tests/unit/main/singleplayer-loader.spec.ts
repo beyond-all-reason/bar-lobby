@@ -20,7 +20,7 @@ describe("loadSingleplayerContent", () => {
             const content = await loadSingleplayerContent([official]);
 
             expect(content.problems).toEqual([]);
-            expect(content.campaigns.map((c) => c.id)).toEqual(["sample-campaign"]);
+            expect(content.campaigns.map((c) => c.id)).toEqual(["sample-campaign", "second-campaign"]);
             expect(content.scenarios.map((s) => s.id)).toEqual(["sample-scenario"]);
             expect(content.tutorials.map((t) => t.id)).toEqual(["sample-tutorial"]);
         });
@@ -33,7 +33,7 @@ describe("loadSingleplayerContent", () => {
             expect(campaign.credits).toHaveLength(1);
             expect(Object.keys(campaign.language).sort()).toEqual(["en", "fr"]);
             expect(campaign.backgroundImageUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "background.png"))}`);
-            expect(campaign.logoUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "logo.png"))}`);
+            expect(campaign.logoUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "sample-logo.png"))}`);
             expect(campaign.compatibility).toEqual(campaign.config.compatibility);
             expect(campaign.missions.map((m) => m.id)).toEqual(["tutorial", "mission01", "mission02", "missionA", "missionB", "optionalMissionA", "optionalMissionB", "finalMission"]);
 
@@ -70,6 +70,7 @@ describe("loadSingleplayerContent", () => {
 
         expect(content.campaigns.map(({ source, rootId, id }) => ({ source, rootId, id }))).toEqual([
             { source: "official", rootId: "official", id: "sample-campaign" },
+            { source: "official", rootId: "official", id: "second-campaign" },
             { source: "custom", rootId: "custom", id: "sample-campaign" },
         ]);
         expect(content.problems).toEqual([]);

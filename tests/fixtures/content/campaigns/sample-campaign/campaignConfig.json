@@ -4,7 +4,7 @@
     "titleKey": "campaign.title",
     "descriptionKey": "campaign.description",
     "backgroundImage": "background.png",
-    "logo": "logo.png",
+    "logo": "sample-logo.png",
     "players": [1, 2],
     "settings": {
         "replayableMissions": false

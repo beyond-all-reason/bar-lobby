@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateCampaign, itemStatus, MissionResult, missionStatus } from "@shared/content/campaign-progress";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
+import secondCampaign from "../../fixtures/content/campaigns/second-campaign/campaignConfig.json";
 
 // The example graph from the content format: a replayable tutorial, a linear start, an A/B branch with
 // optional missions that remove themselves on failure, and a final mission gated on both branches.
@@ -141,5 +142,34 @@ describe("itemStatus", () => {
     it("keeps a scenario or tutorial available and replayable whether or not it is completed", () => {
         expect(itemStatus(false)).toMatchObject({ available: true, completed: false, replayable: true });
         expect(itemStatus(true)).toMatchObject({ available: true, completed: true, replayable: true });
+    });
+});
+
+// A different shape: a choice between two routes that shuts the other off, a final unlocked by either route
+// rather than by prerequisites, an optional mission only a defeat opens, and replayable missions by default.
+describe("evaluateCampaign on the second sample campaign", () => {
+    const second = secondCampaign as CampaignConfig;
+
+    it("opens an optional mission on a defeat, which goes away once won", () => {
+        expect(evaluateCampaign(second, [lose("landing")]).available).toEqual(["landing", "supplyRun"]);
+        expect(evaluateCampaign(second, [lose("landing"), win("supplyRun")]).available).toEqual(["landing"]);
+    });
+
+    it("keeps won missions available, since the campaign makes them replayable", () => {
+        expect(evaluateCampaign(second, [win("landing")]).available).toEqual(["landing", "northRoute", "southRoute"]);
+    });
+
+    it("shuts off the other route once one is won, and unlocks the final", () => {
+        const state = evaluateCampaign(second, [win("landing"), win("northRoute")]);
+
+        expect(state.available).toEqual(["landing", "northRoute", "finale"]);
+        expect(state.removed).toEqual(["southRoute"]);
+    });
+
+    it("finishes on the final, which overrides the campaign and cannot be replayed", () => {
+        const state = evaluateCampaign(second, [win("landing"), win("southRoute"), win("finale")]);
+
+        expect(state.finished).toBe(true);
+        expect(state.available).toEqual(["landing", "southRoute"]);
     });
 });
