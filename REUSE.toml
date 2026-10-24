@@ -44,7 +44,7 @@ SPDX-License-Identifier = "MIT"
 
 [[annotations]]
 # Singleplayer content test fixtures and the content JSON Schemas generated from src/shared/content/schema.
-# JSON and images cannot carry a header.
+# Images for sample/test content are expressly MIT license so they can be used as examples for custom content
 path = ["tests/fixtures/**", "schemas/content/*.schema.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The BAR Lobby Authors"

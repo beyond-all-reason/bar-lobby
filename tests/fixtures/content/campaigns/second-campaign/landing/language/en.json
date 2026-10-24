@@ -1,4 +1,4 @@
 {
     "missions.landing.title": "Landing",
-    "missions.landing.description": "The landing mission of the second sample campaign."
+    "missions.landing.description": "Start mission. Win: unlocks northRoute and southRoute. Lose: unlocks optional supplyRun."
 }

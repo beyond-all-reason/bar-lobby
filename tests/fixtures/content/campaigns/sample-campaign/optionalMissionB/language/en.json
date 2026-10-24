@@ -1,4 +1,4 @@
 {
     "missions.optionalMissionB.title": "Sample optionalMissionB",
-    "missions.optionalMissionB.description": "The optionalMissionB mission of the sample content."
+    "missions.optionalMissionB.description": "Optional. Win: nothing unlocks. Lose: removes this mission."
 }

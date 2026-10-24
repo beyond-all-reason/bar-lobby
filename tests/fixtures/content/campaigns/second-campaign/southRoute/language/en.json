@@ -1,4 +1,4 @@
 {
     "missions.southRoute.title": "South route",
-    "missions.southRoute.description": "The southRoute mission of the second sample campaign."
+    "missions.southRoute.description": "Win: unlocks finale, removes northRoute. Lose: nothing changes."
 }

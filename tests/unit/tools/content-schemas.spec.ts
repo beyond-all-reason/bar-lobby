@@ -35,8 +35,8 @@ describe("exported content schemas", () => {
                 .filter((entry) => entry.isDirectory() && entry.name !== "shared")
                 .map((entry) => path.join(folder, entry.name))
         ),
-        path.join(sample, "scenarios", "sample-scenario"),
-        path.join(sample, "tutorials", "sample-tutorial"),
+        ...["sample-scenario", "river-crossing", "night-raid"].map((id) => path.join(sample, "scenarios", id)),
+        ...["sample-tutorial", "movement", "economy", "combat", "final-exam"].map((id) => path.join(sample, "tutorials", id)),
     ];
 
     it("accept the sample index manifests", () => {
@@ -108,16 +108,22 @@ describe("validate-content --bundle", () => {
         const content = await loadSample();
         const failures = unbundledItems(content, [{ engineVersion: "2025.04.10", gameVersions: ["Beyond All Reason test-28200-ccccccc"] }]);
 
-        expect(failures).toHaveLength(4);
+        expect(failures).toHaveLength(10);
         expect(failures[0]).toMatch(/^campaign sample-campaign .* It accepts: engine 2025\.04\.10 with games .*; engine 2025\.06\.01 with games /);
         expect(failures[1]).toMatch(/^campaign second-campaign /);
         expect(failures[2]).toMatch(/^scenario sample-scenario /);
-        expect(failures[3]).toMatch(/^tutorial sample-tutorial /);
+        expect(failures[3]).toMatch(/^scenario river-crossing /);
+        expect(failures[4]).toMatch(/^scenario night-raid /);
+        expect(failures[5]).toMatch(/^tutorial sample-tutorial /);
+        expect(failures[6]).toMatch(/^tutorial movement /);
+        expect(failures[7]).toMatch(/^tutorial economy /);
+        expect(failures[8]).toMatch(/^tutorial combat /);
+        expect(failures[9]).toMatch(/^tutorial final-exam /);
     });
 
     it("fails every item when the engine is not bundled", async () => {
         const content = await loadSample();
 
-        expect(unbundledItems(content, [{ engineVersion: "2099.01.01", gameVersions: ["Beyond All Reason test-28000-aaaaaaa"] }])).toHaveLength(4);
+        expect(unbundledItems(content, [{ engineVersion: "2099.01.01", gameVersions: ["Beyond All Reason test-28000-aaaaaaa"] }])).toHaveLength(10);
     });
 });

@@ -21,8 +21,8 @@ describe("loadSingleplayerContent", () => {
 
             expect(content.problems).toEqual([]);
             expect(content.campaigns.map((c) => c.id)).toEqual(["sample-campaign", "second-campaign"]);
-            expect(content.scenarios.map((s) => s.id)).toEqual(["sample-scenario"]);
-            expect(content.tutorials.map((t) => t.id)).toEqual(["sample-tutorial"]);
+            expect(content.scenarios.map((s) => s.id)).toEqual(["sample-scenario", "river-crossing", "night-raid"]);
+            expect(content.tutorials.map((t) => t.id)).toEqual(["sample-tutorial", "movement", "economy", "combat", "final-exam"]);
         });
 
         it("reads a campaign's missions, configs, text and media", async () => {

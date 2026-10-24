@@ -1,4 +1,4 @@
 {
     "missions.finalMission.title": "Sample finalMission",
-    "missions.finalMission.description": "The finalMission mission of the sample content."
+    "missions.finalMission.description": "Final mission. Opens once missionA and missionB are both won. Win: completes the campaign."
 }
