@@ -4,8 +4,8 @@
 
 import { singleplayerApi } from "@renderer/api/singleplayer";
 import { singleplayerStore, singleplayerUpdates } from "@renderer/store/singleplayer.store";
-import { CampaignState, campaignVariables, evaluateCampaign, MissionOutcome } from "@shared/content/campaign-progress";
-import { SavedResult, saveKey, SaveVariables, SaveVariableValue } from "@shared/content/save";
+import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
+import { ReportedResult, SaveCompatibility, saveCompatibility, saveKey, SaveVariables, SaveVariableValue } from "@shared/content/save";
 import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
 
 let isInitialized = false;
@@ -48,12 +48,26 @@ async function loadSaves() {
     }
 }
 
-function results(kind: SingleplayerKind, ref: SingleplayerItemRef): readonly SavedResult[] {
-    return singleplayerStore.saves.get(saveKey(kind, ref))?.history ?? [];
+const noProgress: ItemProgress = { plays: {} };
+
+function saveOf(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.saves.get(saveKey(kind, ref));
+}
+
+// Whether the campaign's save, if it has one, was started under the campaign's current saveVersion.
+function campaignSaveCompatibility(campaign: SingleplayerCampaign): SaveCompatibility {
+    const save = saveOf("campaign", campaign);
+
+    return save ? saveCompatibility(save, campaign.config.saveVersion) : "compatible";
+}
+
+// A save from another save version counts as no progress until the player starts over.
+function campaignProgress(campaign: SingleplayerCampaign): ItemProgress {
+    return (campaignSaveCompatibility(campaign) === "compatible" && saveOf("campaign", campaign)) || noProgress;
 }
 
 function campaignState(campaign: SingleplayerCampaign): CampaignState {
-    return evaluateCampaign(campaign.config, results("campaign", campaign));
+    return stateOf(campaign.config, campaignProgress(campaign));
 }
 
 function campaignCompleted(campaign: SingleplayerCampaign) {
@@ -62,12 +76,12 @@ function campaignCompleted(campaign: SingleplayerCampaign) {
 
 // What the campaign's missions have reported so far, which each of its missions is launched with.
 function variablesOf(campaign: SingleplayerCampaign): Record<string, SaveVariableValue> {
-    return campaignVariables(results("campaign", campaign));
+    return campaignVariables(campaignProgress(campaign));
 }
 
 // A scenario or tutorial is completed once it has been won.
 function itemCompleted(item: ItemRef) {
-    return results(item.kind, item).some((result) => result.outcome === "victory");
+    return hasWon((saveOf(item.kind, item) ?? noProgress).plays, item.id);
 }
 
 function tutorialsOf(source: ContentSource, rootId: string) {
@@ -82,7 +96,7 @@ function tutorialsCompleted(source: ContentSource, rootId: string) {
 }
 
 // Saves a result and keeps the save main wrote. Gives false, with the reason in the store, if it wasn't saved.
-async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: SavedResult) {
+async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
     try {
         singleplayerUpdates.saveStored(saveKey(kind, ref), await singleplayerApi.recordResult(kind, ref, result));
         return true;
@@ -142,7 +156,7 @@ async function deleteAllSaves() {
 
 export const singleplayerLogic = {
     loadContent,
-    results,
+    campaignSaveCompatibility,
     campaignState,
     campaignCompleted,
     variablesOf,

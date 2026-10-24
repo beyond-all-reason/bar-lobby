@@ -93,9 +93,71 @@ Every campaign, scenario and tutorial lists the engine and game pairs it has bee
 
 Here engine A with game 4 is not a valid pair. Versions are exact. Wildcards and rapid tags such as `byar:test` are refused, because a tag points at a different version over time.
 
-## Ids are permanent
+## Saved progress and changing a released campaign
 
-Saved campaign progress is keyed by campaign id and records mission ids. Once content is released, renaming a campaign or mission id loses players' progress for it.
+### How progress is saved
+
+The client saves where a player stands in a campaign, not the results that got them there. Each result is applied once, when the mission ends, under the campaign's rules at that moment, and only its effect is kept:
+
+- which missions are unlocked, and which a result has removed
+- how many times each mission has been won and lost
+- the campaign's variables
+
+A mission counts as completed once it has been won. What can be played now and whether the campaign is finished are worked out from the current `campaignConfig.json` each time, so a change to which missions are replayable or final applies at once.
+
+This means a change to a released campaign's unlock rules never rewrites progress players already have. It applies from each player's next result. That makes it safe to restrict or rebalance a campaign, but a fix that should have applied to results already played doesn't reach players who played them.
+
+When a player opens a campaign, the client fits their progress to the campaign as it is now, in two ways only:
+
+- Missions the campaign no longer has are dropped.
+- A mission whose `prerequisites` the player has already all won is unlocked. This is the way to add a mission that existing players should get.
+
+### Ids are permanent
+
+Saved progress is keyed by campaign id and records mission ids. Once content is released, renaming a campaign or mission id loses players' progress for it.
+
+### Changes that are safe without a new save version
+
+- Adding a mission behind `prerequisites`. Players who have already won them get it the next time they open the campaign.
+- Adding a mission to the unlocks of a mission players haven't played yet.
+- Adding removals or prerequisites to missions that have already shipped, or changing what a branch unlocks or removes. Players keep what they have, and the new rules apply to their next results.
+- Removing a mission. Nothing may still refer to it, which the loader checks.
+- Changing `finalMission`, or whether missions are replayable.
+- Anything that doesn't change unlocks: text, images, maps, mission configs, Lua, credits and `compatibility`.
+
+### Changes that need a new save version, or another way to make them
+
+These need players' past results to count differently, which their saved progress can't provide:
+
+- **Adding an unlock to a mission players may already have played.** They won't get it, because that mission's result has already been applied. Gate the new mission with `prerequisites` instead, which existing players who meet them get.
+- **Adding a start mission.** Existing players won't get it. Give it `prerequisites` that every player has won, if there are any.
+- **Changing what a variable means,** or which mission is relied on to set it. Saved values keep their old meaning.
+- **Any change that should undo or redo progress players already have,** such as giving back a mission an earlier rule wrongly removed.
+
+### `saveVersion`
+
+`campaignConfig.json` may set `saveVersion`, which defaults to 1. Raise it by one when a release makes a change from the list above that you can't make another way. Each save records the version it was started under, and the client then treats a save from another version as follows:
+
+- **Older than the campaign:** the player's progress no longer counts. The campaign says it has been updated and offers to start over, which deletes the old save.
+- **Newer than the campaign:** the save was made with a newer release of the campaign, for example on another computer. The client leaves it untouched and asks the player to update.
+
+Limitations, which matter before deciding to raise it:
+
+- **All or nothing.** Raising it discards every player's progress in the campaign, including what they had done that your change doesn't affect. Nothing carries over: completed missions, the branch they chose and every variable are lost. There is no migration and no "continue from chapter N".
+- **Players have to replay from the start.** Tell them in the release notes before releasing a raised version.
+- **The old progress is deleted** when the player starts over, and can't be restored by rolling the content back.
+- **The client can't tell you that a version needs raising.** A change that needed one but didn't get it simply doesn't reach players who were past the point it changed.
+- **Campaigns only.** Scenarios and tutorials have no save version. Their progress is only how many times each one has been won and lost, which content changes don't affect.
+
+Prefer the safe changes above, and keep version raises for changes you can't make any other way.
+
+### Variables in saved progress
+
+Missions can report variables when they end, won or lost. Each reported value replaces the one before, across the whole campaign, and every mission receives the current values when it launches. Only the current values are kept, not the values each result reported.
+
+Any mission can change any variable, so give each variable to one mission, for example by prefixing its name with the mission id, unless several missions are meant to share it. A replayable mission that sets a shared variable changes it for every mission played after it.
+
+A mission can report `null` for a variable to delete it. Names are 1 to 128 characters, values are strings of up to 4096 characters, numbers or booleans, and a campaign can hold at most 256 variables at once. A result that breaks these limits is refused and not saved.
 
 ## Format versions
 

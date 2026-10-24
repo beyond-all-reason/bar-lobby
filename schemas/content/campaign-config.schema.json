@@ -12,6 +12,12 @@
             "description": "Version of the content format this file follows. Leave it out for version 1. A client that supports an older version reports the content as needing a newer client. This client supports version 1.",
             "type": "integer"
         },
+        "saveVersion": {
+            "minimum": 1,
+            "title": "Save version",
+            "description": "Version of the campaign's progress rules. Leave it out for version 1. Raise it only for a change that breaks players' saved progress: every player of an earlier version then has to start the campaign over. See the content schema README for which changes need it.",
+            "type": "integer"
+        },
         "campaignId": { "minLength": 1, "title": "Campaign id", "description": "Id of the campaign. Must equal the campaign's folder name, and stays the same once released.", "type": "string" },
         "titleKey": { "minLength": 1, "title": "Title key", "description": "Language key of the campaign's title, looked up in shared/language/.", "type": "string" },
         "descriptionKey": { "minLength": 1, "title": "Description key", "description": "Language key of the campaign's description, looked up in shared/language/.", "type": "string" },

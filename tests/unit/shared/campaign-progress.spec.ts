@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { campaignVariables, evaluateCampaign, itemStatus, MissionResult, missionStatus } from "@shared/content/campaign-progress";
+import { applyResult, campaignState, campaignVariables, countPlay, type ItemProgress, itemStatus, missionStatus, reconcileCampaign } from "@shared/content/campaign-progress";
+import type { ReportedResult } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 import secondCampaign from "../../fixtures/content/campaigns/second-campaign/campaignConfig.json";
@@ -12,12 +13,20 @@ import secondCampaign from "../../fixtures/content/campaigns/second-campaign/cam
 // optional missions that remove themselves on failure, and a final mission gated on both branches.
 const config = sampleCampaign as CampaignConfig;
 
-const win = (missionId: string): MissionResult => ({ missionId, outcome: "victory" });
-const lose = (missionId: string): MissionResult => ({ missionId, outcome: "failure" });
+const win = (missionId: string): ReportedResult => ({ missionId, outcome: "victory" });
+const lose = (missionId: string): ReportedResult => ({ missionId, outcome: "failure" });
 
-describe("evaluateCampaign", () => {
+// Each result applied once, in order, as they arrive in play.
+const play = (campaign: CampaignConfig, results: ReportedResult[], from: ItemProgress = { plays: {} }) =>
+    results.reduce<ItemProgress>((progress, result) => applyResult(campaign, progress, result), from);
+
+// These cases were written against replaying a whole history, and applying results one at a time must give the
+// same states.
+const evaluateCampaign = (campaign: CampaignConfig, results: ReportedResult[]) => campaignState(campaign, play(campaign, results));
+
+describe("applyResult and campaignState", () => {
     it("starts with the start missions available", () => {
-        expect(evaluateCampaign(config, [])).toEqual({ available: ["tutorial", "mission01"], completed: [], finished: false, removed: [], ignored: [] });
+        expect(evaluateCampaign(config, [])).toEqual({ available: ["tutorial", "mission01"], completed: [], finished: false, removed: [] });
     });
 
     it("keeps a replayable mission available after it is won", () => {
@@ -80,13 +89,26 @@ describe("evaluateCampaign", () => {
         expect(state.available).toContain("finalMission");
     });
 
-    // Saves outlive content updates, so a mission that has since been cut is skipped rather than fatal.
-    it("skips and reports results for missions the campaign no longer has", () => {
-        const state = evaluateCampaign(config, [win("mission01"), win("cutMission"), lose("toString"), win("mission02")]);
+    it("refuses a result for a mission the campaign doesn't have", () => {
+        expect(() => evaluateCampaign(config, [win("cutMission")])).toThrow(/no mission cutMission/);
+        expect(() => evaluateCampaign(config, [lose("toString")])).toThrow(/no mission toString/);
+    });
 
-        expect(state.ignored).toEqual([win("cutMission"), lose("toString")]);
-        expect(state.available).toEqual(["missionA", "missionB"]);
-        expect(state.completed).toEqual(["mission01", "mission02"]);
+    it("counts every play, won or lost", () => {
+        expect(play(config, [win("mission01"), lose("mission02"), lose("mission02"), win("mission02")]).plays).toEqual({
+            mission01: { victories: 1, failures: 0 },
+            mission02: { victories: 1, failures: 2 },
+        });
+    });
+
+    it("stays the same size however often a mission is replayed", () => {
+        const once = play(config, [win("tutorial")]);
+        const often = play(
+            config,
+            Array.from({ length: 1000 }, () => win("tutorial"))
+        );
+
+        expect(JSON.stringify(often).length).toBe(JSON.stringify(once).length + 3);
     });
 
     it("keeps a mission unlocked by prerequisites removed once a later result removes it", () => {
@@ -147,7 +169,7 @@ describe("itemStatus", () => {
 
 // A different shape: a choice between two routes that shuts the other off, a final unlocked by either route
 // rather than by prerequisites, an optional mission only a defeat opens, and replayable missions by default.
-describe("evaluateCampaign on the second sample campaign", () => {
+describe("applyResult and campaignState on the second sample campaign", () => {
     const second = secondCampaign as CampaignConfig;
 
     it("opens an optional mission on a defeat, which goes away once won", () => {
@@ -175,12 +197,14 @@ describe("evaluateCampaign on the second sample campaign", () => {
 });
 
 describe("campaignVariables", () => {
+    const variablesAfter = (results: ReportedResult[]) => campaignVariables(play(config, results));
+
     it("has none before any are reported", () => {
-        expect(campaignVariables([win("mission01")])).toEqual({});
+        expect(variablesAfter([win("mission01")])).toEqual({});
     });
 
     it("merges each result's variables over the ones before, from wins and losses alike", () => {
-        const variables = campaignVariables([
+        const variables = variablesAfter([
             { ...win("mission01"), variables: { lives: 3, hero: "alice", veteran: false } },
             { ...lose("mission02"), variables: { lives: 2 } },
             { ...win("mission02"), variables: { veteran: true } },
@@ -191,7 +215,7 @@ describe("campaignVariables", () => {
 
     it("deletes a variable reported as null", () => {
         expect(
-            campaignVariables([
+            variablesAfter([
                 { ...win("mission01"), variables: { lives: 3, hero: "alice" } },
                 { ...win("mission02"), variables: { lives: null } },
             ])
@@ -200,17 +224,86 @@ describe("campaignVariables", () => {
         });
     });
 
-    it("keeps variables from a mission the campaign no longer has", () => {
-        expect(campaignVariables([{ ...win("retiredMission"), variables: { gold: 10 } }])).toEqual({ gold: 10 });
-    });
-
     // Keys come from missions, so one that names an Object property must still be an ordinary variable.
     it("treats any key as a plain variable", () => {
-        expect(campaignVariables([{ ...win("mission01"), variables: JSON.parse('{"__proto__": 1, "constructor": "x"}') }])).toEqual(
+        expect(variablesAfter([{ ...win("mission01"), variables: JSON.parse('{"__proto__": 1, "constructor": "x"}') }])).toEqual(
             Object.fromEntries([
                 ["__proto__", 1],
                 ["constructor", "x"],
             ])
         );
+    });
+});
+
+// Saves outlive content updates. Progress already made stays as it was, except where the update can be fitted to
+// it without guessing: missions dropped, and missions behind prerequisites the player has already won.
+describe("content updates to a campaign with progress", () => {
+    const pastMission02 = play(config, [win("mission01"), win("mission02")]);
+
+    it("unlocks a new mission behind prerequisites the player has already won", () => {
+        const updated: CampaignConfig = { ...config, missions: { ...config.missions, bonus: { prerequisites: ["mission01", "mission02"] } } };
+
+        expect(campaignState(updated, pastMission02).available).toContain("bonus");
+        expect(reconcileCampaign(updated, pastMission02).prerequisitesMet).toContain("bonus");
+    });
+
+    it("doesn't unlock a new mission added to the unlocks of a mission already won", () => {
+        const updated: CampaignConfig = {
+            ...config,
+            missions: {
+                ...config.missions,
+                bonus: {},
+                mission01: { ...config.missions.mission01, victoryUnlocks: [...(config.missions.mission01.victoryUnlocks ?? []), "bonus"] },
+            },
+        };
+
+        expect(campaignState(updated, pastMission02).available).not.toContain("bonus");
+    });
+
+    it("never applies a new removal to a result already played", () => {
+        const updated: CampaignConfig = {
+            ...config,
+            missions: { ...config.missions, mission02: { ...config.missions.mission02, victoryRemoves: ["missionB"] } },
+        };
+
+        expect(campaignState(updated, pastMission02).available).toEqual(["missionA", "missionB"]);
+        expect(campaignState(updated, play(updated, [win("missionA")], pastMission02)).available).toContain("missionB");
+    });
+
+    it("applies a new removal from the next result that has it", () => {
+        const updated: CampaignConfig = {
+            ...config,
+            missions: { ...config.missions, missionA: { ...config.missions.missionA, victoryRemoves: ["missionB"] } },
+        };
+
+        expect(campaignState(updated, play(updated, [win("missionA")], pastMission02)).available).not.toContain("missionB");
+    });
+
+    it("drops a mission the campaign no longer has, and keeps its plays", () => {
+        const { missionB: _, ...missions } = config.missions;
+        const updated: CampaignConfig = { ...config, missions };
+
+        expect(campaignState(updated, pastMission02).available).toEqual(["missionA"]);
+        expect(reconcileCampaign(updated, pastMission02).unlocked).not.toContain("missionB");
+        expect(pastMission02.plays.mission02).toEqual({ victories: 1, failures: 0 });
+    });
+
+    it("follows a change to the final missions", () => {
+        const progress = play(config, [win("mission01")]);
+
+        expect(campaignState(config, progress).finished).toBe(false);
+        expect(campaignState({ ...config, finalMission: ["mission01"] }, progress).finished).toBe(true);
+    });
+
+    it("follows a change to which missions are replayable", () => {
+        const progress = play(config, [win("mission01")]);
+
+        expect(campaignState({ ...config, settings: { replayableMissions: true } }, progress).available).toContain("mission01");
+    });
+});
+
+describe("countPlay", () => {
+    it("counts a scenario's or tutorial's plays under its own id", () => {
+        expect(countPlay(countPlay({}, "basics", "failure"), "basics", "victory")).toEqual({ basics: { victories: 1, failures: 1 } });
     });
 });

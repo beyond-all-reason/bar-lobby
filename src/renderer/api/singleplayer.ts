@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ipcCall } from "@renderer/api/ipc-call";
-import type { SaveChange, SavedResult } from "@shared/content/save";
+import type { SaveChange, ReportedResult } from "@shared/content/save";
 import type { SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
 
 export const singleplayerApi = {
@@ -14,7 +14,7 @@ export const singleplayerApi = {
     getTutorial: ({ source, rootId, id }: SingleplayerItemRef) => ipcCall("singleplayer:getTutorial", () => window.singleplayer.getTutorial(source, rootId, id)),
     getSaves: () => ipcCall("singleplayer:getSaves", () => window.singleplayer.getSaves()),
     // Returns the save as written.
-    recordResult: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, result: SavedResult) =>
+    recordResult: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, result: ReportedResult) =>
         ipcCall("singleplayer:recordResult", () => window.singleplayer.recordResult(kind, source, rootId, id, result)),
     deleteAllSaves: () => ipcCall("singleplayer:deleteAllSaves", () => window.singleplayer.deleteAllSaves()),
     // Every change to a save, including ones main made itself. Gives the function that unsubscribes.

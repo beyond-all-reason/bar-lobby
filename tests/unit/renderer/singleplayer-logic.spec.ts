@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { saveKey, type SaveChange, type SavedResult, type SingleplayerSave } from "@shared/content/save";
+import { applyResult, countPlay } from "@shared/content/campaign-progress";
+import { saveKey, type SaveChange, type ReportedResult, type SingleplayerSave } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
@@ -14,17 +15,23 @@ vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 const { singleplayerStore, singleplayerUpdates } = await import("@renderer/store/singleplayer.store");
 const { initSingleplayerLogic, singleplayerLogic } = await import("@renderer/logic/singleplayer");
 
-// Stands in for main, which keeps the saves and returns each one as written.
+// Stands in for main, which keeps the saves, applies each result under the item's rules and returns the save
+// as written. Every campaign here is the sample campaign.
 const disk = new Map<string, SingleplayerSave>();
+
+// How many plays of one item, or of one campaign's missions, the save holds.
+const playsOf = (kind: SingleplayerKind, ref: SingleplayerItemRef) =>
+    Object.values(singleplayerStore.saves.get(saveKey(kind, ref))?.plays ?? {}).reduce((total, plays) => total + plays.victories + plays.failures, 0);
 
 function fakeMain() {
     disk.clear();
     api.list.mockResolvedValue(content([]));
     api.getSaves.mockImplementation(async () => ({ saves: structuredClone([...disk.values()]), problems: [] }));
-    api.recordResult.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef, result: SavedResult) => {
+    api.recordResult.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) => {
         const key = saveKey(kind, ref);
-        const save = disk.get(key) ?? { formatVersion: 1, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, history: [] };
-        const updated = { ...save, history: [...save.history, result] };
+        const save = disk.get(key) ?? { formatVersion: 1, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
+        const progress = kind === "campaign" ? applyResult(sampleCampaign as CampaignConfig, save, result) : { plays: countPlay(save.plays, result.missionId, result.outcome) };
+        const updated = { ...save, ...progress };
         disk.set(key, updated);
         return structuredClone(updated);
     });
@@ -176,8 +183,8 @@ describe("singleplayer logic", () => {
             await singleplayerLogic.deleteSave("campaign", official);
 
             expect(api.deleteSave).toHaveBeenCalledWith("campaign", official);
-            expect(singleplayerLogic.results("campaign", official)).toEqual([]);
-            expect(singleplayerLogic.results("campaign", custom)).toHaveLength(1);
+            expect(playsOf("campaign", official)).toBe(0);
+            expect(playsOf("campaign", custom)).toBe(1);
         });
 
         it("keeps a save that failed to delete", async () => {
@@ -186,8 +193,35 @@ describe("singleplayer logic", () => {
 
             await singleplayerLogic.deleteSave("campaign", official);
 
-            expect(singleplayerLogic.results("campaign", official)).toHaveLength(1);
+            expect(playsOf("campaign", official)).toBe(1);
             expect(singleplayerStore.saveError).toBe("singleplayer:deleteSave failed: busy");
+        });
+    });
+
+    describe("save versions", () => {
+        const updated: SingleplayerCampaign = { ...official, config: { ...official.config, saveVersion: 2 } };
+
+        it("counts a save from an older version as no progress until it is started over", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory", { lives: 3 });
+
+            expect(singleplayerLogic.campaignSaveCompatibility(updated)).toBe("older");
+            expect(singleplayerLogic.campaignState(updated).completed).toEqual([]);
+            expect(singleplayerLogic.variablesOf(updated)).toEqual({});
+
+            await singleplayerLogic.deleteSave("campaign", updated);
+            expect(singleplayerLogic.campaignSaveCompatibility(updated)).toBe("compatible");
+        });
+
+        it("leaves a save from a newer version unused", () => {
+            singleplayerUpdates.saveStored(saveKey("campaign", official), { formatVersion: 1, saveVersion: 2, item: officialItem, plays: { mission01: { victories: 1, failures: 0 } }, recent: [] });
+
+            expect(singleplayerLogic.campaignSaveCompatibility(official)).toBe("newer");
+            expect(singleplayerLogic.campaignState(official).completed).toEqual([]);
+            expect(singleplayerLogic.campaignSaveCompatibility(updated)).toBe("compatible");
+        });
+
+        it("counts a campaign without a save as compatible", () => {
+            expect(singleplayerLogic.campaignSaveCompatibility(updated)).toBe("compatible");
         });
     });
 
@@ -210,7 +244,7 @@ describe("singleplayer logic", () => {
 
             expect(await singleplayerLogic.deleteAllSaves()).toBe(false);
 
-            expect(singleplayerLogic.results("campaign", official)).toHaveLength(1);
+            expect(playsOf("campaign", official)).toBe(1);
             expect(singleplayerStore.saveError).toBe("singleplayer:deleteAllSaves failed: busy");
         });
     });
@@ -228,7 +262,9 @@ describe("singleplayer logic", () => {
             const save: SingleplayerSave = {
                 formatVersion: 1,
                 item: officialItem,
-                history: [{ missionId: "mission01", outcome: "victory", variables: { lives: 3 } }],
+                plays: { mission01: { victories: 1, failures: 0 } },
+                campaign: { unlocked: ["mission01", "mission02"], removed: ["tutorial"], prerequisitesMet: [], variables: { lives: 3 } },
+                recent: [],
             };
 
             reportChange({ item: save.item, save });
@@ -244,7 +280,7 @@ describe("singleplayer logic", () => {
 
             reportChange({ item: officialItem, save: undefined });
 
-            expect(singleplayerLogic.results("campaign", official)).toEqual([]);
+            expect(playsOf("campaign", official)).toBe(0);
             expect(singleplayerStore.saveError).toBe("singleplayer:recordResult failed: boom");
         });
     });
@@ -298,7 +334,7 @@ describe("singleplayer logic", () => {
 
             await singleplayerLogic.recordItemResult(tutorial, "victory");
 
-            expect(singleplayerLogic.results("campaign", official)).toEqual([]);
+            expect(playsOf("campaign", official)).toBe(0);
         });
     });
 });

@@ -6,8 +6,8 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
-import { campaignVariables } from "../../../shared/content/campaign-progress";
-import { SAVE_FORMAT_VERSION, SAVE_LIMITS, SavedResult, saveKey, SingleplayerSave } from "../../../shared/content/save";
+import { type AppliedProgress, countPlay, type ItemProgress } from "../../../shared/content/campaign-progress";
+import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, SingleplayerSave } from "../../../shared/content/save";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
 import { describeError } from "./files";
 
@@ -15,7 +15,7 @@ import { describeError } from "./files";
 // changed by reading it.
 const ajv = new Ajv2020({ strict: true, allErrors: true, verbose: true });
 const validateSave = ajv.compile(SingleplayerSave);
-const validateResult = ajv.compile(SavedResult);
+const validateResult = ajv.compile(ReportedResult);
 
 /**
  * The file a save is kept in. Ids come from content and may hold any character a folder name can, or differ
@@ -116,17 +116,24 @@ function queued<T>(filePath: string, task: () => Promise<T>): Promise<T> {
 }
 
 // Without the values, which may be long: a result comes from a mission, not from a file someone can open.
-function checkResult(result: SavedResult) {
+function checkResult(result: ReportedResult) {
     if (!validateResult(result)) {
         throw new Error(`Invalid result: ${(validateResult.errors ?? []).map((error) => `${error.instancePath || "(root)"} ${error.message}`).join("; ")}`);
     }
 }
 
+// How a result changes an item's progress. Without unlock rules, a scenario or tutorial only counts the play.
+export type ApplyResult = (progress: ItemProgress, result: ReportedResult) => AppliedProgress;
+
+const countOnly: ApplyResult = (progress, result) => ({ plays: countPlay(progress.plays, result.missionId, result.outcome) });
+
 /**
- * Adds a played result to an item's save, creating the save on its first result, and returns the save as
- * written. Refuses, and leaves the file alone, if the existing save can't be used.
+ * Applies a played result to an item's save, creating the save on its first result, and returns the save as
+ * written. `saveVersion` is the content's, which a new save records, and `apply` is how the result changes the
+ * item's progress. Refuses, and leaves the file alone, if the existing save can't be used or was started under
+ * another save version, or if the result would leave the save over its limits.
  */
-export async function recordResult(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, result: SavedResult): Promise<SingleplayerSave> {
+export async function recordResult(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult, saveVersion = 1, apply: ApplyResult = countOnly): Promise<SingleplayerSave> {
     checkResult(result);
     const filePath = path.join(dir, saveFileName(kind, ref));
 
@@ -136,14 +143,25 @@ export async function recordResult(dir: string, kind: SingleplayerKind, ref: Sin
             throw new Error(`${filePath}: ${read.problem}. Delete the save to start over.`);
         }
 
-        const save: SingleplayerSave = "save" in read ? read.save : { formatVersion: SAVE_FORMAT_VERSION, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, history: [] };
-        const history = [...save.history, { ...result, at: new Date().toISOString() }];
-        const variableCount = Object.keys(campaignVariables(history)).length;
+        const save: SingleplayerSave =
+            "save" in read ? read.save : { formatVersion: SAVE_FORMAT_VERSION, saveVersion, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
+        const compatibility = saveCompatibility(save, saveVersion);
+        if (compatibility !== "compatible") {
+            throw new Error(
+                compatibility === "older"
+                    ? `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, which is now at ${saveVersion}. Start over to play it.`
+                    : `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, newer than the ${saveVersion} installed.`
+            );
+        }
+
+        const progress = apply(save, result);
+        const variableCount = Object.keys(progress.campaign?.variables ?? {}).length;
         if (variableCount > SAVE_LIMITS.variableCount) {
             throw new Error(`Invalid result: ${variableCount} variables saved, more than the ${SAVE_LIMITS.variableCount} allowed`);
         }
 
-        const updated = { ...save, history };
+        const recent = [...save.recent, { ...result, at: new Date().toISOString() }].slice(-SAVE_LIMITS.recentResults);
+        const updated: SingleplayerSave = { ...save, ...progress, recent };
         await writeSave(filePath, updated);
 
         return updated;

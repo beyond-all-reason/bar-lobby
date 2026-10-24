@@ -43,6 +43,14 @@ export const CampaignConfig = Type.Object(
     {
         $schema: Type.Optional(SchemaReference),
         formatVersion: Type.Optional(FormatVersion),
+        saveVersion: Type.Optional(
+            Type.Integer({
+                minimum: 1,
+                title: "Save version",
+                description:
+                    "Version of the campaign's progress rules. Leave it out for version 1. Raise it only for a change that breaks players' saved progress: every player of an earlier version then has to start the campaign over. See the content schema README for which changes need it.",
+            })
+        ),
         campaignId: Type.String({ minLength: 1, title: "Campaign id", description: "Id of the campaign. Must equal the campaign's folder name, and stays the same once released." }),
         titleKey: Type.String({ minLength: 1, title: "Title key", description: "Language key of the campaign's title, looked up in shared/language/." }),
         descriptionKey: Type.String({ minLength: 1, title: "Description key", description: "Language key of the campaign's description, looked up in shared/language/." }),

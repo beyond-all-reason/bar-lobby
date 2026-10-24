@@ -7,7 +7,8 @@ import * as saves from "@main/content/singleplayer/saves";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
 import { ipcMain } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
-import type { SaveChange, SavedResult } from "@shared/content/save";
+import { applyResult } from "@shared/content/campaign-progress";
+import type { ReportedResult, SaveChange } from "@shared/content/save";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { WebContents } from "electron";
 import { ContentProblem, ContentSource, isSameItem, SingleplayerContent, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
@@ -53,14 +54,25 @@ async function getSaves() {
 }
 
 // Saved progress, for whatever reports a finished game and for launching a mission with its saved variables.
+// A campaign's save is only usable while saveCompatibility with the campaign's saveVersion says so: launching
+// must check that, then pass on campaignVariables(save).
 function readSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return saves.readSave(SAVES_PATH, kind, ref);
 }
 
 const itemOf = (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ({ kind, source, rootId, id });
 
-async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: SavedResult) {
-    const save = await saves.recordResult(SAVES_PATH, kind, ref, result);
+// A result applies under the item's rules as main last scanned them, not as the renderer has them.
+async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
+    const item = await get(`${kind}s`, ref);
+    if (!item) {
+        throw new Error(`No ${kind} ${ref.id} in ${ref.source}/${ref.rootId}`);
+    }
+
+    const save =
+        item.kind === "campaign"
+            ? await saves.recordResult(SAVES_PATH, kind, ref, result, item.config.saveVersion ?? 1, (progress, reported) => applyResult(item.config, progress, reported))
+            : await saves.recordResult(SAVES_PATH, kind, ref, result);
     onSaveChanged.dispatch({ item: itemOf(kind, ref), save });
 
     return save;
@@ -84,7 +96,7 @@ function registerIpcHandlers(webContents: WebContents) {
     ipcMain.handle("singleplayer:getScenario", (_, source: ContentSource, rootId: string, id: string) => get("scenarios", { source, rootId, id }));
     ipcMain.handle("singleplayer:getTutorial", (_, source: ContentSource, rootId: string, id: string) => get("tutorials", { source, rootId, id }));
     ipcMain.handle("singleplayer:getSaves", () => getSaves());
-    ipcMain.handle("singleplayer:recordResult", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: SavedResult) =>
+    ipcMain.handle("singleplayer:recordResult", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) =>
         recordResult(kind, { source, rootId, id }, result)
     );
     ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => deleteSave(kind, { source, rootId, id }));
