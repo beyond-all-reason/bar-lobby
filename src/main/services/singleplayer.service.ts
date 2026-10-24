@@ -7,10 +7,16 @@ import * as saves from "@main/content/singleplayer/saves";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
 import { ipcMain } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
-import type { SavedResult } from "@shared/content/save";
+import type { SaveChange, SavedResult } from "@shared/content/save";
+import { Signal } from "$/jaz-ts-utils/signal";
+import type { WebContents } from "electron";
 import { ContentProblem, ContentSource, isSameItem, SingleplayerContent, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
 
 const log = logger("singleplayer.service.ts");
+
+// Raised after every change to a save, whatever made it. Telling the renderer is one subscriber, so whatever
+// shows saved progress stays current even when the change came from main, such as a finished game.
+const onSaveChanged = new Signal<SaveChange>();
 
 // Content is scanned when asked for, not watched: the depot only changes through Steam while the client is
 // closed. Something that adds content while running can ask for a rescan through singleplayer:list.
@@ -51,15 +57,21 @@ function readSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return saves.readSave(SAVES_PATH, kind, ref);
 }
 
-function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: SavedResult) {
-    return saves.recordResult(SAVES_PATH, kind, ref, result);
+const itemOf = (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ({ kind, source, rootId, id });
+
+async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: SavedResult) {
+    const save = await saves.recordResult(SAVES_PATH, kind, ref, result);
+    onSaveChanged.dispatch({ item: itemOf(kind, ref), save });
+
+    return save;
 }
 
-function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
-    return saves.deleteSave(SAVES_PATH, kind, ref);
+async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    await saves.deleteSave(SAVES_PATH, kind, ref);
+    onSaveChanged.dispatch({ item: itemOf(kind, ref), save: undefined });
 }
 
-function registerIpcHandlers() {
+function registerIpcHandlers(webContents: WebContents) {
     ipcMain.handle("singleplayer:list", () => scan());
     ipcMain.handle("singleplayer:getCampaign", (_, source: ContentSource, rootId: string, id: string) => get("campaigns", { source, rootId, id }));
     ipcMain.handle("singleplayer:getScenario", (_, source: ContentSource, rootId: string, id: string) => get("scenarios", { source, rootId, id }));
@@ -69,10 +81,13 @@ function registerIpcHandlers() {
         recordResult(kind, { source, rootId, id }, result)
     );
     ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => deleteSave(kind, { source, rootId, id }));
+
+    onSaveChanged.add((change) => webContents.send("singleplayer:saveChanged", change));
 }
 
 export const singleplayerService = {
     registerIpcHandlers,
     readSave,
     recordResult,
+    onSaveChanged,
 };

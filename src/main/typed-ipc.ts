@@ -21,7 +21,7 @@ import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/on
 import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
-import type { SavedResult, SingleplayerSave } from "@shared/content/save";
+import type { SaveChange, SavedResult, SingleplayerSave } from "@shared/content/save";
 import type { ContentProblem, ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
@@ -59,6 +59,7 @@ export type IPCEvents = {
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
     "auth:changed": (state: AuthState) => void;
+    "singleplayer:saveChanged": (change: SaveChange) => void;
 };
 
 export type IPCCommands = {

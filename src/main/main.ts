@@ -175,5 +175,5 @@ app.whenReady().then(async () => {
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
-    singleplayerService.registerIpcHandlers();
+    singleplayerService.registerIpcHandlers(webContents);
 });

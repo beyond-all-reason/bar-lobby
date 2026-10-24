@@ -23,7 +23,7 @@ import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
-import type { SavedResult, SingleplayerSave } from "@shared/content/save";
+import type { SaveChange, SavedResult, SingleplayerSave } from "@shared/content/save";
 import type { ContentProblem, ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
@@ -206,6 +206,8 @@ const singleplayerApi = {
     recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: SavedResult): Promise<SingleplayerSave> =>
         ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),
     deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<void> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
+    // Every change to a save, including ones main made itself.
+    onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
 };
 export type SingleplayerApi = typeof singleplayerApi;
 contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);

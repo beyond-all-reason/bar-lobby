@@ -3,16 +3,16 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { saveKey, type SavedResult, type SingleplayerSave } from "@shared/content/save";
+import { saveKey, type SaveChange, type SavedResult, type SingleplayerSave } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 
-const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), deleteSave: vi.fn() }));
+const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), deleteSave: vi.fn(), onSaveChanged: vi.fn() }));
 vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { singleplayerStore, singleplayerUpdates } = await import("@renderer/store/singleplayer.store");
-const { singleplayerLogic } = await import("@renderer/logic/singleplayer");
+const { initSingleplayerLogic, singleplayerLogic } = await import("@renderer/logic/singleplayer");
 
 // Stands in for main, which keeps the saves and returns each one as written.
 const disk = new Map<string, SingleplayerSave>();
@@ -49,6 +49,7 @@ function content(tutorials: SingleplayerScenario[]): SingleplayerContent {
 
 const official = makeCampaign("official");
 const custom = makeCampaign("custom");
+const officialItem = { kind: "campaign", source: "official", rootId: "official", id: "sample-campaign" } as const;
 
 async function winThroughToFinal(campaign: SingleplayerCampaign) {
     for (const missionId of ["mission01", "mission02", "missionA", "missionB"]) {
@@ -187,6 +188,40 @@ describe("singleplayer logic", () => {
 
             expect(singleplayerLogic.results("campaign", official)).toHaveLength(1);
             expect(singleplayerStore.saveError).toBe("singleplayer:deleteSave failed: busy");
+        });
+    });
+
+    describe("save changes from main", () => {
+        // Subscribed once for the whole file, the same as at startup, so the handler is caught here.
+        let reportChange: (change: SaveChange) => void;
+
+        beforeEach(() => {
+            api.onSaveChanged.mockImplementation((handler) => (reportChange = handler));
+            initSingleplayerLogic();
+        });
+
+        it("shows a result main recorded without being asked from here", () => {
+            const save: SingleplayerSave = {
+                formatVersion: 1,
+                item: officialItem,
+                history: [{ missionId: "mission01", outcome: "victory", variables: { lives: 3 } }],
+            };
+
+            reportChange({ item: save.item, save });
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+            expect(singleplayerLogic.variablesOf(official)).toEqual({ lives: 3 });
+            expect(singleplayerLogic.campaignState(custom).completed).toEqual([]);
+        });
+
+        it("drops a save main deleted, and leaves an error from this window alone", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            singleplayerUpdates.saveFailed("singleplayer:recordResult failed: boom");
+
+            reportChange({ item: officialItem, save: undefined });
+
+            expect(singleplayerLogic.results("campaign", official)).toEqual([]);
+            expect(singleplayerStore.saveError).toBe("singleplayer:recordResult failed: boom");
         });
     });
 

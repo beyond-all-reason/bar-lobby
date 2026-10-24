@@ -52,6 +52,14 @@ export const singleplayerUpdates = {
         state.saves.delete(key);
         state.saveError = undefined;
     },
+    // A change reported by main, which may not be one this window asked for, so any error stays.
+    saveChanged(key: string, save: SingleplayerSave | undefined) {
+        if (save) {
+            state.saves.set(key, save);
+        } else {
+            state.saves.delete(key);
+        }
+    },
     saveFailed(message: string) {
         state.saveError = message;
     },

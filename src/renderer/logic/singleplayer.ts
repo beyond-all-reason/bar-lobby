@@ -8,6 +8,18 @@ import { CampaignState, campaignVariables, evaluateCampaign, MissionOutcome } fr
 import { SavedResult, saveKey, SaveVariables, SaveVariableValue } from "@shared/content/save";
 import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
 
+let isInitialized = false;
+
+// Keeps the store's saves current with every change main makes to them, not only the ones asked for here.
+export function initSingleplayerLogic() {
+    if (isInitialized) {
+        return;
+    }
+
+    singleplayerApi.onSaveChanged(({ item, save }) => singleplayerUpdates.saveChanged(saveKey(item.kind, item), save));
+    isInitialized = true;
+}
+
 // A scenario or tutorial, by what its save is kept under.
 type ItemRef = SingleplayerItemRef & { kind: "scenario" | "tutorial" };
 

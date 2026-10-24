@@ -56,6 +56,9 @@ export type SaveVariables = Static<typeof SaveVariables>;
 export type SavedResult = Static<typeof SavedResult>;
 export type SingleplayerSave = Static<typeof SingleplayerSave> & { item: { kind: SingleplayerKind } & SingleplayerItemRef };
 
+// A save as written, or undefined once deleted, for the item it belongs to.
+export type SaveChange = { item: SingleplayerItemRef & { kind: SingleplayerKind }; save: SingleplayerSave | undefined };
+
 /**
  * What a save is kept under. Ids are unique within one root and one kind only, so all four parts are needed:
  * a campaign and a tutorial may share an id, as may official, custom and Workshop items.

@@ -279,6 +279,18 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteSave", "tutorial", "custom", "custom", "sample-tutorial");
     });
 
+    it("should pass save changes from main to the singleplayer callback", async () => {
+        await import("@preload/preload");
+        const callback = vi.fn();
+        const change = { item: { kind: "campaign", source: "official", rootId: "official", id: "sample-campaign" }, save: undefined };
+
+        mockWindow.singleplayer.onSaveChanged(callback);
+        const [dispatch] = listenersFor("singleplayer:saveChanged");
+        dispatch({}, change);
+
+        expect(callback).toHaveBeenCalledWith(change);
+    });
+
     it("should expose barNavigation API", async () => {
         await import("@preload/preload");
 
