@@ -75,6 +75,8 @@ const devStatus = computed(() => {
 .mission-card {
     background-size: cover;
     background-position: center;
+    // Long single-word names, such as ids, break instead of widening the card past its grid column.
+    overflow-wrap: anywhere;
     &.disabled {
         opacity: 0.4;
     }

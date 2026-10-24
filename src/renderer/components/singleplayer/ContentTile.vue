@@ -47,6 +47,8 @@ const emit = defineEmits<{
     cursor: pointer;
     background-size: cover;
     background-position: center;
+    // Long single-word names, such as ids, break instead of widening the tile past its grid column.
+    overflow-wrap: anywhere;
     &.selected {
         outline: 1px solid rgba(255, 255, 255, 0.6);
         // Drawn inside the tile, so a scroll container's edge doesn't clip it.
