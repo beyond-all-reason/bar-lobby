@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { evaluateCampaign, itemStatus, MissionResult, missionStatus } from "@shared/content/campaign-progress";
+import { campaignVariables, evaluateCampaign, itemStatus, MissionResult, missionStatus } from "@shared/content/campaign-progress";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 import secondCampaign from "../../fixtures/content/campaigns/second-campaign/campaignConfig.json";
@@ -171,5 +171,46 @@ describe("evaluateCampaign on the second sample campaign", () => {
 
         expect(state.finished).toBe(true);
         expect(state.available).toEqual(["landing", "southRoute"]);
+    });
+});
+
+describe("campaignVariables", () => {
+    it("has none before any are reported", () => {
+        expect(campaignVariables([win("mission01")])).toEqual({});
+    });
+
+    it("merges each result's variables over the ones before, from wins and losses alike", () => {
+        const variables = campaignVariables([
+            { ...win("mission01"), variables: { lives: 3, hero: "alice", veteran: false } },
+            { ...lose("mission02"), variables: { lives: 2 } },
+            { ...win("mission02"), variables: { veteran: true } },
+        ]);
+
+        expect(variables).toEqual({ lives: 2, hero: "alice", veteran: true });
+    });
+
+    it("deletes a variable reported as null", () => {
+        expect(
+            campaignVariables([
+                { ...win("mission01"), variables: { lives: 3, hero: "alice" } },
+                { ...win("mission02"), variables: { lives: null } },
+            ])
+        ).toEqual({
+            hero: "alice",
+        });
+    });
+
+    it("keeps variables from a mission the campaign no longer has", () => {
+        expect(campaignVariables([{ ...win("retiredMission"), variables: { gold: 10 } }])).toEqual({ gold: 10 });
+    });
+
+    // Keys come from missions, so one that names an Object property must still be an ordinary variable.
+    it("treats any key as a plain variable", () => {
+        expect(campaignVariables([{ ...win("mission01"), variables: JSON.parse('{"__proto__": 1, "constructor": "x"}') }])).toEqual(
+            Object.fromEntries([
+                ["__proto__", 1],
+                ["constructor", "x"],
+            ])
+        );
     });
 });

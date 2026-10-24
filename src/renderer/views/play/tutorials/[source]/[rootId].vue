@@ -19,10 +19,11 @@ SPDX-License-Identifier: MIT
         </div>
         <Panel class="flex-grow">
             <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+            <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
             <div class="scroll-container flex-col gap-md">
                 <div v-if="settingsStore.devMode" class="flex-row gap-md">
-                    <Button @click="singleplayerLogic.resetTutorials(source as ContentSource, rootId)">{{
-                        t("lobby.singleplayer.content.resetProgress")
+                    <Button @click="singleplayerLogic.deleteTutorialSaves(source as ContentSource, rootId)">{{
+                        t("lobby.singleplayer.content.deleteSave")
                     }}</Button>
                 </div>
                 <div class="cards">

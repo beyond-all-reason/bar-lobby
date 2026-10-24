@@ -47,7 +47,13 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
                     </div>
                 </div>
                 <div v-if="selected" class="scenario-preview flex-col">
-                    <div class="scroll-container">
+                    <div class="scroll-container flex-col gap-md">
+                        <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
+                        <div v-if="settingsStore.devMode" class="flex-row gap-md">
+                            <Button @click="singleplayerLogic.deleteSave('scenario', selected)">{{
+                                t("lobby.singleplayer.content.deleteSave")
+                            }}</Button>
+                        </div>
                         <MissionCard
                             :title="text(selected.manifest.titleKey, selected.language)"
                             :description="text(selected.manifest.descriptionKey, selected.language)"
@@ -67,6 +73,7 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
+import Button from "@renderer/components/controls/Button.vue";
 import ContentProblems from "@renderer/components/singleplayer/ContentProblems.vue";
 import ContentTile from "@renderer/components/singleplayer/ContentTile.vue";
 import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";

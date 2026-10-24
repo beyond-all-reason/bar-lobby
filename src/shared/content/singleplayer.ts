@@ -19,8 +19,9 @@ import type { MissionManifest } from "./schema/mission-manifest";
 export type ContentSource = "official" | "custom";
 
 /**
- * One folder content is read from. `rootId` tells apart roots of the same source and stays the same
- * between runs, because saved progress is keyed by it.
+ * One folder content is read from. `rootId` tells apart roots of the same source. Saved progress is keyed by
+ * it, so it must never change once content has shipped from that root, and must mean the same root on every
+ * machine a save may be synced to.
  */
 export type ContentRoot = { source: ContentSource; rootId: string; path: string };
 

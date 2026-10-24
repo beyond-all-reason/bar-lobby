@@ -23,6 +23,7 @@ graph: content does not say which missions are alternatives to each other.
         </div>
         <Panel class="flex-grow">
             <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+            <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
             <p v-else-if="singleplayerStore.content && !campaign">{{ t("lobby.singleplayer.content.notFound") }}</p>
             <div v-if="campaign && state" class="scroll-container flex-col gap-md">
                 <p>{{ text(campaign.config.descriptionKey, campaign.language) }}</p>
@@ -30,10 +31,14 @@ graph: content does not say which missions are alternatives to each other.
                     <Button @click="router.push(`/play/campaigns/${source}/${rootId}/${id}/credits`)">{{
                         t("lobby.singleplayer.content.showCredits")
                     }}</Button>
-                    <Button v-if="settingsStore.devMode" @click="singleplayerLogic.resetProgress('campaign', campaign)">
-                        {{ t("lobby.singleplayer.content.resetProgress") }}
+                    <Button v-if="settingsStore.devMode" @click="singleplayerLogic.deleteSave('campaign', campaign)">
+                        {{ t("lobby.singleplayer.content.deleteSave") }}
                     </Button>
                     <span v-if="state.finished">{{ t("lobby.singleplayer.content.completed") }}</span>
+                </div>
+                <div v-if="settingsStore.devMode && Object.keys(variables).length > 0">
+                    <h4>{{ t("lobby.singleplayer.content.variables") }}</h4>
+                    <div v-for="(value, key) in variables" :key="key">{{ key }}: {{ JSON.stringify(value) }}</div>
                 </div>
                 <div class="cards">
                     <MissionCard
@@ -84,6 +89,7 @@ const campaign = computed(
             | undefined
 );
 const state = computed(() => campaign.value && singleplayerLogic.campaignState(campaign.value));
+const variables = computed(() => (campaign.value ? singleplayerLogic.variablesOf(campaign.value) : {}));
 
 onMounted(() => {
     if (!singleplayerStore.content) {

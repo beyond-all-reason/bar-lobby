@@ -3,29 +3,29 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive, readonly } from "vue";
-import type { MissionResult } from "@shared/content/campaign-progress";
-import type { SingleplayerContent, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
+import { saveKey, type SingleplayerSave } from "@shared/content/save";
+import type { SingleplayerContent } from "@shared/content/singleplayer";
 
 const state = reactive({
     content: undefined,
     isLoading: false,
     loadError: undefined,
-    results: new Map(),
+    saves: new Map(),
+    savesLoaded: false,
+    saveError: undefined,
 } as {
     content: SingleplayerContent | undefined;
     isLoading: boolean;
     loadError: string | undefined;
-    // Played results in the order they happened, one list per campaign, scenario or tutorial. Held in memory
-    // only for now, so a restart starts every item afresh.
-    results: Map<string, MissionResult[]>;
+    // Saved progress, one save per campaign, scenario or tutorial played, keyed by saveKey. Main writes the
+    // saves; this holds the latest copy of each.
+    saves: Map<string, SingleplayerSave>;
+    savesLoaded: boolean;
+    // Why the last change to a save failed, cleared by the next one that succeeds.
+    saveError: string | undefined;
 });
 
 export const singleplayerStore = readonly(state);
-
-// Ids are unique within one root and one kind only, so a campaign and a tutorial can share an id.
-export function resultsKey(kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) {
-    return JSON.stringify([kind, source, rootId, id]);
-}
 
 export const singleplayerUpdates = {
     loading() {
@@ -40,16 +40,27 @@ export const singleplayerUpdates = {
         state.loadError = message;
         state.isLoading = false;
     },
-    addResult(key: string, result: MissionResult) {
-        state.results.set(key, [...(state.results.get(key) ?? []), result]);
+    savesLoaded(saves: readonly SingleplayerSave[]) {
+        state.saves = new Map(saves.map((save) => [saveKey(save.item.kind, save.item), save]));
+        state.savesLoaded = true;
     },
-    clearResults(key: string) {
-        state.results.delete(key);
+    saveStored(key: string, save: SingleplayerSave) {
+        state.saves.set(key, save);
+        state.saveError = undefined;
+    },
+    saveRemoved(key: string) {
+        state.saves.delete(key);
+        state.saveError = undefined;
+    },
+    saveFailed(message: string) {
+        state.saveError = message;
     },
     clear() {
         state.content = undefined;
         state.isLoading = false;
         state.loadError = undefined;
-        state.results.clear();
+        state.saves.clear();
+        state.savesLoaded = false;
+        state.saveError = undefined;
     },
 };

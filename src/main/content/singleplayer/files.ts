@@ -25,7 +25,7 @@ function validatorFor(schema: TSchema) {
     return validate;
 }
 
-function describeError(error: ErrorObject) {
+export function describeError(error: ErrorObject) {
     const where = error.instancePath || "(root)";
     const got = error.keyword === "required" || error.keyword === "additionalProperties" ? "" : ` (got ${JSON.stringify(error.data)})`;
     // A pattern on its own tells an author nothing, so the field's own description says what was wanted.

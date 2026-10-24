@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { SavedResult, SaveVariableValue } from "./save";
 import type { CampaignConfig } from "./schema/campaign-config";
 
 export type MissionOutcome = "victory" | "failure";
@@ -100,6 +101,27 @@ export function evaluateCampaign(config: CampaignConfig, history: readonly Missi
         removed: order.filter((id) => everUnlocked.has(id) && !unlocked.has(id)),
         ignored,
     };
+}
+
+/**
+ * The variables a campaign's missions have reported so far, which every mission of the campaign receives on
+ * launch. Results apply in order, whether won or lost: each reported key replaces the one before, and null
+ * deletes it. Results for missions the campaign no longer has still count, since variables belong to the
+ * campaign rather than to its unlock graph.
+ */
+export function campaignVariables(history: readonly SavedResult[]): Record<string, SaveVariableValue> {
+    const variables = new Map<string, SaveVariableValue>();
+    for (const result of history) {
+        for (const [key, value] of Object.entries(result.variables ?? {})) {
+            if (value === null) {
+                variables.delete(key);
+            } else {
+                variables.set(key, value);
+            }
+        }
+    }
+
+    return Object.fromEntries(variables);
 }
 
 export function missionStatus(config: CampaignConfig, state: CampaignState, missionId: string): MissionStatus {

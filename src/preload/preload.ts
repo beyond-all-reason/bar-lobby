@@ -23,7 +23,8 @@ import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
-import type { ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "@shared/content/singleplayer";
+import type { SavedResult, SingleplayerSave } from "@shared/content/save";
+import type { ContentProblem, ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -201,6 +202,10 @@ const singleplayerApi = {
     getCampaign: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerCampaign | undefined> => ipcRenderer.invoke("singleplayer:getCampaign", source, rootId, id),
     getScenario: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getScenario", source, rootId, id),
     getTutorial: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getTutorial", source, rootId, id),
+    getSaves: (): Promise<{ saves: SingleplayerSave[]; problems: ContentProblem[] }> => ipcRenderer.invoke("singleplayer:getSaves"),
+    recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: SavedResult): Promise<SingleplayerSave> =>
+        ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),
+    deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<void> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
 };
 export type SingleplayerApi = typeof singleplayerApi;
 contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);

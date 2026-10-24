@@ -144,6 +144,9 @@ export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
  * content depot, which in practice only the premium edition has anything in. Custom content is the
  * player's own. Where the depot finally lands is decided here and nowhere else.
  *
+ * Saved progress is keyed by each root's `rootId`, so a root keeps its id for good once it has shipped
+ * content. A further official root, such as a DLC depot, gets a fixed id of its own.
+ *
  * As with BAR_EDITION, the overrides only work from `npm start`.
  */
 export function getContentRoots(): ContentRoot[] {
@@ -167,6 +170,15 @@ export const getContentWriteRoot = () => (EDITION_FEATURES.assetsReadOnly ? WRIT
 
 // Map directories whose files are ours to delete.
 export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.assetsReadOnly ? [path.join(WRITE_DATA_PATH, "maps")] : getMapsPaths());
+
+/**
+ * Saved singleplayer progress, one small JSON file per item played. The folder holds nothing else and its
+ * files hold no paths or machine-specific values, so Steam Cloud can sync it as it is: with Auto-Cloud, the
+ * pattern `*.json` in `WinAppDataRoaming` + `BeyondAllReason/saves/singleplayer`. On Linux STATE_PATH is under
+ * XDG_STATE_HOME, which Steam has no root for, so that either assumes the default `LinuxHome` +
+ * `.local/state/...` or goes through the ISteamRemoteStorage API, which only needs the file names and contents.
+ */
+export const SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
