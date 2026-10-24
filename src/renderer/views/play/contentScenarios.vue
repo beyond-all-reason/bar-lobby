@@ -20,36 +20,45 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
             <h1>{{ t("lobby.singleplayer.content.scenarios") }}</h1>
         </div>
         <Panel class="flex-grow">
-            <div class="scroll-container flex-col gap-lg">
-                <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
-                <p v-else-if="singleplayerStore.content && groups.length === 0">{{ t("lobby.singleplayer.content.empty") }}</p>
-                <div v-for="group in groups" :key="group.source" class="flex-col gap-md">
-                    <h2>{{ group.source }}</h2>
-                    <div class="tiles">
-                        <ContentTile
-                            v-for="scenario in group.scenarios"
-                            :key="`${scenario.rootId}:${scenario.id}`"
-                            :title="text(scenario.manifest.titleKey, scenario.language)"
-                            :image-url="scenario.imageUrl"
-                            :background-image-url="scenario.backgroundImageUrl"
-                            :completed="singleplayerLogic.itemCompleted(scenario)"
-                            :selected="selected !== undefined && isSameItem(selected, scenario)"
-                            @select="selected = scenario"
+            <div class="flex-row gap-lg fullheight">
+                <div class="list flex-col">
+                    <div class="scroll-container gap-lg">
+                        <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+                        <p v-else-if="singleplayerStore.content && groups.length === 0">{{ t("lobby.singleplayer.content.empty") }}</p>
+                        <div v-for="group in groups" :key="group.source" class="flex-col gap-md">
+                            <h2>{{ group.source }}</h2>
+                            <div class="tiles">
+                                <ContentTile
+                                    v-for="scenario in group.scenarios"
+                                    :key="`${scenario.rootId}:${scenario.id}`"
+                                    :title="text(scenario.manifest.titleKey, scenario.language)"
+                                    :image-url="scenario.imageUrl"
+                                    :background-image-url="scenario.backgroundImageUrl"
+                                    :completed="singleplayerLogic.itemCompleted(scenario)"
+                                    :selected="selected !== undefined && isSameItem(selected, scenario)"
+                                    @select="selected = scenario"
+                                />
+                            </div>
+                        </div>
+                        <ContentProblems
+                            v-if="settingsStore.devMode && singleplayerStore.content"
+                            :problems="singleplayerStore.content.problems"
                         />
                     </div>
                 </div>
-                <div v-if="selected" class="tiles">
-                    <MissionCard
-                        :title="text(selected.manifest.titleKey, selected.language)"
-                        :description="text(selected.manifest.descriptionKey, selected.language)"
-                        :image-url="selected.imageUrl"
-                        :background-image-url="selected.backgroundImageUrl"
-                        :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
-                        @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
-                        @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
-                    />
+                <div v-if="selected" class="scenario-preview flex-col">
+                    <div class="scroll-container">
+                        <MissionCard
+                            :title="text(selected.manifest.titleKey, selected.language)"
+                            :description="text(selected.manifest.descriptionKey, selected.language)"
+                            :image-url="selected.imageUrl"
+                            :background-image-url="selected.backgroundImageUrl"
+                            :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
+                            @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
+                            @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
+                        />
+                    </div>
                 </div>
-                <ContentProblems v-if="settingsStore.devMode && singleplayerStore.content" :problems="singleplayerStore.content.problems" />
             </div>
         </Panel>
     </div>
@@ -95,5 +104,16 @@ onMounted(() => singleplayerLogic.loadContent());
     display: grid;
     gap: 15px;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+// min-width lets the tile grid shrink beside the preview instead of pushing it out.
+.list {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.scenario-preview {
+    flex-shrink: 0;
+    width: 400px;
 }
 </style>
