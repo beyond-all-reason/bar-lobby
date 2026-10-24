@@ -206,6 +206,7 @@ const singleplayerApi = {
     recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: SavedResult): Promise<SingleplayerSave> =>
         ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),
     deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<void> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
+    deleteAllSaves: (): Promise<void> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
     // Every change to a save, including ones main made itself.
     onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
 };

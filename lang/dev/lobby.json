@@ -512,7 +512,14 @@
                 "useNewLocationOnlyDesc": "Pntois the gmae at the new fdelor. No fleis are mvoed or cpeiod — you wlil need to re-dwalonod.",
                 "apply": "Apply",
                 "restartRequired": "The alpciotaipn wlil reolad afetr cnnighag the loaitcon.",
-                "transferringFiles": "Trsnrrafineg fleis... {percent}%"
+                "transferringFiles": "Trsnrrafineg fleis... {percent}%",
+                "singleplayerSaves": "Sieeyglnplar Saves",
+                "deleteSingleplayerSaves": "Deetle all slgleeaiypnr seavd dtaa",
+                "deleteSingleplayerSavesTitle": "Deetle all slgleeaiypnr seavd dtaa?",
+                "deleteSingleplayerSavesBody": "Tihs deteles your prsgeros and seavd vleaus in eervy ciagampn, senicaro and toaturil, ofiiacfl and cuotsm. It caonnt be unnode.",
+                "deleteSingleplayerSavesConfirm": "Deetle all",
+                "singleplayerSavesDeleted": "Sieeyglnplar seavd dtaa deteeld.",
+                "cancel": "Ceancl"
             },
             "friends": {
                 "unknownUser": "Unwnokn User",

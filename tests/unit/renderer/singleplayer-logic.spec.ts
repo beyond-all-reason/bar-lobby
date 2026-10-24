@@ -8,7 +8,7 @@ import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 
-const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), deleteSave: vi.fn(), onSaveChanged: vi.fn() }));
+const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), deleteSave: vi.fn(), deleteAllSaves: vi.fn(), onSaveChanged: vi.fn() }));
 vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { singleplayerStore, singleplayerUpdates } = await import("@renderer/store/singleplayer.store");
@@ -188,6 +188,30 @@ describe("singleplayer logic", () => {
 
             expect(singleplayerLogic.results("campaign", official)).toHaveLength(1);
             expect(singleplayerStore.saveError).toBe("singleplayer:deleteSave failed: busy");
+        });
+    });
+
+    describe("deleteAllSaves", () => {
+        it("clears every save and an earlier error", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            await singleplayerLogic.recordItemResult(makeTutorial("basics"), "victory");
+            singleplayerUpdates.saveFailed("singleplayer:recordResult failed: boom");
+
+            expect(await singleplayerLogic.deleteAllSaves()).toBe(true);
+
+            expect(api.deleteAllSaves).toHaveBeenCalled();
+            expect(singleplayerStore.saves.size).toBe(0);
+            expect(singleplayerStore.saveError).toBeUndefined();
+        });
+
+        it("keeps the saves and gives the reason when it fails", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            api.deleteAllSaves.mockRejectedValueOnce(new Error("singleplayer:deleteAllSaves failed: busy"));
+
+            expect(await singleplayerLogic.deleteAllSaves()).toBe(false);
+
+            expect(singleplayerLogic.results("campaign", official)).toHaveLength(1);
+            expect(singleplayerStore.saveError).toBe("singleplayer:deleteAllSaves failed: busy");
         });
     });
 

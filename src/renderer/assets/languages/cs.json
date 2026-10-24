@@ -2495,7 +2495,14 @@
                 "useNewLocationOnlyDesc": null,
                 "apply": null,
                 "restartRequired": null,
-                "transferringFiles": null
+                "transferringFiles": null,
+                "singleplayerSaves": null,
+                "deleteSingleplayerSaves": null,
+                "deleteSingleplayerSavesTitle": null,
+                "deleteSingleplayerSavesBody": null,
+                "deleteSingleplayerSavesConfirm": null,
+                "singleplayerSavesDeleted": null,
+                "cancel": null
             },
             "friends": {
                 "unknownUser": null,

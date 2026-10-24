@@ -60,6 +60,10 @@ export const singleplayerUpdates = {
             state.saves.delete(key);
         }
     },
+    allSavesDeleted() {
+        state.saves.clear();
+        state.saveError = undefined;
+    },
     saveFailed(message: string) {
         state.saveError = message;
     },

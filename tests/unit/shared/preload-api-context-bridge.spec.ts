@@ -266,6 +266,7 @@ describe("Preload API Context Bridge", () => {
         mockWindow.singleplayer.getSaves();
         mockWindow.singleplayer.recordResult("campaign", "official", "official", "sample-campaign", { missionId: "mission01", outcome: "victory" });
         mockWindow.singleplayer.deleteSave("tutorial", "custom", "custom", "sample-tutorial");
+        mockWindow.singleplayer.deleteAllSaves();
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:list");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getCampaign", "official", "official", "sample-campaign");
@@ -277,6 +278,7 @@ describe("Preload API Context Bridge", () => {
             outcome: "victory",
         });
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteSave", "tutorial", "custom", "custom", "sample-tutorial");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteAllSaves");
     });
 
     it("should pass save changes from main to the singleplayer callback", async () => {

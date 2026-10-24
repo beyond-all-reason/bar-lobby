@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { deleteSave, readSave, readSaves, recordResult, saveFileName } from "@main/content/singleplayer/saves";
+import { deleteAllSaves, deleteSave, readSave, readSaves, recordResult, saveFileName } from "@main/content/singleplayer/saves";
 import { SAVE_LIMITS } from "@shared/content/save";
 import type { SingleplayerItemRef } from "@shared/content/singleplayer";
 
@@ -147,6 +147,29 @@ describe("singleplayer saves", () => {
         await deleteSave(dir, "tutorial", official);
 
         expect(await files()).toEqual([saveFileName("campaign", custom)]);
+    });
+
+    it("deletes every save, unreadable ones and temp files too, and names the readable ones", async () => {
+        await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+        await recordResult(dir, "tutorial", custom, { missionId: "sample-campaign", outcome: "victory" });
+        await fs.writeFile(fileOf("campaign-0123456789abcdef0123456789abcdef.json"), "{ half a save");
+        await fs.writeFile(fileOf(`${saveFileName("scenario", custom)}.tmp`), "{ half");
+        await fs.writeFile(fileOf("notes.txt"), "kept");
+
+        const deleted = await deleteAllSaves(dir);
+
+        expect(deleted).toEqual(
+            expect.arrayContaining([
+                { kind: "campaign", ...official },
+                { kind: "tutorial", ...custom },
+            ])
+        );
+        expect(deleted).toHaveLength(2);
+        expect(await files()).toEqual(["notes.txt"]);
+    });
+
+    it("deletes nothing when there are no saves", async () => {
+        expect(await deleteAllSaves(dir)).toEqual([]);
     });
 
     it("ignores files that aren't saves", async () => {

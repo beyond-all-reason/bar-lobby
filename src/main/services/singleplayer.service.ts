@@ -71,6 +71,13 @@ async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     onSaveChanged.dispatch({ item: itemOf(kind, ref), save: undefined });
 }
 
+// Every singleplayer save, for the settings menu. The player has confirmed it there.
+async function deleteAllSaves() {
+    for (const item of await saves.deleteAllSaves(SAVES_PATH)) {
+        onSaveChanged.dispatch({ item, save: undefined });
+    }
+}
+
 function registerIpcHandlers(webContents: WebContents) {
     ipcMain.handle("singleplayer:list", () => scan());
     ipcMain.handle("singleplayer:getCampaign", (_, source: ContentSource, rootId: string, id: string) => get("campaigns", { source, rootId, id }));
@@ -81,6 +88,7 @@ function registerIpcHandlers(webContents: WebContents) {
         recordResult(kind, { source, rootId, id }, result)
     );
     ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => deleteSave(kind, { source, rootId, id }));
+    ipcMain.handle("singleplayer:deleteAllSaves", () => deleteAllSaves());
 
     onSaveChanged.add((change) => webContents.send("singleplayer:saveChanged", change));
 }

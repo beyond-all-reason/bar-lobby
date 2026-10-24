@@ -26,6 +26,8 @@ export function saveFileName(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return `${kind}-${crypto.createHash("sha256").update(saveKey(kind, ref)).digest("hex").slice(0, 32)}.json`;
 }
 
+type SaveItem = SingleplayerSave["item"];
+
 type ReadSave = { save: SingleplayerSave } | { missing: true } | { problem: string };
 
 async function readSaveFile(filePath: string): Promise<ReadSave> {
@@ -162,4 +164,31 @@ export function deleteSave(dir: string, kind: SingleplayerKind, ref: Singleplaye
     const filePath = path.join(dir, saveFileName(kind, ref));
 
     return queued(filePath, () => fs.rm(filePath, { force: true }));
+}
+
+/**
+ * Deletes every save in the folder, unreadable ones included, and leftover temp files with them. Gives the
+ * items whose saves were readable, so whoever shows them can be told. Anything else in the folder is left.
+ */
+export async function deleteAllSaves(dir: string): Promise<SaveItem[]> {
+    let names: string[];
+    try {
+        names = await fs.readdir(dir);
+    } catch {
+        return [];
+    }
+
+    const deleted: SaveItem[] = [];
+    for (const name of names.filter((name) => name.endsWith(".json") || name.endsWith(".json.tmp"))) {
+        const filePath = path.join(dir, name);
+        await queued(filePath, async () => {
+            const read = await readSaveFile(filePath);
+            await fs.rm(filePath, { force: true });
+            if ("save" in read) {
+                deleted.push(read.save.item);
+            }
+        });
+    }
+
+    return deleted;
 }

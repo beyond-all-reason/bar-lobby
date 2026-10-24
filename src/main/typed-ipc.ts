@@ -132,6 +132,7 @@ export type IPCCommands = {
     "singleplayer:getSaves": () => { saves: SingleplayerSave[]; problems: ContentProblem[] };
     "singleplayer:recordResult": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: SavedResult) => SingleplayerSave;
     "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => void;
+    "singleplayer:deleteAllSaves": () => void;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;

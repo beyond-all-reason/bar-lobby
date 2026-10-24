@@ -127,6 +127,19 @@ async function deleteTutorialSaves(source: ContentSource, rootId: string) {
     }
 }
 
+// Deletes every singleplayer save, for the settings menu. Gives false, with the reason in the store, if it
+// failed part way; main has then reported each save it did delete.
+async function deleteAllSaves() {
+    try {
+        await singleplayerApi.deleteAllSaves();
+        singleplayerUpdates.allSavesDeleted();
+        return true;
+    } catch (error) {
+        singleplayerUpdates.saveFailed(messageOf(error));
+        return false;
+    }
+}
+
 export const singleplayerLogic = {
     loadContent,
     results,
@@ -140,4 +153,5 @@ export const singleplayerLogic = {
     recordItemResult,
     deleteSave,
     deleteTutorialSaves,
+    deleteAllSaves,
 };
