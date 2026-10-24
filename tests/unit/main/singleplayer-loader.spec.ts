@@ -76,6 +76,13 @@ describe("loadSingleplayerContent", () => {
             { source: "official", rootId: "official", id: "second-campaign" },
             { source: "custom", rootId: "custom", id: "sample-campaign" },
         ]);
+        expect(content.scenarios.map(({ source, id }) => ({ source, id }))).toEqual([
+            { source: "official", id: "sample-scenario" },
+            { source: "official", id: "river-crossing" },
+            { source: "official", id: "night-raid" },
+            { source: "custom", id: "custom-skirmish" },
+            { source: "custom", id: "sample-scenario" },
+        ]);
         expect(content.problems).toEqual([]);
     });
 

@@ -1,0 +1,16 @@
+{
+    "missionId": "sample-scenario",
+    "titleKey": "missions.sample-scenario.title",
+    "descriptionKey": "missions.sample-scenario.description",
+    "entryPoint": "mission.lua",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    },
+    "compatibility": [
+        {
+            "engineVersion": "2025.04.10",
+            "gameVersions": ["Beyond All Reason test-28000-aaaaaaa", "Beyond All Reason test-28100-bbbbbbb"]
+        }
+    ]
+}

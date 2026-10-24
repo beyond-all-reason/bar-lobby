@@ -4,10 +4,17 @@
     "descriptionKey": "campaign.description",
     "players": [1],
     "missions": {
-        "mission01": {}
+        "mission01": {
+            "victoryUnlocks": ["mission02", "mission03"]
+        },
+        "mission02": {},
+        "mission03": {},
+        "mission04": {
+            "prerequisites": ["mission02", "mission03"]
+        }
     },
     "startMission": ["mission01"],
-    "finalMission": ["mission01"],
+    "finalMission": ["mission04"],
     "compatibility": [
         {
             "engineVersion": "2025.04.10",

@@ -49,6 +49,8 @@ const emit = defineEmits<{
     background-position: center;
     &.selected {
         outline: 1px solid rgba(255, 255, 255, 0.6);
+        // Drawn inside the tile, so a scroll container's edge doesn't clip it.
+        outline-offset: -1px;
     }
 }
 
