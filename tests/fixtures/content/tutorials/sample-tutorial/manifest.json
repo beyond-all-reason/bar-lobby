@@ -4,6 +4,8 @@
     "descriptionKey": "missions.sample-tutorial.description",
     "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
+    "image": "preview.png",
+    "backgroundImage": "background.png",
     "config": {
         "default": "missionConfig.json"
     },

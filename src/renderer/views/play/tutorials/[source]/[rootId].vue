@@ -25,16 +25,19 @@ SPDX-License-Identifier: MIT
                         t("lobby.singleplayer.content.resetProgress")
                     }}</Button>
                 </div>
-                <MissionRow
-                    v-for="tutorial in tutorials"
-                    :key="tutorial.id"
-                    :title="text(tutorial.manifest.titleKey, tutorial.language)"
-                    :description="text(tutorial.manifest.descriptionKey, tutorial.language)"
-                    :image-url="tutorial.imageUrl"
-                    :status="itemStatus(singleplayerLogic.itemCompleted(tutorial))"
-                    @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
-                    @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
-                />
+                <div class="cards">
+                    <MissionCard
+                        v-for="tutorial in tutorials"
+                        :key="tutorial.id"
+                        :title="text(tutorial.manifest.titleKey, tutorial.language)"
+                        :description="text(tutorial.manifest.descriptionKey, tutorial.language)"
+                        :image-url="tutorial.imageUrl"
+                        :background-image-url="tutorial.backgroundImageUrl"
+                        :status="itemStatus(singleplayerLogic.itemCompleted(tutorial))"
+                        @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
+                        @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
+                    />
+                </div>
             </div>
         </Panel>
     </div>
@@ -45,7 +48,7 @@ import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import MissionRow from "@renderer/components/singleplayer/MissionRow.vue";
+import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";
 import { singleplayerLogic } from "@renderer/logic/singleplayer";
@@ -71,3 +74,11 @@ onMounted(() => {
     }
 });
 </script>
+
+<style lang="scss" scoped>
+.cards {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+</style>

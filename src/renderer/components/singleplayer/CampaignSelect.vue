@@ -22,6 +22,7 @@ grouped by source, so a new kind of source shows up here without changes.
                     :key="`tutorials:${root.rootId}`"
                     :title="t('lobby.singleplayer.content.tutorials')"
                     :image-url="singleplayerLogic.tutorialsOf(root.source, root.rootId)[0]?.imageUrl"
+                    :background-image-url="singleplayerLogic.tutorialsOf(root.source, root.rootId)[0]?.backgroundImageUrl"
                     :completed="singleplayerLogic.tutorialsCompleted(root.source, root.rootId)"
                     @select="router.push(`/play/tutorials/${root.source}/${root.rootId}`)"
                 />

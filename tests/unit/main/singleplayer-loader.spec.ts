@@ -43,6 +43,9 @@ describe("loadSingleplayerContent", () => {
             expect(Object.keys(mission01.configs.numPlayers)).toEqual(["1", "2"]);
             expect(mission01.configs.numPlayers["2"].playerTeam).toEqual(["heroes", "allies"]);
             expect(mission01.language.en).toBeDefined();
+            // A campaign mission's images come from the campaign's shared media, not its own folder.
+            expect(mission01.imageUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "mission01_image.png"))}`);
+            expect(mission01.backgroundImageUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "mission01_background.png"))}`);
             // The campaign's shared folder and the mission, never the whole content root.
             expect(mission01.springDataPaths).toEqual([path.join(folder, "shared"), path.join(folder, "mission01")]);
         });
@@ -155,25 +158,34 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([]);
         });
 
-        it("gives an item's image from its own media folder, and reports one that is missing", async () => {
-            for (const [name, image] of [
-                ["alpha", "preview.png"],
-                ["beta", "missing.png"],
-            ]) {
+        it("gives an item's images from its own media folder, and reports ones that are missing", async () => {
+            for (const [name, image, backgroundImage] of [
+                ["alpha", "preview.png", "background.png"],
+                ["beta", "missing.png", "missing-background.png"],
+                // The sample scenario these are copied from has images, so this one drops them.
+                ["gamma", undefined, undefined],
+            ] as const) {
                 const manifestPath = path.join(root, "scenarios", name, "manifest.json");
                 const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-                await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, image }));
+                await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, image, backgroundImage }));
             }
-            await fs.mkdir(path.join(root, "scenarios", "alpha", "media"));
-            await fs.writeFile(path.join(root, "scenarios", "alpha", "media", "preview.png"), "");
+            const media = path.join(root, "scenarios", "alpha", "media");
+            await fs.mkdir(media, { recursive: true });
+            await fs.writeFile(path.join(media, "preview.png"), "");
+            await fs.writeFile(path.join(media, "background.png"), "");
 
             const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
 
-            expect(content.scenarios.map((s) => [s.id, s.imageUrl])).toEqual([
-                ["alpha", `bar://${encodeURIComponent(path.join(root, "scenarios", "alpha", "media", "preview.png"))}`],
-                ["gamma", undefined],
+            const mediaUrl = (file: string) => `bar://${encodeURIComponent(path.join(media, file))}`;
+            expect(content.scenarios.map((s) => [s.id, s.imageUrl, s.backgroundImageUrl])).toEqual([
+                ["alpha", mediaUrl("preview.png"), mediaUrl("background.png")],
+                ["gamma", undefined, undefined],
             ]);
-            expect(content.problems).toEqual([{ path: path.join(root, "scenarios", "beta", "manifest.json"), severity: "error", message: 'image "missing.png" does not exist' }]);
+            const betaManifest = path.join(root, "scenarios", "beta", "manifest.json");
+            expect(content.problems).toEqual([
+                { path: betaManifest, severity: "error", message: 'image "missing.png" does not exist' },
+                { path: betaManifest, severity: "error", message: 'backgroundImage "missing-background.png" does not exist' },
+            ]);
         });
 
         it("warns about a campaign folder that is not one of its missions", async () => {

@@ -9,8 +9,8 @@ SPDX-License-Identifier: MIT
 </route>
 
 <!--
-One campaign's missions in a single column, in the order the campaign lists them. Branches are not drawn
-side by side: content does not say which missions are alternatives to each other.
+One campaign's missions as cards, in the order the campaign lists them. Branches are not laid out as a
+graph: content does not say which missions are alternatives to each other.
 -->
 <template>
     <div class="flex-col fullheight">
@@ -35,16 +35,19 @@ side by side: content does not say which missions are alternatives to each other
                     </Button>
                     <span v-if="state.finished">{{ t("lobby.singleplayer.content.completed") }}</span>
                 </div>
-                <MissionRow
-                    v-for="mission in campaign.missions"
-                    :key="mission.id"
-                    :title="text(mission.manifest.titleKey, mission.language, campaign.language)"
-                    :description="text(mission.manifest.descriptionKey, mission.language, campaign.language)"
-                    :image-url="mission.imageUrl"
-                    :status="missionStatus(campaign.config, state, mission.id)"
-                    @pass="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'victory')"
-                    @fail="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'failure')"
-                />
+                <div class="cards">
+                    <MissionCard
+                        v-for="mission in campaign.missions"
+                        :key="mission.id"
+                        :title="text(mission.manifest.titleKey, mission.language, campaign.language)"
+                        :description="text(mission.manifest.descriptionKey, mission.language, campaign.language)"
+                        :image-url="mission.imageUrl"
+                        :background-image-url="mission.backgroundImageUrl"
+                        :status="missionStatus(campaign.config, state, mission.id)"
+                        @pass="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'victory')"
+                        @fail="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'failure')"
+                    />
+                </div>
             </div>
         </Panel>
     </div>
@@ -55,7 +58,7 @@ import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import MissionRow from "@renderer/components/singleplayer/MissionRow.vue";
+import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";
 import { singleplayerLogic } from "@renderer/logic/singleplayer";
@@ -92,5 +95,11 @@ onMounted(() => {
 <style lang="scss" scoped>
 .logo {
     max-height: 48px;
+}
+
+.cards {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 </style>

@@ -100,6 +100,9 @@ export type MissionFolderOptions = {
     partOfCampaign: boolean;
     // Folders added to SpringData ahead of this one, such as the campaign's shared/.
     springDataPathsBefore: string[];
+    // Where image and backgroundImage are looked up: the campaign's shared/media/ for a campaign mission,
+    // the item's own media/ for a scenario or tutorial.
+    mediaFolder: string;
 };
 
 /**
@@ -137,7 +140,9 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         }
     }
     const language = await readLanguageFolder(folder, problems);
-    const imagePath = manifest.image === undefined ? undefined : await fileInside(path.join(folder, "media"), manifest.image, problems, manifestPath, "image");
+    const mediaFile = (file: string | undefined, field: string) => (file === undefined ? undefined : fileInside(options.mediaFolder, file, problems, manifestPath, field));
+    const imagePath = await mediaFile(manifest.image, "image");
+    const backgroundImagePath = await mediaFile(manifest.backgroundImage, "backgroundImage");
 
     if (problems.hasErrors || !entryPointPath || !defaultConfig) {
         return undefined;
@@ -151,6 +156,7 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         entryPointPath,
         language,
         imageUrl: imagePath && toBarUrl(imagePath),
+        backgroundImageUrl: backgroundImagePath && toBarUrl(backgroundImagePath),
         springDataPaths: [...options.springDataPathsBefore, folder],
     };
 }

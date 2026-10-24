@@ -31,21 +31,24 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
                             :key="`${scenario.rootId}:${scenario.id}`"
                             :title="text(scenario.manifest.titleKey, scenario.language)"
                             :image-url="scenario.imageUrl"
+                            :background-image-url="scenario.backgroundImageUrl"
                             :completed="singleplayerLogic.itemCompleted(scenario)"
                             :selected="selected !== undefined && isSameItem(selected, scenario)"
                             @select="selected = scenario"
                         />
                     </div>
                 </div>
-                <MissionRow
-                    v-if="selected"
-                    :title="text(selected.manifest.titleKey, selected.language)"
-                    :description="text(selected.manifest.descriptionKey, selected.language)"
-                    :image-url="selected.imageUrl"
-                    :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
-                    @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
-                    @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
-                />
+                <div v-if="selected" class="tiles">
+                    <MissionCard
+                        :title="text(selected.manifest.titleKey, selected.language)"
+                        :description="text(selected.manifest.descriptionKey, selected.language)"
+                        :image-url="selected.imageUrl"
+                        :background-image-url="selected.backgroundImageUrl"
+                        :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
+                        @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
+                        @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
+                    />
+                </div>
                 <ContentProblems v-if="settingsStore.devMode && singleplayerStore.content" :problems="singleplayerStore.content.problems" />
             </div>
         </Panel>
@@ -57,7 +60,7 @@ import { computed, onMounted, ref } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import ContentProblems from "@renderer/components/singleplayer/ContentProblems.vue";
 import ContentTile from "@renderer/components/singleplayer/ContentTile.vue";
-import MissionRow from "@renderer/components/singleplayer/MissionRow.vue";
+import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";
 import { singleplayerLogic } from "@renderer/logic/singleplayer";

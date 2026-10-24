@@ -22,7 +22,18 @@
         "descriptionKey": { "minLength": 1, "title": "Description key", "description": "Language key of the description.", "type": "string" },
         "entryPoint": { "minLength": 1, "title": "Entry point", "description": "Lua file the mission starts from, relative to this folder.", "type": "string" },
         "mapName": { "minLength": 1, "title": "Map", "description": "Name of the map the mission is played on, as the engine names it.", "type": "string" },
-        "image": { "minLength": 1, "title": "Image", "description": "Image file shown for the mission, in this folder's media/ folder.", "type": "string" },
+        "image": {
+            "minLength": 1,
+            "title": "Image",
+            "description": "Image file shown for the mission. A campaign mission's is in the campaign's shared/media/ folder, a scenario's or tutorial's in its own media/ folder.",
+            "type": "string"
+        },
+        "backgroundImage": {
+            "minLength": 1,
+            "title": "Background image",
+            "description": "Image file shown behind the mission. A campaign mission's is in the campaign's shared/media/ folder, a scenario's or tutorial's in its own media/ folder.",
+            "type": "string"
+        },
         "config": {
             "title": "Mission configs",
             "description": "The mission config files, relative to this folder: a default, and optionally a config per player count.",

@@ -19,7 +19,20 @@ export const MissionManifest = Type.Object(
         descriptionKey: Type.String({ minLength: 1, title: "Description key", description: "Language key of the description." }),
         entryPoint: Type.String({ minLength: 1, title: "Entry point", description: "Lua file the mission starts from, relative to this folder." }),
         mapName: Type.String({ minLength: 1, title: "Map", description: "Name of the map the mission is played on, as the engine names it." }),
-        image: Type.Optional(Type.String({ minLength: 1, title: "Image", description: "Image file shown for the mission, in this folder's media/ folder." })),
+        image: Type.Optional(
+            Type.String({
+                minLength: 1,
+                title: "Image",
+                description: "Image file shown for the mission. A campaign mission's is in the campaign's shared/media/ folder, a scenario's or tutorial's in its own media/ folder.",
+            })
+        ),
+        backgroundImage: Type.Optional(
+            Type.String({
+                minLength: 1,
+                title: "Background image",
+                description: "Image file shown behind the mission. A campaign mission's is in the campaign's shared/media/ folder, a scenario's or tutorial's in its own media/ folder.",
+            })
+        ),
         config: Type.Object(
             {
                 default: Type.String({ minLength: 1, title: "Default config", description: "Mission config used for any player count without its own, relative to this folder." }),

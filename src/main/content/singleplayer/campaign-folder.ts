@@ -109,7 +109,15 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, prob
             problems.error(configPath, `Mission "${missionId}" has no folder`);
             continue;
         }
-        const mission = await readMissionFolder(path.join(folder, missionId), { partOfCampaign: true, springDataPathsBefore }, problems.child());
+        const mission = await readMissionFolder(
+            path.join(folder, missionId),
+            {
+                partOfCampaign: true,
+                springDataPathsBefore,
+                mediaFolder: path.join(sharedFolder, "media"),
+            },
+            problems.child()
+        );
         if (mission) {
             missions.push(mission);
         }

@@ -4,6 +4,8 @@
     "descriptionKey": "missions.mission01.description",
     "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
+    "image": "mission01_image.png",
+    "backgroundImage": "mission01_background.png",
     "config": {
         "default": "missionConfig.json",
         "numPlayers": {

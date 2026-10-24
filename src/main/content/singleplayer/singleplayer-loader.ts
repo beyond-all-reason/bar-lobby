@@ -48,7 +48,11 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", a
     const kindFolder = path.join(root.path, KIND_FOLDERS[kind]);
     const items: SingleplayerScenario[] = [];
     for (const name of await orderedFolders(kindFolder, new Problems(all))) {
-        const mission = await readMissionFolder(path.join(kindFolder, name), { partOfCampaign: false, springDataPathsBefore: [] }, new Problems(all));
+        const mission = await readMissionFolder(
+            path.join(kindFolder, name),
+            { partOfCampaign: false, springDataPathsBefore: [], mediaFolder: path.join(kindFolder, name, "media") },
+            new Problems(all)
+        );
         // readMissionFolder only gives a scenario with compatibility back.
         if (mission?.manifest.compatibility) {
             items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility: mission.manifest.compatibility });
