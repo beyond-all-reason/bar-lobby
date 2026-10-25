@@ -2,32 +2,27 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app } from "electron";
+import "@main/single-instance";
 
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
-    app.exit(0);
-}
-
-// Only import after we know we have the lock
-import { net, protocol, session } from "electron";
+import { app, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
 import netFromNode from "node:net";
 
 import { createWindow } from "@main/main-window";
+import { installApplicationMenu } from "@main/browser-behaviours";
 import { settingsService } from "./services/settings.service";
+import { customLobbiesService } from "./services/custom-lobbies.service";
 import { infoService } from "./services/info.service";
-import { accountService } from "./services/account.service";
 import { logService } from "@main/services/log.service";
+import contentService from "./services/content.service";
+import { contentAPI } from "@main/content/content-api";
 import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
 import { APP_NAME, SCENARIO_IMAGE_PATH, setAssetsPath } from "./config/app";
 import { shellService } from "@main/services/shell.service";
-import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import autoUpdaterService from "@main/services/auto-updater.service";
@@ -36,6 +31,9 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { configService } from "./services/config.service";
+import { EDITION_FEATURES } from "@main/config/edition";
+import { reconcileCustomServers } from "@shared/lobby-server";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -98,6 +96,7 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
+    installApplicationMenu();
     registerBarFileProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
@@ -131,28 +130,46 @@ app.whenReady().then(async () => {
         });
     });
     // Initialize services
+    // Config is fetched first because it contains URLs and other values that other services may depend on.
+    await configService.init();
     await settingsService.init();
+    const { lobbyServerOverride, customServerList } = settingsService.getSettings();
+    const reconciledServers = reconcileCustomServers(lobbyServerOverride, customServerList, configService.getConfig().defaultServers);
+    if (reconciledServers.join("\n") !== customServerList.join("\n")) {
+        await settingsService.updateSettings({ customServerList: reconciledServers });
+    }
+    await customLobbiesService.init();
+    // The state directory is shared between editions, so the saved path may be one a standalone install
+    // chose, which an edition with a fixed assets directory must not pick up.
     const savedAssetsPath = settingsService.getSettings().assetsPath;
-    if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
+    if (savedAssetsPath && !process.env.BAR_ASSETS_PATH && EDITION_FEATURES.changeAssetsPath) {
         setAssetsPath(savedAssetsPath);
     }
-    await engineService.init();
-    await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+    // A saved assets path can point somewhere unavailable, and the screen that lets the user repoint it
+    // cannot appear if this throws on the way to creating the window.
+    try {
+        await contentAPI.init();
+    } catch (err) {
+        log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
+    }
+    await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
+    configService.registerIpcHandlers();
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
-    authService.registerIpcHandlers();
+    customLobbiesService.registerIpcHandlers();
+    authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);
+    contentService.registerIpcHandlers(webContents);
     engineService.registerIpcHandlers();
     gameService.registerIpcHandlers(webContents);
     mapsService.registerIpcHandlers(webContents);
     shellService.registerIpcHandlers();
-    downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);

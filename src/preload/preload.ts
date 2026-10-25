@@ -2,10 +2,14 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { contextBridge } from "electron";
-import { ipcRenderer } from "@main/typed-ipc";
-import { Replay } from "@main/content/replays/replay";
+import { contextBridge, type IpcRendererEvent } from "electron";
+import { ipcRenderer, IpcResult, type IPCEvents } from "@main/typed-ipc";
+import { ContentRef } from "@main/content/content-ref";
+import { ContentPresence, ContentState, RefusedContent } from "@main/content/content-state";
+import { Replay } from "@main/replays/replay";
+import { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 import { Settings } from "@main/services/settings.service";
+import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
@@ -13,8 +17,21 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
+import { Config } from "@main/services/config.service";
+import { AuthState } from "@main/services/auth.service";
+import { StoredIdentity } from "@main/model/user";
+
+function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
+    const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
+    ipcRenderer.on(channel, listener);
+
+    return () => {
+        ipcRenderer.removeListener(channel, listener);
+    };
+}
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
@@ -33,25 +50,33 @@ contextBridge.exposeInMainWorld("info", infoApi);
 
 const mainWindowApi = {
     setFullscreen: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag),
-    setSize: (size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", size),
+    setMaximized: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setMaximized", flag),
+    setSize: (width: number, height: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", width, height),
+    setUiScale: (scale: number | null): Promise<void> => ipcRenderer.invoke("mainWindow:setUiScale", scale),
+    getScaleRange: (): Promise<{ min: number; max: number; os: number }> => ipcRenderer.invoke("mainWindow:getScaleRange"),
+    onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => subscribe("mainWindow:scaleRangeChanged", callback),
+    getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
+        ipcRenderer.invoke("mainWindow:getDisplays"),
+    setDisplay: (index: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", index),
+    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) => subscribe("mainWindow:windowStateChanged", callback),
+    onUiScaleNudged: (callback: (scale: number | null) => void) => subscribe("mainWindow:uiScaleNudged", callback),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
     isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),
-    resized: (): Promise<void> => ipcRenderer.invoke("mainWindow:resized"),
 };
 export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
 
 const shellApi = {
-    openStateDir: (): Promise<string> => ipcRenderer.invoke("shell:openStateDir"),
-    openAssetsDir: (): Promise<string> => ipcRenderer.invoke("shell:openAssetsDir"),
-    openSettingsFile: (): Promise<string> => ipcRenderer.invoke("shell:openSettingsFile"),
-    openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
-    openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
-    showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
-
+    openStateDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStateDir"),
+    openAssetsDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openAssetsDir"),
+    openSettingsFile: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openSettingsFile"),
+    openStartScript: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStartScript"),
+    openReplaysDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openReplaysDir"),
+    showReplayInFolder: (fileName: string): Promise<IpcResult> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
+    openConfigFile: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openConfigFile"),
     // External
-    openInBrowser: (url: string): Promise<void> => ipcRenderer.invoke("shell:openInBrowser", url),
+    openInBrowser: (url: string): Promise<IpcResult> => ipcRenderer.invoke("shell:openInBrowser", url),
 };
 export type ShellApi = typeof shellApi;
 contextBridge.exposeInMainWorld("shell", shellApi);
@@ -59,12 +84,14 @@ contextBridge.exposeInMainWorld("shell", shellApi);
 const replaysApi = {
     sync: (replays: string[]): Promise<void> => ipcRenderer.invoke("replays:sync", replays),
     delete: (fileName: string): Promise<void> => ipcRenderer.invoke("replays:delete", fileName),
+    searchOnlineByPlayer: (username: string, limit: number): Promise<IpcResult<OnlineReplayOverview[]>> => ipcRenderer.invoke("replays:searchOnlineByPlayer", username, limit),
+    getOnline: (replayId: string): Promise<IpcResult<OnlineReplayDetails>> => ipcRenderer.invoke("replays:getOnline", replayId),
 
     // Events
-    onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),
-    onReplayCached: (callback: (replay: Replay) => void) => ipcRenderer.on("replays:replayCached", (_event, replay) => callback(replay)),
-    onReplayDeleted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayDeleted", (_event, filename) => callback(filename)),
-    onHighlightOpened: (callback: (fileNames: string[]) => void) => ipcRenderer.on("replays:highlightOpened", (_event, fileNames) => callback(fileNames)),
+    onReplayCachingStarted: (callback: (filename: string) => void) => subscribe("replays:replayCachingStarted", callback),
+    onReplayCached: (callback: (replay: Replay) => void) => subscribe("replays:replayCached", callback),
+    onReplayDeleted: (callback: (filename: string) => void) => subscribe("replays:replayDeleted", callback),
+    onHighlightOpened: (callback: (fileNames: string[]) => void) => subscribe("replays:highlightOpened", callback),
 };
 export type ReplaysApi = typeof replaysApi;
 contextBridge.exposeInMainWorld("replays", replaysApi);
@@ -77,14 +104,47 @@ const settingsApi = {
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);
 
+const customLobbiesApi = {
+    get: (): Promise<CustomLobbiesPreferences> => ipcRenderer.invoke("customLobbies:get"),
+    update: (data: Partial<CustomLobbiesPreferences>): Promise<Partial<CustomLobbiesPreferences>> => ipcRenderer.invoke("customLobbies:update", data),
+};
+export type CustomLobbiesApi = typeof customLobbiesApi;
+contextBridge.exposeInMainWorld("customLobbies", customLobbiesApi);
+
+const configApi = {
+    getConfig: (): Promise<Config> => ipcRenderer.invoke("config:get"),
+    fetchConfig: (): Promise<void> => ipcRenderer.invoke("config:fetch"),
+};
+export type ConfigApi = typeof configApi;
+contextBridge.exposeInMainWorld("config", configApi);
+
 const authApi = {
-    login: (): Promise<void> => ipcRenderer.invoke("auth:login"),
+    login: (interactive?: boolean): Promise<void> => ipcRenderer.invoke("auth:login", interactive),
     logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
-    wipe: (): Promise<void> => ipcRenderer.invoke("auth:wipe"),
     hasCredentials: (): Promise<boolean> => ipcRenderer.invoke("auth:hasCredentials"),
+    getState: (): Promise<AuthState> => ipcRenderer.invoke("auth:state"),
+    getIdentity: (): Promise<StoredIdentity | undefined> => ipcRenderer.invoke("auth:identity"),
+
+    onChanged: (callback: (state: AuthState) => void) => subscribe("auth:changed", callback),
 };
 export type AuthApi = typeof authApi;
 contextBridge.exposeInMainWorld("auth", authApi);
+
+const contentApi = {
+    missing: (refs: ContentRef[]): Promise<ContentRef[]> => ipcRenderer.invoke("content:missing", refs),
+    state: (): Promise<ContentState[]> => ipcRenderer.invoke("content:state"),
+    ensure: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:ensure", refs),
+    remove: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:remove", refs),
+
+    onChanged: (callback: (state: ContentState[]) => void) => subscribe("content:changed", callback),
+    onSettled: (callback: (refs: ContentPresence[]) => void) => subscribe("content:settled", callback),
+    onRefused: (callback: (refused: RefusedContent) => void) => subscribe("content:refused", callback),
+
+    preloadPool: (): Promise<void> => ipcRenderer.invoke("content:preloadPool"),
+    onPoolPrefetch: (callback: (downloadInfo: DownloadInfo | null) => void) => subscribe("content:poolPrefetch", callback),
+};
+export type ContentApi = typeof contentApi;
+contextBridge.exposeInMainWorld("content", contentApi);
 
 const engineApi = {
     listAvailableVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:listAvailableVersions"),
@@ -102,17 +162,16 @@ const gameApi = {
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
     uninstallVersion: (version: string): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
-    preloadPoolData: (): Promise<void> => ipcRenderer.invoke("game:preloadPoolData"),
 
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
-    launchReplay: (replay) => ipcRenderer.invoke("game:launchReplay", replay),
+    launchReplay: (replay: Replay) => ipcRenderer.invoke("game:launchReplay", replay),
     launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),
 
     // Events
-    onGameLaunched: (callback: () => void) => ipcRenderer.on("game:launched", callback),
-    onGameClosed: (callback: () => void) => ipcRenderer.on("game:closed", callback),
+    onGameLaunched: (callback: () => void) => subscribe("game:launched", callback),
+    onGameClosed: (callback: () => void) => subscribe("game:closed", callback),
 };
 export type GameApi = typeof gameApi;
 contextBridge.exposeInMainWorld("game", gameApi);
@@ -120,9 +179,8 @@ contextBridge.exposeInMainWorld("game", gameApi);
 const mapsApi = {
     // Content
     downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
-    downloadMaps: (springNames: string[]): Promise<void[]> => ipcRenderer.invoke("maps:downloadMaps", springNames),
+    downloadMaps: (springNames: string[]): Promise<void> => ipcRenderer.invoke("maps:downloadMaps", springNames),
     getInstalledMapNames: (): Promise<string[]> => ipcRenderer.invoke("maps:getInstalledMapNames"),
-    getInstalledVersions: (): Promise<Map<string, MapData>> => ipcRenderer.invoke("maps:getInstalledVersions"),
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
 
     // Online features
@@ -130,44 +188,21 @@ const mapsApi = {
     fetchMapImages: (imageSource: string): Promise<ArrayBuffer | undefined> => ipcRenderer.invoke("maps:online:fetchMapImages", imageSource),
 
     // Events
-    onMapAdded: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapAdded", (_event, filename) => callback(filename)),
-    onMapDeleted: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapDeleted", (_event, filename) => callback(filename)),
+    onMapAdded: (callback: (filename: string) => void) => subscribe("maps:mapAdded", callback),
+    onMapDeleted: (callback: (filename: string) => void) => subscribe("maps:mapDeleted", callback),
 };
 export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
 
-const downloadsApi = {
-    // Events
-    // Engine
-    onDownloadEngineStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:start", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadEngineComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:complete", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadEngineProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:progress", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadEngineFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:fail", (_event, downloadInfo) => callback(downloadInfo)),
-    // Game
-    onDownloadGameStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:start", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:complete", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:progress", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:fail", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameRetry: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:retry", (_event, downloadInfo) => callback(downloadInfo)),
-    // Maps
-    onDownloadMapStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:start", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:complete", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:progress", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:fail", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapRetry: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:retry", (_event, downloadInfo) => callback(downloadInfo)),
-};
-export type DownloadsApi = typeof downloadsApi;
-contextBridge.exposeInMainWorld("downloads", downloadsApi);
-
 const miscApi = {
-    getNewsRssFeed: (numberOfNews) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),
-    getDevlogRssFeed: (numberOfNews) => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews),
+    getNewsRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),
+    getDevlogRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews),
 };
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
 
 const barNavigationApi = {
-    onNavigateTo: (callback: (target: string) => void) => ipcRenderer.on("navigation:navigateTo", (_event, target) => callback(target)),
+    onNavigateTo: (callback: (target: string) => void) => subscribe("navigation:navigateTo", callback),
     signalReady: (): Promise<void> => ipcRenderer.invoke("renderer:ready"),
 };
 
@@ -176,17 +211,12 @@ contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
 
 const pathsApi = {
     selectFolder: (): Promise<string | null> => ipcRenderer.invoke("paths:selectFolder"),
+    selectImages: (): Promise<string[]> => ipcRenderer.invoke("paths:selectImages"),
     moveAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:moveAndChangePath", newPath),
     copyAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:copyAndChangePath", newPath),
     changePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:changePath", newPath),
     getCurrentAssetsPath: (): Promise<string> => ipcRenderer.invoke("paths:getCurrentAssetsPath"),
-    onCopyProgress: (callback: (progress: { copied: number; total: number }) => void): (() => void) => {
-        const handler = (_event: Electron.IpcRendererEvent, progress: { copied: number; total: number }) => callback(progress);
-        ipcRenderer.on("paths:copyProgress", handler);
-        return () => {
-            ipcRenderer.removeListener("paths:copyProgress", handler);
-        };
-    },
+    onCopyProgress: (callback: (progress: { copied: number; total: number }) => void) => subscribe("paths:copyProgress", callback),
 };
 export type PathsApi = typeof pathsApi;
 contextBridge.exposeInMainWorld("paths", pathsApi);
@@ -200,36 +230,57 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
     return ipcRenderer.invoke("tachyon:request", ...args) as Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>>;
 }
 
-function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
-    ipcRenderer.setMaxListeners(30);
+// Protocol failures must not cross the context bridge as thrown Errors, which would strip the
+// failure reason and details. The renderer wrapper in @renderer/api/tachyon rebuilds the error.
+function requestStructured<C extends GetCommandIds<"user", "server", "request">>(
+    ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+): Promise<GetCommands<"server", "user", "response", C>> {
+    return ipcRenderer.invoke("tachyon:requestStructured", ...args) as Promise<GetCommands<"server", "user", "response", C>>;
+}
 
-    return ipcRenderer.on("tachyon:event", (_event, event) => {
-        if (event.commandId === eventID) {
-            // event is a generic TachyonEvent in the IPC interface.
-            // For consumers we cast it to the correct type based on the eventID.
-            if ("data" in event) {
-                callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
-            } else {
-                callback(event as GetCommandData<GetCommands<"server", "user", "event", C>>);
-            }
-        }
-    });
+type TachyonEventId = GetCommandIds<"server", "user", "event">;
+type TachyonEventData<C extends TachyonEventId> = GetCommandData<GetCommands<"server", "user", "event", C>>;
+
+// Every subscription shares this one listener. Node warns once a channel passes ten listeners, and
+// the renderer subscribes to far more tachyon events than that.
+const tachyonEventCallbacks = new Map<string, Set<(data: unknown) => void>>();
+
+ipcRenderer.on("tachyon:event", (_event, event) => {
+    const data = "data" in event ? event.data : event;
+
+    for (const callback of [...(tachyonEventCallbacks.get(event.commandId) ?? [])]) {
+        callback(data);
+    }
+});
+
+function onEvent<C extends TachyonEventId>(eventID: C, callback: (event: TachyonEventData<C>) => void): () => void {
+    const callbacks = tachyonEventCallbacks.get(eventID) ?? new Set();
+    tachyonEventCallbacks.set(eventID, callbacks);
+
+    const handler = callback as (data: unknown) => void;
+    callbacks.add(handler);
+
+    return () => {
+        callbacks.delete(handler);
+    };
 }
 
 const tachyonApi = {
     isConnected: (): Promise<boolean> => ipcRenderer.invoke("tachyon:isConnected"),
     connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
     disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
+    dropConnection: (): Promise<void> => ipcRenderer.invoke("tachyon:dropConnection"),
 
     // Requests
     // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
     request,
+    requestStructured,
 
     // Events
-    onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
-    onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    onConnected: (callback: () => void) => subscribe("tachyon:connected", callback),
+    onDisconnected: (callback: () => void) => subscribe("tachyon:disconnected", callback),
     onEvent,
-    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString)),
+    onBattleStart: (callback: (data: BattleStartRequestData) => void) => subscribe("tachyon:battleStart", callback),
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);
@@ -241,15 +292,14 @@ const autoUpdaterApi = {
     installUpdates: (): Promise<void> => ipcRenderer.invoke("autoUpdater:installUpdates"),
 
     // Events
-    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:update:progress", (_event, downloadInfo: DownloadInfo) => callback(downloadInfo)),
+    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo | null) => void) => subscribe("downloads:update:progress", callback),
 };
 export type AutoUpdaterApi = typeof autoUpdaterApi;
 contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);
 
 const notificationsApi = {
     // Events
-    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) =>
-        ipcRenderer.on("notifications:showAlert", (_event, alertConfig) => callback(alertConfig)),
+    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) => subscribe("notifications:showAlert", callback),
 };
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);

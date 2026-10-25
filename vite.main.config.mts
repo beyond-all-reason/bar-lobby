@@ -8,6 +8,7 @@ export default defineConfig({
             "@main": path.join(__dirname, "src/main"),
             "@renderer": path.join(__dirname, "src/renderer"),
             "@preload": path.join(__dirname, "src/preload"),
+            "@shared": path.join(__dirname, "src/shared"),
             $: path.join(__dirname, "vendor"),
         },
     },
@@ -15,9 +16,10 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: path.resolve(__dirname, "src/main/main.ts"),
-                "parse-replay-worker": path.resolve(__dirname, "src/main/content/replays/parse-replay-worker.ts"),
+                "parse-replay-worker": path.resolve(__dirname, "src/main/replays/parse-replay-worker.ts"),
                 "map-image-worker": path.resolve(__dirname, "src/main/content/maps/map-image-worker.ts"),
             },
+            external: ["fs/promises"],
         },
         lib: {
             entry: path.resolve(__dirname, "src/main/main.ts"),

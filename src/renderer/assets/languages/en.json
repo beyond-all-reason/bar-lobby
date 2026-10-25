@@ -546,7 +546,7 @@
             "console": {
                 "title": "Console commands",
                 "eraseKey": "/clearmapmarks",
-                "erase": "Erase all drawings and markes",
+                "erase": "Erase all drawings and marks",
                 "pauseKey": "/pause",
                 "pause": "Pause"
             }
@@ -1237,7 +1237,7 @@
                 "snowmap": "enabled on this map",
                 "snowmap_descr": "It will remember what you toggled for every map\n\n(by default: maps with wintery names have this toggled)",
                 "snowautoreduce": "auto reduce",
-                "snowautoreduce_descr": "Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
+                "snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
                 "snowamount": "amount",
                 "snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
                 "resurrectionhalos": "Resurrected unit halos",
@@ -1299,7 +1299,7 @@
                 "cursorsize": "Cursor size",
                 "cursorsize_descr": "Note that cursor already auto-scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size",
                 "doubleclicktime": "Double-click time",
-                "doubleclicktime_descr": "Time in ms between two consectutive left clicks to be considered a doubleclick",
+                "doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a double-click",
                 "dragthreshold": "Drag Threshold",
                 "dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
                 "crossalpha": "Cursor 'cross' alpha",
@@ -1519,7 +1519,7 @@
                 "teamplatter_opacity": "opacity",
                 "teamplatter_opacity_descr": "Set the opacity of the team spotters",
                 "teamplatter_skipownteam": "skip own units",
-                "teamplatter_skipownteam_descr": "Doesnt draw platters for yourself",
+                "teamplatter_skipownteam_descr": "Doesn't draw platters for yourself",
                 "enemyspotter": "Enemy spotters",
                 "enemyspotter_descr": "Draws smoothed circles under enemy units\n\nDisables when enemy is single colored or alone",
                 "enemyspotter_opacity": "opacity",
@@ -1586,7 +1586,7 @@
                 "showbuilderqueue": "Show builder queue",
                 "showbuilderqueue_descr": "Shows ghosted buildings about to be built on the map",
                 "unitenergyicons": "Unit insufficient energy icons",
-                "unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
+                "unitenergyicons_descr": "Shows a red power bolt above units that can't fire their most e consuming weapon\nwhen you haven't enough energy available.",
                 "unitidlebuildericons": "Unit idle builder icons",
                 "unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
                 "nametags_rank": "Commander name tag rank icon",
@@ -1734,7 +1734,7 @@
                 "storedefaultsettings": "Store default settings",
                 "storedefaultsettings_descr": "Do not remove engine defaults from springsettings.cfg",
                 "startboxeditor": "Startbox editor",
-                "startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)",
+                "startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwrites the export file for the first team)",
                 "tonemap": "Unit tonemapping",
                 "envAmbient": "ambient %",
                 "unitSunMult": "sun mult",
@@ -1831,7 +1831,17 @@
         }
     },
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam."
+                }
+            }
+        },
         "api": {
+            "shell": {
+                "openFailed": "Could not open that: {details}"
+            },
             "commands": {
                 "help": "Displays this help text.",
                 "whoami": "Sends back information about who you are.",
@@ -1898,7 +1908,13 @@
             "profile": {
                 "status": "Status: ",
                 "clan": "Clan: ",
-                "userNotFound": "User not found"
+                "userNotFound": "User not found",
+                "battleHistory": {
+                    "title": "Battle History",
+                    "empty": "No online battles played this session.",
+                    "viewResults": "View Results",
+                    "bots": "{count} bot | {count} bots"
+                }
             },
             "play": {
                 "comingSoon": "(Coming Soon)",
@@ -1908,6 +1924,25 @@
                 "scenarios": "Scenarios",
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
+            },
+            "party": {
+                "title": "Party",
+                "partyTab": "Active Party",
+                "inviteTab": "Available Invites",
+                "members": "Members",
+                "invites": "Invites",
+                "leaveParty": "Leave Party",
+                "matchmakingQueues": "Matchmaking Queues",
+                "noQueues": "No matchmaking queues available",
+                "requestQueues": "Request Queues",
+                "receivedInvite": "You have received a party invitation from {users}.",
+                "acceptInvite": "Accept",
+                "declineInvite": "Decline",
+                "kickMember": "Kick Member",
+                "cancelInvite": "Cancel Invite",
+                "noInvites": "You currently have no pending invitations.",
+                "partyTooLarge": "Party Too Large",
+                "partyTooLargeTooltip": "Your party is too large to join this queue."
             },
             "watch": {
                 "replays": {
@@ -1964,9 +1999,11 @@
                     "searchGame": "Search game",
                     "joinRequested": "Joining queue",
                     "searchingForOpponent": "Searching for opponent",
-                    "matchFound": "Matched - Click to Ready",
-                    "accepted": "Accepted",
-                    "cancel": "Cancel"
+                    "matchFound": "Click to Ready ({seconds})",
+                    "accepted": "Accepted ({players} ready)",
+                    "cancel": "Cancel",
+                    "partyTooLarge": "Party Too Large",
+                    "partyTooLargeTooltip": "Your party is too large to join this queue."
                 },
                 "modalTitle": "Matchmaking Queue Details",
                 "modal": {
@@ -1985,13 +2022,128 @@
             "custom": {
                 "title": "Multiplayer Custom Battles",
                 "hostBattle": "Host Battle",
+                "openLobby": "Open Lobby",
+                "joinLobby": "Join Lobby",
+                "joinLobbyNamed": "Join {name}",
+                "leaveLobbyFirst": "Leave your current lobby before joining another.",
                 "removedFromLobby": "You have been removed from the lobby.",
                 "noLobbiesAvailable": "No games found.",
+                "lobbyUnavailable": "This lobby is no longer available",
+                "refresh": "Refresh",
+                "newLobbies": "{count} new lobby since the last refresh | {count} new lobbies since the last refresh",
+                "autoRefresh": "Auto-refresh",
+                "autoRefreshTooltip": "Re-sort the list whenever lobbies change. Rows will move while you read them.",
+                "disconnected": "Not connected. The list will refresh once the connection is back.",
+                "filtersButton": "Filters & Sort",
+                "menu": {
+                    "sortBy": "Sort by",
+                    "ascending": "Ascending",
+                    "descending": "Descending",
+                    "filters": "Filters",
+                    "apply": "Apply",
+                    "reset": "Reset",
+                    "hide": "Hide",
+                    "any": "Any",
+                    "only": "Only"
+                },
                 "filters": {
-                    "hidePvE": "Hide PvE",
-                    "hideLocked": "Hide Locked",
-                    "hideEmpty": "Hide Empty",
-                    "hideInProgress": "Hide Running"
+                    "title": {
+                        "label": "Title",
+                        "chip": "Title: {value}",
+                        "tooltip": "Lobby title contains \"{value}\""
+                    },
+                    "tags": {
+                        "label": "Tags",
+                        "chip": "Tag: {value}",
+                        "tooltip": "Lobby has the tag \"{value}\"",
+                        "placeholder": "Add a tag",
+                        "unknown": "No lobbies currently use this tag"
+                    },
+                    "maps": {
+                        "label": "Maps",
+                        "chipOne": "Map: {value}",
+                        "chipMany": "{count} maps",
+                        "tooltip": "Played on: {value}",
+                        "choose": "Choose maps…",
+                        "clear": "Clear",
+                        "none": "Any map"
+                    },
+                    "players": {
+                        "label": "Players",
+                        "chip": "Players: {value}",
+                        "tooltip": "Lobbies with {value} players"
+                    },
+                    "openSpots": {
+                        "label": "Open spots",
+                        "chip": "Open: {value}",
+                        "tooltip": "Lobbies with {value} open player spots"
+                    },
+                    "fitsParty": {
+                        "label": "Fits my party",
+                        "chip": "Fits my party",
+                        "tooltip": "Lobbies with enough open spots for your whole party, or for you when you aren't in one"
+                    },
+                    "allyTeams": {
+                        "label": "Ally teams",
+                        "chip": "Teams: {value}",
+                        "tooltip": "Lobbies with {value} ally teams"
+                    },
+                    "inProgress": {
+                        "label": "In battle",
+                        "chipYes": "In progress",
+                        "chipNo": "Not started",
+                        "tooltipYes": "Only lobbies with a battle running",
+                        "tooltipNo": "Only lobbies waiting to start"
+                    },
+                    "passworded": {
+                        "label": "Password protected",
+                        "chipYes": "Passworded",
+                        "chipNo": "No password",
+                        "tooltipYes": "Only lobbies that need a password",
+                        "tooltipNo": "Only lobbies anyone can join"
+                    },
+                    "bossMode": {
+                        "label": "Boss mode",
+                        "chipYes": "Boss mode",
+                        "chipNo": "No boss",
+                        "tooltipYes": "Only lobbies with a boss",
+                        "tooltipNo": "Only lobbies without a boss"
+                    },
+                    "hasFriend": {
+                        "label": "Contains a friend",
+                        "chip": "Friends",
+                        "tooltip": "Only lobbies with at least one of your friends"
+                    },
+                    "hasPartyMember": {
+                        "label": "Contains a party member",
+                        "chip": "Party",
+                        "tooltip": "Only lobbies with a member of your party"
+                    },
+                    "engineVersion": {
+                        "label": "Engine version",
+                        "chip": "Engine: {value}",
+                        "tooltip": "Engine version is {value}",
+                        "any": "Any engine"
+                    },
+                    "gameVersion": {
+                        "label": "Game version",
+                        "chip": "Game: {value}",
+                        "tooltip": "Game version is {value}",
+                        "any": "Any game"
+                    },
+                    "range": {
+                        "between": "{min}–{max}",
+                        "atLeast": "{min} or more",
+                        "atMost": "{max} or fewer"
+                    }
+                },
+                "sort": {
+                    "playerCount": "Players",
+                    "openSpots": "Open spots",
+                    "maxPlayerCount": "Max players",
+                    "name": "Title",
+                    "mapName": "Map",
+                    "battleDuration": "Time in progress"
                 },
                 "table": {
                     "bestBattle": "Best Battle",
@@ -1999,7 +2151,41 @@
                     "map": "Map",
                     "players": "Players",
                     "runningFor": "Running for",
-                    "join": "Join"
+                    "join": "Join",
+                    "openSpots": "Open",
+                    "status": "Status",
+                    "waiting": "Waiting"
+                },
+                "lobby": {
+                    "title": "Lobby",
+                    "gameVersion": "Game Version",
+                    "engineVersion": "Engine Version",
+                    "maps": "Maps",
+                    "map": "Map",
+                    "startBoxShortfall": "Cannot start: only {boxed} of {teams} ally teams have a start box."
+                },
+                "mapPicker": {
+                    "title": "Choose maps",
+                    "selected": "{count} selected",
+                    "selectAllShown": "Select all shown",
+                    "clear": "Clear",
+                    "done": "Done"
+                },
+                "preview": {
+                    "membership": "You are in this lobby",
+                    "membershipPlayer": "You are in this lobby as a player",
+                    "membershipSpectator": "You are in this lobby as a spectator",
+                    "membershipQueued": "You are in this lobby, queued to play (#{position})",
+                    "players": "Players: {players}/{max}",
+                    "openSpots": "{count} open",
+                    "waiting": "Waiting to start",
+                    "inBattle": "Battle in progress: {duration}",
+                    "allyTeams": "{count} ally team | {count} ally teams",
+                    "friends": "{count} friend in this lobby | {count} friends in this lobby",
+                    "passworded": "Password protected",
+                    "bossMode": "Boss mode",
+                    "gameVersion": "Game: {version}",
+                    "engineVersion": "Engine: {version}"
                 }
             }
         },
@@ -2031,8 +2217,11 @@
                 "viewProfile": "View profile",
                 "sendMessage": "Send message",
                 "joinBattle": "Join battle",
-                "inviteToParty": "Invite to party (TODO)",
-                "removeFriend": "Remove friend"
+                "inviteToParty": "Invite to party",
+                "partyFull": "Max members and invites reached",
+                "removeFriend": "Remove friend",
+                "userInParty": "In party",
+                "userInvited": "Invited"
             },
             "exit": {
                 "title": "Exit",
@@ -2049,14 +2238,18 @@
                 "remove": "Remove",
                 "info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
                 "labelDefault": " - Default Servers",
-                "labelCustom": " - Custom Servers"
+                "labelCustom": " - Custom Servers",
+                "useDefaultServer": "Use default server configuration"
             },
             "breadcrumbs": {
                 "back": "Back"
             },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Invite"
+            },
             "downloads": {
                 "noDownloads": "No downloads active",
-                "moreDownloads": "and {count} more...",
                 "starting": "Starting...",
                 "extracting": "Extracting...",
                 "progressMB": "{current} / {total} MB ({percent}%)",
@@ -2065,37 +2258,62 @@
                 "speedBps": "{speed} B/s",
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
-                "etaSeconds": "{seconds}s left"
+                "etaSeconds": "{seconds}s left",
+                "queued": "Queued",
+                "finished": "Finished",
+                "complete": "Complete",
+                "failed": "Failed",
+                "retry": "Retry",
+                "clearAll": "Clear All"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
                 "error": "Error",
                 "reconnecting": "Reconnecting...",
-                "offline": "Offline"
+                "offline": "Offline",
+                "changeStatus": "Change Status",
+                "statusOnline": "Online",
+                "statusBusy": "Busy",
+                "statusBusyUnavailable": "The server has no way to show this yet",
+                "goOffline": "Go Offline",
+                "cancel": "Cancel",
+                "connect": "Connect",
+                "connectTitle": "Connect to the server?",
+                "connectBody": "You are signed in but not connected. Connecting brings back parties, lobbies and matchmaking.",
+                "disconnect": "Disconnect",
+                "disconnectTitle": "Disconnect from the server?",
+                "disconnectBody": "You will leave any party, lobby or matchmaking queue you are in. You stay signed in and can connect again whenever you like.",
+                "stopReconnecting": "Stop trying",
+                "stopReconnectingTitle": "Stop reconnecting?",
+                "stopReconnectingBody": "No further attempts will be made until you connect again yourself."
             },
             "messages": {
                 "message": "Message",
                 "userID": "User {id}",
                 "userIDPlaceholder": "32452",
-                "send": "Send"
+                "send": "Send",
+                "noMessages": "No messages in this chat history."
             },
             "settings": {
                 "title": "settings",
-                "fullscreen": "Fullscreen",
-                "windowSize": "Window Size",
+                "sectionDisplay": "Display",
+                "sectionSound": "Sound",
+                "sectionGeneral": "General",
+                "resolution": "Resolution",
+                "fullscreenOption": "Fullscreen",
+                "maximizedOption": "Maximized",
                 "display": "Display",
                 "skipIntro": "Skip Intro",
                 "loginAutomatically": "Login Automatically",
+                "uiScale": "Interface scale",
                 "sfxVolume": "Sfx Volume",
                 "musicVolume": "Music Volume",
                 "devMode": "Dev Mode",
                 "uploadLogs": "Upload logs",
                 "logUrlCopied": "Log URL was copied to clipboard.",
                 "couldNotUploadLog": "Could not upload log.",
-                "labelSm": "Small",
-                "labelMd": "Medium",
-                "labelLg": "Large",
                 "labelDisplay": "Display {id}",
+                "language": "Language",
                 "storage": "Storage",
                 "assetsPath": "Assets Location",
                 "browse": "Browse",
@@ -2156,6 +2374,7 @@
                 "debugSidebar": {
                     "debugSandbox": "Debug Sandbox",
                     "openSettingsFile": "Open Settings File",
+                    "openConfigFile": "Open Config File",
                     "openAssetsDir": "Open Assets Dir",
                     "openStateDir": "Open State Dir",
                     "openStartScript": "Open Latest Start Script",
@@ -2164,7 +2383,8 @@
                     "game": "Game",
                     "engine": "Engine",
                     "view": "View",
-                    "lobbyServerSettings": "Lobby Server Settings"
+                    "lobbyServerSettings": "Lobby Server Settings",
+                    "createParty": "Create Party"
                 },
                 "scenarioTile": {
                     "title": "Scenario Title"
@@ -2218,7 +2438,9 @@
                     "installingEngine": "Installing engine",
                     "downloadingGame": "Downloading game",
                     "installingGame": "Installing game",
+                    "updatingMapList": "Updating map list",
                     "downloadingMaps": "Downloading maps",
+                    "checkingForUpdates": "Checking for updates",
                     "downloadingUpdate": "Downloading update",
                     "installingUpdate": "Installing update",
                     "selectAssetsPathDescription": "Choose where game files (engine, maps, game) will be downloaded.",
@@ -2229,7 +2451,10 @@
                     "playOffline": "Play Offline",
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Retrying…",
-                    "contentRequired": "Engine and game must be downloaded before starting a battle."
+                    "contentRequired": "Engine and game must be downloaded before starting a battle.",
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one.",
+                    "installationIncomplete": "Installation incomplete — verify integrity of game files in Steam.",
+                    "quitToDesktop": "Quit to Desktop"
                 }
             },
             "battle": {
@@ -2247,7 +2472,17 @@
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
                     "close": "Close",
-                    "openMapSelector": "Open map selector"
+                    "openMapSelector": "Open map selector",
+                    "startboxOverride": "Start box override",
+                    "applyStartboxOverride": "Apply",
+                    "unreadableStartboxOverride": "These start boxes could not be read."
+                },
+                "startBoxesModal": {
+                    "title": "Start Boxes",
+                    "mapDefault": "Map default",
+                    "editAsRectangles": "Edit as rectangles",
+                    "cancel": "Cancel",
+                    "apply": "Apply"
                 },
                 "hostBattle": {
                     "title": "Host Battle",
@@ -2256,18 +2491,48 @@
                     "hostButton": "Host Battle",
                     "updateButton": "Update Battle",
                     "name": "Name",
-                    "startBoxes1": "Startboxes are assigned sequentially to AllyTeams.",
-                    "startBoxes2": "Extra startboxes will be dropped.",
-                    "startBoxes3": "AllyTeams without one are full-map startboxes.",
                     "allyTeamCount": "AllyTeam Count: ",
                     "teamsPerAllyTeam": "Teams per AllyTeam: ",
-                    "map": "Map"
+                    "map": "Map",
+                    "areBossesEnabled": "Enable Bosses? This cannot be changed later.",
+                    "conflictWarning": "Server changes conflict with your local draft.",
+                    "useServer": "Use server",
+                    "keepMine": "Keep mine",
+                    "lobbyNameChanged": "Lobby name changed on the server.",
+                    "mapNameChanged": "Map changed on the server.",
+                    "allyTeamConfigChanged": "Team setup changed on the server."
                 },
                 "votePanel": {
                     "vote": "Vote:",
-                    "yes": "Yes (F1)",
-                    "no": "No (F2)",
-                    "calledBy": "Called by"
+                    "yes": "Yes",
+                    "abstain": "Abstain",
+                    "cancel": "Cancel",
+                    "no": "No",
+                    "calledBy": "Called by {initiator}",
+                    "history": "Vote History",
+                    "noHistory": "No vote history available.",
+                    "quorum": "Votes: {cast} / {quorum} needed",
+                    "actions": {
+                        "kickban": "Kick {target} and ban until {banUntil}",
+                        "kickOnly": "Kick {target}",
+                        "changeMap": "Change map to {newMapName}",
+                        "appointBoss": "Appoint {target} as Boss",
+                        "start": "Start the battle"
+                    }
+                },
+                "activeLobbyPreview": {
+                    "openLobby": "Open lobby",
+                    "battleDuration": "Battle in progress:",
+                    "activeVote": "Active Vote:",
+                    "voteTimeLeft": "Time left: {time}",
+                    "spectating": "Spectating",
+                    "queuePosition": "Queue Position #{position}",
+                    "teamMember": "Member of Team #{team}",
+                    "allyTeamConfig": "{numOfTeams} teams of 1 player | {numOfTeams} teams of {teamSize} players",
+                    "allyTeamConfigUneven": "{numOfTeams} teams of {sizes} players",
+                    "playersCount": "Players: {count}",
+                    "lobbyBoss": "Lobby Boss",
+                    "clickToVote": "Click to open the lobby and cast your vote"
                 },
                 "botParticipant": {
                     "configure": "Configure",
@@ -2300,7 +2565,8 @@
                 "spectatorsComponent": {
                     "spectators": "Spectators",
                     "memberCount": "0 Members | 1 Member | {n} Members",
-                    "join": "Join"
+                    "join": "Join",
+                    "queue": "Queue"
                 },
                 "battlePreview": {
                     "preview": "Preview",
@@ -2352,12 +2618,32 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": "Reset all to default",
                     "close": "Close"
+                },
+                "rejoinBattleModal": {
+                    "title": "Rejoin Battle?",
+                    "description1": "The server indicated that you were in an active battle.",
+                    "description2": "Would you like to attempt to rejoin the battle?",
+                    "rejoinButton": "Rejoin",
+                    "ignoreButton": "Ignore"
+                },
+                "battleResults": {
+                    "victory": "Victory",
+                    "defeat": "Defeat",
+                    "battleEnded": "Battle Ended",
+                    "draw": "Draw",
+                    "winner": "Winner",
+                    "team": "Team {team}",
+                    "spectators": "Spectators",
+                    "inviteToParty": "Invite to Party",
+                    "partyFull": "Party Full",
+                    "acceptFriendRequest": "Accept Friend Request"
                 }
             },
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Downloading...",
-                    "download": "Download"
+                    "download": "Download",
+                    "verifyGameFiles": "Game files missing — verify them in Steam"
                 },
                 "select": {
                     "search": "Search"
@@ -2387,6 +2673,57 @@
                     "downloadedFilter": {
                         "label": "Downloaded"
                     }
+                }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": "Report User",
+                    "title": "Report {username}",
+                    "blurb": "Reports are handled by volunteers, so please include:",
+                    "guidanceDescription": "What was done, or the specific words that were said",
+                    "guidanceTimestamps": "Timestamps of the in game events, even approximate ones",
+                    "specCheatingNote": "Reports that say only \"spec cheating\" may be ignored. Say what looked suspicious, with timestamps.",
+                    "reasonForReport": "Reason for Report",
+                    "whichMatch": "Which Match?",
+                    "lobbyActionsHint": "If it happened in the lobby, pick the match it happened before.",
+                    "fetchingMatches": "Fetching Matches",
+                    "noMatch": "I cannot find the match",
+                    "matchesFailed": "Could not load recent matches. You can still send the report without one.",
+                    "noMatchesFound": "No recent matches found for this player. You can still send the report, but without a match we may not be able to find the evidence.",
+                    "matchTeams": "{left} vs {right}",
+                    "matchFfa": "{teams} way FFA",
+                    "matchOnMap": "{match} on {map}",
+                    "columnMatch": "Match",
+                    "columnMap": "Map",
+                    "columnWhen": "When",
+                    "columnLength": "Length",
+                    "matchWhen": "{ago} ago",
+                    "matchWhenUnknown": "Unknown",
+                    "team": "Team {team}",
+                    "winner": "won",
+                    "wasSpectating": "This player was spectating this match.",
+                    "extraInfo": "Extra Info",
+                    "sections": {
+                        "chat": "Chat / Communication",
+                        "chatBlurb": "Something that was said in chat",
+                        "actions": "In-Game Actions",
+                        "actionsBlurb": "How someone played or behaved in a match"
+                    },
+                    "messagePlaceholder": "Describe what happened",
+                    "submit": "Send Report",
+                    "submitted": "Report sent to the moderation team.",
+                    "submittedFollowUp": "Moderators review reports in their own time, so you may not hear back directly.",
+                    "close": "Close",
+                    "continue": "Continue",
+                    "whichMessages": "Which messages?",
+                    "reportSubmitted": "Report Submitted",
+                    "chatHint": "Pick the messages you want the moderators to look at.",
+                    "chatReportedFrom": "where you reported from",
+                    "chatLobby": "Lobby",
+                    "chatParty": "Party",
+                    "chatDirect": "Direct messages",
+                    "noChatAvailable": "This session is not holding any chat from this player.",
+                    "attachEvidence": "Attach up to {max} images"
                 }
             }
         }
@@ -2516,7 +2853,7 @@
             "factoryShips": "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware of submarines and torpedo aircraft that make ship graveyards.",
             "readyForTech2": "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.",
             "duplicateFactory": "It is more efficient to assist the existing factory than to make multiple factories of the same kind.",
-            "paralyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.",
+            "paralyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and won't be able to shoot or move until they have been restored.",
             "lavaRising": "Lava level is rising!",
             "lavaDropping": "Lava level is dropping!"
         },
@@ -3562,7 +3899,7 @@
             "armfhp": "Builds Hovercraft",
             "armfido": "Mortar / Skirmish Bot",
             "armfig": "Fighter",
-            "armfify": "Stealthy Rez / Repair / Reclaim Aicraft",
+            "armfify": "Stealthy Rez / Repair / Reclaim Aircraft",
             "armflak": "Anti-Air Flak Gun",
             "armflash": "Fast Assault Tank",
             "armflea": "Fast Scout Bot",

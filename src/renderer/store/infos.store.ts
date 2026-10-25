@@ -3,16 +3,19 @@
 // SPDX-License-Identifier: MIT
 
 import { Info } from "@main/services/info.service";
-import { reactive } from "vue";
+import { reactive, readonly } from "vue";
 
-export const infosStore = reactive({
+const state = reactive({
     isInitialized: false,
 } as {
     isInitialized: boolean;
 } & Info);
 
-export async function initInfosStore() {
-    const currentInfos = await window.info.getInfo();
-    Object.assign(infosStore, currentInfos);
-    infosStore.isInitialized = true;
-}
+export const infosStore = readonly(state);
+
+export const infosUpdates = {
+    set(info: Info) {
+        Object.assign(state, info);
+        state.isInitialized = true;
+    },
+};

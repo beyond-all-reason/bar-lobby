@@ -12,6 +12,7 @@ export const sfxFiles = import.meta.glob<string>(["./audio/sfx/*", "!**/*.licens
 
 // Videos
 export const introVideos = import.meta.glob<string>(["./videos/intros/*", "!**/*.license"], { eager: true, import: "default", query: "?url" });
+export const miscVideos = import.meta.glob<string>(["./videos/misc/*", "!**/*.license"], { eager: true, import: "default", query: "?url" });
 
 // Images
 export const backgroundImages = import.meta.glob<string>(["./images/backgrounds/*", "!**/*.license"], { eager: true, import: "default", query: "?url" });

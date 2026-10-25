@@ -20,6 +20,7 @@ vi.mock("@renderer/store/settings.store", () => ({
         devMode: false,
     },
 }));
+vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
 vi.mock("@renderer/store/infos.store", () => ({
     infosStore: {
@@ -75,6 +76,7 @@ vi.mock("vue-router", () => ({
         afterEach: vi.fn(),
     }),
 }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 describe("App.vue", () => {
     it("renders the App root and lobby version", () => {

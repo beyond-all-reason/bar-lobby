@@ -5,121 +5,119 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Replays", order: 0, transition: { name: "slide-left" }, offine: true } }
+{ meta: { title: "Replays", order: 0, transition: { name: "slide-left" }, offline: true } }
 </route>
 
 <template>
-    <div class="view">
-        <div class="replay-container">
-            <div class="view-title">
-                <h1>{{ t("lobby.views.watch.replays.title") }}</h1>
+    <div class="replay-container">
+        <div class="view-title">
+            <h1>{{ t("lobby.views.watch.replays.title") }}</h1>
+        </div>
+        <div class="flex-row flex-grow gap-md">
+            <div class="middle-section">
+                <Panel>
+                    <div class="flex-col fullheight gap-md">
+                        <div class="flex-row gap-md fullwidth">
+                            <TriStateCheckbox
+                                v-model="settingsStore.endedNormallyFilter"
+                                :label="t('lobby.views.watch.replays.endedNormally')"
+                            />
+                            <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
+                            <div class="flex-grow">
+                                <SearchBox v-model="fulltextSearch" :placeholder="t('lobby.views.watch.replays.searchPlaceholder')" />
+                            </div>
+                            <div class="flex-right flex-row gap-md" style="flex: none">
+                                <Button @click="openBrowserToReplayService">{{
+                                    t("lobby.views.watch.replays.browseOnlineReplays")
+                                }}</Button>
+                                <Button @click="openReplaysFolder">{{ t("lobby.views.watch.replays.openReplaysFolder") }}</Button>
+                            </div>
+                        </div>
+                        <DataTable
+                            v-model:first="offset"
+                            v-model:selection="selectedReplay"
+                            :lazy="true"
+                            :value="replays"
+                            :paginator="true"
+                            :rows="limit"
+                            :totalRecords="replaysCount"
+                            selectionMode="single"
+                            dataKey="fileName"
+                            :sortOrder="sortOrder === 'asc' ? 1 : -1"
+                            :sortField="sortField"
+                            :rowClass="(data) => (highlightedReplays.has(data.fileName) ? 'highlighted-replay' : '')"
+                            @page="onPage"
+                            @sort="onSort"
+                        >
+                            <template #empty>{{ t("lobby.views.watch.replays.noReplaysFound") }}</template>
+                            <Column :header="t('lobby.views.watch.replays.name')">
+                                <template #body="{ data }">
+                                    <template v-if="data.preset === 'duel'">
+                                        {{ data.contenders?.[0]?.name ?? t("lobby.views.watch.replays.nobody") }} vs
+                                        {{ data.contenders?.[1]?.name ?? t("lobby.views.watch.replays.nobody") }}
+                                    </template>
+                                    <template v-else-if="data.preset === 'team'">
+                                        {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
+                                    </template>
+                                    <template v-if="data.preset === 'ffa'"
+                                        >{{ data.contenders.length }} {{ t("lobby.views.watch.replays.wayFFA") }}</template
+                                    >
+                                    <template v-if="data.preset === 'teamffa'"
+                                        >{{ data.teams[0].playerCount }} {{ t("lobby.views.watch.replays.wayTeamFFA") }}</template
+                                    >
+                                </template>
+                            </Column>
+                            <Column :header="t('lobby.views.watch.replays.date')" :sortable="true" sortField="startTime">
+                                <template #body="{ data }">
+                                    {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
+                                </template>
+                            </Column>
+                            <Column :header="t('lobby.views.watch.replays.duration')" :sortable="true" sortField="gameDurationMs">
+                                <template #body="{ data }">
+                                    {{ getFriendlyDuration(data.gameDurationMs) }}
+                                </template>
+                            </Column>
+                            <Column
+                                field="mapSpringName"
+                                :header="t('lobby.views.watch.replays.map')"
+                                :sortable="true"
+                                sortField="mapSpringName"
+                            />
+                        </DataTable>
+                    </div>
+                </Panel>
             </div>
-            <div class="flex-row flex-grow gap-md">
-                <div class="middle-section">
-                    <Panel>
-                        <div class="flex-col fullheight gap-md">
-                            <div class="flex-row gap-md fullwidth">
-                                <TriStateCheckbox
-                                    v-model="settingsStore.endedNormallyFilter"
-                                    :label="t('lobby.views.watch.replays.endedNormally')"
-                                />
-                                <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
-                                <div class="flex-grow">
-                                    <SearchBox v-model="fulltextSearch" :placeholder="t('lobby.views.watch.replays.searchPlaceholder')" />
-                                </div>
-                                <div class="flex-right flex-row gap-md" style="flex: none">
-                                    <Button @click="openBrowserToReplayService">{{
-                                        t("lobby.views.watch.replays.browseOnlineReplays")
-                                    }}</Button>
-                                    <Button @click="openReplaysFolder">{{ t("lobby.views.watch.replays.openReplaysFolder") }}</Button>
+            <div class="right-section">
+                <Panel class="flex-grow" no-padding>
+                    <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
+                        <template #actions="{ replay }">
+                            <div class="fullwidth">
+                                <div class="flex-row flex-bottom gap-md padding-bottom-md">
+                                    <DownloadContentButton
+                                        v-if="map && replay"
+                                        :maps="[map.springName]"
+                                        :games="[replay.gameVersion]"
+                                        :engines="[replay.engineVersion]"
+                                        @click="watchReplay(replay)"
+                                        :disabled="gameStore.status !== GameStatus.CLOSED"
+                                    >
+                                        <template v-if="gameStore.status === GameStatus.RUNNING">{{
+                                            t("lobby.views.watch.replays.gameIsRunning")
+                                        }}</template>
+                                        <template v-else-if="gameStore.status === GameStatus.LOADING">{{
+                                            t("lobby.views.watch.replays.launching")
+                                        }}</template>
+                                        <template v-else>{{ t("lobby.views.watch.replays.watch") }}</template>
+                                    </DownloadContentButton>
+                                    <Button v-else disabled style="flex-grow: 1">{{ t("lobby.views.watch.replays.watch") }}</Button>
+                                    <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
+                                        ><Icon :icon="folder" :height="32"
+                                    /></Button>
                                 </div>
                             </div>
-                            <DataTable
-                                v-model:first="offset"
-                                v-model:selection="selectedReplay"
-                                :lazy="true"
-                                :value="replays"
-                                :paginator="true"
-                                :rows="limit"
-                                :totalRecords="replaysCount"
-                                selectionMode="single"
-                                dataKey="fileName"
-                                :sortOrder="sortOrder === 'asc' ? 1 : -1"
-                                :sortField="sortField"
-                                :rowClass="(data) => (highlightedReplays.has(data.fileName) ? 'highlighted-replay' : '')"
-                                @page="onPage"
-                                @sort="onSort"
-                            >
-                                <template #empty>{{ t("lobby.views.watch.replays.noReplaysFound") }}</template>
-                                <Column :header="t('lobby.views.watch.replays.name')">
-                                    <template #body="{ data }">
-                                        <template v-if="data.preset === 'duel'">
-                                            {{ data.contenders?.[0]?.name ?? t("lobby.views.watch.replays.nobody") }} vs
-                                            {{ data.contenders?.[1]?.name ?? t("lobby.views.watch.replays.nobody") }}
-                                        </template>
-                                        <template v-else-if="data.preset === 'team'">
-                                            {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
-                                        </template>
-                                        <template v-if="data.preset === 'ffa'"
-                                            >{{ data.contenders.length }} {{ t("lobby.views.watch.replays.wayFFA") }}</template
-                                        >
-                                        <template v-if="data.preset === 'teamffa'"
-                                            >{{ data.teams[0].playerCount }} {{ t("lobby.views.watch.replays.wayTeamFFA") }}</template
-                                        >
-                                    </template>
-                                </Column>
-                                <Column :header="t('lobby.views.watch.replays.date')" :sortable="true" sortField="startTime">
-                                    <template #body="{ data }">
-                                        {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
-                                    </template>
-                                </Column>
-                                <Column :header="t('lobby.views.watch.replays.duration')" :sortable="true" sortField="gameDurationMs">
-                                    <template #body="{ data }">
-                                        {{ getFriendlyDuration(data.gameDurationMs) }}
-                                    </template>
-                                </Column>
-                                <Column
-                                    field="mapSpringName"
-                                    :header="t('lobby.views.watch.replays.map')"
-                                    :sortable="true"
-                                    sortField="mapSpringName"
-                                />
-                            </DataTable>
-                        </div>
-                    </Panel>
-                </div>
-                <div class="right-section">
-                    <Panel class="flex-grow" no-padding>
-                        <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
-                            <template #actions="{ replay }">
-                                <div class="fullwidth">
-                                    <div class="flex-row flex-bottom gap-md padding-bottom-md">
-                                        <DownloadContentButton
-                                            v-if="map && replay"
-                                            :maps="[map.springName]"
-                                            :games="[replay.gameVersion]"
-                                            :engines="[replay.engineVersion]"
-                                            @click="watchReplay(replay)"
-                                            :disabled="gameStore.status !== GameStatus.CLOSED"
-                                        >
-                                            <template v-if="gameStore.status === GameStatus.RUNNING">{{
-                                                t("lobby.views.watch.replays.gameIsRunning")
-                                            }}</template>
-                                            <template v-else-if="gameStore.status === GameStatus.LOADING">{{
-                                                t("lobby.views.watch.replays.launching")
-                                            }}</template>
-                                            <template v-else>{{ t("lobby.views.watch.replays.watch") }}</template>
-                                        </DownloadContentButton>
-                                        <Button v-else disabled style="flex-grow: 1">{{ t("lobby.views.watch.replays.watch") }}</Button>
-                                        <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
-                                            ><Icon :icon="folder" :height="32"
-                                        /></Button>
-                                    </div>
-                                </div>
-                            </template>
-                        </ReplayPreview>
-                    </Panel>
-                </div>
+                        </template>
+                    </ReplayPreview>
+                </Panel>
             </div>
         </div>
     </div>
@@ -150,7 +148,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import TriStateCheckbox from "@renderer/components/controls/TriStateCheckbox.vue";
 import { getFriendlyDuration } from "@renderer/utils/misc";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import DataTable, { DataTablePageEvent, DataTableSortEvent } from "primevue/datatable";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
@@ -164,6 +162,8 @@ import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
+import { shellApi } from "@renderer/api/shell";
 
 const { t } = useTypedI18n();
 
@@ -263,48 +263,38 @@ function onSort(event: DataTableSortEvent) {
 }
 
 function openBrowserToReplayService() {
-    window.shell.openInBrowser("https://bar-rts.com/replays");
+    shellApi.openInBrowser(configStore.replayServiceUrl);
 }
 
 function openReplaysFolder() {
-    window.shell.openReplaysDir();
+    shellApi.openReplaysDir();
 }
 
 function showReplayFile(replay: Replay) {
-    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
+    if (replay?.fileName) shellApi.showReplayInFolder(replay.fileName);
 }
 </script>
 
 <style lang="scss" scoped>
-.replay-view {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-
-    padding: 60px 60px 100px 60px;
-
-    gap: 20px;
-    padding-bottom: 120px;
-    align-self: center;
-}
-
 .replay-container {
     display: flex;
     flex-direction: column;
     height: 100%;
-    align-self: center;
 }
 
 .middle-section {
-    width: 1200px;
+    flex: 1 1 0;
+    min-width: 0;
     height: 700px;
+    max-height: 100%;
 }
 
 .right-section {
     display: flex;
+    flex: 0 1 400px;
+    min-width: 0;
     height: 700px;
-    width: 400px;
+    max-height: 100%;
 }
 
 :deep(.p-datatable-tbody tr.highlighted-replay td) {

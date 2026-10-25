@@ -4,32 +4,16 @@
 
 import { reactive } from "vue";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
-import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 
 export const mapsStore: {
     isInitialized: boolean;
-    filters: {
-        terrain: Partial<Record<Terrain, boolean>>;
-        gameType: Partial<Record<GameType, boolean>>;
-        minPlayers: number;
-        maxPlayers: number;
-        favoritesOnly: boolean;
-        downloadedOnly: boolean;
-    };
     availableMapNames: Set<string>;
 } = reactive({
     isInitialized: false,
-    filters: {
-        terrain: {},
-        gameType: {},
-        minPlayers: 2,
-        maxPlayers: 40,
-        favoritesOnly: false,
-        downloadedOnly: false,
-    },
     availableMapNames: new Set(),
 });
 
@@ -42,11 +26,14 @@ export async function getRandomMap() {
 }
 
 export async function initMapsStore() {
-    if (mapsStore.isInitialized) return;
     return init();
 }
 
 async function init() {
+    if (mapsStore.isInitialized) {
+        console.warn("Maps store is already initialized. Skipping initialization.");
+        return;
+    }
     window.maps.onMapAdded((springName: string) => {
         console.debug("Received map added event", springName);
         mapsStore.availableMapNames.add(springName);
@@ -59,9 +46,20 @@ async function init() {
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
-    window.downloads.onDownloadMapComplete((download) => {
-        mapsStore.availableMapNames.add(download.name);
+    // Chokidar takes 1-2 seconds longer than this to notice the file, so both paths are wired up and
+    // whichever arrives first wins.
+    onContentSettled((refs) => {
+        for (const ref of refs) {
+            if (ref.type !== "map") {
+                continue;
+            }
+
+            if (ref.present) {
+                mapsStore.availableMapNames.add(ref.id);
+            } else {
+                mapsStore.availableMapNames.delete(ref.id);
+            }
+        }
     });
     const liveMaps = await db.maps.toArray();
     const nonLiveMaps = await db.nonLiveMaps.toArray();
@@ -183,8 +181,4 @@ export async function downloadMap(springName: string) {
             notificationsApi.alert({ text: "Map download failed.", severity: "error" });
             dbDelegate.update(springName, { isDownloading: false });
         });
-}
-
-export function getFilters() {
-    return mapsStore.filters;
 }

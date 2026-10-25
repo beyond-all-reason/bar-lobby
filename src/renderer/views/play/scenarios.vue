@@ -9,66 +9,64 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="scenarios-container">
-            <div class="view-title">
-                <h1>{{ t("lobby.singleplayer.scenarios.title") }}</h1>
-                <p>{{ t("lobby.singleplayer.scenarios.description") }}</p>
-            </div>
-            <Panel class="scenarios-main-panel" noPadding>
-                <div class="flex-row gap-lg fullheight">
-                    <div class="fullwidth flex-col">
-                        <div class="scenarios scroll-container">
-                            <TransitionGroup name="fade">
-                                <ScenarioTile
-                                    v-for="scenario in scenarios"
-                                    :key="scenario.title"
-                                    :scenario="scenario"
-                                    :class="{ selected: selectedScenario.scenarioid === scenario.scenarioid }"
-                                    @click="selectedScenario = scenario"
-                                />
-                            </TransitionGroup>
-                        </div>
-                    </div>
-                    <div class="scenario-preview flex-col gap-md">
-                        <h4>{{ selectedScenario.title }}</h4>
-                        <div class="scroll-container flex-grow">
-                            <Markdown :source="selectedScenario.summary" />
-                            <Markdown :source="selectedScenario.briefing" />
-                        </div>
-                        <div class="gridform">
-                            <div>{{ t("lobby.singleplayer.scenarios.victoryCondition") }}</div>
-                            <div>{{ selectedScenario.victorycondition }}</div>
-
-                            <div>{{ t("lobby.singleplayer.scenarios.loseCondition") }}</div>
-                            <div>{{ selectedScenario.losscondition }}</div>
-                        </div>
-                        <div>
-                            <Select v-model="selectedFaction" :label="t('lobby.singleplayer.scenarios.faction')" :options="factions" />
-                        </div>
-                        <div>
-                            <Select
-                                v-model="selectedDifficulty"
-                                :label="t('lobby.singleplayer.scenarios.difficulty')"
-                                :options="difficulties"
-                                optionLabel="name"
+    <div class="scenarios-container">
+        <div class="view-title">
+            <h1>{{ t("lobby.singleplayer.scenarios.title") }}</h1>
+            <p>{{ t("lobby.singleplayer.scenarios.description") }}</p>
+        </div>
+        <Panel class="scenarios-main-panel" noPadding>
+            <div class="flex-row gap-lg fullheight">
+                <div class="fullwidth flex-col">
+                    <div class="scenarios scroll-container">
+                        <TransitionGroup name="fade">
+                            <ScenarioTile
+                                v-for="scenario in scenarios"
+                                :key="scenario.title"
+                                :scenario="scenario"
+                                :class="{ selected: selectedScenario.scenarioid === scenario.scenarioid }"
+                                @click="selectedScenario = scenario"
                             />
-                        </div>
-                        <DownloadContentButton
-                            v-if="map"
-                            :maps="[map.springName]"
-                            :games="gameVersion ? [gameVersion] : []"
-                            :engines="enginesStore.selectedEngineVersion ? [enginesStore.selectedEngineVersion.id] : []"
-                            class="fullwidth green"
-                            :disabled="gameStore.status !== GameStatus.CLOSED"
-                            @click="launch"
-                            >{{ t("lobby.singleplayer.scenarios.launch") }}</DownloadContentButton
-                        >
-                        <Button v-else class="fullwidth green" disabled>{{ t("lobby.singleplayer.scenarios.launch") }}</Button>
+                        </TransitionGroup>
                     </div>
                 </div>
-            </Panel>
-        </div>
+                <div class="scenario-preview flex-col gap-md">
+                    <h4>{{ selectedScenario.title }}</h4>
+                    <div class="scroll-container flex-grow">
+                        <Markdown :source="selectedScenario.summary" />
+                        <Markdown :source="selectedScenario.briefing" />
+                    </div>
+                    <div class="gridform">
+                        <div>{{ t("lobby.singleplayer.scenarios.victoryCondition") }}</div>
+                        <div>{{ selectedScenario.victorycondition }}</div>
+
+                        <div>{{ t("lobby.singleplayer.scenarios.loseCondition") }}</div>
+                        <div>{{ selectedScenario.losscondition }}</div>
+                    </div>
+                    <div>
+                        <Select v-model="selectedFaction" :label="t('lobby.singleplayer.scenarios.faction')" :options="factions" />
+                    </div>
+                    <div>
+                        <Select
+                            v-model="selectedDifficulty"
+                            :label="t('lobby.singleplayer.scenarios.difficulty')"
+                            :options="difficulties"
+                            optionLabel="name"
+                        />
+                    </div>
+                    <DownloadContentButton
+                        v-if="map"
+                        :maps="[map.springName]"
+                        :games="gameVersion ? [gameVersion] : []"
+                        :engines="enginesStore.selectedEngineVersion ? [enginesStore.selectedEngineVersion.id] : []"
+                        class="fullwidth green"
+                        :disabled="gameStore.status !== GameStatus.CLOSED"
+                        @click="launch"
+                        >{{ t("lobby.singleplayer.scenarios.launch") }}</DownloadContentButton
+                    >
+                    <Button v-else class="fullwidth green" disabled>{{ t("lobby.singleplayer.scenarios.launch") }}</Button>
+                </div>
+            </div>
+        </Panel>
     </div>
 </template>
 
@@ -79,7 +77,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import ScenarioTile from "@renderer/components/misc/ScenarioTile.vue";
 import { Scenario } from "@main/content/game/scenario";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { MapDownloadData } from "@main/content/maps/map-data";
@@ -87,7 +85,7 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
-
+import { configStore } from "@renderer/store/config.store";
 import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
@@ -157,7 +155,7 @@ async function launch() {
         .replaceAll("__SCENARIOOPTIONS__", scenarioOptionsStr)
         //TODO replace with online name when implemented
         .replaceAll("__PLAYERNAME__", "Player")
-        .replaceAll("__BARVERSION__", LATEST_GAME_VERSION)
+        .replaceAll("__BARVERSION__", configStore.latestGameVersion)
         .replaceAll("__MAPNAME__", selectedScenario.value.mapfilename)
         .replaceAll("__PLAYERSIDE__", selectedFaction.value)
         .replaceAll("__ENEMYHANDICAP__", selectedDifficulty.value?.enemyhandicap?.toString() ?? "0")
@@ -168,7 +166,7 @@ async function launch() {
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
+    await window.game.launchScript(script, configStore.latestGameVersion, enginesStore.selectedEngineVersion.id);
 }
 </script>
 
@@ -177,8 +175,6 @@ async function launch() {
     display: flex;
     flex-direction: column;
     height: 100%;
-    align-self: center;
-    width: 1600px;
 }
 
 .scenarios-main-panel {

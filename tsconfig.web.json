@@ -7,6 +7,7 @@
         "src/renderer/**/*",
         "src/renderer/**/*.vue",
         "src/preload/*.d.ts",
+        "src/shared/**/*",
         "tests/**/renderer/**/*.ts",
         "tests/setup.renderer.mts"
     ],
@@ -18,6 +19,7 @@
             "@main/*": ["src/main/*"], // TODO: Remove direct references to main
             "@preload/*": ["src/preload/*"],
             "@renderer/*": ["src/renderer/*"],
+            "@shared/*": ["src/shared/*"],
             "$/*": ["vendor/*"]
         },
         "strict": true,

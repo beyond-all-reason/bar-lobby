@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
                             <div
                                 v-tooltip.bottom="{ value: o.description || '' }"
                                 :class="{
-                                    overriden: options[o.key] !== undefined,
+                                    overridden: options[o.key] !== undefined,
                                 }"
                             >
                                 {{ o.name }}
@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value: any) => setOptionValue(o, value)"
                             v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                         <Checkbox
@@ -38,7 +38,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value) => setOptionValue(o, value)"
                             v-tooltip.right="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                         <Textarea
@@ -48,7 +48,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value) => setOptionValue(o, value)"
                             v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                         <Select
@@ -60,7 +60,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value: any) => setOptionValue(o, value)"
                             v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                     </template>
@@ -78,7 +78,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import TabPanel from "primevue/tabpanel";
-import { Ref, ref } from "vue";
+import { Ref, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Modal from "@renderer/components/common/Modal.vue";
 import TabView from "@renderer/components/common/TabView.vue";
@@ -99,7 +99,14 @@ const props = defineProps<{
     sections: LuaOptionSection[];
 }>();
 
-const options = ref(props.options);
+const options = ref({ ...props.options });
+
+watch(
+    () => props.options,
+    (newOptions) => {
+        options.value = { ...newOptions };
+    }
+);
 
 const emit = defineEmits<{
     (event: "set-options", options: Record<string, boolean | string | number>): void;
@@ -150,7 +157,7 @@ function reset() {
     padding-bottom: 25px;
 }
 
-.overriden {
+.overridden {
     color: #ffcc00;
     :deep(.p-slider-handle) {
         background-color: #ffcc00;

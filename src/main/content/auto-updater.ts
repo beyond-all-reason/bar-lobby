@@ -4,6 +4,7 @@
 
 import { Downloader } from "@main/content/abstract-content";
 import { logger } from "@main/utils/logger";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import { app } from "electron";
 import electronUpdater from "electron-updater";
 const { autoUpdater } = electronUpdater;
@@ -14,11 +15,15 @@ export type UpdateInfo = electronUpdater.UpdateInfo;
 
 export class AutoUpdaterAPI extends Downloader {
     private updateInfo?: UpdateInfo;
-    private intialized: boolean = false;
+    private initialized: boolean = false;
     public readonly currentVersion: string = autoUpdater.currentVersion;
 
     public async init() {
         log.info("Initializing AutoUpdaterAPI");
+        if (!EDITION_FEATURES.selfUpdate) {
+            log.info(`Self-update is disabled in the ${EDITION} edition. Skipping initialization`);
+            return this;
+        }
         if (!app.isPackaged) {
             log.info("App is not packaged. Skipping initializaion");
             return this;
@@ -27,7 +32,7 @@ export class AutoUpdaterAPI extends Downloader {
         autoUpdater.logger = log;
         autoUpdater.autoInstallOnAppQuit = true;
         autoUpdater.allowPrerelease = false;
-        this.intialized = true;
+        this.initialized = true;
         return this;
     }
 
@@ -36,7 +41,7 @@ export class AutoUpdaterAPI extends Downloader {
     }
 
     public async checkForUpdates(): Promise<boolean> {
-        if (!this.intialized) return false;
+        if (!this.initialized) return false;
         return await new Promise<boolean>((resolve) => {
             autoUpdater.on("update-available", (info) => {
                 this.updateInfo = info;
@@ -58,7 +63,7 @@ export class AutoUpdaterAPI extends Downloader {
     }
 
     public async downloadUpdate(): Promise<void> {
-        if (!this.intialized) return;
+        if (!this.initialized) return;
         if (this.updateInfo == undefined) throw Error("Tried to download unavailable update");
         // Note, there is no this.downloadStarted but downloadProgress handles it well enough
         // If we ever need to track that it actually started, we would add that here.
@@ -66,6 +71,7 @@ export class AutoUpdaterAPI extends Downloader {
             autoUpdater.on("download-progress", (progressInfo) => {
                 this.downloadProgress({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: progressInfo.transferred,
                     totalBytes: progressInfo.total,
@@ -77,6 +83,7 @@ export class AutoUpdaterAPI extends Downloader {
                 // 'info' does not have download details, so we just falsify the values since it's complete anyway.
                 this.downloadComplete({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: 1,
                     totalBytes: 1,
@@ -90,6 +97,7 @@ export class AutoUpdaterAPI extends Downloader {
                 // As above, 'info' does not have download details, so we just falsify the values since it's stopped already
                 this.downloadFailed({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: 0,
                     totalBytes: 0,
@@ -104,10 +112,12 @@ export class AutoUpdaterAPI extends Downloader {
     }
 
     public installUpdates(): void {
+        if (!this.initialized) return;
         autoUpdater.quitAndInstall(true, true);
     }
 
     public quitAndInstall(): void {
+        if (!this.initialized) return;
         autoUpdater.quitAndInstall();
     }
 }

@@ -19,6 +19,8 @@ export class FileStore<T extends TObject> {
     protected readonly ajv: Ajv;
     protected readonly validator: ValidateFunction<Static<T>>;
 
+    private writeQueue: Promise<void> = Promise.resolve();
+
     constructor(filePath: string, schema: T, defaultModel?: Static<T>) {
         this.filePath = filePath;
         this.schema = schema;
@@ -54,22 +56,47 @@ export class FileStore<T extends TObject> {
         return this.model;
     }
 
+    // Files are only ever written by the client, so an invalid one is rejected outright rather than salvaged.
+    // It is kept alongside as .invalid so the cause can be investigated, and the defaults are used instead.
     protected async read() {
         try {
             const modelStr = await fs.promises.readFile(this.filePath, { encoding: "utf-8" });
             const model = JSON.parse(modelStr);
-            const isValid = this.validator(model);
-            if (isValid) {
+            if (this.validator(model)) {
                 Object.assign(this.model, model);
-            } else {
-                log.error(`Error validating file: ${this.filePath}`, this.validator.errors);
+                return;
             }
+            log.error(`Error validating file: ${this.filePath}`, this.validator.errors);
         } catch (e) {
             log.error(`Error reading file: ${this.filePath}`, e);
         }
+        await this.resetToDefaults();
     }
 
+    private async resetToDefaults() {
+        const backupPath = `${this.filePath}.invalid`;
+        try {
+            await fs.promises.rename(this.filePath, backupPath);
+            log.warn(`Moved invalid file to ${backupPath}, using defaults instead`);
+        } catch (e) {
+            log.error(`Error backing up invalid file: ${this.filePath}`, e);
+        }
+        this.validator(this.model);
+        await this.write();
+    }
+
+    // Writes are chained and go through a temp file, so overlapping saves can't
+    // interleave and a crash mid-write can't truncate the existing file.
     protected async write() {
-        await fs.promises.writeFile(this.filePath, JSON.stringify(this.model, null, 4));
+        const write = this.writeQueue.catch(() => {}).then(() => this.writeModel());
+        this.writeQueue = write.catch(() => {});
+
+        return write;
+    }
+
+    private async writeModel() {
+        const tempPath = `${this.filePath}.tmp`;
+        await fs.promises.writeFile(tempPath, JSON.stringify(this.model, null, 4));
+        await fs.promises.rename(tempPath, this.filePath);
     }
 }

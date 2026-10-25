@@ -5,37 +5,35 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="view">
-        <Panel>
+    <Panel>
+        <div>
+            <Button @click="go">Go</Button>
+        </div>
+        <div class="flex-column margin-left-lg margin-right-md">
+            <div class="flex-row">
+                <Textbox v-model="mapName" />
+                <Button @click="mapName = undefined">Clear Map Name</Button>
+            </div>
+            <div class="flex-row">
+                <Textbox v-model="engineVersion" />
+                <Button @click="engineVersion = undefined">Clear Engine Version</Button>
+            </div>
+            <div class="flex-row">
+                <Textbox v-model="gameVersion" />
+                <Button @click="gameVersion = undefined">Clear Game Version</Button>
+            </div>
             <div>
-                <Button @click="go">Go</Button>
+                <DownloadContentButton
+                    class="green fullwidth"
+                    @click="play"
+                    :engines="engineVersion ? [engineVersion] : []"
+                    :games="gameVersion ? [gameVersion] : []"
+                    :maps="mapName ? [mapName] : []"
+                    >I do nothing now!</DownloadContentButton
+                >
             </div>
-            <div class="flex-column margin-left-lg margin-right-md">
-                <div class="flex-row">
-                    <Textbox v-model="mapName" />
-                    <Button @click="mapName = undefined">Clear Map Name</Button>
-                </div>
-                <div class="flex-row">
-                    <Textbox v-model="engineVersion" />
-                    <Button @click="engineVersion = undefined">Clear Engine Version</Button>
-                </div>
-                <div class="flex-row">
-                    <Textbox v-model="gameVersion" />
-                    <Button @click="gameVersion = undefined">Clear Game Version</Button>
-                </div>
-                <div>
-                    <DownloadContentButton
-                        class="green fullwidth"
-                        @click="play"
-                        :engines="engineVersion ? [engineVersion] : []"
-                        :games="gameVersion ? [gameVersion] : []"
-                        :maps="mapName ? [mapName] : []"
-                        >I do nothing now!</DownloadContentButton
-                    >
-                </div>
-            </div>
-        </Panel>
-    </div>
+        </div>
+    </Panel>
 </template>
 
 <script lang="ts" setup>

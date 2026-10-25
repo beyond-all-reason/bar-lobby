@@ -5,7 +5,7 @@
 import zlib from "zlib";
 import { describe, expect, it } from "vitest";
 
-import { BattleWithMetadata, GameModeID, StartPosType } from "@main/game/battle/battle-types";
+import { BattleWithMetadata, Faction, GameModeID, StartPosType } from "@main/game/battle/battle-types";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
 type Arrangement = {
@@ -39,11 +39,11 @@ function twoTeamBattle(mapOptions: Record<string, unknown>): BattleWithMetadata 
     return {
         isOnline: false,
         spectators: [],
-        me: { id: 0, user: { username: "p1", userId: 1 } },
-        teams: [{ participants: [{ id: 0, user: { username: "p1", userId: 1 } }] }, { participants: [{ id: 1, user: { username: "p2", userId: 2 } }] }],
+        me: { id: "0", user: { username: "p1", userId: "1" } },
+        teams: [{ participants: [{ id: "0", user: { username: "p1", userId: "1" } }] }, { participants: [{ id: "1", user: { username: "p2", userId: "2" } }] }],
         battleOptions: {
             gameVersion: "test",
-            gameMode: { id: GameModeID.CLASSIC, label: "Classic", options: {} },
+            gameMode: { id: GameModeID.CLASSIC, options: {} },
             map: { springName: "Test Map", startboxesSet: polygonSet, playerCountMax: 16 },
             mapOptions,
             restrictions: [],
@@ -60,9 +60,46 @@ function decodeModoption(script: string, pattern: RegExp): unknown {
 const SET = /mapmetadata_startboxes_set\s*=\s*([^;\s}]+)/;
 const OVERRIDE = /mapmetadata_startbox_override\s*=\s*([^;\s}]+)/;
 
+describe("start script bot factions", () => {
+    it("passes a bot's selected faction to the engine team side", async () => {
+        const battle = twoTeamBattle({ startPosType: StartPosType.Fixed });
+        battle.teams[1].participants = [
+            {
+                id: "1",
+                host: "0",
+                aiShortName: "BARb",
+                name: "Armada bot",
+                aiOptions: {},
+                faction: Faction.Armada,
+            },
+        ];
+
+        const script = await startScriptConverter.generateScriptStr(battle);
+
+        expect(script).toMatch(/\[team1\]\s*\{[^}]*side=Armada;/);
+    });
+
+    it("leaves the engine side unset when a bot has no selected faction", async () => {
+        const battle = twoTeamBattle({ startPosType: StartPosType.Fixed });
+        battle.teams[1].participants = [
+            {
+                id: "1",
+                host: "0",
+                aiShortName: "BARb",
+                name: "Default bot",
+                aiOptions: {},
+            },
+        ];
+
+        const script = await startScriptConverter.generateScriptStr(battle);
+
+        expect(script).not.toMatch(/\[team1\]\s*\{[^}]*side=/);
+    });
+});
+
 describe("start script polygon startbox modoptions", () => {
-    it("injects the set keyed by team count when a preset is selected", () => {
-        const script = startScriptConverter.generateScriptStr(twoTeamBattle({ startPosType: StartPosType.Boxes, startBoxesIndex: 0 }));
+    it("injects the set keyed by team count when a preset is selected", async () => {
+        const script = await startScriptConverter.generateScriptStr(twoTeamBattle({ startPosType: StartPosType.Boxes, startBoxesIndex: 0 }));
 
         expect(script).toContain("mapmetadata_startboxes_set");
         expect(script).not.toContain("mapmetadata_startbox_override");
@@ -73,8 +110,8 @@ describe("start script polygon startbox modoptions", () => {
         expect(set["2"].startboxes[0].poly[2].strength).toBe(1);
     });
 
-    it("injects an override (not a set) for custom drag-edited boxes", () => {
-        const script = startScriptConverter.generateScriptStr(
+    it("injects an override alongside the map's set for custom drag-edited boxes", async () => {
+        const script = await startScriptConverter.generateScriptStr(
             twoTeamBattle({
                 startPosType: StartPosType.Boxes,
                 customStartBoxes: [
@@ -84,8 +121,7 @@ describe("start script polygon startbox modoptions", () => {
             })
         );
 
-        expect(script).not.toContain("mapmetadata_startboxes_set");
-        expect(script).toContain("mapmetadata_startbox_override");
+        expect(Object.keys(decodeModoption(script, SET) as object)).toEqual(["2"]);
 
         const override = decodeModoption(script, OVERRIDE) as Arrangement;
         // single arrangement, not keyed by team count; matchOverride checks startboxes.length == numTeams
@@ -94,6 +130,26 @@ describe("start script polygon startbox modoptions", () => {
         expect(override.startboxes[0].poly).toEqual([
             { x: 0, y: 0 },
             { x: 50, y: 200 },
+        ]);
+    });
+
+    it("sends each imported shape as the override while its custom rect still matches it", async () => {
+        const shapes = polygonSet[0].startboxes.map((box) => box.poly);
+        const rects = [
+            { left: 0, top: 0, right: 0.3, bottom: 0.3 },
+            { left: 0.7, top: 0.7, right: 1, bottom: 1 },
+        ];
+
+        const matching = await startScriptConverter.generateScriptStr(twoTeamBattle({ startPosType: StartPosType.Boxes, customStartBoxes: rects, customStartBoxShapes: shapes }));
+        expect((decodeModoption(matching, OVERRIDE) as Arrangement).startboxes.map((box) => box.poly)).toEqual(shapes);
+
+        const edited = await startScriptConverter.generateScriptStr(
+            twoTeamBattle({ startPosType: StartPosType.Boxes, customStartBoxes: [rects[0], { left: 0.5, top: 0.7, right: 1, bottom: 1 }], customStartBoxShapes: shapes })
+        );
+        expect((decodeModoption(edited, OVERRIDE) as Arrangement).startboxes[0].poly).toEqual(shapes[0]);
+        expect((decodeModoption(edited, OVERRIDE) as Arrangement).startboxes[1].poly).toEqual([
+            { x: 100, y: 140 },
+            { x: 200, y: 200 },
         ]);
     });
 });

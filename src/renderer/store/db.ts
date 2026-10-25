@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { User } from "@main/model/user";
 import Dexie, { EntityTable } from "dexie";
 

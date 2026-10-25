@@ -6,7 +6,11 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Control class="options">
-        <SelectButton v-bind="$attrs" />
+        <SelectButton v-bind="$attrs">
+            <template v-for="(_, name) in $slots" #[name]="slotProps">
+                <slot :name="name" v-bind="slotProps ?? {}" />
+            </template>
+        </SelectButton>
     </Control>
 </template>
 

@@ -9,28 +9,26 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="commands-container">
-            <div class="view-title">
-                <h1>{{ route.meta.title }}</h1>
-            </div>
-            <Panel class="fullheight">
-                <div class="flex-col gap-lg flex-grow fullheight">
-                    <div class="flex-row gap-md">
-                        <SearchBox v-model="searchVal" />
-                        <Select v-model="filterMethod" :options="filterMethods" label="Type" />
-                    </div>
-                    <div class="flex-col flex-grow fullheight">
-                        <div class="scroll-container">
-                            <div v-for="command in filteredCommands" :key="command.cmd" class="command">
-                                <div class="cmd">{{ command.cmd }}</div>
-                                <div class="cmdDescription">{{ command.cmdDescription }}</div>
-                            </div>
+    <div class="commands-container">
+        <div class="view-title">
+            <h1>{{ route.meta.title }}</h1>
+        </div>
+        <Panel class="fullheight">
+            <div class="flex-col gap-lg flex-grow fullheight">
+                <div class="flex-row gap-md">
+                    <SearchBox v-model="searchVal" />
+                    <Select v-model="filterMethod" :options="filterMethods" label="Type" />
+                </div>
+                <div class="flex-col flex-grow fullheight">
+                    <div class="scroll-container">
+                        <div v-for="command in filteredCommands" :key="command.cmd" class="command">
+                            <div class="cmd">{{ command.cmd }}</div>
+                            <div class="cmdDescription">{{ t(command.descriptionKey) }}</div>
                         </div>
                     </div>
                 </div>
-            </Panel>
-        </div>
+            </div>
+        </Panel>
     </div>
 </template>
 
@@ -42,6 +40,9 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 type FilterMethod = "All" | "Spads" | "Server";
 const filterMethods: FilterMethod[] = ["All", "Spads", "Server"];
@@ -75,7 +76,7 @@ const filteredCommands = computed(() => {
         return filterCommands(commands, filterMethod.value);
     }
     return filterCommands(
-        commands.filter((command) => (command.cmd + command.cmdDescription).includes(searchVal.value)),
+        commands.filter((command) => (command.cmd + t(command.descriptionKey)).includes(searchVal.value)),
         filterMethod.value
     );
 });
@@ -113,8 +114,6 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     height: 100%;
-    align-self: center;
-    width: 1600px;
 }
 
 .command {

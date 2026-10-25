@@ -13,13 +13,24 @@ SPDX-License-Identifier: MIT
             <DebugSidebar v-if="settingsStore.devMode" />
         </Suspense>
         <StickyBattle v-if="state === 'default'" />
+        <ActiveLobbyPreview v-if="state === 'default'" />
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />
+        <ReconnectingOverlay v-if="state === 'default'" />
         <PromptContainer v-if="state === 'default'" />
         <NavBar :class="{ hidden: empty || state === 'initial-setup' }" />
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
         </div>
+        <div v-if="showPartyPopout" class="floating-wrapper">
+            <div class="party-notification">
+                <Button class="slim green" @click="openPartyView">
+                    <Icon :icon="getPartyIcon()" />
+                    <span class="margin-sm">{{ partyText }}</span>
+                </Button>
+            </div>
+        </div>
+
         <div v-if="empty" class="splash-options">
             <div class="option" @click="settingsOpen = true">
                 <Icon :icon="cog" height="21" />
@@ -51,6 +62,9 @@ SPDX-License-Identifier: MIT
         <ServerSettings v-model="serverSettingsOpen" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
         <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
+        <BattleResultsModal />
+        <ReportUserModal />
+        <RejoinBattleModal v-model="tachyonStore.rejoinModalOpen" />
     </div>
     <Error />
 </template>
@@ -60,10 +74,11 @@ import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { provide, Ref, toRef, toValue } from "vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import StickyBattle from "@renderer/components/battle/StickyBattle.vue";
+import ActiveLobbyPreview from "@renderer/components/battle/ActiveLobbyPreview.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Background from "@renderer/components/misc/Background.vue";
 import DebugSidebar from "@renderer/components/misc/DebugSidebar.vue";
@@ -74,8 +89,12 @@ import NavBar from "@renderer/components/navbar/NavBar.vue";
 import Settings from "@renderer/components/navbar/Settings.vue";
 import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
 import Notifications from "@renderer/components/notifications/Notifications.vue";
+import ReconnectingOverlay from "@renderer/components/misc/ReconnectingOverlay.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
+import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
+import RejoinBattleModal from "@renderer/components/battle/RejoinBattleModal.vue";
+import BattleResultsModal from "@renderer/components/battle/results/BattleResultsModal.vue";
 
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
@@ -84,8 +103,14 @@ import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
 import { me } from "@renderer/store/me.store";
-import { auth } from "@renderer/store/me.store";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
+import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
+import accountGroup from "@iconify-icons/mdi/account-group";
+import bellAlert from "@iconify-icons/mdi/bell-alert";
+import Button from "@renderer/components/controls/Button.vue";
+import { chatStore } from "@renderer/store/chat.store";
+import { useTypedI18n } from "@renderer/i18n";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -97,7 +122,7 @@ const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? false);
 const settingsOpen = ref(false);
 const serverSettingsOpen = ref(false);
 const exitOpen = ref(false);
-
+const { t } = useTypedI18n();
 const { isOpen: logInConfirmationIsOpen, intendedRoute: logInConfirmationIntendedRoute } = useLogInConfirmation();
 
 provide("settingsOpen", settingsOpen);
@@ -119,6 +144,18 @@ playRandomMusic();
 
 window.barNavigation.onNavigateTo((target: string) => {
     router.push(target);
+});
+
+function openPartyView() {
+    router.push("/profile/party");
+}
+
+const partyText = computed(() => {
+    if (partyStore.state === PlayersPartyState.InvitedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
+        return t("lobby.navbar.partyPopout.invited");
+    } else {
+        return t("lobby.navbar.partyPopout.party");
+    }
 });
 
 const simpleRouterMemory = new Map<string, string>();
@@ -161,18 +198,37 @@ function onInitialSetupDone() {
     console.debug("Initial setup done");
 }
 
-// Currently we support multiplayer only in dev mode, as it's very not finished.
-// We do it here and not in index.vue to avoid flashing login page for user before
-// continuing to overview.
-if (!settingsStore.devMode) {
-    auth.playOffline();
-    router.push("/play");
+function unseenPartyMessages() {
+    if (!partyStore.activeParty) return false;
+    const messages = chatStore.partyChats.get(partyStore.activeParty);
+    if (!messages || messages.length <= 0) return false;
+    return !messages.at(-1)?.seen;
 }
+function getPartyIcon() {
+    if (unseenPartyMessages()) return bellAlert;
+    for (const party of partyStore.parties.values()) {
+        if (!party.seen) return bellAlert;
+    }
+    return accountGroup;
+}
+const showPartyPopout = computed(() => {
+    return (
+        partyStore.state !== PlayersPartyState.None &&
+        router.currentRoute.value.name !== "/profile/party" &&
+        !tachyonStore.reconnectInterval
+    );
+});
 </script>
 
 <style lang="scss" scoped>
 .view-container {
     flex: auto;
+    // Keeps views at window height so they scroll instead of growing past it.
+    min-height: 0;
+    // Views layer their own hover and selected states with small z-indexes, and
+    // without a stacking context of their own those compete with the navbar and
+    // the reconnecting overlay out here rather than staying inside the view.
+    isolation: isolate;
     transition: transform 0.4s ease-out;
     &.translated-right {
         transform: translateX(10%);
@@ -206,5 +262,17 @@ if (!settingsStore.devMode) {
             opacity: 1;
         }
     }
+}
+.floating-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.party-notification {
+    position: absolute;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

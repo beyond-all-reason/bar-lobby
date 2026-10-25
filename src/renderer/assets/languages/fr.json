@@ -3836,7 +3836,17 @@
         "scavDecoyCommanderNameTag": null
     },
     "lobby": {
+        "logic": {
+            "edition": {
+                "refusals": {
+                    "contentBundledWithInstall": null
+                }
+            }
+        },
         "api": {
+            "shell": {
+                "openFailed": null
+            },
             "commands": {
                 "help": null,
                 "whoami": null,
@@ -3903,7 +3913,13 @@
             "profile": {
                 "status": null,
                 "clan": null,
-                "userNotFound": null
+                "userNotFound": null,
+                "battleHistory": {
+                    "title": null,
+                    "empty": null,
+                    "viewResults": null,
+                    "bots": null
+                }
             },
             "play": {
                 "comingSoon": null,
@@ -3913,6 +3929,25 @@
                 "scenarios": null,
                 "customLobbies": null,
                 "tournaments": null
+            },
+            "party": {
+                "title": null,
+                "partyTab": null,
+                "inviteTab": null,
+                "members": null,
+                "invites": null,
+                "leaveParty": null,
+                "matchmakingQueues": null,
+                "noQueues": null,
+                "requestQueues": null,
+                "receivedInvite": null,
+                "acceptInvite": null,
+                "declineInvite": null,
+                "kickMember": null,
+                "cancelInvite": null,
+                "noInvites": null,
+                "partyTooLarge": null,
+                "partyTooLargeTooltip": null
             },
             "watch": {
                 "replays": {
@@ -3971,7 +4006,9 @@
                     "searchingForOpponent": null,
                     "matchFound": null,
                     "accepted": null,
-                    "cancel": null
+                    "cancel": null,
+                    "partyTooLarge": null,
+                    "partyTooLargeTooltip": null
                 },
                 "modalTitle": null,
                 "modal": {
@@ -3990,13 +4027,128 @@
             "custom": {
                 "title": null,
                 "hostBattle": null,
+                "openLobby": null,
+                "joinLobby": null,
+                "joinLobbyNamed": null,
+                "leaveLobbyFirst": null,
                 "removedFromLobby": null,
                 "noLobbiesAvailable": null,
+                "lobbyUnavailable": null,
+                "refresh": null,
+                "newLobbies": null,
+                "autoRefresh": null,
+                "autoRefreshTooltip": null,
+                "disconnected": null,
+                "filtersButton": null,
+                "menu": {
+                    "sortBy": null,
+                    "ascending": null,
+                    "descending": null,
+                    "filters": null,
+                    "apply": null,
+                    "reset": null,
+                    "hide": null,
+                    "any": null,
+                    "only": null
+                },
                 "filters": {
-                    "hidePvE": null,
-                    "hideLocked": null,
-                    "hideEmpty": null,
-                    "hideInProgress": null
+                    "title": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "tags": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null,
+                        "placeholder": null,
+                        "unknown": null
+                    },
+                    "maps": {
+                        "label": null,
+                        "chipOne": null,
+                        "chipMany": null,
+                        "tooltip": null,
+                        "choose": null,
+                        "clear": null,
+                        "none": null
+                    },
+                    "players": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "openSpots": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "fitsParty": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "allyTeams": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "inProgress": {
+                        "label": null,
+                        "chipYes": null,
+                        "chipNo": null,
+                        "tooltipYes": null,
+                        "tooltipNo": null
+                    },
+                    "passworded": {
+                        "label": null,
+                        "chipYes": null,
+                        "chipNo": null,
+                        "tooltipYes": null,
+                        "tooltipNo": null
+                    },
+                    "bossMode": {
+                        "label": null,
+                        "chipYes": null,
+                        "chipNo": null,
+                        "tooltipYes": null,
+                        "tooltipNo": null
+                    },
+                    "hasFriend": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "hasPartyMember": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null
+                    },
+                    "engineVersion": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null,
+                        "any": null
+                    },
+                    "gameVersion": {
+                        "label": null,
+                        "chip": null,
+                        "tooltip": null,
+                        "any": null
+                    },
+                    "range": {
+                        "between": null,
+                        "atLeast": null,
+                        "atMost": null
+                    }
+                },
+                "sort": {
+                    "playerCount": null,
+                    "openSpots": null,
+                    "maxPlayerCount": null,
+                    "name": null,
+                    "mapName": null,
+                    "battleDuration": null
                 },
                 "table": {
                     "bestBattle": null,
@@ -4004,7 +4156,41 @@
                     "map": null,
                     "players": null,
                     "runningFor": null,
-                    "join": null
+                    "join": null,
+                    "openSpots": null,
+                    "status": null,
+                    "waiting": null
+                },
+                "lobby": {
+                    "title": null,
+                    "gameVersion": null,
+                    "engineVersion": null,
+                    "maps": null,
+                    "map": null,
+                    "startBoxShortfall": null
+                },
+                "mapPicker": {
+                    "title": null,
+                    "selected": null,
+                    "selectAllShown": null,
+                    "clear": null,
+                    "done": null
+                },
+                "preview": {
+                    "membership": null,
+                    "membershipPlayer": null,
+                    "membershipSpectator": null,
+                    "membershipQueued": null,
+                    "players": null,
+                    "openSpots": null,
+                    "waiting": null,
+                    "inBattle": null,
+                    "allyTeams": null,
+                    "friends": null,
+                    "passworded": null,
+                    "bossMode": null,
+                    "gameVersion": null,
+                    "engineVersion": null
                 }
             }
         },
@@ -4037,7 +4223,10 @@
                 "sendMessage": null,
                 "joinBattle": null,
                 "inviteToParty": null,
-                "removeFriend": null
+                "partyFull": null,
+                "removeFriend": null,
+                "userInParty": null,
+                "userInvited": null
             },
             "exit": {
                 "title": null,
@@ -4054,14 +4243,18 @@
                 "remove": null,
                 "info": null,
                 "labelDefault": null,
-                "labelCustom": null
+                "labelCustom": null,
+                "useDefaultServer": null
             },
             "breadcrumbs": {
                 "back": null
             },
+            "partyPopout": {
+                "party": null,
+                "invited": null
+            },
             "downloads": {
                 "noDownloads": null,
-                "moreDownloads": null,
                 "starting": null,
                 "extracting": null,
                 "progressMB": null,
@@ -4070,37 +4263,62 @@
                 "speedBps": null,
                 "etaHoursMinutes": null,
                 "etaMinutesSeconds": null,
-                "etaSeconds": null
+                "etaSeconds": null,
+                "queued": null,
+                "finished": null,
+                "complete": null,
+                "failed": null,
+                "retry": null,
+                "clearAll": null
             },
             "serverStatus": {
                 "playersOnline": null,
                 "error": null,
                 "reconnecting": null,
-                "offline": null
+                "offline": null,
+                "changeStatus": null,
+                "statusOnline": null,
+                "statusBusy": null,
+                "statusBusyUnavailable": null,
+                "goOffline": null,
+                "cancel": null,
+                "connect": null,
+                "connectTitle": null,
+                "connectBody": null,
+                "disconnect": null,
+                "disconnectTitle": null,
+                "disconnectBody": null,
+                "stopReconnecting": null,
+                "stopReconnectingTitle": null,
+                "stopReconnectingBody": null
             },
             "messages": {
                 "message": null,
                 "userID": null,
                 "userIDPlaceholder": null,
-                "send": null
+                "send": null,
+                "noMessages": null
             },
             "settings": {
                 "title": null,
-                "fullscreen": null,
-                "windowSize": null,
+                "sectionDisplay": null,
+                "sectionSound": null,
+                "sectionGeneral": null,
+                "resolution": null,
+                "fullscreenOption": null,
+                "maximizedOption": null,
                 "display": null,
                 "skipIntro": null,
                 "loginAutomatically": null,
+                "uiScale": null,
                 "sfxVolume": null,
                 "musicVolume": null,
                 "devMode": null,
                 "uploadLogs": null,
                 "logUrlCopied": null,
                 "couldNotUploadLog": null,
-                "labelSm": null,
-                "labelMd": null,
-                "labelLg": null,
                 "labelDisplay": null,
+                "language": null,
                 "storage": null,
                 "assetsPath": null,
                 "browse": null,
@@ -4161,6 +4379,7 @@
                 "debugSidebar": {
                     "debugSandbox": null,
                     "openSettingsFile": null,
+                    "openConfigFile": null,
                     "openAssetsDir": null,
                     "openStateDir": null,
                     "openStartScript": null,
@@ -4169,7 +4388,8 @@
                     "game": null,
                     "engine": null,
                     "view": null,
-                    "lobbyServerSettings": null
+                    "lobbyServerSettings": null,
+                    "createParty": null
                 },
                 "scenarioTile": {
                     "title": null
@@ -4223,7 +4443,9 @@
                     "installingEngine": null,
                     "downloadingGame": null,
                     "installingGame": null,
+                    "updatingMapList": null,
                     "downloadingMaps": null,
+                    "checkingForUpdates": null,
                     "downloadingUpdate": null,
                     "installingUpdate": null,
                     "selectAssetsPathDescription": null,
@@ -4234,7 +4456,10 @@
                     "playOffline": null,
                     "stepFailed": null,
                     "stepRetrying": null,
-                    "contentRequired": null
+                    "contentRequired": null,
+                    "pathUnusable": null,
+                    "installationIncomplete": null,
+                    "quitToDesktop": null
                 }
             },
             "battle": {
@@ -4252,7 +4477,17 @@
                     "fixedPositions": null,
                     "random": null,
                     "close": null,
-                    "openMapSelector": null
+                    "openMapSelector": null,
+                    "startboxOverride": null,
+                    "applyStartboxOverride": null,
+                    "unreadableStartboxOverride": null
+                },
+                "startBoxesModal": {
+                    "title": null,
+                    "mapDefault": null,
+                    "editAsRectangles": null,
+                    "cancel": null,
+                    "apply": null
                 },
                 "hostBattle": {
                     "title": null,
@@ -4261,18 +4496,48 @@
                     "hostButton": null,
                     "updateButton": null,
                     "name": null,
-                    "startBoxes1": null,
-                    "startBoxes2": null,
-                    "startBoxes3": null,
                     "allyTeamCount": null,
                     "teamsPerAllyTeam": null,
-                    "map": null
+                    "map": null,
+                    "areBossesEnabled": null,
+                    "conflictWarning": null,
+                    "useServer": null,
+                    "keepMine": null,
+                    "lobbyNameChanged": null,
+                    "mapNameChanged": null,
+                    "allyTeamConfigChanged": null
                 },
                 "votePanel": {
                     "vote": null,
                     "yes": null,
+                    "abstain": null,
+                    "cancel": null,
                     "no": null,
-                    "calledBy": null
+                    "calledBy": null,
+                    "history": null,
+                    "noHistory": null,
+                    "quorum": null,
+                    "actions": {
+                        "kickban": null,
+                        "kickOnly": null,
+                        "changeMap": null,
+                        "appointBoss": null,
+                        "start": null
+                    }
+                },
+                "activeLobbyPreview": {
+                    "openLobby": null,
+                    "battleDuration": null,
+                    "activeVote": null,
+                    "voteTimeLeft": null,
+                    "spectating": null,
+                    "queuePosition": null,
+                    "teamMember": null,
+                    "allyTeamConfig": null,
+                    "allyTeamConfigUneven": null,
+                    "playersCount": null,
+                    "lobbyBoss": null,
+                    "clickToVote": null
                 },
                 "botParticipant": {
                     "configure": null,
@@ -4305,7 +4570,8 @@
                 "spectatorsComponent": {
                     "spectators": null,
                     "memberCount": null,
-                    "join": null
+                    "join": null,
+                    "queue": null
                 },
                 "battlePreview": {
                     "preview": null,
@@ -4357,12 +4623,32 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": null,
                     "close": null
+                },
+                "rejoinBattleModal": {
+                    "title": null,
+                    "description1": null,
+                    "description2": null,
+                    "rejoinButton": null,
+                    "ignoreButton": null
+                },
+                "battleResults": {
+                    "victory": null,
+                    "defeat": null,
+                    "battleEnded": null,
+                    "draw": null,
+                    "winner": null,
+                    "team": null,
+                    "spectators": null,
+                    "inviteToParty": null,
+                    "partyFull": null,
+                    "acceptFriendRequest": null
                 }
             },
             "controls": {
                 "downloadContentButton": {
                     "downloading": null,
-                    "download": null
+                    "download": null,
+                    "verifyGameFiles": null
                 },
                 "select": {
                     "search": null
@@ -4392,6 +4678,57 @@
                     "downloadedFilter": {
                         "label": null
                     }
+                }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": null,
+                    "title": null,
+                    "blurb": null,
+                    "guidanceDescription": null,
+                    "guidanceTimestamps": null,
+                    "specCheatingNote": null,
+                    "reasonForReport": null,
+                    "whichMatch": null,
+                    "lobbyActionsHint": null,
+                    "fetchingMatches": null,
+                    "noMatch": null,
+                    "matchesFailed": null,
+                    "noMatchesFound": null,
+                    "matchTeams": null,
+                    "matchFfa": null,
+                    "matchOnMap": null,
+                    "columnMatch": null,
+                    "columnMap": null,
+                    "columnWhen": null,
+                    "columnLength": null,
+                    "matchWhen": null,
+                    "matchWhenUnknown": null,
+                    "team": null,
+                    "winner": null,
+                    "wasSpectating": null,
+                    "extraInfo": null,
+                    "sections": {
+                        "chat": null,
+                        "chatBlurb": null,
+                        "actions": null,
+                        "actionsBlurb": null
+                    },
+                    "messagePlaceholder": null,
+                    "submit": null,
+                    "submitted": null,
+                    "submittedFollowUp": null,
+                    "close": null,
+                    "continue": null,
+                    "whichMessages": null,
+                    "reportSubmitted": null,
+                    "chatHint": null,
+                    "chatReportedFrom": null,
+                    "chatLobby": null,
+                    "chatParty": null,
+                    "chatDirect": null,
+                    "noChatAvailable": null,
+                    "attachEvidence": null
                 }
             }
         }

@@ -9,65 +9,61 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view view-adjust-bottom">
-        <div class="move-right">
-            <div class="game-menu-container">
-                <div class="game-modes-grid">
-                    <Panel :no-padding="true" class="game-mode-card" @click="startSkirmish">
-                        <div class="card-content">
-                            <h2>{{ t("lobby.views.play.skirmish") }}</h2>
-                        </div>
-                    </Panel>
+    <div class="view-adjust-bottom move-right">
+        <div class="game-menu-container">
+            <div class="game-modes-grid">
+                <Panel :no-padding="true" class="game-mode-card" @click="startSkirmish">
+                    <div class="card-content">
+                        <h2>{{ t("lobby.views.play.skirmish") }}</h2>
+                    </div>
+                </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCampaign">
-                        <div class="card-content">
-                            <h2>
-                                {{ t("lobby.views.play.campaign")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
-                            </h2>
-                        </div>
-                    </Panel>
+                <Panel :no-padding="true" class="game-mode-card disabled" @click="startCampaign">
+                    <div class="card-content">
+                        <h2>
+                            {{ t("lobby.views.play.campaign")
+                            }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
+                        </h2>
+                    </div>
+                </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startMatchmaking">
-                        <div class="card-content">
-                            <h2>
-                                {{ t("lobby.views.play.matchmaking")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
-                            </h2>
-                        </div>
-                    </Panel>
+                <Panel :no-padding="true" class="game-mode-card" @click="startMatchmaking">
+                    <div class="card-content">
+                        <h2>
+                            {{ t("lobby.views.play.matchmaking") }}
+                        </h2>
+                    </div>
+                </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card" @click="openScenarios">
-                        <div class="card-content">
-                            <h2>{{ t("lobby.views.play.scenarios") }}</h2>
-                        </div>
-                    </Panel>
+                <Panel :no-padding="true" class="game-mode-card" @click="openScenarios">
+                    <div class="card-content">
+                        <h2>{{ t("lobby.views.play.scenarios") }}</h2>
+                    </div>
+                </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCustomLobbies">
-                        <div class="card-content">
-                            <h2>
-                                {{ t("lobby.views.play.customLobbies")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
-                            </h2>
-                        </div>
-                    </Panel>
+                <Panel :no-padding="true" class="game-mode-card disabled" @click="startCustomLobbies">
+                    <div class="card-content">
+                        <h2>
+                            {{ t("lobby.views.play.customLobbies")
+                            }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
+                        </h2>
+                    </div>
+                </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card disabled" @click="openTournaments">
-                        <div class="card-content">
-                            <h2>
-                                {{ t("lobby.views.play.tournaments")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
-                            </h2>
-                        </div>
-                    </Panel>
-                </div>
+                <Panel :no-padding="true" class="game-mode-card disabled" @click="openTournaments">
+                    <div class="card-content">
+                        <h2>
+                            {{ t("lobby.views.play.tournaments")
+                            }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
+                        </h2>
+                    </div>
+                </Panel>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -76,13 +72,6 @@ import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
 const router = useRouter();
-
-watch(
-    () => battleStore.isSelectingGameMode,
-    (newValue) => {
-        battleStore.isLobbyOpened = !newValue;
-    }
-);
 
 // Game mode handlers
 const startSkirmish = () => {
@@ -97,9 +86,7 @@ const startCampaign = () => {
 };
 
 const startMatchmaking = () => {
-    if (settingsStore.devMode) {
-        router.push("/play/matchmaking");
-    }
+    router.push("/play/matchmaking");
 };
 
 const startCustomLobbies = () => {

@@ -11,8 +11,14 @@ export function deepToRaw<T extends Record<string, any>>(sourceObj: T): T {
         if (Array.isArray(input)) {
             return input.map((item) => objectIterator(item));
         }
+        if (input && typeof input === "object" && typeof input.arrayBuffer === "function" && typeof input.size === "number" && typeof input.type === "string") {
+            return toRaw(input);
+        }
         if (isRef(input) || isReactive(input) || isProxy(input)) {
             return objectIterator(toRaw(input));
+        }
+        if (input instanceof Blob || Object.prototype.toString.call(input) === "[object Blob]") {
+            return input;
         }
         if (input && typeof input === "object") {
             return Object.keys(input).reduce((acc, key) => {

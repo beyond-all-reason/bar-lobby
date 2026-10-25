@@ -6,17 +6,31 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="initial-setup fullsize flex-center">
-        <template v-if="state === 'path-selection'">
+        <template v-if="state === 'language-selection'">
+            <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
+            <h4>
+                <span>
+                    <Icon :icon="language" />
+                    {{ t("lobby.navbar.settings.language") }}
+                </span>
+            </h4>
+            <div class="padding-xl">
+                <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
+            </div>
+            <Button class="green" @click="confirmLanguageSelection">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
+        </template>
+        <template v-else-if="state === 'path-selection'">
             <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
             <h4>{{ t("lobby.components.misc.initialSetup.selectAssetsPathDescription") }}</h4>
             <div class="path-selector">
                 <Textbox :model-value="selectedPath" readonly />
                 <Button @click="browseForFolder">{{ t("lobby.components.misc.initialSetup.browse") }}</Button>
             </div>
+            <h4 v-if="pathError" class="status-error">{{ pathError }}</h4>
             <Button class="green" @click="confirmPath">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
         </template>
         <template v-else>
-            <h1>{{ title }}</h1>
+            <h1>{{ t(titleKey) }}</h1>
             <h4 :class="{ 'status-error': stepError, 'status-warning': stepRetrying }">{{ text }}</h4>
             <Progress :percent="overallProgress" :height="40" style="width: 70%" themed pulsating />
             <template v-if="isDownloadPhase">
@@ -40,10 +54,13 @@ SPDX-License-Identifier: MIT
                         </div>
                     </template>
                 </div>
-                <div class="play-offline-action">
+                <div v-if="canPlayOffline" class="play-offline-action">
                     <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
                 </div>
             </template>
+            <div v-else-if="installationIncomplete" class="action-slot">
+                <Button class="red" @click="quitToDesktop">{{ t("lobby.components.misc.initialSetup.quitToDesktop") }}</Button>
+            </div>
         </template>
     </div>
 </template>
@@ -52,7 +69,7 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useTypedI18n } from "@renderer/i18n";
+import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -62,20 +79,37 @@ import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
 import { fetchMissingMapImages, initMapsStore, syncMapsMetadata } from "@renderer/store/maps.store";
 import { initReplaysStore } from "@renderer/store/replays.store";
 import { db, initDb } from "@renderer/store/db";
-import { defaultMaps } from "@main/config/default-maps";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { configStore } from "@renderer/store/config.store";
 import { initBattleStore } from "@renderer/store/battle.store";
-import { enginesStore } from "@renderer/store/engine.store";
+import { defaultEngineInstalled, installedEngineVersions } from "@renderer/store/engine.store";
 import { downloadGame, gameStore } from "@renderer/store/game.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentsStore } from "@renderer/store/contents.store";
+import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { settingsStore } from "@renderer/store/settings.store";
+import { infosStore } from "@renderer/store/infos.store";
+import { editionLogic } from "@renderer/logic/edition";
+import { autoUpdaterApi } from "@renderer/api/auto-updater";
+import { barNavigationApi } from "@renderer/api/bar-navigation";
+import { contentApi } from "@renderer/api/content";
+import { engineApi } from "@renderer/api/engine";
+import { mapsApi } from "@renderer/api/maps";
+import { pathsApi } from "@renderer/api/paths";
+import Select from "@renderer/components/controls/Select.vue";
+import { Icon } from "@iconify/vue";
+import language from "@iconify-icons/mdi/language";
+
+import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
+
+const { localeOptions } = useLocaleOptions();
+const { t } = useTypedI18n();
+
+let resolveLanguageSelection: (() => void) | undefined;
 
 const PRELOAD_WEIGHT = 0.05;
 const DOWNLOAD_FILL = 0.8;
 const AUTO_RETRY_ATTEMPTS = 3;
 const AUTO_RETRY_DELAY_MS = 2000;
-
-const { t } = useTypedI18n();
 const { allDownloads, totalDownloadPercent, progressText } = useDownloadProgress();
 
 const emit = defineEmits(["complete"]);
@@ -88,14 +122,25 @@ interface DownloadStage {
     run: () => Promise<void>;
 }
 
-const title = ref(t("lobby.components.misc.preloader.loading"));
+const titleKey = ref<TranslationKey>("lobby.components.misc.preloader.loading");
 const text = ref("");
-const state = ref<"path-selection" | "engine" | "game" | "maps" | "update">("engine");
+const state = ref<"language-selection" | "path-selection" | "engine" | "game" | "maps" | "update">("engine");
 const selectedPath = ref("");
+const pathError = ref("");
 const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
+// Verifying the game files in Steam needs the client closed, so quitting is the only way forward.
+const installationIncomplete = ref(false);
+
+// Playing offline without an engine and a game is not playing anything: every launch path needs both,
+// and nothing else in the client can fetch them once this screen has been left behind. Any installed
+// engine counts, so a player whose client just bumped its default is not held here by that alone.
+const hasEngine = () => installedEngineVersions.value.length > 0;
+const hasGame = () => gameStore.availableGameVersions.size > 0;
+const hasEngineAndGame = () => hasEngine() && hasGame();
+const canPlayOffline = computed(hasEngineAndGame);
 
 const overallProgress = ref(0);
 let stageStart = 0;
@@ -149,7 +194,15 @@ function skipCurrentStep() {
     }
 }
 
+function quitToDesktop() {
+    window.close();
+}
+
 function skipAllSteps() {
+    if (!hasEngineAndGame()) {
+        return;
+    }
+
     abortController.abort();
     if (resolveStepError) {
         stepError.value = "";
@@ -180,9 +233,9 @@ watch(isExtracting, (nowExtracting) => {
     }
 });
 
-// Surface pr-downloader retry signals (game/map) as "retrying" status text.
+// Surface a download that pr-downloader has restarted as "retrying" status text.
 watch(
-    () => downloadsStore.gameRetrying || downloadsStore.mapRetrying,
+    () => contentsStore.inFlight.some((state) => isInProgress(state) && state.attempts > 1),
     (retrying) => {
         if (stepError.value || !currentStage) return;
         if (retrying) {
@@ -206,6 +259,18 @@ onUnmounted(() => {
     if (extractionTimer) clearInterval(extractionTimer);
 });
 
+// A stage that only sometimes downloads starts out naming what it always does, and names the download
+// once one actually starts, so nobody is told something is downloading when nothing is. Each attempt
+// sets its opening label again, so a retry does not inherit the last attempt's.
+function relabelStage(stage: DownloadStage, label: string) {
+    stage.label = label;
+    if (currentStage !== stage || stepError.value) {
+        return;
+    }
+
+    text.value = stepRetrying.value ? t("lobby.components.misc.initialSetup.stepRetrying", { step: label }) : label;
+}
+
 function beginStage(start: number, end: number) {
     stageStart = start;
     stageEnd = end;
@@ -218,11 +283,12 @@ function completeStage() {
 const randomBackgroundImage = randomFromArray(Object.values(backgroundImages));
 document.documentElement.style.setProperty("--background", `url(${randomBackgroundImage})`);
 
-const preloadSteps: [string, () => Promise<unknown>][] = [
-    [t("lobby.components.misc.preloader.loadingFonts"), loadAllFonts],
-    [t("lobby.components.misc.preloader.initializingIndexDB"), initDb],
-    [t("lobby.components.misc.preloader.initializingMaps"), initMapsStore],
-    [t("lobby.components.misc.preloader.initializingReplays"), initReplaysStore],
+// Keys, not strings: these are defined before the user picks a language.
+const preloadSteps: [TranslationKey, () => Promise<unknown>][] = [
+    ["lobby.components.misc.preloader.loadingFonts", loadAllFonts],
+    ["lobby.components.misc.preloader.initializingIndexDB", initDb],
+    ["lobby.components.misc.preloader.initializingMaps", initMapsStore],
+    ["lobby.components.misc.preloader.initializingReplays", initReplaysStore],
 ];
 
 const preloadStepWeight = PRELOAD_WEIGHT / preloadSteps.length;
@@ -287,43 +353,82 @@ async function runStage(stage: DownloadStage): Promise<boolean> {
 }
 
 async function browseForFolder() {
-    const chosen = await window.paths.selectFolder();
-    if (chosen) {
-        selectedPath.value = chosen;
+    try {
+        const chosen = await pathsApi.selectFolder();
+        if (chosen) {
+            pathError.value = "";
+            selectedPath.value = chosen;
+        }
+    } catch {
+        pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
     }
 }
 
 async function confirmPath() {
-    await window.paths.changePath(selectedPath.value);
+    pathError.value = "";
+
+    try {
+        await pathsApi.changePath(selectedPath.value);
+    } catch {
+        pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
+
+        return;
+    }
+
     resolvePathConfirm?.();
+}
+function confirmLanguageSelection() {
+    resolveLanguageSelection?.();
 }
 
 onMounted(async () => {
     console.debug("Initial setup");
+    // Phase 0: Language selection
+    if (!settingsStore.language) {
+        state.value = "language-selection";
+        const detectedLanguage = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+        if (localeOptions.value.some((option) => option.value === detectedLanguage)) {
+            settingsStore.language = detectedLanguage;
+        } else {
+            settingsStore.language = "en";
+        }
+        await new Promise<void>((resolve) => {
+            resolveLanguageSelection = resolve;
+        });
+        state.value = "engine";
+    }
 
     // Phase 1: Preload (local-first; failures degrade gracefully inside each step)
-    for (const [label, thing] of preloadSteps) {
+    for (const [labelKey, thing] of preloadSteps) {
         if (abortSignal.aborted) break;
-        text.value = label;
+        text.value = t(labelKey);
         try {
             await thing();
         } catch (error) {
-            console.warn(`Preload step "${label}" failed`, error);
+            console.warn(`Preload step "${labelKey}" failed`, error);
         }
         overallProgress.value += preloadStepWeight;
     }
     audioApi.load();
-    window.barNavigation.signalReady();
+    barNavigationApi.signalReady();
     overallProgress.value = PRELOAD_WEIGHT;
 
     // Phase 2: Downloads
     isDownloadPhase.value = true;
-    title.value = t("lobby.components.misc.initialSetup.title");
+    titleKey.value = "lobby.components.misc.initialSetup.title";
 
-    const needsEngine = !enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false;
+    if (editionLogic.isInstallationIncomplete({ engine: hasEngine(), game: hasGame() })) {
+        isDownloadPhase.value = false;
+        installationIncomplete.value = true;
+        stepError.value = "incomplete";
+        text.value = t("lobby.components.misc.initialSetup.installationIncomplete");
+        return;
+    }
 
-    if (needsEngine) {
-        selectedPath.value = await window.paths.getCurrentAssetsPath();
+    const needsEngine = installedEngineVersions.value.length === 0;
+
+    if (needsEngine && infosStore.features.changeAssetsPath) {
+        selectedPath.value = await pathsApi.getCurrentAssetsPath().catch(() => "");
         state.value = "path-selection";
         await new Promise<void>((resolve) => {
             resolvePathConfirm = resolve;
@@ -331,15 +436,22 @@ onMounted(async () => {
         state.value = "engine";
     }
 
-    const stages: DownloadStage[] = [
+    const stageEnabled: Record<DownloadStage["id"], boolean> = {
+        engine: editionLogic.canAcquire("engine"),
+        game: editionLogic.canAcquire("game"),
+        maps: true,
+        update: infosStore.features.selfUpdate,
+    };
+
+    const allStages: DownloadStage[] = [
         {
             id: "engine",
             label: t("lobby.components.misc.initialSetup.downloadingEngine"),
             weight: 1,
-            canSkip: () => enginesStore.selectedEngineVersion?.installed === true,
+            canSkip: () => installedEngineVersions.value.length > 0,
             async run() {
-                if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
-                    await window.engine.downloadEngine();
+                if (!defaultEngineInstalled.value) {
+                    await engineApi.downloadEngine();
                 }
             },
         },
@@ -349,8 +461,11 @@ onMounted(async () => {
             weight: 8,
             canSkip: () => gameStore.availableGameVersions.size > 0,
             async run() {
-                await window.game.preloadPoolData();
-                await downloadGame(LATEST_GAME_VERSION);
+                if (gameStore.availableGameVersions.size > 0) {
+                    return;
+                }
+                await contentApi.preloadPool();
+                await downloadGame(configStore.latestGameVersion);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");
                 }
@@ -358,10 +473,11 @@ onMounted(async () => {
         },
         {
             id: "maps",
-            label: t("lobby.components.misc.initialSetup.downloadingMaps"),
+            label: t("lobby.components.misc.initialSetup.updatingMapList"),
             weight: 2,
             canSkip: () => true,
             async run() {
+                relabelStage(this, t("lobby.components.misc.initialSetup.updatingMapList"));
                 try {
                     await syncMapsMetadata();
                 } catch (error) {
@@ -369,7 +485,8 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
-                    await window.maps.downloadMaps(defaultMaps);
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingMaps"));
+                    await mapsApi.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
                     await fetchMissingMapImages();
@@ -380,18 +497,21 @@ onMounted(async () => {
         },
         {
             id: "update",
-            label: t("lobby.components.misc.initialSetup.downloadingUpdate"),
+            label: t("lobby.components.misc.initialSetup.checkingForUpdates"),
             weight: 1,
             canSkip: () => true,
             async run() {
-                const updateAvailable = await window.autoUpdater.checkForUpdates();
+                relabelStage(this, t("lobby.components.misc.initialSetup.checkingForUpdates"));
+                const updateAvailable = await autoUpdaterApi.checkForUpdates();
                 if (updateAvailable) {
-                    await window.autoUpdater.downloadUpdate();
-                    await window.autoUpdater.installUpdates();
+                    relabelStage(this, t("lobby.components.misc.initialSetup.downloadingUpdate"));
+                    await autoUpdaterApi.downloadUpdate();
+                    await autoUpdaterApi.installUpdates();
                 }
             },
         },
     ];
+    const stages = allStages.filter((stage) => stageEnabled[stage.id]);
 
     const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
     let cursor = PRELOAD_WEIGHT;
@@ -407,7 +527,14 @@ onMounted(async () => {
 
     overallProgress.value = 1;
 
-    await initBattleStore();
+    // Holding the user on a finished progress bar is worse than entering with a battle store that has
+    // to recover on its own, and this screen has no way back once every stage has run.
+    try {
+        await initBattleStore();
+    } catch (error) {
+        console.error("Battle store failed to initialise", error);
+    }
+
     emit("complete");
 });
 

@@ -6,8 +6,12 @@ import { app, screen, BrowserWindow } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import os from "os";
 import { STATE_PATH, getAssetsPath } from "@main/config/app";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import { Edition, EditionFeatures } from "@shared/edition";
 
 export type Info = {
+    edition: Edition;
+    features: EditionFeatures;
     statePath: string;
     assetsPath: string;
     lobby: {
@@ -31,6 +35,8 @@ function getInfo() {
     const networkInterfaces = os.networkInterfaces();
     const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
     const info: Info = {
+        edition: EDITION,
+        features: EDITION_FEATURES,
         statePath: STATE_PATH,
         assetsPath: getAssetsPath(),
         lobby: {

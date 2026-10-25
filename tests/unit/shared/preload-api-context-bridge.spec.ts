@@ -6,16 +6,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 
 import { beforeEach, describe, it, vi, expect, afterEach } from "vitest";
+import { preloadNamespaces } from "../../../eslint/layer-boundaries.mjs";
 
 type MockIpcRenderer = {
     invoke: Function;
     on: Function;
+    removeListener: Function;
 };
 
 describe("Preload API Context Bridge", () => {
-    // List of all APIs exposed in the preload script
-    const apiNames = ["log", "info", "mainWindow", "shell", "replays", "settings", "auth", "engine", "game", "maps", "downloads", "misc", "barNavigation", "tachyon", "autoUpdater", "notifications"];
-
     let mockWindow: any;
     let mockIpcRenderer: MockIpcRenderer;
     let mockExposeInMainWorld: any;
@@ -30,6 +29,7 @@ describe("Preload API Context Bridge", () => {
         mockIpcRenderer = {
             invoke: vi.fn(),
             on: vi.fn(),
+            removeListener: vi.fn(),
         };
 
         vi.doMock("electron", () => ({
@@ -40,7 +40,7 @@ describe("Preload API Context Bridge", () => {
             ipcRenderer: mockIpcRenderer,
         }));
 
-        vi.doMock("@main/content/replays/replay", () => ({ Replay: {} }));
+        vi.doMock("@main/replays/replay", () => ({ Replay: {} }));
         vi.doMock("@main/services/settings.service", () => ({ Settings: {} }));
         vi.doMock("@main/content/engine/engine-version", () => ({ EngineVersion: {} }));
         vi.doMock("@main/content/game/game-version", () => ({ GameVersion: {} }));
@@ -62,12 +62,14 @@ describe("Preload API Context Bridge", () => {
         vi.resetModules();
     });
 
-    it("should expose all APIs in the main world via contextBridge", async () => {
+    function listenersFor(channel: string) {
+        return (mockIpcRenderer.on as ReturnType<typeof vi.fn>).mock.calls.filter(([name]) => name === channel).map(([, listener]) => listener);
+    }
+
+    it("should expose exactly the namespaces the layer boundary lint checks", async () => {
         await import("@preload/preload");
 
-        for (const api of apiNames) {
-            expect(mockWindow[api]).toBeDefined();
-        }
+        expect(Object.keys(mockWindow).sort(), "preloadNamespaces in eslint/layer-boundaries.mjs").toEqual([...preloadNamespaces].sort());
     });
 
     it("should expose application logs API", async () => {
@@ -96,18 +98,18 @@ describe("Preload API Context Bridge", () => {
         await import("@preload/preload");
 
         mockWindow.mainWindow.setFullscreen(true);
-        mockWindow.mainWindow.setSize(42);
+        mockWindow.mainWindow.setSize(1920, 1080);
         mockWindow.mainWindow.flashFrame(false);
         mockWindow.mainWindow.minimize();
         mockWindow.mainWindow.isFullscreen();
-        mockWindow.mainWindow.resized();
+        mockWindow.mainWindow.setUiScale(1.25);
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setFullscreen", true);
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setSize", 42);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setSize", 1920, 1080);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:flashFrame", false);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:minimize");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:isFullscreen");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:resized");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setUiScale", 1.25);
     });
 
     it("should expose shell API", async () => {
@@ -152,18 +154,30 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:toggleFullscreen");
     });
 
+    it("should expose custom lobbies API", async () => {
+        await import("@preload/preload");
+
+        mockWindow.customLobbies.get();
+        mockWindow.customLobbies.update({ autoRefresh: true });
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("customLobbies:get");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("customLobbies:update", { autoRefresh: true });
+    });
+
     it("should expose auth API", async () => {
         await import("@preload/preload");
 
-        mockWindow.auth.login();
+        mockWindow.auth.login(false);
         mockWindow.auth.logout();
-        mockWindow.auth.wipe();
         mockWindow.auth.hasCredentials();
+        mockWindow.auth.getState();
+        mockWindow.auth.getIdentity();
 
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login", false);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:identity");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:logout");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:wipe");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:hasCredentials");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:state");
     });
 
     it("should expose engine API", async () => {
@@ -188,7 +202,6 @@ describe("Preload API Context Bridge", () => {
         mockWindow.game.getInstalledVersions();
         mockWindow.game.isVersionInstalled("v1");
         mockWindow.game.uninstallVersion("v1");
-        mockWindow.game.preloadPoolData();
         mockWindow.game.launchMultiplayer({});
         mockWindow.game.launchScript("script", "gameV", "engineV");
 
@@ -197,7 +210,6 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:getInstalledVersions");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:isVersionInstalled", "v1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:uninstallVersion", "v1");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:preloadPoolData");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchMultiplayer", {});
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchScript", "script", "gameV", "engineV");
     });
@@ -207,35 +219,31 @@ describe("Preload API Context Bridge", () => {
 
         mockWindow.maps.downloadMap("map1");
         mockWindow.maps.downloadMaps(["map1", "map2"]);
-        mockWindow.maps.getInstalledVersions();
         mockWindow.maps.isVersionInstalled("map1");
         mockWindow.maps.fetchAllMaps();
         mockWindow.maps.fetchMapImages("imgsrc");
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMap", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMaps", ["map1", "map2"]);
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:getInstalledVersions");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:isVersionInstalled", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchAllMaps");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchMapImages", "imgsrc");
     });
 
-    it("should expose downloads API event listeners", async () => {
+    it("should expose content API", async () => {
         await import("@preload/preload");
 
-        // Only test that the event listeners are functions
-        expect(typeof mockWindow.downloads.onDownloadEngineStart).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadEngineComplete).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadEngineProgress).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadEngineFail).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameStart).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameComplete).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameProgress).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameFail).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapStart).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapComplete).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapProgress).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapFail).toBe("function");
+        mockWindow.content.missing([{ type: "map", id: "Quicksilver" }]);
+        mockWindow.content.state();
+        mockWindow.content.ensure([{ type: "map", id: "Quicksilver" }]);
+        mockWindow.content.remove([{ type: "map", id: "Quicksilver" }]);
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:missing", [{ type: "map", id: "Quicksilver" }]);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:state");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:ensure", [{ type: "map", id: "Quicksilver" }]);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:remove", [{ type: "map", id: "Quicksilver" }]);
+        expect(typeof mockWindow.content.onChanged).toBe("function");
+        expect(typeof mockWindow.content.onSettled).toBe("function");
     });
 
     it("should expose misc API", async () => {
@@ -262,14 +270,84 @@ describe("Preload API Context Bridge", () => {
         mockWindow.tachyon.isConnected();
         mockWindow.tachyon.connect();
         mockWindow.tachyon.disconnect();
+        mockWindow.tachyon.dropConnection();
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:isConnected");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:connect");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:disconnect");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:dropConnection");
         expect(typeof mockWindow.tachyon.request).toBe("function");
+        expect(typeof mockWindow.tachyon.requestStructured).toBe("function");
         expect(typeof mockWindow.tachyon.onConnected).toBe("function");
         expect(typeof mockWindow.tachyon.onDisconnected).toBe("function");
         expect(typeof mockWindow.tachyon.onEvent).toBe("function");
         expect(typeof mockWindow.tachyon.onBattleStart).toBe("function");
+    });
+
+    it("should route tachyon events to the callbacks registered for that command", async () => {
+        await import("@preload/preload");
+
+        const partyUpdated = vi.fn();
+        const lobbyUpdated = vi.fn();
+        mockWindow.tachyon.onEvent("party/updated", partyUpdated);
+        mockWindow.tachyon.onEvent("lobby/updated", lobbyUpdated);
+
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, { type: "event", commandId: "party/updated", messageId: "1", data: { id: "p1" } });
+
+        expect(partyUpdated).toHaveBeenCalledWith({ id: "p1" });
+        expect(lobbyUpdated).not.toHaveBeenCalled();
+    });
+
+    it("should pass the whole event to callbacks when it carries no data", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        mockWindow.tachyon.onEvent("matchmaking/lost", callback);
+
+        const event = { type: "event", commandId: "matchmaking/lost", messageId: "1" };
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, event);
+
+        expect(callback).toHaveBeenCalledWith(event);
+    });
+
+    it("should listen for tachyon events once however many subscriptions there are", async () => {
+        await import("@preload/preload");
+
+        mockWindow.tachyon.onEvent("party/updated", vi.fn());
+        mockWindow.tachyon.onEvent("party/removed", vi.fn());
+        mockWindow.tachyon.onEvent("lobby/updated", vi.fn());
+
+        expect(listenersFor("tachyon:event")).toHaveLength(1);
+    });
+
+    it("should stop delivering a tachyon event once unsubscribed", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        const unsubscribe = mockWindow.tachyon.onEvent("party/updated", callback);
+
+        unsubscribe();
+
+        const [dispatch] = listenersFor("tachyon:event");
+        dispatch({}, { type: "event", commandId: "party/updated", messageId: "1", data: { id: "p1" } });
+
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("should hand back an unsubscribe from other event subscriptions", async () => {
+        await import("@preload/preload");
+
+        const callback = vi.fn();
+        const unsubscribe = mockWindow.mainWindow.onScaleRangeChanged(callback);
+
+        const [listener] = listenersFor("mainWindow:scaleRangeChanged");
+        listener({}, { min: 0.75, max: 2.5, os: 1 });
+
+        unsubscribe();
+
+        expect(callback).toHaveBeenCalledWith({ min: 0.75, max: 2.5, os: 1 });
+        expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith("mainWindow:scaleRangeChanged", listener);
     });
 
     it("should expose autoUpdater API", async () => {

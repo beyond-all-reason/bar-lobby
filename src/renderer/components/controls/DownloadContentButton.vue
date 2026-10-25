@@ -18,20 +18,28 @@ SPDX-License-Identifier: MIT
             >{{ t("lobby.components.controls.downloadContentButton.downloading") }}</Button
         >
         <button
-            v-else-if="ready"
+            v-else-if="ready || missing === undefined"
             class="quick-play-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
-            :disabled="disabled"
+            :disabled="disabled || !ready"
             @click="onClick"
         >
             <slot />
         </button>
         <Button
+            v-else-if="needsGameFilesVerified"
+            class="red quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            disabled
+            style="min-height: unset"
+            >{{ t("lobby.components.controls.downloadContentButton.verifyGameFiles") }}</Button
+        >
+        <Button
             v-else
             class="red quick-download-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
-            :disabled="downloadsStore.isPathChanging"
-            @click="beginDownload(maps, engines, games)"
+            :disabled="contentsStore.isPathChanging"
+            @click="beginDownload"
             style="min-height: unset"
             >{{ t("lobby.components.controls.downloadContentButton.download") }}</Button
         >
@@ -39,18 +47,16 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
-import { downloadEngine } from "@renderer/store/engine.store";
-import { downloadGame } from "@renderer/store/game.store";
-import { enginesStore } from "@renderer/store/engine.store";
-import { mapsStore } from "@renderer/store/maps.store";
-import { gameStore } from "@renderer/store/game.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentRefs, contentsStore, ensureContent, inFlightFor } from "@renderer/store/contents.store";
+import { contentApi } from "@renderer/api/content";
+import { ContentRef } from "@main/content/content-ref";
+import { editionLogic } from "@renderer/logic/edition";
+import { isInProgress } from "@main/content/content-state";
 
 const { t } = useTypedI18n();
 
@@ -58,47 +64,50 @@ export interface Props extends /* @vue-ignore */ ButtonProps {
     disabled?: boolean;
     class?: string;
     onClick?: (event: MouseEvent) => void;
-    maps?: string[];
-    engines?: string[];
-    games?: string[];
+    maps?: readonly string[];
+    engines?: readonly string[];
+    games?: readonly string[];
 }
 const { maps = [], engines = [], games = [] } = defineProps<Props>();
 
-const isDownloading = ref(false);
-
 const emit = defineEmits(["downloads-started", "downloads-complete"]);
 
-const ready = computed(() => {
-    const targetList = new Set([...maps, ...games, ...engines]);
-    if (targetList.size == 0) return true;
-    let availableContent = new Set(mapsStore.availableMapNames);
-    availableContent = availableContent.union(new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id)));
-    availableContent = availableContent.union(new Set(gameStore.availableGameVersions.keys()));
-    if (targetList.difference(availableContent).size > 0) return false;
-    else return true;
-});
+const refs = computed(() => contentRefs({ maps, engines, games }));
 
-// DownloadProgress used this to update status, but since we currently only queue individual downloads at the moment,
-// // it was flickering between each download. If we get concurrent downloads, then we can put this back in.
-// function updateDownloadStatus(value: boolean) {
-//     isDownloading.value = value;
-// }
+// Undefined until the first answer comes back. Meanwhile the play button shows but stays disabled, so the
+// button never offers to play unchecked content, nor flashes a download or verify prompt for content
+// that turns out to be installed.
+const missing = ref<ContentRef[] | undefined>(undefined);
 
-// Note; we have to await each download because we need to update pr-downloader to accept concurrent downloads
-async function beginDownload(maps?: string[], engines?: string[], games?: string[]) {
+watch(
+    [refs, () => contentsStore.revision],
+    async (_current, _previous, onCleanup) => {
+        // Answers can arrive out of the order they were asked in, and a stale one would decide whether the
+        // button offers to play.
+        let superseded = false;
+        onCleanup(() => (superseded = true));
+
+        const answer = await contentApi.missing(refs.value);
+        if (!superseded) {
+            missing.value = answer;
+        }
+    },
+    { immediate: true }
+);
+
+const ready = computed(() => missing.value?.length === 0);
+
+const needsGameFilesVerified = computed(() => !!missing.value?.some((ref) => !editionLogic.canAcquire(ref.type)));
+
+const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
+
+async function beginDownload() {
     emit("downloads-started");
-    isDownloading.value = true;
-    for (const map of maps ?? []) {
-        await downloadMap(map);
+    try {
+        await ensureContent(refs.value);
+    } finally {
+        emit("downloads-complete");
     }
-    for (const engine of engines ?? []) {
-        await downloadEngine(engine);
-    }
-    for (const game of games ?? []) {
-        await downloadGame(game);
-    }
-    emit("downloads-complete");
-    isDownloading.value = false;
 }
 </script>
 

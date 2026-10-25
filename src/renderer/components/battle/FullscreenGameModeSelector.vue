@@ -5,14 +5,9 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="fullscreen" :class="{ hidden: !battleStore.isSelectingGameMode }" @click="battleStore.isSelectingGameMode = false">
+    <div class="fullscreen" :class="{ hidden: !battleStore.isSelectingGameMode }" @click.self="closeOverlay">
         <div class="gamemode-container">
-            <GameModeSelector
-                @selected="
-                    battleStore.isSelectingGameMode = false;
-                    $emit('closed');
-                "
-            />
+            <GameModeSelector @selected="completeSelection" />
         </div>
     </div>
 </template>
@@ -20,21 +15,20 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import GameModeSelector from "@renderer/components/misc/GameModeSelector.vue";
 import { battleStore } from "@renderer/store/battle.store";
-import { ref, watch } from "vue";
 
-const props = defineProps<{
-    visible: boolean;
+const emit = defineEmits<{
+    closed: [];
 }>();
 
-defineEmits(["closed"]);
+function closeOverlay() {
+    battleStore.isSelectingGameMode = false;
+}
 
-const visible = ref(props.visible);
-watch(
-    () => props.visible,
-    (value) => {
-        visible.value = value;
-    }
-);
+function completeSelection() {
+    battleStore.isSelectingGameMode = false;
+    battleStore.isLobbyOpened = true;
+    emit("closed");
+}
 </script>
 
 <style lang="scss" scoped>

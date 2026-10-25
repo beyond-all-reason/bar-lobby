@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <Button
         class="icon download-button"
-        :style="`--downloadPercent: ${totalDownloadBytes.current < MIN_DOWNLOAD_BYTES ? 0 : (totalDownloadBytes.current / totalDownloadBytes.total) * 100}%`"
+        :style="`--downloadPercent: ${Math.round(totalDownloadPercent * 100)}%; --failedPercent: ${Math.round(failedDownloadPercent * 100)}%`"
         :class="{ pulse: isDownloading }"
     >
         <Icon :icon="download" :height="40" />
@@ -20,9 +20,9 @@ import download from "@iconify-icons/mdi/download";
 import { computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
-import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
-const { allDownloads, totalDownloadBytes } = useDownloadProgress();
+const { allDownloads, totalDownloadPercent, failedDownloadPercent } = useDownloadProgress();
 const isDownloading = computed(() => allDownloads.value.length > 0);
 </script>
 
@@ -54,6 +54,20 @@ const isDownloading = computed(() => allDownloads.value.length > 0);
     }
     &.pulse:before {
         animation: pulse 1s infinite;
+    }
+    &:after {
+        content: "";
+        position: absolute;
+        left: 1px;
+        width: calc(100% - 2px);
+        bottom: var(--downloadPercent);
+        height: var(--failedPercent);
+        z-index: -1;
+        background: linear-gradient(to top, rgba(199, 30, 30, 0.75), rgba(199, 30, 30, 0.35));
+        transform: scaleX(105%);
+        transition:
+            bottom 300ms cubic-bezier(0.23, 0.29, 0.04, 1),
+            height 300ms cubic-bezier(0.23, 0.29, 0.04, 1);
     }
 }
 

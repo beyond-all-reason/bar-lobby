@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { db } from "@renderer/store/db";
 import { reactive, readonly } from "vue";
 
@@ -23,6 +23,10 @@ export function acknowledgeReplay(fileName: string) {
 }
 
 export async function initReplaysStore() {
+    if (state.isInitialized) {
+        console.warn("Replays store is already initialized. Skipping initialization.");
+        return;
+    }
     window.replays.onReplayCached((replay: Replay) => {
         db.replays.put(replay).catch((error) => {
             console.error("Failed to store replay in database:", replay.fileName, error);

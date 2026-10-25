@@ -7,14 +7,15 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
-            <div v-if="allDownloads.length" class="downloads">
-                <TransitionGroup tag="div" name="downloads-list">
-                    <div v-for="download in limitedList" :key="download.name" class="downloads__download">
+            <div v-if="allDownloads.length || settledGroups.length" class="downloads">
+                <TransitionGroup v-if="allDownloads.length" tag="div" class="downloads__list" name="downloads-list">
+                    <div v-for="download in allDownloads" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
                         </div>
-                        <div v-if="download.phase === 'extracting'" class="downloads__extracting">
+                        <div v-if="download.queued" class="downloads__waiting">{{ t("lobby.navbar.downloads.queued") }}</div>
+                        <div v-else-if="download.phase === 'extracting'" class="downloads__extracting">
                             <Loader :absolute-position="false" />
                             <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
                         </div>
@@ -30,11 +31,33 @@ SPDX-License-Identifier: MIT
                         </template>
                     </div>
                 </TransitionGroup>
-                <Transition tag="div" name="fade" mode="out-in">
-                    <div class="flex-row flex-grow flex-center" v-if="allDownloads.length > limitedList.length">
-                        {{ t("lobby.navbar.downloads.moreDownloads", { count: allDownloads.length - limitedList.length }) }}
+                <div v-for="group in settledGroups" :key="group.outcome">
+                    <div class="downloads__heading">
+                        <span class="downloads__title">{{ group.title }}</span>
+                        <Button class="slim" @click="clearFinishedDownloads(group.outcome)">{{
+                            t("lobby.navbar.downloads.clearAll")
+                        }}</Button>
+                        <div class="downloads__collapse" @click="toggleCollapsed(group.outcome)">
+                            <Icon :icon="collapsed[group.outcome] ? chevronDown : chevronUp" :height="24" />
+                        </div>
                     </div>
-                </Transition>
+                    <!-- Pushed to in the order each one ended and shown reversed, so the newest is on top. -->
+                    <div v-show="!collapsed[group.outcome]" class="downloads__settled">
+                        <div v-for="download in group.downloads" :key="download.key" class="downloads__download">
+                            <div class="downloads__info">
+                                <div class="downloads__name">{{ download.name }}</div>
+                                <div class="downloads__type">{{ download.type }}</div>
+                            </div>
+                            <div v-if="download.outcome === 'failed'" class="downloads__outcome">
+                                <span class="downloads__failed">{{ t("lobby.navbar.downloads.failed") }}</span>
+                                <Button class="slim" @click="ensureContent([download.ref])">{{ t("lobby.navbar.downloads.retry") }}</Button>
+                            </div>
+                            <div v-else class="downloads__outcome">
+                                <span class="downloads__complete">{{ t("lobby.navbar.downloads.complete") }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
@@ -42,24 +65,43 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, Ref } from "vue";
+import { computed, inject, reactive, Ref } from "vue";
+import chevronDown from "@iconify-icons/mdi/chevron-down";
+import chevronUp from "@iconify-icons/mdi/chevron-up";
+import { Icon } from "@iconify/vue";
 
-import type { DownloadInfo } from "@main/content/downloads";
 import Loader from "@renderer/components/common/Loader.vue";
+import Button from "@renderer/components/controls/Button.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
-import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { clearFinishedDownloads, ensureContent } from "@renderer/store/contents.store";
+import { SettledOutcome } from "@main/content/content-progress";
 
 const { t } = useTypedI18n();
-const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
+const { allDownloads, completedDownloads, failedDownloads, downloadPercent, progressText } = useDownloadProgress();
 
-function barText(download: DownloadInfo): string {
+// Failures first, being the ones that still want something doing about them.
+const settledGroups = computed(() =>
+    [
+        { outcome: "failed" as const, title: t("lobby.navbar.downloads.failed"), downloads: failedDownloads.value },
+        { outcome: "complete" as const, title: t("lobby.navbar.downloads.finished"), downloads: completedDownloads.value },
+    ].filter((group) => group.downloads.length > 0)
+);
+
+const collapsed = reactive<Record<SettledOutcome, boolean>>({ complete: false, failed: false });
+
+function toggleCollapsed(outcome: SettledOutcome) {
+    collapsed[outcome] = !collapsed[outcome];
+}
+
+function barText(download: DownloadView): string {
     if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
     return `${(downloadPercent(download) * 100).toFixed(1)}%`;
 }
 
-function detailText(download: DownloadInfo): string {
+function detailText(download: DownloadView): string {
     if (download.currentBytes === 0) return "";
     return progressText(download);
 }
@@ -77,8 +119,6 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const limitedList = computed(() => allDownloads.value.slice(0, 5));
-
 toggleDownloads.value = async (open?: boolean) => {
     if (open) {
         toggleMessages.value(false);
@@ -90,15 +130,40 @@ toggleDownloads.value = async (open?: boolean) => {
 
 <style lang="scss" scoped>
 .downloads {
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
     &__info {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
+    &__heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 15px 4px;
+    }
+    &__title {
+        flex: 1;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    &__collapse {
+        display: flex;
+        cursor: pointer;
+    }
+    &__settled {
+        display: flex;
+        flex-direction: column-reverse;
+    }
     &__download {
-        height: 85px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -116,6 +181,26 @@ toggleDownloads.value = async (open?: boolean) => {
     &__detail {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.6);
+        // Empty until the first figures arrive, and a row that grows a line the moment they do drags
+        // every row under it down with it.
+        min-height: 1.2em;
+    }
+    &__outcome {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 13px;
+    }
+    &__complete {
+        color: rgba(255, 255, 255, 0.45);
+    }
+    &__failed {
+        color: rgb(239, 83, 80);
+    }
+    &__waiting {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
     }
     &__extracting {
         display: flex;

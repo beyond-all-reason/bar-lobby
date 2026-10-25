@@ -36,8 +36,17 @@ jobs:
             - name: Type check
               run: npm run typecheck
 
+            - name: Validate committed config
+              run: npm run validate-config
+
             - name: Lint check
               run: npm run lint
+
+            # The language files under src/renderer/assets are generated from lang/, and nothing else
+            # checks the two agree: a key added straight to the generated side passes types, lint and
+            # tests, then disappears the next time anyone regenerates.
+            - name: Translation assets are up to date
+              run: npm run generate-i18n-assets:check
 
             - name: Test Vite Build
               run: npm run package

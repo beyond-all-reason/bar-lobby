@@ -13,7 +13,7 @@ import * as jose from "jose";
  * and perform full authentication and authorization using only the ID token.
  *
  * The function takes the OIDC Provider issuer URL and a set of required claims on the passed
- * in ID token. It then verifies that JWT passed in according to RFC 6750 is singed by issuer
+ * in ID token. It then verifies that JWT passed in according to RFC 6750 is signed by issuer
  * keys and contains the set of required claims.
  *
  * To ensure that a valid leaked ID token for a different purpose can't be against the API, the

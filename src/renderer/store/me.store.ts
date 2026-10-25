@@ -4,10 +4,25 @@
 
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
-import { reactive, toRaw } from "vue";
-import { tachyonStore } from "@renderer/store/tachyon.store";
-import { PrivateUser } from "tachyon-protocol/types";
+import { reactive, toRaw, watch } from "vue";
+import { tachyon } from "@renderer/store/tachyon.store";
+import {
+    PrivateUser,
+    UserSelfEventData,
+    FriendRequestReceivedEventData,
+    FriendRequestAcceptedEventData,
+    FriendRequestRejectedEventData,
+    FriendRequestCancelledEventData,
+    FriendRemovedEventData,
+} from "tachyon-protocol/types";
+import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
+import { resolveLobbyServer } from "@shared/lobby-server";
 import { subsManager } from "@renderer/store/users.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
+import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
+import { battleHistoryActions } from "@renderer/store/battleHistory.store";
 
 export const me = reactive<
     Me & {
@@ -44,46 +59,67 @@ async function unsubscribeFromUsers(userIds: string[]) {
     subsManager.detach(userIds, friendsSymbol);
 }
 
-async function login() {
+// The main process owns the session. Nothing here assigns isAuthenticated
+// directly, or the UI can end up claiming a session that no longer exists.
+async function syncAuthState() {
+    const { authenticated } = await window.auth.getState();
+    me.isAuthenticated = authenticated;
+}
+
+async function login(interactive = true) {
     try {
-        await window.auth.login();
-        me.isAuthenticated = true;
-    } catch (e) {
-        console.error(e);
-        me.isAuthenticated = false;
-        throw e;
+        await window.auth.login(interactive);
+    } finally {
+        // The change event and this reply are separate channels, so read the
+        // state back rather than racing them.
+        await syncAuthState();
     }
 }
 
-function playOffline() {
-    me.isAuthenticated = false;
+// Signing in and opening the socket are separate steps, and starting offline
+// leaves the first one undone, so going online has to cover both.
+async function goOnline() {
+    if (!me.isAuthenticated) {
+        await login(false);
+    }
+
+    await tachyon.connect();
 }
 
 async function logout() {
-    subsManager.clearAllFromList(friendsSymbol);
-    window.auth.logout();
-    window.tachyon.disconnect();
-    me.isAuthenticated = false;
+    battleHistoryActions.clearBattleHistory();
+    await tachyon.goOffline();
+    await window.auth.logout();
+    await syncAuthState();
 }
 
-async function changeAccount() {
-    await window.auth.wipe();
-    me.isAuthenticated = false;
+// The same setting picks the websocket and the authorization server, so the
+// credentials we are holding were issued by the server being left and are worth
+// nothing to the one being joined. Switching ends the session rather than moving
+// the socket over, and logout is already that: it gives up wanting a connection
+// before closing one, so the drop is not taken for a fault worth retrying.
+async function serverChanged() {
+    await logout();
 }
 
-window.tachyon.onEvent("user/self", async (event) => {
-    console.debug(`Received user/self event: ${JSON.stringify(event)}`);
-    if (event && event.user) {
+// Main persists the identity off this same event and that is what gets read back
+// on startup, but db.users is still where anything looking up a user by id goes,
+// the profile view included, so our own record has to be in there too.
+// TODO tidy this up: the row is a snapshot of the whole reactive object, written
+// in two steps that aren't in one transaction, and nothing reads isMe any more.
+async function onUserSelfEvent(data: UserSelfEventData) {
+    console.debug(`Received user/self event: ${JSON.stringify(data)}`);
+    if (data && data.user) {
         await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
-        Object.assign(me, event.user);
+        Object.assign(me, data.user);
         db.users.put({
             ...toRaw(me),
             isMe: 1,
         });
 
-        await processFriendData(event.user);
+        await processFriendData(data.user);
     }
-});
+}
 
 // Process friend data and manage subscriptions
 async function processFriendData(userData: PrivateUser) {
@@ -104,38 +140,43 @@ async function processFriendData(userData: PrivateUser) {
     }
 }
 
-window.tachyon.onEvent("friend/requestReceived", async (event) => {
-    me.incomingFriendRequestUserIds.add(event.from);
-    await subscribeToUsers([event.from]);
-});
+async function onFriendRequestReceivedEvent(data: FriendRequestReceivedEventData) {
+    me.incomingFriendRequestUserIds.add(data.from);
+    await subscribeToUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/requestAccepted", async (event) => {
-    me.outgoingFriendRequestUserIds.delete(event.from);
-    me.friendUserIds.add(event.from);
-});
+async function onFriendRequestAcceptedEvent(data: FriendRequestAcceptedEventData) {
+    me.outgoingFriendRequestUserIds.delete(data.from);
+    me.friendUserIds.add(data.from);
+}
 
-window.tachyon.onEvent("friend/requestRejected", async (event) => {
-    me.outgoingFriendRequestUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRequestRejectedEvent(data: FriendRequestRejectedEventData) {
+    me.outgoingFriendRequestUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/requestCancelled", async (event) => {
-    me.incomingFriendRequestUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRequestCancelledEvent(data: FriendRequestCancelledEventData) {
+    me.incomingFriendRequestUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/removed", async (event) => {
-    me.friendUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRemovedEvent(data: FriendRemovedEventData) {
+    me.friendUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
+
+// Identity fields survive; they're persisted in db and used while offline.
+function clearOnlineState() {
+    subsManager.clearAllFromList(friendsSymbol);
+}
 
 // export const me = readonly(_me);
-export const auth = { login, playOffline, logout, changeAccount };
+export const auth = { login, goOnline, logout, clearOnlineState };
 
 // Friend methods
 export const friends = {
     async sendRequest(to: string) {
-        const response = await window.tachyon.request("friend/sendRequest", { to });
+        const response = await tachyonRequest("friend/sendRequest", { to });
         me.outgoingFriendRequestUserIds.add(to);
         await subscribeToUsers([to]);
         return response;
@@ -143,7 +184,7 @@ export const friends = {
 
     async acceptRequest(from: string) {
         try {
-            const response = await window.tachyon.request("friend/acceptRequest", { from });
+            const response = await tachyonRequest("friend/acceptRequest", { from });
             me.incomingFriendRequestUserIds.delete(from);
             me.friendUserIds.add(from);
             return response;
@@ -156,7 +197,7 @@ export const friends = {
 
     async rejectRequest(from: string) {
         try {
-            const response = await window.tachyon.request("friend/rejectRequest", { from });
+            const response = await tachyonRequest("friend/rejectRequest", { from });
             me.incomingFriendRequestUserIds.delete(from);
             await unsubscribeFromUsers([from]);
             return response;
@@ -170,7 +211,7 @@ export const friends = {
 
     async cancelRequest(to: string) {
         try {
-            const response = await window.tachyon.request("friend/cancelRequest", { to });
+            const response = await tachyonRequest("friend/cancelRequest", { to });
             me.outgoingFriendRequestUserIds.delete(to);
             await unsubscribeFromUsers([to]);
             return response;
@@ -183,56 +224,130 @@ export const friends = {
     },
 
     async remove(userId: string) {
-        const response = await window.tachyon.request("friend/remove", { userId });
-        me.friendUserIds.delete(userId);
-        await unsubscribeFromUsers([userId]);
-        return response;
+        try {
+            const response = await tachyonRequest("friend/remove", { userId });
+            me.friendUserIds.delete(userId);
+            await unsubscribeFromUsers([userId]);
+            return response;
+        } catch (error) {
+            if (!isTachyonError(error)) {
+                console.error(`Failed to remove friend with userId: ${userId}`, error);
+            }
+
+            notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
+        }
     },
 
     async fetchFriendList() {
-        const response = await window.tachyon.request("friend/list");
-        console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
+        try {
+            const response = await tachyonRequest("friend/list");
+            console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
 
-        // Clear existing friend data and populate with new data
-        me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
-        me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
-        me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
+            // Clear existing friend data and populate with new data
+            me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
+            me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
+            me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
 
-        // Get all user IDs to subscribe to
-        const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+            // Get all user IDs to subscribe to
+            const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
-        if (allUserIds.length > 0) {
-            await subscribeToUsers(allUserIds);
+            if (allUserIds.length > 0) {
+                await subscribeToUsers(allUserIds);
+            }
+            return response;
+        } catch (error) {
+            if (!isTachyonError(error)) {
+                console.error(`Failed to fetch friend list`, error);
+            }
+
+            notificationsApi.alert({ severity: "error", text: "Failed to fetch friend list." });
         }
-
-        return response;
     },
 };
 
 export async function initMeStore() {
-    await db.users
-        .where({ isMe: 1 })
-        .first()
-        .then((user) => {
-            if (user) {
-                Object.assign(me, user);
-            }
-        });
-    const hasCredentials = await window.auth.hasCredentials();
-    if (hasCredentials) {
-        try {
-            await login();
+    if (me.isInitialized) {
+        console.warn("Me store is already initialized. Skipping initialization.");
+        return;
+    }
+    // Settings and config load in parallel with this, and either arriving counts
+    // as a change. Reacting to that would sign out everyone who does not use the
+    // default server, every launch. Each store sets its data and isInitialized in
+    // the same tick, so checking the flags when the watcher fires is too late; the
+    // server only counts as known once both are in, and becoming known isn't a
+    // switch. Watching the resolved server rather than the override means clearing
+    // an override that names the default changes nothing.
+    watch(
+        () =>
+            settingsStore.isInitialized && configStore.isInitialized
+                ? resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? [])
+                : undefined,
+        (server, previous) => {
+            if (server === undefined || previous === undefined) return;
 
-            if (tachyonStore.isConnected) {
-                await friends.fetchFriendList();
-            }
-        } catch (error) {
-            // Auth renewal runs before the UI mounts, so there's no way to show
-            // a retry dialog here. Log the failure and continue — the user will
-            // see they're not logged in and can retry from the UI.
-            console.warn("Auth failed during startup, continuing offline", error);
+            void serverChanged();
         }
+    );
+
+    window.auth.onChanged(({ authenticated }) => {
+        me.isAuthenticated = authenticated;
+    });
+
+    onWentOffline.add(clearOnlineState);
+    window.tachyon.onConnected(() => {
+        // Subscriptions don't survive the socket, so rebuild them from the server's friend list
+        // rather than trusting what subsManager held before the drop.
+        if (me.isAuthenticated) {
+            friends.fetchFriendList();
+        }
+    });
+    // We need to register these listeners before we try to restore a previous session
+    window.tachyon.onEvent("user/self", onUserSelfEvent);
+    window.tachyon.onEvent("friend/requestReceived", onFriendRequestReceivedEvent);
+    window.tachyon.onEvent("friend/requestAccepted", onFriendRequestAcceptedEvent);
+    window.tachyon.onEvent("friend/requestRejected", onFriendRequestRejectedEvent);
+    window.tachyon.onEvent("friend/requestCancelled", onFriendRequestCancelledEvent);
+    window.tachyon.onEvent("friend/removed", onFriendRemovedEvent);
+    window.tachyon.onEvent("battle/ended", battleHistoryActions.recordBattleEnded);
+
+    // Last known, from whenever we were last connected. Absent on a fresh
+    // install, in which case the defaults stand in until a socket says otherwise.
+    const identity = await window.auth.getIdentity();
+    if (identity) {
+        Object.assign(me, identity);
     }
 
+    await syncAuthState();
+    await restorePreviousSession();
+
     me.isInitialized = true;
+}
+
+// Multiplayer is behind devMode, so outside it there is no session to restore.
+async function restorePreviousSession() {
+    if (!settingsStore.devMode) return;
+    if (!settingsStore.loginAutomatically) return;
+    if (!(await window.auth.hasCredentials())) return;
+
+    try {
+        // Non-interactive, because a rejected refresh token must not open a
+        // browser window while the user is still looking at the loading screen.
+        await goOnline();
+    } catch (error) {
+        // Deliberately keeps the credentials. Whatever went wrong here, only main
+        // can tell a rejected refresh token from a server that was unreachable,
+        // and it already destroys the account in the first case. Signing out from
+        // here as well threw away working credentials over a laptop that woke up
+        // before its wifi did. Signed in and not connected is a state the status
+        // menu can get you out of.
+        console.warn("Could not restore the previous session, continuing offline", error);
+
+        return;
+    }
+
+    try {
+        await friends.fetchFriendList();
+    } catch (error) {
+        console.warn("Could not fetch the friend list", error);
+    }
 }

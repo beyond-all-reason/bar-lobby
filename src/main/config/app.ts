@@ -9,6 +9,7 @@ import { app } from "electron";
 import { homedir } from "os";
 import { Type, Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -22,7 +23,7 @@ export const APP_NAME = "BeyondAllReason";
  * - Linux AppImage
  * - Linux Flatpak
  * - Windows/Linux development setup
- * - In the future Windows/Linux steam
+ * - Windows/Linux Steam (see edition.ts)
  * - Maybe in the future Windows/Linux portable distribution
  *
  * For now we try to categorize the data into 3 categories:
@@ -48,9 +49,16 @@ export const APP_NAME = "BeyondAllReason";
  * - Linux:
  *   - Assets: ~/.local/share/BeyondAllReason
  *   - State: ~/.local/state/BeyondAllReason
+ * - Steam, Windows and Linux:
+ *   - Assets: <install dir>/assets, read-only: Steam installs, patches and
+ *     verifies it, so content we download goes under the state dir instead.
+ *   - State: the same as the standalone client on that platform, so a player
+ *     moving between editions keeps their settings and replays. Maps the
+ *     standalone client downloaded stay in its assets dir, which Steam does
+ *     not read, so they have to be downloaded again.
  */
 function getDefaultLocations(): { state: string; assets: string } {
-    // We separate the developlment installation from production installation
+    // We separate the development installation from production installation
     // in the system.
     if (!app.isPackaged) {
         return {
@@ -76,7 +84,7 @@ function getDefaultLocations(): { state: string; assets: string } {
         return {
             // The `assets` prefix isn't really needed under Linux, but we add
             // it for consistency.
-            assets: path.join(xdgDataHome, APP_NAME, "assets"),
+            assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(xdgDataHome, APP_NAME, "assets"),
             state: path.join(xdgStateHome, APP_NAME),
         };
     }
@@ -102,6 +110,7 @@ export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLoca
 // locations, not only our own code.
 app.setPath("userData", STATE_PATH);
 
+console.log(`EDITION: ${EDITION}`);
 console.log(`ASSETS_PATH: ${ASSETS_PATH}`);
 console.log(`STATE_PATH: ${STATE_PATH}`);
 
@@ -128,6 +137,15 @@ export const getRapidIndexPath = () => path.join(ASSETS_PATH, "rapid");
 export const getMapsPaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
 export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
+
+/**
+ * Where content this client acquires itself lands. pr-downloader lays it out under the root the same way
+ * either way, and the engine already searches both roots.
+ */
+export const getContentWriteRoot = () => (EDITION_FEATURES.assetsReadOnly ? WRITE_DATA_PATH : ASSETS_PATH);
+
+// Map directories whose files are ours to delete.
+export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.assetsReadOnly ? [path.join(WRITE_DATA_PATH, "maps")] : getMapsPaths());
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");

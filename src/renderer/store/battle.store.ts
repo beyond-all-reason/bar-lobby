@@ -11,14 +11,12 @@ import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
-import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { eastVsWestStartBoxes, getCurrentStartBoxes as getCurrentStartBoxesFromOptions } from "@renderer/utils/battle-map-options";
 import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
-import { setupI18n } from "@renderer/i18n";
-
-const i18n = setupI18n();
+import { t, type TranslationKey } from "@renderer/i18n";
 
 let participantId = 0;
 interface BattleLobby {
@@ -37,7 +35,6 @@ export const battleStore = reactive<Battle & BattleLobby>({
     battleOptions: {
         gameMode: {
             id: GameModeID.CLASSIC,
-            label: getTranslatedGameMode(GameModeID.CLASSIC),
             options: {},
         },
         mapOptions: {
@@ -51,21 +48,17 @@ export const battleStore = reactive<Battle & BattleLobby>({
     started: false,
 });
 
+const gameModeKeys: Record<GameModeID, TranslationKey> = {
+    [GameModeID.CLASSIC]: "lobby.components.battle.gameModeComponent.gameModeClassic",
+    [GameModeID.FFA]: "lobby.components.battle.gameModeComponent.gameModeFFA",
+    [GameModeID.RAPTORS]: "lobby.components.battle.gameModeComponent.gameModeRaptors",
+    [GameModeID.SCAVENGERS]: "lobby.components.battle.gameModeComponent.gameModeScavengers",
+    [GameModeID.SKIRMISH]: "lobby.components.battle.gameModeComponent.gameModeSkirmish",
+};
+
+// Call wherever the name is displayed rather than storing the result, so it follows locale changes.
 export function getTranslatedGameMode(gameMode: GameModeID): string {
-    switch (gameMode) {
-        case GameModeID.CLASSIC:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeClassic");
-        case GameModeID.FFA:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeFFA");
-        case GameModeID.RAPTORS:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeRaptors");
-        case GameModeID.SCAVENGERS:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeScavengers");
-        case GameModeID.SKIRMISH:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeSkirmish");
-        default:
-            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeUnknown");
-    }
+    return t(gameModeKeys[gameMode] ?? "lobby.components.battle.gameModeComponent.gameModeUnknown");
 }
 
 // Automatically computing metadata for the battle
@@ -153,11 +146,11 @@ function addTeam() {
     addCustomStartBox();
 }
 
-function addBot(ai: EngineAI | GameAI, teamId: number) {
+function addBot(ai: EngineAI | GameAI, teamId: string) {
     if (!battleStore.me) throw new Error("failed to access current player");
 
     battleStore.teams[teamId].participants.push({
-        id: participantId++,
+        id: String(participantId++),
         name: ai.name,
         aiOptions: {},
         aiShortName: ai.shortName,
@@ -169,10 +162,10 @@ function removeBot(bot: Bot) {
     removeFromTeams(bot);
 }
 
-function duplicateBot(bot: Bot, teamId: number) {
+function duplicateBot(bot: Bot, teamId: string) {
     const newBot = {
         ...bot,
-        id: participantId++,
+        id: String(participantId++),
     };
     battleStore.teams[teamId].participants.push(newBot);
 }
@@ -191,7 +184,7 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
     return true;
 }
 
-function movePlayerToTeam(player: Player, teamId: number) {
+function movePlayerToTeam(player: Player, teamId: string) {
     removeFromTeams(player);
     removeFromSpectators(player);
     if (!battleStore.teams[teamId]) addTeam();
@@ -204,7 +197,7 @@ function movePlayerToSpectators(player: Player) {
     battleStore.spectators.push(player);
 }
 
-function moveBotToTeam(bot: Bot, teamId: number) {
+function moveBotToTeam(bot: Bot, teamId: string) {
     removeFromTeams(bot);
     if (!battleStore.teams[teamId]) addTeam();
     battleStore.teams[teamId].participants.push(bot);
@@ -220,7 +213,7 @@ function getNumberOfTeams(): number {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet?.[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             numberOfTeams = startBoxes.startboxes.length;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
@@ -248,7 +241,7 @@ function getMaxPlayersPerTeam() {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet?.[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
@@ -274,7 +267,7 @@ function updateTeams() {
 
     // Adjust number of teams
     if (battleStore.teams.length < numberOfTeams) {
-        for (let i = 0; i <= numberOfTeams - battleStore.teams.length; i++) addTeam();
+        while (battleStore.teams.length < numberOfTeams) battleStore.teams.push({ participants: [] });
     } else if (battleStore.teams.length > numberOfTeams) {
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) removeTeam(i);
     }
@@ -293,35 +286,11 @@ function updateTeams() {
     }
 }
 
+// Read-only: this runs inside render-time computeds, so it must never write back
+// to mapOptions. Latching the battle into custom boxes for a map with no presets
+// is the map watcher's job.
 function getCurrentStartBoxes(): Array<StartBox> {
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-    if (startBoxesIndex != undefined) {
-        if (battleStore.battleOptions.map?.startboxesSet[startBoxesIndex] != undefined) {
-            return battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-        } else {
-            // In this case the map has no startboxes at all, which will crash the client unless we set some.
-            const defaultBoxes = [
-                {
-                    top: 0,
-                    bottom: 1,
-                    left: 0,
-                    right: 0.25,
-                },
-                {
-                    top: 0,
-                    bottom: 1,
-                    left: 0.75,
-                    right: 1,
-                },
-            ];
-            // Clearing the index means we set to custom boxes, which is best since we have zero presets anyway.
-            battleStore.battleOptions.mapOptions.customStartBoxes = defaultBoxes;
-            battleStore.battleOptions.mapOptions.startBoxesIndex = undefined;
-            return defaultBoxes;
-        }
-    } else {
-        return battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>;
-    }
+    return getCurrentStartBoxesFromOptions(battleStore.battleOptions.map, battleStore.battleOptions.mapOptions);
 }
 
 function addCustomStartBox() {
@@ -351,21 +320,21 @@ function removeCustomStartBox(boxId: number) {
     if (customBoxes == undefined || customBoxes.length == 0) return;
 
     if (customBoxes[boxId]) {
-        const newBoxes = customBoxes.filter((_, index) => index !== boxId);
-        battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
+        const mapOptions = battleStore.battleOptions.mapOptions;
+        mapOptions.customStartBoxes = customBoxes.filter((_, index) => index !== boxId);
+        mapOptions.customStartBoxShapes = mapOptions.customStartBoxShapes?.filter((_, index) => index !== boxId);
     }
 }
 
 function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
     const battle: Battle = {
-        title: i18n.global.t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
+        title: t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
         isOnline: !!isOnline,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
                 id: GameModeID.CLASSIC,
-                label: getTranslatedGameMode(GameModeID.CLASSIC),
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -381,7 +350,7 @@ function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData
     };
 
     const mePlayer: Player = {
-        id: participantId++,
+        id: String(participantId++),
         user: me,
         name: me.username,
         contentSyncState: {
@@ -406,7 +375,7 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 
 async function startBattle() {
     if (!battleStore.battleOptions.engineVersion || !battleStore.battleOptions.gameVersion) {
-        notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+        notificationsApi.alert({ text: t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
         return;
     }
     await startGame(deepToRaw(_battleWithMetadataStore));
@@ -448,9 +417,19 @@ watch(
 watch(
     () => battleStore.battleOptions.map,
     () => {
-        battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
-        battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
-        if (battleStore.me) battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
+        const map = battleStore.battleOptions.map;
+        const mapOptions = battleStore.battleOptions.mapOptions;
+
+        mapOptions.startPosType = StartPosType.Boxes;
+
+        if (map && !map.startboxesSet?.length) {
+            mapOptions.customStartBoxes = eastVsWestStartBoxes();
+            mapOptions.startBoxesIndex = undefined;
+        } else {
+            mapOptions.startBoxesIndex = 0;
+        }
+
+        if (battleStore.me) battleStore.me.contentSyncState.map = map?.isInstalled ? 1 : 0;
         updateTeams();
     },
     { deep: true }
@@ -484,7 +463,7 @@ async function loadGameMode(gameMode: GameModeID) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
         if (!engineVersion) {
-            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            notificationsApi.alert({ text: t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
             return;
         }
 
@@ -492,7 +471,7 @@ async function loadGameMode(gameMode: GameModeID) {
     }
     if (!battleStore.battleOptions.gameVersion) {
         if (!gameStore.selectedGameVersion) {
-            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            notificationsApi.alert({ text: t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
             return;
         }
 
@@ -511,7 +490,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.CLASSIC,
-                    label: getTranslatedGameMode(GameModeID.CLASSIC),
                     options: {},
                 },
                 mapOptions: {
@@ -528,7 +506,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.RAPTORS,
-                    label: getTranslatedGameMode(GameModeID.RAPTORS),
                     options: {},
                 },
                 mapOptions: {
@@ -545,7 +522,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.SCAVENGERS,
-                    label: getTranslatedGameMode(GameModeID.SCAVENGERS),
                     options: {},
                 },
                 mapOptions: {
@@ -562,7 +538,6 @@ async function loadGameMode(gameMode: GameModeID) {
                 ...battleStore.battleOptions,
                 gameMode: {
                     id: GameModeID.FFA,
-                    label: getTranslatedGameMode(GameModeID.FFA),
                     options: {},
                 },
                 mapOptions: {
@@ -588,12 +563,12 @@ function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
 
     const ai = gameStore.selectedGameVersion.ais.find((ai) => ai.shortName === coopAI);
 
-    if (ai) addBot(ai, 1);
+    if (ai) addBot(ai, "1");
 
     for (const participant of battleStore.teams[1].participants) {
         if (isPlayer(participant)) {
             if (battleStore.teams[0].participants.length < getMaxPlayersPerTeam()) {
-                movePlayerToTeam(participant, 0);
+                movePlayerToTeam(participant, "0");
             } else {
                 movePlayerToSpectators(participant);
             }
@@ -601,7 +576,7 @@ function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
             if (isRaptor(participant) || isScavenger(participant)) continue;
 
             if (battleStore.teams[0].participants.length < getMaxPlayersPerTeam()) {
-                moveBotToTeam(participant, 0);
+                moveBotToTeam(participant, "0");
             } else {
                 removeBot(participant);
             }

@@ -2,6 +2,17 @@
 //
 // SPDX-License-Identifier: MIT
 
+// What is kept beside the credentials so the signed in account has a name before
+// anything has connected. Deliberately not derived from User: it is a stored
+// shape, and following changes to the live model would silently reinterpret what
+// is already on disk.
+export interface StoredIdentity {
+    userId: string;
+    username: string;
+    displayName: string;
+    countryCode: string;
+}
+
 export type User = {
     userId: string;
     username: string;
