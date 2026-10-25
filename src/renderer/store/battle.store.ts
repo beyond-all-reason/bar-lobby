@@ -177,11 +177,11 @@ function findBot(bot: Bot) {
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
     const foundBot = findBot(bot);
     if (!foundBot) {
-        return false;
+        notificationsApi.alert({ text: t("lobby.components.battle.botParticipant.optionsNotApplied"), severity: "warning" });
+        return;
     }
 
     foundBot.aiOptions = options;
-    return true;
 }
 
 function movePlayerToTeam(player: Player, teamId: string) {
