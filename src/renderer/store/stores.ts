@@ -7,7 +7,7 @@ import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";
 import { initInfosLogic } from "@renderer/logic/infos";
-import { initializeMatchmakingStore } from "@renderer/store/matchmaking.store";
+import { initMatchmakingLogic } from "@renderer/logic/matchmaking";
 import { initMeStore } from "@renderer/store/me.store";
 import { initPartyLogic } from "@renderer/logic/party";
 import { initSingleplayerLogic } from "@renderer/logic/singleplayer";
@@ -29,6 +29,6 @@ export async function initPreMountStores() {
         initContentsStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyLogic()])),
+        initTachyonStore().then(() => Promise.all([initMatchmakingLogic(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyLogic()])),
     ]);
 }

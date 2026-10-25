@@ -36,7 +36,7 @@ export const contentsStore: {
     finishedDownloads: [],
 });
 
-export function contentRefs(content: { engines?: string[]; games?: string[]; maps?: string[] }): ContentRef[] {
+export function contentRefs(content: { engines?: readonly string[]; games?: readonly string[]; maps?: readonly string[] }): ContentRef[] {
     return [
         ...(content.engines ?? []).map((id) => ({ type: "engine" as const, id })),
         ...(content.games ?? []).map((id) => ({ type: "game" as const, id })),

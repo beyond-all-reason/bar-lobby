@@ -735,7 +735,8 @@
                     "configure": "Cgnfuoire",
                     "duplicate": "Ditalpcue",
                     "kick": "Kcik",
-                    "configureBot": "Cgnfuoire Bot"
+                    "configureBot": "Cgnfuoire Bot",
+                    "optionsNotApplied": "Tihs bot was reovmed wilhe you were cngifuoirng its opniots. Your cngaehs were not aeilppd."
                 },
                 "addBotModal": {
                     "title": "Add Bot"
