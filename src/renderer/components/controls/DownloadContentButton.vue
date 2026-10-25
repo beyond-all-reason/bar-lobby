@@ -64,9 +64,9 @@ export interface Props extends /* @vue-ignore */ ButtonProps {
     disabled?: boolean;
     class?: string;
     onClick?: (event: MouseEvent) => void;
-    maps?: string[];
-    engines?: string[];
-    games?: string[];
+    maps?: readonly string[];
+    engines?: readonly string[];
+    games?: readonly string[];
 }
 const { maps = [], engines = [], games = [] } = defineProps<Props>();
 

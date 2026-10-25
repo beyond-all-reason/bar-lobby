@@ -2,11 +2,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PrivateUser, UserSelfEventData } from "tachyon-protocol/types";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
+vi.mock("@renderer/api/game", () => ({ gameApi: { onClosed: vi.fn() } }));
 vi.mock("@renderer/store/db", () => ({
     db: {
         users: {
@@ -24,85 +25,87 @@ Object.assign(window.tachyon, {
     requestStructured: vi.fn(async () => ({ status: "success", data: {} })),
 });
 
-const { MatchmakingStatus, initializeMatchmakingStore, matchmakingStore } = await import("@renderer/store/matchmaking.store");
-const { router } = await import("@renderer/router");
+const { MatchmakingStatus, matchmakingStore, matchmakingUpdates } = await import("@renderer/store/matchmaking.store");
+const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
+const { provideUi } = await import("@renderer/logic/ui");
+
+const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn() };
 
 function emitUserSelf(matchmaking: PrivateUser["matchmaking"]) {
     const data = { user: { matchmaking } as PrivateUser } satisfies UserSelfEventData;
     eventHandlers.get("user/self")?.(data);
 }
 
+const foundState = (timeoutAt: number, queueId = "1v1") => ({
+    state: "found" as const,
+    queue: { id: queueId, version: "1", timeoutAt, hasAlreadyReadied: false },
+    otherQueues: [],
+});
+
 describe("user/self matchmaking state", () => {
     beforeAll(async () => {
-        await initializeMatchmakingStore();
+        provideUi(ui);
+        await initMatchmakingLogic();
     });
 
     beforeEach(() => {
         vi.useFakeTimers();
-        matchmakingStore.status = MatchmakingStatus.Idle;
-        matchmakingStore.selectedQueue = "1v1";
-        matchmakingStore.queueTimeout = undefined;
-        matchmakingStore.readyCountdownInterval = undefined;
-        matchmakingStore.readySecondsRemaining = undefined;
-        vi.mocked(router.push).mockReset();
+        emitUserSelf({ state: "no_matchmaking" });
+        matchmakingUpdates.set({ selectedQueue: "1v1" });
+        ui.matchWaiting.mockClear();
     });
 
-    it("updates the selected queue when user/self reports queuing", async () => {
-        await emitUserSelf({ state: "queuing", queues: [{ id: "2v2", version: "1" }] });
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it("updates the selected queue when user/self reports queuing", () => {
+        emitUserSelf({ state: "queuing", queues: [{ id: "2v2", version: "1" }] });
 
         expect(matchmakingStore.status).toBe(MatchmakingStatus.Searching);
         expect(matchmakingStore.selectedQueue).toBe("2v2");
     });
 
-    it("syncs the selected queue when user/self reports a found match", async () => {
-        await emitUserSelf({
-            state: "found",
-            queue: { id: "2v2", version: "1", timeoutAt: (Date.now() + 5000) * 1000, hasAlreadyReadied: false },
-            otherQueues: [],
-        });
+    it("syncs the selected queue when user/self reports a found match", () => {
+        emitUserSelf(foundState((Date.now() + 5000) * 1000, "2v2"));
 
         expect(matchmakingStore.selectedQueue).toBe("2v2");
     });
 
-    it("opens the matchmaking view and starts the ready countdown when user/self reports found", async () => {
-        const timeoutAt = (Date.now() + 5000) * 1000;
-
-        await emitUserSelf({
-            state: "found",
-            queue: { id: "1v1", version: "1", timeoutAt, hasAlreadyReadied: false },
-            otherQueues: [],
-        });
+    it("reports the waiting match and starts the ready countdown when user/self reports found", () => {
+        emitUserSelf(foundState((Date.now() + 5000) * 1000));
 
         expect(matchmakingStore.status).toBe(MatchmakingStatus.MatchFound);
-        expect(matchmakingStore.readySecondsRemaining).toBeGreaterThan(0);
-        expect(matchmakingStore.readyCountdownInterval).toBeDefined();
-        expect(matchmakingStore.queueTimeout).toBeDefined();
-        expect(router.push).toHaveBeenCalledWith("/play/matchmaking");
+        expect(matchmakingStore.readySecondsRemaining).toBe(5);
+        expect(ui.matchWaiting).toHaveBeenCalledOnce();
     });
 
-    it("returns to idle and clears the ready countdown when user/self reports no matchmaking", async () => {
-        matchmakingStore.playersQueued = 5;
-        matchmakingStore.playersReady = 3;
+    it("counts the ready countdown down and returns to idle at the deadline", () => {
+        emitUserSelf(foundState((Date.now() + 5000) * 1000));
 
-        await emitUserSelf({
-            state: "found",
-            queue: { id: "1v1", version: "1", timeoutAt: (Date.now() + 5000) * 1000, hasAlreadyReadied: false },
-            otherQueues: [],
-        });
+        vi.advanceTimersByTime(2000);
+        expect(matchmakingStore.readySecondsRemaining).toBe(3);
 
-        await emitUserSelf({ state: "no_matchmaking" });
+        vi.advanceTimersByTime(3000);
+        expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
+        expect(matchmakingStore.readySecondsRemaining).toBeUndefined();
+    });
+
+    it("returns to idle and stops the ready countdown when user/self reports no matchmaking", () => {
+        matchmakingUpdates.set({ playersQueued: 5, playersReady: 3 });
+        emitUserSelf(foundState((Date.now() + 5000) * 1000));
+
+        emitUserSelf({ state: "no_matchmaking" });
+        vi.advanceTimersByTime(2000);
 
         expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         expect(matchmakingStore.readySecondsRemaining).toBeUndefined();
-        expect(matchmakingStore.readyCountdownInterval).toBeUndefined();
-        expect(matchmakingStore.queueTimeout).toBeUndefined();
         expect(matchmakingStore.playersQueued).toBe(0);
         expect(matchmakingStore.playersReady).toBe(0);
     });
 
     it("clears readiness but keeps the queue count when matchmaking is lost", () => {
-        matchmakingStore.playersQueued = 5;
-        matchmakingStore.playersReady = 3;
+        matchmakingUpdates.set({ playersQueued: 5, playersReady: 3 });
 
         eventHandlers.get("matchmaking/lost")?.(undefined);
 
@@ -112,8 +115,7 @@ describe("user/self matchmaking state", () => {
     });
 
     it("clears matchmaking counters when the match is cancelled", () => {
-        matchmakingStore.playersQueued = 5;
-        matchmakingStore.playersReady = 3;
+        matchmakingUpdates.set({ playersQueued: 5, playersReady: 3 });
 
         eventHandlers.get("matchmaking/cancelled")?.({ reason: "user_cancelled" });
 

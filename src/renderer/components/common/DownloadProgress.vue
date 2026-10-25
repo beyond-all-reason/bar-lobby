@@ -21,10 +21,10 @@ import { hasFailed, isInProgress } from "@main/content/content-state";
 import Progress from "@renderer/components/common/Progress.vue";
 
 interface Props {
-    maps?: string[];
+    maps?: readonly string[];
     height: number;
-    games?: string[];
-    engines?: string[];
+    games?: readonly string[];
+    engines?: readonly string[];
 }
 
 const { maps = [], height = 100, games = [], engines = [] } = defineProps<Props>();

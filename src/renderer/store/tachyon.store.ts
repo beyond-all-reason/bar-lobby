@@ -5,7 +5,6 @@
 import { me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
-import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
 import { subsManager } from "@renderer/store/users.store";
 import { UserId, PrivateUser } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
@@ -168,11 +167,6 @@ export async function initTachyonStore() {
         stopReconnecting();
         // Periodically fetch server stats
         tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
-
-        // Fetch matchmaking queues when connected
-        if (matchmakingStore.isInitialized) {
-            matchmaking.sendListRequest();
-        }
 
         onTachyonConnected.dispatch();
     });
