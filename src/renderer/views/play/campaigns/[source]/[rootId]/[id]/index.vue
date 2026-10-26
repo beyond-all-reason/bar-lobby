@@ -23,8 +23,8 @@ graph: content does not say which missions are alternatives to each other.
         </div>
         <Panel class="flex-grow">
             <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
-            <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
             <p v-else-if="singleplayerStore.content && !campaign">{{ t("lobby.singleplayer.content.notFound") }}</p>
+            <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
             <div v-if="campaign && state" class="scroll-container flex-col gap-md">
                 <p>{{ text(campaign.config.descriptionKey, campaign.language) }}</p>
                 <div v-if="compatibility !== 'compatible'" class="flex-row gap-md flex-center-items">

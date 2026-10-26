@@ -28,14 +28,15 @@ export const CampaignMission = Type.Object(
             )
         ),
         victoryUnlocks: Type.Optional(missionIds("Unlocked on victory", "Missions that become available when this mission is won.")),
-        victoryRemoves: Type.Optional(missionIds("Removed on victory", "Missions that stop being available when this mission is won.")),
+        victoryRemoves: Type.Optional(missionIds("Removed on victory", "Missions that stop being available when this mission is won, including ones not unlocked yet.")),
         failureUnlocks: Type.Optional(missionIds("Unlocked on failure", "Missions that become available when this mission is lost.")),
-        failureRemoves: Type.Optional(missionIds("Removed on failure", "Missions that stop being available when this mission is lost.")),
+        failureRemoves: Type.Optional(missionIds("Removed on failure", "Missions that stop being available when this mission is lost, including ones not unlocked yet.")),
         prerequisites: Type.Optional(missionIds("Prerequisites", "Missions that must all be won before this mission becomes available.")),
     },
     {
         title: "Campaign mission",
-        description: "How a mission unlocks and is unlocked. A mission becomes available when any mission that unlocks it is played, or when all its prerequisites are won.",
+        description:
+            "How a mission unlocks and is unlocked. A mission becomes available when any mission that unlocks it is played, or when all its prerequisites are won. Once a result removes a mission, only another result's unlock brings it back: its prerequisites don't.",
     }
 );
 

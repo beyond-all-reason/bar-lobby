@@ -57,7 +57,7 @@ export const MissionPlays = Type.Object({
 export const CampaignProgress = Type.Object({
     // Unlocked now, including won missions that are not replayable and so not offered.
     unlocked: MissionIds,
-    // Unlocked once, then taken away by a result.
+    // Taken away by a result, whether or not it was unlocked. Prerequisites never unlock these; a result's unlock can.
     removed: MissionIds,
     // Missions whose prerequisites have unlocked them. They unlock a mission once, so a later removal sticks.
     prerequisitesMet: MissionIds,

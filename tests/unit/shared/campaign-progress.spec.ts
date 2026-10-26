@@ -123,6 +123,21 @@ describe("applyResult and campaignState", () => {
         expect(evaluateCampaign(gated, [win("first"), win("second")]).available).toEqual([]);
     });
 
+    it("keeps a mission removed before its prerequisites unlock it", () => {
+        const gated: CampaignConfig = {
+            ...config,
+            missions: { first: { victoryRemoves: ["bonus"] }, bonus: { prerequisites: ["first"] }, reopen: { victoryUnlocks: ["bonus"] } },
+            startMission: ["first", "reopen"],
+            finalMission: [],
+        };
+
+        const state = evaluateCampaign(gated, [win("first")]);
+        expect(state.available).toEqual(["reopen"]);
+        expect(state.removed).toEqual(["bonus"]);
+        // A result's unlock still brings it back.
+        expect(evaluateCampaign(gated, [win("first"), win("reopen")]).available).toEqual(["bonus"]);
+    });
+
     it("lets a mission override the campaign's replayable setting", () => {
         const replayable: CampaignConfig = {
             ...config,
@@ -245,6 +260,14 @@ describe("content updates to a campaign with progress", () => {
 
         expect(campaignState(updated, pastMission02).available).toContain("bonus");
         expect(reconcileCampaign(updated, pastMission02).prerequisitesMet).toContain("bonus");
+    });
+
+    it("doesn't bring back a removed mission when an update gives it prerequisites the player has won", () => {
+        const progress = play(config, [win("mission01")]);
+        const updated: CampaignConfig = { ...config, missions: { ...config.missions, tutorial: { ...config.missions.tutorial, prerequisites: ["mission01"] } } };
+
+        expect(campaignState(updated, progress).available).not.toContain("tutorial");
+        expect(campaignState(updated, progress).removed).toEqual(["tutorial"]);
     });
 
     it("doesn't unlock a new mission added to the unlocks of a mission already won", () => {

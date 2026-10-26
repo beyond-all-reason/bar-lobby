@@ -68,6 +68,10 @@ async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, re
     if (!item) {
         throw new Error(`No ${kind} ${ref.id} in ${ref.source}/${ref.rootId}`);
     }
+    // A scenario or tutorial is one mission, and its plays are read under its own id.
+    if (item.kind !== "campaign" && result.missionId !== item.id) {
+        throw new Error(`A result for ${kind} ${item.id} names mission ${result.missionId}`);
+    }
 
     const save =
         item.kind === "campaign"

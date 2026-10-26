@@ -110,7 +110,9 @@ This means a change to a released campaign's unlock rules never rewrites progres
 When a player opens a campaign, the client fits their progress to the campaign as it is now, in two ways only:
 
 - Missions the campaign no longer has are dropped.
-- A mission whose `prerequisites` the player has already all won is unlocked. This is the way to add a mission that existing players should get.
+- A mission whose `prerequisites` the player has already all won is unlocked, unless a result has removed it. This is the way to add a mission that existing players should get.
+
+A removal sticks. A mission a result removes, whether it was unlocked yet or not, is never unlocked by its `prerequisites`. Only a later result that unlocks it brings it back.
 
 ### Ids are permanent
 

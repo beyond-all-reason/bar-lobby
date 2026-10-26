@@ -45,7 +45,7 @@
             "patternProperties": {
                 "^(.*)$": {
                     "title": "Campaign mission",
-                    "description": "How a mission unlocks and is unlocked. A mission becomes available when any mission that unlocks it is played, or when all its prerequisites are won.",
+                    "description": "How a mission unlocks and is unlocked. A mission becomes available when any mission that unlocks it is played, or when all its prerequisites are won. Once a result removes a mission, only another result's unlock brings it back: its prerequisites don't.",
                     "type": "object",
                     "properties": {
                         "settings": {
@@ -70,7 +70,7 @@
                         "victoryRemoves": {
                             "uniqueItems": true,
                             "title": "Removed on victory",
-                            "description": "Missions that stop being available when this mission is won.",
+                            "description": "Missions that stop being available when this mission is won, including ones not unlocked yet.",
                             "type": "array",
                             "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
                         },
@@ -84,7 +84,7 @@
                         "failureRemoves": {
                             "uniqueItems": true,
                             "title": "Removed on failure",
-                            "description": "Missions that stop being available when this mission is lost.",
+                            "description": "Missions that stop being available when this mission is lost, including ones not unlocked yet.",
                             "type": "array",
                             "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
                         },

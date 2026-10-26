@@ -31,7 +31,7 @@ export type CampaignState = {
     completed: string[];
     // A final mission has been won.
     finished: boolean;
-    // Missions a result took away after they had been unlocked, in the order `missions` lists them.
+    // Missions a result took away, unlocked or not, in the order `missions` lists them.
     removed: string[];
 };
 
@@ -73,18 +73,20 @@ function unlock(working: Working, id: string) {
     working.removed.delete(id);
 }
 
+// Also for a mission not unlocked yet, so prerequisites won later don't unlock it. Only an unlock from a result
+// brings it back.
 function remove(working: Working, id: string) {
-    if (working.unlocked.delete(id)) {
-        working.removed.add(id);
-    }
+    working.unlocked.delete(id);
+    working.removed.add(id);
 }
 
-// Prerequisites unlock a mission once, when the last of them is won, the same as an unlock from a result. A
-// later removal therefore sticks instead of the prerequisites putting it straight back.
+// Prerequisites unlock a mission once, when the last of them is won, and never one a result has removed. A
+// removal therefore sticks instead of the prerequisites putting it straight back, including prerequisites a
+// content update adds to a mission the player has already lost.
 function unlockByPrerequisites(config: CampaignConfig, working: Working, plays: Plays) {
     for (const [id, mission] of Object.entries(config.missions)) {
         const prerequisites = mission.prerequisites ?? [];
-        if (!working.prerequisitesMet.has(id) && prerequisites.length > 0 && prerequisites.every((p) => hasWon(plays, p))) {
+        if (!working.prerequisitesMet.has(id) && !working.removed.has(id) && prerequisites.length > 0 && prerequisites.every((p) => hasWon(plays, p))) {
             working.prerequisitesMet.add(id);
             unlock(working, id);
         }
@@ -114,8 +116,9 @@ function settled(config: CampaignConfig, working: Working, variables: Record<str
 
 /**
  * Fits saved progress to the campaign as it is now. Missions the campaign no longer has are dropped, their
- * plays kept, and a mission whose prerequisites the player has already won is unlocked, which is how a mission
- * added by an update reaches players past it. Nothing a result unlocked or removed is changed.
+ * plays kept, and a mission whose prerequisites the player has already won is unlocked unless a result removed
+ * it, which is how a mission added by an update reaches players past it. Nothing a result unlocked or removed
+ * is changed.
  */
 export function reconcileCampaign(config: CampaignConfig, progress: ItemProgress): CampaignProgress {
     const current = working(config, progress.campaign ?? newCampaignProgress(config));
@@ -143,7 +146,8 @@ function mergeVariables(variables: Readonly<Record<string, SaveVariableValue>>, 
  *
  * The play is counted and the reported variables merged: each key replaces the one before, and null deletes
  * it. Then the outcome's unlocks and removals apply, a removal winning over the result's own unlock, and any
- * mission whose prerequisites are now all won is unlocked. Throws for a mission the campaign doesn't have.
+ * mission whose prerequisites are now all won is unlocked, unless a result has removed it. Throws for a
+ * mission the campaign doesn't have.
  */
 export function applyResult(config: CampaignConfig, progress: ItemProgress, result: ReportedResult): Required<AppliedProgress> {
     const mission = Object.hasOwn(config.missions, result.missionId) ? config.missions[result.missionId] : undefined;
