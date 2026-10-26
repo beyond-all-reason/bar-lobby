@@ -23,8 +23,9 @@ export const settingsUpdates = {
     changed(values: Partial<Settings>) {
         Object.assign(state, values);
     },
-    windowStateChanged({ maximized, size }: { maximized: boolean; size: { width: number; height: number } | null }) {
+    windowStateChanged({ maximized, size, displayId }: { maximized: boolean; size: { width: number; height: number } | null; displayId?: number }) {
         state.maximized = maximized;
+        if (displayId !== undefined) state.displayId = displayId;
 
         if (!size) return;
 

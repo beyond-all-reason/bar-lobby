@@ -102,6 +102,22 @@ export function createWindow() {
         appliedSize = mainWindow.getSize().join("x");
     }
 
+    // Only the user's own moves pick the display: native Wayland reports no position, and centreOn
+    // may have used the primary display as a stand-in for an unplugged one.
+    let moved = false;
+    let placedOn: number | undefined;
+
+    function movedDisplayId() {
+        const current = screen.getDisplayMatching(mainWindow.getBounds()).id;
+        const userPicked = moved && current !== placedOn;
+        moved = false;
+        if (!userPicked) return undefined;
+
+        placedOn = undefined;
+
+        return current;
+    }
+
     // No size while fullscreen or maximised, since the remembered one is where to return to.
     function reportWindowState() {
         const maximized = mainWindow.isMaximized();
@@ -109,9 +125,13 @@ export function createWindow() {
         const settled = !maximized && !mainWindow.isFullScreen() && `${width}x${height}` !== appliedSize;
         if (settled) appliedSize = "";
 
-        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null });
+        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null, displayId: movedDisplayId() });
     }
 
+    mainWindow.on("move", () => {
+        moved = true;
+        scheduleZoomUpdate();
+    });
     mainWindow.on("resize", scheduleZoomUpdate);
     mainWindow.on("maximize", scheduleZoomUpdate);
     mainWindow.on("unmaximize", scheduleZoomUpdate);
@@ -136,6 +156,7 @@ export function createWindow() {
         mainWindow.setBounds(bounds);
         mainWindow.setBounds(bounds);
         rememberAppliedSize();
+        placedOn = display.id;
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -206,7 +227,8 @@ export function createWindow() {
     });
     ipcMain.handle("mainWindow:setDisplay", (_event, id: number) => {
         const display = screen.getAllDisplays().find((display) => display.id === id);
-        if (!display) return;
+        // Also arrives after the user drags the window there, and centring it then would yank it.
+        if (!display || screen.getDisplayMatching(mainWindow.getBounds()).id === id) return;
 
         // Fullscreen and maximised are tied to the display they were entered on.
         const wasFullScreen = mainWindow.isFullScreen();

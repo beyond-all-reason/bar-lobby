@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import type { Settings } from "@main/services/settings.service";
 
-let windowStateChanged: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void = () => {};
+let windowStateChanged: (state: { maximized: boolean; size: { width: number; height: number } | null; displayId?: number }) => void = () => {};
 
 const getSettings = vi.fn(async () => ({ fullscreen: false, maximized: false, windowWidth: 1280, windowHeight: 720, uiScale: null }) as unknown as Settings);
 const updateSettings = vi.fn(async () => ({}));
@@ -64,5 +64,17 @@ describe("initSettingsLogic", () => {
         expect(settingsStore.maximized).toBe(true);
         expect(settingsStore.windowWidth).toBe(1600);
         expect(settingsStore.windowHeight).toBe(900);
+    });
+
+    it("follows the display the window was moved to", async () => {
+        settingsLogic.update({ displayId: 1 });
+        await nextTick();
+
+        windowStateChanged({ maximized: false, size: null, displayId: 2 });
+        windowStateChanged({ maximized: false, size: null });
+        await nextTick();
+
+        expect(settingsStore.displayId).toBe(2);
+        expect(updateSettings).toHaveBeenLastCalledWith(expect.objectContaining({ displayId: 2 }));
     });
 });

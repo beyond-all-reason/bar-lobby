@@ -58,7 +58,8 @@ const mainWindowApi = {
     getDisplays: (): Promise<Array<{ index: number; id: number; primary: boolean; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
         ipcRenderer.invoke("mainWindow:getDisplays"),
     setDisplay: (id: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", id),
-    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) => subscribe("mainWindow:windowStateChanged", callback),
+    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null; displayId?: number }) => void) =>
+        subscribe("mainWindow:windowStateChanged", callback),
     onUiScaleNudged: (callback: (scale: number | null) => void) => subscribe("mainWindow:uiScaleNudged", callback),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
