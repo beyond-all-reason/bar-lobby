@@ -95,8 +95,7 @@ export function createWindow() {
         }, 100);
     }
 
-    // Electron reads a size back a few pixels off what was set, and a couple more off again as the window
-    // moves, even when nothing resized it. Saving that would creep the setting, so only a bigger change counts.
+    // Electron reads sizes back a few pixels off, even unresized, and saving that would creep the setting.
     let knownSize = [0, 0];
 
     function rememberSize() {
@@ -107,8 +106,7 @@ export function createWindow() {
         return Math.abs(width - knownSize[0]) > 2 || Math.abs(height - knownSize[1]) > 2;
     }
 
-    // Only a drag picks the display. will-move skips the lobby's own setBounds and the OS moving
-    // windows off an unplugged monitor, and isn't emitted on Linux, where Wayland reports no position.
+    // will-move fires only for drags: not our setBounds, not OS moves, and not on Linux, where Wayland hides position.
     let draggedByUser = false;
 
     function draggedToDisplayId() {
@@ -123,10 +121,10 @@ export function createWindow() {
     function reportWindowState() {
         const maximized = mainWindow.isMaximized();
         const [width, height] = mainWindow.getSize();
-        const settled = !maximized && !mainWindow.isFullScreen() && resizedByUser(width, height);
-        if (settled) knownSize = [width, height];
+        const reportSize = !maximized && !mainWindow.isFullScreen() && resizedByUser(width, height);
+        if (reportSize) knownSize = [width, height];
 
-        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null, displayId: draggedToDisplayId() });
+        webContents.send("mainWindow:windowStateChanged", { maximized, size: reportSize ? { width, height } : null, displayId: draggedToDisplayId() });
     }
 
     mainWindow.on("will-move", () => (draggedByUser = true));
@@ -251,6 +249,7 @@ export function createWindow() {
             index,
             id: display.id,
             primary: display.id === screen.getPrimaryDisplay().id,
+            current: display.id === screen.getDisplayMatching(mainWindow.getBounds()).id,
             scaleFactor: display.scaleFactor || 1,
             workArea: { width: display.workAreaSize.width, height: display.workAreaSize.height },
             // workArea has the taskbar removed, so it is the wrong shape for an aspect ratio.

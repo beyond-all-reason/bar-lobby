@@ -50,7 +50,7 @@ describe("initSettingsLogic", () => {
     });
 
     it("moves the window and saves when the display changes", async () => {
-        settingsLogic.update({ displayId: 2779098405 });
+        settingsLogic.setDisplay(2779098405);
         await nextTick();
 
         expect(setDisplay).toHaveBeenCalledWith(2779098405);
@@ -67,7 +67,7 @@ describe("initSettingsLogic", () => {
     });
 
     it("follows the display the window was dragged to, without moving it again", async () => {
-        settingsLogic.update({ displayId: 1 });
+        settingsLogic.setDisplay(1);
         await nextTick();
         setDisplay.mockClear();
 

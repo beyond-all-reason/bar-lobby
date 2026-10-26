@@ -261,10 +261,8 @@ const tooltipMessage = ref("");
 
 const displays = asyncComputed(() => mainWindowApi.getDisplays(), []);
 
-// Main opens the window on the primary display until one is picked, or when the picked one is gone.
-const targetDisplay = computed(
-    () => displays.value.find((d) => d.id === settingsStore.displayId) ?? displays.value.find((d) => d.primary) ?? displays.value[0]
-);
+// Where the window is, not the saved display, since a keyboard move or any move on Linux isn't saved.
+const targetDisplay = computed(() => displays.value.find((d) => d.current) ?? displays.value.find((d) => d.primary) ?? displays.value[0]);
 
 const sizeKey = (width: number, height: number) => `${width}x${height}`;
 
@@ -330,7 +328,7 @@ const displayMode = computed<string>({
 
 const selectedDisplay = computed<number | undefined>({
     get: () => targetDisplay.value?.id,
-    set: (displayId) => settingsLogic.update({ displayId }),
+    set: (displayId) => displayId !== undefined && settingsLogic.setDisplay(displayId),
 });
 
 const scaleRange = ref({ min: 1, max: 1, os: 1 });

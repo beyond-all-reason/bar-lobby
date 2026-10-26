@@ -98,7 +98,15 @@ export type IPCCommands = {
     "mainWindow:setSize": (width: number, height: number) => void;
     "mainWindow:setUiScale": (scale: number | null) => void;
     "mainWindow:getScaleRange": () => { min: number; max: number; os: number };
-    "mainWindow:getDisplays": () => Array<{ index: number; id: number; primary: boolean; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>;
+    "mainWindow:getDisplays": () => Array<{
+        index: number;
+        id: number;
+        primary: boolean;
+        current: boolean;
+        scaleFactor: number;
+        workArea: { width: number; height: number };
+        size: { width: number; height: number };
+    }>;
     "mainWindow:setDisplay": (id: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;

@@ -61,11 +61,14 @@ export async function initSettingsLogic() {
     settingsUpdates.initialized();
 }
 
-// The display isn't watched like the rest: main also reports the display the user dragged the
-// window to, and sending that back would re-centre the window mid-drag.
 function update(values: Partial<Settings>) {
     settingsUpdates.changed(values);
-    if (values.displayId !== undefined) mainWindowApi.setDisplay(values.displayId);
 }
 
-export const settingsLogic = { update };
+// Not watched like the other window settings, since main also reports the display it was dragged to.
+function setDisplay(displayId: number) {
+    settingsUpdates.changed({ displayId });
+    mainWindowApi.setDisplay(displayId);
+}
+
+export const settingsLogic = { update, setDisplay };
