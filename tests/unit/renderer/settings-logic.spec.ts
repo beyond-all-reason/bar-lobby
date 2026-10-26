@@ -66,9 +66,10 @@ describe("initSettingsLogic", () => {
         expect(settingsStore.windowHeight).toBe(900);
     });
 
-    it("follows the display the window was moved to", async () => {
+    it("follows the display the window was dragged to, without moving it again", async () => {
         settingsLogic.update({ displayId: 1 });
         await nextTick();
+        setDisplay.mockClear();
 
         windowStateChanged({ maximized: false, size: null, displayId: 2 });
         windowStateChanged({ maximized: false, size: null });
@@ -76,5 +77,6 @@ describe("initSettingsLogic", () => {
 
         expect(settingsStore.displayId).toBe(2);
         expect(updateSettings).toHaveBeenLastCalledWith(expect.objectContaining({ displayId: 2 }));
+        expect(setDisplay).not.toHaveBeenCalled();
     });
 });

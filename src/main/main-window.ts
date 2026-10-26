@@ -102,20 +102,16 @@ export function createWindow() {
         appliedSize = mainWindow.getSize().join("x");
     }
 
-    // Only the user's own moves pick the display: native Wayland reports no position, and centreOn
-    // may have used the primary display as a stand-in for an unplugged one.
-    let moved = false;
-    let placedOn: number | undefined;
+    // Only a drag picks the display. will-move skips the lobby's own setBounds and the OS moving
+    // windows off an unplugged monitor, and isn't emitted on Linux, where Wayland reports no position.
+    let draggedByUser = false;
 
-    function movedDisplayId() {
-        const current = screen.getDisplayMatching(mainWindow.getBounds()).id;
-        const userPicked = moved && current !== placedOn;
-        moved = false;
-        if (!userPicked) return undefined;
+    function draggedToDisplayId() {
+        if (!draggedByUser) return undefined;
 
-        placedOn = undefined;
+        draggedByUser = false;
 
-        return current;
+        return screen.getDisplayMatching(mainWindow.getBounds()).id;
     }
 
     // No size while fullscreen or maximised, since the remembered one is where to return to.
@@ -125,13 +121,11 @@ export function createWindow() {
         const settled = !maximized && !mainWindow.isFullScreen() && `${width}x${height}` !== appliedSize;
         if (settled) appliedSize = "";
 
-        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null, displayId: movedDisplayId() });
+        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null, displayId: draggedToDisplayId() });
     }
 
-    mainWindow.on("move", () => {
-        moved = true;
-        scheduleZoomUpdate();
-    });
+    mainWindow.on("will-move", () => (draggedByUser = true));
+    mainWindow.on("move", scheduleZoomUpdate);
     mainWindow.on("resize", scheduleZoomUpdate);
     mainWindow.on("maximize", scheduleZoomUpdate);
     mainWindow.on("unmaximize", scheduleZoomUpdate);
@@ -145,18 +139,18 @@ export function createWindow() {
         const width = Math.max(windowWidth, MIN_WINDOW_SIZE.width);
         const height = Math.max(windowHeight, MIN_WINDOW_SIZE.height);
         const { workArea } = display;
+        // A size bigger than the display still keeps its top left on screen, where the frameless window's navbar and drag area are.
         const bounds = {
             width,
             height,
-            x: Math.round(workArea.x + (workArea.width - width) / 2),
-            y: Math.round(workArea.y + (workArea.height - height) / 2),
+            x: Math.max(workArea.x, Math.round(workArea.x + (workArea.width - width) / 2)),
+            y: Math.max(workArea.y, Math.round(workArea.y + (workArea.height - height) / 2)),
         };
 
         // Windows rescales a window that lands on a monitor with a different scale, so the size is applied again once it is there.
         mainWindow.setBounds(bounds);
         mainWindow.setBounds(bounds);
         rememberAppliedSize();
-        placedOn = display.id;
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -227,8 +221,7 @@ export function createWindow() {
     });
     ipcMain.handle("mainWindow:setDisplay", (_event, id: number) => {
         const display = screen.getAllDisplays().find((display) => display.id === id);
-        // Also arrives after the user drags the window there, and centring it then would yank it.
-        if (!display || screen.getDisplayMatching(mainWindow.getBounds()).id === id) return;
+        if (!display) return;
 
         // Fullscreen and maximised are tied to the display they were entered on.
         const wasFullScreen = mainWindow.isFullScreen();

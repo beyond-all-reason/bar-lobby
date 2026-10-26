@@ -11,6 +11,7 @@ import { toRaw, watch } from "vue";
 export async function initSettingsLogic() {
     if (settingsStore.isInitialized) {
         console.warn("Settings store is already initialized, skipping initialization.");
+
         return;
     }
 
@@ -49,14 +50,6 @@ export async function initSettingsLogic() {
             mainWindowApi.setUiScale(settingsStore.uiScale);
         }
     );
-    watch(
-        () => settingsStore.displayId,
-        (displayId) => {
-            if (displayId === undefined) return;
-
-            mainWindowApi.setDisplay(displayId);
-        }
-    );
 
     // The zoom shortcuts work the new scale out in main and leave the storing to here.
     mainWindowApi.onUiScaleNudged((uiScale) => settingsUpdates.changed({ uiScale }));
@@ -68,8 +61,11 @@ export async function initSettingsLogic() {
     settingsUpdates.initialized();
 }
 
+// The display isn't watched like the rest: main also reports the display the user dragged the
+// window to, and sending that back would re-centre the window mid-drag.
 function update(values: Partial<Settings>) {
     settingsUpdates.changed(values);
+    if (values.displayId !== undefined) mainWindowApi.setDisplay(values.displayId);
 }
 
 export const settingsLogic = { update };
