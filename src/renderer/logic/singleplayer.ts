@@ -38,15 +38,24 @@ function messageOf(error: unknown) {
     return error instanceof Error ? error.message : String(error);
 }
 
+// Counts content loads, so only the latest one started sets the store's content; an earlier one that
+// finishes after it would otherwise put back older content.
+let latestLoad = 0;
+
 // Rescans the content roots, so content added since the last load shows up. Saves are read the first time
 // only: main writes every change to them, and the store already has each one it returned.
 async function loadContent() {
+    const load = ++latestLoad;
     singleplayerUpdates.loading();
     try {
         const [content] = await Promise.all([singleplayerApi.list(), singleplayerStore.savesLoaded ? undefined : loadSaves()]);
-        singleplayerUpdates.loaded(content);
+        if (load === latestLoad) {
+            singleplayerUpdates.loaded(content);
+        }
     } catch (error) {
-        singleplayerUpdates.failed(messageOf(error));
+        if (load === latestLoad) {
+            singleplayerUpdates.failed(messageOf(error));
+        }
     }
 }
 

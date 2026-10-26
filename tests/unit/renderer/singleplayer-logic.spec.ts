@@ -117,6 +117,38 @@ describe("singleplayer logic", () => {
             expect(singleplayerStore.savesLoaded).toBe(true);
         });
 
+        it("keeps the latest scan when an earlier one finishes after it", async () => {
+            const [older, newer] = [content([makeTutorial("older")]), content([makeTutorial("newer")])];
+            let answerOlder!: (scanned: SingleplayerContent) => void;
+            let answerNewer!: (scanned: SingleplayerContent) => void;
+            api.list.mockReturnValueOnce(new Promise((resolve) => (answerOlder = resolve))).mockReturnValueOnce(new Promise((resolve) => (answerNewer = resolve)));
+
+            const first = singleplayerLogic.loadContent();
+            const second = singleplayerLogic.loadContent();
+            answerOlder(older);
+            await first;
+            expect(singleplayerStore.isLoading).toBe(true);
+
+            answerNewer(newer);
+            await second;
+            expect(singleplayerStore.content).toEqual(newer);
+            expect(singleplayerStore.isLoading).toBe(false);
+        });
+
+        it("ignores an earlier scan failing after a later one succeeded", async () => {
+            const scanned = content([]);
+            let failOlder!: (error: Error) => void;
+            api.list.mockReturnValueOnce(new Promise((_, reject) => (failOlder = reject))).mockResolvedValueOnce(scanned);
+
+            const first = singleplayerLogic.loadContent();
+            await singleplayerLogic.loadContent();
+            failOlder(new Error("singleplayer:list failed: boom"));
+            await first;
+
+            expect(singleplayerStore.content).toEqual(scanned);
+            expect(singleplayerStore.loadError).toBeUndefined();
+        });
+
         it("keeps results recorded before a rescan", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
 
