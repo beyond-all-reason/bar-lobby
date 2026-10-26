@@ -133,6 +133,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
+import { mainWindowApi } from "@renderer/api/main-window";
 import { settingsStore } from "@renderer/store/settings.store";
 import {
     MIN_WINDOW_SIZE,
@@ -236,7 +237,7 @@ async function applyPathChange() {
 const op = ref();
 const tooltipMessage = ref("");
 
-const displays = asyncComputed(() => window.mainWindow.getDisplays(), []);
+const displays = asyncComputed(() => mainWindowApi.getDisplays(), []);
 
 const targetDisplay = computed(() => displays.value.find((d) => d.index === settingsStore.displayIndex) ?? displays.value[0]);
 
@@ -307,9 +308,9 @@ const selectedDisplay = computed<number>({
 const scaleRange = ref({ min: 1, max: 1, os: 1 });
 
 onMounted(async () => {
-    scaleRange.value = await window.mainWindow.getScaleRange();
+    scaleRange.value = await mainWindowApi.getScaleRange();
     // The achievable range moves with the window, so the control has to follow it.
-    window.mainWindow.onScaleRangeChanged((range) => (scaleRange.value = range));
+    mainWindowApi.onScaleRangeChanged((range) => (scaleRange.value = range));
 });
 
 // Null means the user has never set one, and the OS scale is what to start them at.
