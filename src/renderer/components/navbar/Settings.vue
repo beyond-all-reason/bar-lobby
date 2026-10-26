@@ -261,7 +261,10 @@ const tooltipMessage = ref("");
 
 const displays = asyncComputed(() => mainWindowApi.getDisplays(), []);
 
-const targetDisplay = computed(() => displays.value.find((d) => d.index === settingsStore.displayIndex) ?? displays.value[0]);
+// Main opens the window on the primary display until one is picked, or when the picked one is gone.
+const targetDisplay = computed(
+    () => displays.value.find((d) => d.id === settingsStore.displayId) ?? displays.value.find((d) => d.primary) ?? displays.value[0]
+);
 
 const sizeKey = (width: number, height: number) => `${width}x${height}`;
 
@@ -316,6 +319,7 @@ const displayMode = computed<string>({
         const maximized = value === "maximized";
         if (fullscreen || maximized) {
             settingsLogic.update({ fullscreen, maximized });
+
             return;
         }
 
@@ -324,17 +328,19 @@ const displayMode = computed<string>({
     },
 });
 
-const selectedDisplay = computed<number>({
-    get: () => settingsStore.displayIndex,
-    set: (displayIndex) => settingsLogic.update({ displayIndex }),
+const selectedDisplay = computed<number | undefined>({
+    get: () => targetDisplay.value?.id,
+    set: (displayId) => settingsLogic.update({ displayId }),
 });
 
 const scaleRange = ref({ min: 1, max: 1, os: 1 });
 
+// The achievable range moves with the window, so the control has to follow it.
+const stopFollowingScaleRange = mainWindowApi.onScaleRangeChanged((range) => (scaleRange.value = range));
+onUnmounted(stopFollowingScaleRange);
+
 onMounted(async () => {
     scaleRange.value = await mainWindowApi.getScaleRange();
-    // The achievable range moves with the window, so the control has to follow it.
-    mainWindowApi.onScaleRangeChanged((range) => (scaleRange.value = range));
 });
 
 // Null means the user has never set one, and the OS scale is what to start them at.
@@ -355,7 +361,7 @@ function commitScalePercent(value: number | number[]) {
 
 // Same source as the move and the size list, so a detached monitor cannot be offered.
 const displayOptions = computed(() =>
-    displays.value.map(({ index }) => ({ label: t("lobby.navbar.settings.labelDisplay", { id: index + 1 }), value: index }))
+    displays.value.map(({ index, id }) => ({ label: t("lobby.navbar.settings.labelDisplay", { id: index + 1 }), value: id }))
 );
 
 async function uploadLogsCommand(event) {

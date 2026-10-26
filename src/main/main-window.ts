@@ -134,7 +134,7 @@ export function createWindow() {
             log.debug(`NODE_ENV is development, opening dev tools`);
             webContents.openDevTools();
         }
-        centreOn(screen.getAllDisplays()[settings.displayIndex] ?? screen.getPrimaryDisplay());
+        centreOn(screen.getAllDisplays().find((display) => display.id === settings.displayId) ?? screen.getPrimaryDisplay());
         // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
         if (settings.fullscreen) {
             mainWindow.setFullScreen(true);
@@ -191,8 +191,8 @@ export function createWindow() {
         mainWindow.center();
         updateZoom();
     });
-    ipcMain.handle("mainWindow:setDisplay", (_event, index: number) => {
-        const display = screen.getAllDisplays()[index];
+    ipcMain.handle("mainWindow:setDisplay", (_event, id: number) => {
+        const display = screen.getAllDisplays().find((display) => display.id === id);
         if (!display) return;
 
         // Fullscreen and maximised are tied to the display they were entered on.
@@ -216,6 +216,8 @@ export function createWindow() {
     ipcMain.handle("mainWindow:getDisplays", () =>
         screen.getAllDisplays().map((display, index) => ({
             index,
+            id: display.id,
+            primary: display.id === screen.getPrimaryDisplay().id,
             scaleFactor: display.scaleFactor || 1,
             workArea: { width: display.workAreaSize.width, height: display.workAreaSize.height },
             // workArea has the taskbar removed, so it is the wrong shape for an aspect ratio.

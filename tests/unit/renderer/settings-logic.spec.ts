@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import type { Settings } from "@main/services/settings.service";
 
 let windowStateChanged: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void = () => {};
 
-const getSettings = vi.fn(async () => ({ fullscreen: false, maximized: false, windowWidth: 1280, windowHeight: 720, displayIndex: 0, uiScale: null }) as unknown as Settings);
+const getSettings = vi.fn(async () => ({ fullscreen: false, maximized: false, windowWidth: 1280, windowHeight: 720, displayId: null, uiScale: null }) as unknown as Settings);
 const updateSettings = vi.fn(async () => ({}));
 const setDisplay = vi.fn(async () => {});
 const onWindowStateChanged = vi.fn((handler: typeof windowStateChanged) => {
@@ -37,8 +37,11 @@ const { initSettingsLogic, settingsLogic } = await import("@renderer/logic/setti
 const { settingsStore } = await import("@renderer/store/settings.store");
 
 describe("initSettingsLogic", () => {
-    it("loads settings from main once", async () => {
+    beforeAll(async () => {
         await initSettingsLogic();
+    });
+
+    it("loads settings from main once", async () => {
         await initSettingsLogic();
 
         expect(getSettings).toHaveBeenCalledOnce();
@@ -47,11 +50,11 @@ describe("initSettingsLogic", () => {
     });
 
     it("moves the window and saves when the display changes", async () => {
-        settingsLogic.update({ displayIndex: 1 });
+        settingsLogic.update({ displayId: 2779098405 });
         await nextTick();
 
-        expect(setDisplay).toHaveBeenCalledWith(1);
-        expect(updateSettings).toHaveBeenLastCalledWith(expect.objectContaining({ displayIndex: 1 }));
+        expect(setDisplay).toHaveBeenCalledWith(2779098405);
+        expect(updateSettings).toHaveBeenLastCalledWith(expect.objectContaining({ displayId: 2779098405 }));
     });
 
     it("follows the window's own size, but not while it is maximised", async () => {

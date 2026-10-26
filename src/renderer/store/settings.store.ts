@@ -25,6 +25,7 @@ export const settingsUpdates = {
     },
     windowStateChanged({ maximized, size }: { maximized: boolean; size: { width: number; height: number } | null }) {
         state.maximized = maximized;
+
         if (!size) return;
 
         state.windowWidth = size.width;

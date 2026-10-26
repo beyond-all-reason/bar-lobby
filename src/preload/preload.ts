@@ -55,9 +55,9 @@ const mainWindowApi = {
     setUiScale: (scale: number | null): Promise<void> => ipcRenderer.invoke("mainWindow:setUiScale", scale),
     getScaleRange: (): Promise<{ min: number; max: number; os: number }> => ipcRenderer.invoke("mainWindow:getScaleRange"),
     onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => subscribe("mainWindow:scaleRangeChanged", callback),
-    getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
+    getDisplays: (): Promise<Array<{ index: number; id: number; primary: boolean; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
         ipcRenderer.invoke("mainWindow:getDisplays"),
-    setDisplay: (index: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", index),
+    setDisplay: (id: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", id),
     onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) => subscribe("mainWindow:windowStateChanged", callback),
     onUiScaleNudged: (callback: (scale: number | null) => void) => subscribe("mainWindow:uiScaleNudged", callback),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),

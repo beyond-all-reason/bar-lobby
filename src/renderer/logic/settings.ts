@@ -50,9 +50,11 @@ export async function initSettingsLogic() {
         }
     );
     watch(
-        () => settingsStore.displayIndex,
-        () => {
-            mainWindowApi.setDisplay(settingsStore.displayIndex);
+        () => settingsStore.displayId,
+        (displayId) => {
+            if (displayId === null) return;
+
+            mainWindowApi.setDisplay(displayId);
         }
     );
 

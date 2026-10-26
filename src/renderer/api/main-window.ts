@@ -10,7 +10,7 @@ export const mainWindowApi = {
     setMaximized: (flag: boolean) => ipcCall("mainWindow:setMaximized", () => window.mainWindow.setMaximized(flag)),
     setSize: (width: number, height: number) => ipcCall("mainWindow:setSize", () => window.mainWindow.setSize(width, height)),
     setUiScale: (scale: number | null) => ipcCall("mainWindow:setUiScale", () => window.mainWindow.setUiScale(scale)),
-    setDisplay: (index: number) => ipcCall("mainWindow:setDisplay", () => window.mainWindow.setDisplay(index)),
+    setDisplay: (id: number) => ipcCall("mainWindow:setDisplay", () => window.mainWindow.setDisplay(id)),
     minimize: () => ipcCall("mainWindow:minimize", () => window.mainWindow.minimize()),
     getDisplays: () => ipcCall("mainWindow:getDisplays", () => window.mainWindow.getDisplays()),
     getScaleRange: () => ipcCall("mainWindow:getScaleRange", () => window.mainWindow.getScaleRange()),
