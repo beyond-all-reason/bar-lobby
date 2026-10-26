@@ -99,7 +99,6 @@ contextBridge.exposeInMainWorld("replays", replaysApi);
 const settingsApi = {
     getSettings: (): Promise<Settings> => ipcRenderer.invoke("settings:get"),
     updateSettings: (settings: Partial<Settings>): Promise<Partial<Settings>> => ipcRenderer.invoke("settings:update", settings),
-    toggleFullscreen: (): Promise<void> => ipcRenderer.invoke("settings:toggleFullscreen"),
 };
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);

@@ -147,11 +147,9 @@ describe("Preload API Context Bridge", () => {
 
         mockWindow.settings.getSettings();
         mockWindow.settings.updateSettings({ foo: "bar" });
-        mockWindow.settings.toggleFullscreen();
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:get");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:update", { foo: "bar" });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("settings:toggleFullscreen");
     });
 
     it("should expose custom lobbies API", async () => {

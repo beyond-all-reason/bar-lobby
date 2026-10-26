@@ -124,6 +124,8 @@ import Exit from "@renderer/components/navbar/Exit.vue";
 import Friends from "@renderer/components/navbar/Friends.vue";
 import Messages from "@renderer/components/navbar/Messages.vue";
 import { useRouter } from "vue-router";
+import { mainWindowApi } from "@renderer/api/main-window";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
@@ -172,11 +174,11 @@ function handleFriendsClick() {
 const messagesUnread = computed(() => [...chatStore.userChats.values()].some((m) => m.at(-1)?.seen === false));
 
 function minimizeWindow() {
-    window.mainWindow?.minimize();
+    mainWindowApi.minimize();
 }
 
 function toggleFullscreen() {
-    settingsStore.fullscreen = !settingsStore.fullscreen;
+    settingsLogic.update({ fullscreen: !settingsStore.fullscreen });
 }
 
 function onLogoClick() {

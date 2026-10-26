@@ -10,10 +10,14 @@ vi.mock("@renderer/store/db", () => ({
     db: { users: { where: () => ({ first: async () => undefined, modify: async () => undefined }), put: vi.fn() } },
 }));
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
-// The real store is readonly, and these tests need to say when config arrives.
+// The real stores are readonly, and these tests need to say when config and settings arrive.
 vi.mock("@renderer/store/config.store", async () => {
     const { reactive } = await import("vue");
     return { configStore: reactive({ isInitialized: false, defaultServers: [] as string[] }) };
+});
+vi.mock("@renderer/store/settings.store", async () => {
+    const { reactive } = await import("vue");
+    return { settingsStore: reactive({ isInitialized: false, useDefaultServer: false, lobbyServerOverride: "", loginAutomatically: false, devMode: false }) };
 });
 
 const DEFAULT_SERVER = "wss://server4.beyondallreason.info";
@@ -39,7 +43,7 @@ Object.defineProperty(window, "auth", {
 });
 
 const { me, initMeStore } = await import("@renderer/store/me.store");
-const { settingsStore } = await import("@renderer/store/settings.store");
+const settingsStore = (await import("@renderer/store/settings.store")).settingsStore as { isInitialized: boolean; useDefaultServer: boolean; lobbyServerOverride: string };
 const { tachyonStore } = await import("@renderer/store/tachyon.store");
 const configStore = (await import("@renderer/store/config.store")).configStore as { isInitialized: boolean; defaultServers: readonly string[] };
 

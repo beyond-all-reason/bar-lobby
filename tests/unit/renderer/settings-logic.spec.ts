@@ -33,7 +33,7 @@ vi.stubGlobal(
     })
 );
 
-const { initSettingsLogic } = await import("@renderer/logic/settings");
+const { initSettingsLogic, settingsLogic } = await import("@renderer/logic/settings");
 const { settingsStore } = await import("@renderer/store/settings.store");
 
 describe("initSettingsLogic", () => {
@@ -47,7 +47,7 @@ describe("initSettingsLogic", () => {
     });
 
     it("moves the window and saves when the display changes", async () => {
-        settingsStore.displayIndex = 1;
+        settingsLogic.update({ displayIndex: 1 });
         await nextTick();
 
         expect(setDisplay).toHaveBeenCalledWith(1);

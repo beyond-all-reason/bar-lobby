@@ -54,6 +54,7 @@ import Select from "@renderer/components/controls/Select.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import OverlayPanel from "primevue/overlaypanel";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { configStore } from "@renderer/store/config.store";
 import Textbox from "@renderer/components/controls/Textbox.vue";
@@ -80,17 +81,15 @@ const useDefaultServer = computed({
     get: () => settingsStore.useDefaultServer,
     set: (value: boolean) => {
         // Start the override from the server already in use, so unticking moves nothing
-        if (!value && !settingsStore.lobbyServerOverride) {
-            settingsStore.lobbyServerOverride = defaultServers[0];
-        }
-        settingsStore.useDefaultServer = value;
+        const lobbyServerOverride = !value && !settingsStore.lobbyServerOverride ? defaultServers[0] : settingsStore.lobbyServerOverride;
+        settingsLogic.update({ useDefaultServer: value, lobbyServerOverride });
     },
 });
 
 const selectedServer = computed({
     get: () => (settingsStore.useDefaultServer ? defaultServers[0] : settingsStore.lobbyServerOverride || defaultServers[0]),
-    set: (value: string) => {
-        settingsStore.lobbyServerOverride = value;
+    set: (lobbyServerOverride: string) => {
+        settingsLogic.update({ lobbyServerOverride });
     },
 });
 
@@ -114,18 +113,20 @@ function addServerToList() {
     if (defaultServers.includes(serverInput.value) || settingsStore.customServerList.includes(serverInput.value)) {
         return;
     }
-    settingsStore.customServerList.push(serverInput.value);
+    settingsLogic.update({ customServerList: [...settingsStore.customServerList, serverInput.value] });
     serverInput.value = "";
 }
 
 function removeServerFromList() {
-    const index = settingsStore.customServerList.indexOf(settingsStore.lobbyServerOverride);
-    if (index === -1) {
+    const removed = settingsStore.lobbyServerOverride;
+    if (!settingsStore.customServerList.includes(removed)) {
         return;
     }
-    settingsStore.customServerList.splice(index, 1);
     //Go back to the first default server when an entry is deleted
-    settingsStore.lobbyServerOverride = defaultServers[0];
+    settingsLogic.update({
+        customServerList: settingsStore.customServerList.filter((server) => server !== removed),
+        lobbyServerOverride: defaultServers[0],
+    });
 }
 </script>
 

@@ -37,10 +37,22 @@ SPDX-License-Identifier: MIT
             <div class="section-header">{{ t("lobby.navbar.settings.sectionSound") }}</div>
 
             <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
-            <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
+            <Range
+                :modelValue="settingsStore.sfxVolume"
+                @update:modelValue="(value: number | number[]) => settingsLogic.update({ sfxVolume: value as number })"
+                :min="0"
+                :max="100"
+                :step="1"
+            />
 
             <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
-            <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
+            <Range
+                :modelValue="settingsStore.musicVolume"
+                @update:modelValue="(value: number | number[]) => settingsLogic.update({ musicVolume: value as number })"
+                :min="0"
+                :max="100"
+                :step="1"
+            />
 
             <div class="section-header">{{ t("lobby.navbar.settings.sectionGeneral") }}</div>
 
@@ -50,18 +62,27 @@ SPDX-License-Identifier: MIT
                     {{ t("lobby.navbar.settings.language") }}
                 </span>
             </div>
-            <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
+            <Select
+                :modelValue="settingsStore.language"
+                @update:modelValue="(language: string) => settingsLogic.update({ language })"
+                :options="localeOptions"
+                optionLabel="label"
+                optionValue="value"
+            />
 
             <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
-            <Checkbox v-model="settingsStore.skipIntro" />
+            <Checkbox :modelValue="settingsStore.skipIntro" @update:modelValue="(skipIntro) => settingsLogic.update({ skipIntro })" />
 
             <template v-if="settingsStore.devMode">
                 <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
-                <Checkbox v-model="settingsStore.loginAutomatically" />
+                <Checkbox
+                    :modelValue="settingsStore.loginAutomatically"
+                    @update:modelValue="(loginAutomatically) => settingsLogic.update({ loginAutomatically })"
+                />
             </template>
 
             <div>{{ t("lobby.navbar.settings.devMode") }}</div>
-            <Checkbox v-model="settingsStore.devMode" />
+            <Checkbox :modelValue="settingsStore.devMode" @update:modelValue="(devMode) => settingsLogic.update({ devMode })" />
 
             <OverlayPanel ref="op">
                 <div class="container">
@@ -134,6 +155,7 @@ import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { mainWindowApi } from "@renderer/api/main-window";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import {
     MIN_WINDOW_SIZE,
@@ -290,19 +312,21 @@ const displayMode = computed<string>({
         return sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
     },
     set: (value) => {
-        settingsStore.fullscreen = value === "fullscreen";
-        settingsStore.maximized = value === "maximized";
-        if (value === "fullscreen" || value === "maximized") return;
+        const fullscreen = value === "fullscreen";
+        const maximized = value === "maximized";
+        if (fullscreen || maximized) {
+            settingsLogic.update({ fullscreen, maximized });
+            return;
+        }
 
-        const [width, height] = value.split("x").map(Number);
-        settingsStore.windowWidth = width;
-        settingsStore.windowHeight = height;
+        const [windowWidth, windowHeight] = value.split("x").map(Number);
+        settingsLogic.update({ fullscreen, maximized, windowWidth, windowHeight });
     },
 });
 
 const selectedDisplay = computed<number>({
     get: () => settingsStore.displayIndex,
-    set: (index) => (settingsStore.displayIndex = index),
+    set: (displayIndex) => settingsLogic.update({ displayIndex }),
 });
 
 const scaleRange = ref({ min: 1, max: 1, os: 1 });
@@ -326,7 +350,7 @@ function commitScalePercent(value: number | number[]) {
     // Against what the slider showed, not the stored value, which is null until first set.
     if (percent === uiScalePercent.value) return;
 
-    settingsStore.uiScale = percent / 100;
+    settingsLogic.update({ uiScale: percent / 100 });
 }
 
 // Same source as the move and the size list, so a detached monitor cannot be offered.

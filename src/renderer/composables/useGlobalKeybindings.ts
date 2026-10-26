@@ -5,6 +5,7 @@
 import { Ref } from "vue";
 import { useRouter } from "vue-router";
 import { onKeyDown } from "@vueuse/core";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 
 type KeybindingProps = { exitOpen: Ref<boolean, boolean> };
@@ -14,7 +15,7 @@ export function useGlobalKeybindings({ exitOpen }: KeybindingProps) {
 
     onKeyDown("F11", (e) => {
         e.preventDefault();
-        settingsStore.fullscreen = !settingsStore.fullscreen;
+        settingsLogic.update({ fullscreen: !settingsStore.fullscreen });
     });
 
     onKeyDown("Escape", (e) => {

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { Settings } from "@main/services/settings.service";
 import { mainWindowApi } from "@renderer/api/main-window";
 import { settingsApi } from "@renderer/api/settings";
 import { settingsStore, settingsUpdates } from "@renderer/store/settings.store";
@@ -18,7 +19,7 @@ export async function initSettingsLogic() {
     watch(
         settingsStore,
         () => {
-            settingsApi.update(toRaw(settingsStore));
+            settingsApi.update(toRaw(settingsStore) as unknown as Settings);
         },
         { deep: true }
     );
@@ -56,7 +57,7 @@ export async function initSettingsLogic() {
     );
 
     // The zoom shortcuts work the new scale out in main and leave the storing to here.
-    mainWindowApi.onUiScaleNudged(settingsUpdates.uiScaleNudged);
+    mainWindowApi.onUiScaleNudged((uiScale) => settingsUpdates.changed({ uiScale }));
 
     // The window resizes itself when dragged or moved to a smaller display, so the setting
     // follows it rather than only driving it.
@@ -64,3 +65,9 @@ export async function initSettingsLogic() {
 
     settingsUpdates.initialized();
 }
+
+function update(values: Partial<Settings>) {
+    settingsUpdates.changed(values);
+}
+
+export const settingsLogic = { update };

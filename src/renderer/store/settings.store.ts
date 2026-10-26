@@ -3,29 +3,31 @@
 // SPDX-License-Identifier: MIT
 
 import { Settings } from "@main/services/settings.service";
-import { reactive } from "vue";
+import { reactive, readonly } from "vue";
 
-export const settingsStore = reactive({
+const state = reactive({
     isInitialized: false,
 } as {
     isInitialized: boolean;
 } & Settings);
 
+export const settingsStore = readonly(state);
+
 export const settingsUpdates = {
     loaded(settings: Settings) {
-        Object.assign(settingsStore, settings);
+        Object.assign(state, settings);
     },
     initialized() {
-        settingsStore.isInitialized = true;
+        state.isInitialized = true;
     },
-    uiScaleNudged(scale: number | null) {
-        settingsStore.uiScale = scale;
+    changed(values: Partial<Settings>) {
+        Object.assign(state, values);
     },
     windowStateChanged({ maximized, size }: { maximized: boolean; size: { width: number; height: number } | null }) {
-        settingsStore.maximized = maximized;
+        state.maximized = maximized;
         if (!size) return;
 
-        settingsStore.windowWidth = size.width;
-        settingsStore.windowHeight = size.height;
+        state.windowWidth = size.width;
+        state.windowHeight = size.height;
     },
 };

@@ -122,7 +122,6 @@ export type IPCCommands = {
     "replays:searchOnlineByPlayer": (username: string, limit: number) => IpcResult<OnlineReplayOverview[]>;
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
-    "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;
     "customLobbies:update": (data: Partial<CustomLobbiesPreferences>) => Partial<CustomLobbiesPreferences>;
