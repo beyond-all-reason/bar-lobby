@@ -95,11 +95,16 @@ export function createWindow() {
         }, 100);
     }
 
-    // Windows rounds the sizes we set, and saving that back would creep the setting a pixel at a time.
-    let appliedSize = "";
+    // Electron reads a size back a few pixels off what was set, and a couple more off again as the window
+    // moves, even when nothing resized it. Saving that would creep the setting, so only a bigger change counts.
+    let knownSize = [0, 0];
 
-    function rememberAppliedSize() {
-        appliedSize = mainWindow.getSize().join("x");
+    function rememberSize() {
+        knownSize = mainWindow.getSize();
+    }
+
+    function resizedByUser(width: number, height: number) {
+        return Math.abs(width - knownSize[0]) > 2 || Math.abs(height - knownSize[1]) > 2;
     }
 
     // Only a drag picks the display. will-move skips the lobby's own setBounds and the OS moving
@@ -118,8 +123,8 @@ export function createWindow() {
     function reportWindowState() {
         const maximized = mainWindow.isMaximized();
         const [width, height] = mainWindow.getSize();
-        const settled = !maximized && !mainWindow.isFullScreen() && `${width}x${height}` !== appliedSize;
-        if (settled) appliedSize = "";
+        const settled = !maximized && !mainWindow.isFullScreen() && resizedByUser(width, height);
+        if (settled) knownSize = [width, height];
 
         webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null, displayId: draggedToDisplayId() });
     }
@@ -150,7 +155,7 @@ export function createWindow() {
         // Windows rescales a window that lands on a monitor with a different scale, so the size is applied again once it is there.
         mainWindow.setBounds(bounds);
         mainWindow.setBounds(bounds);
-        rememberAppliedSize();
+        rememberSize();
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -216,7 +221,7 @@ export function createWindow() {
 
         mainWindow.setSize(target.width, target.height);
         mainWindow.center();
-        rememberAppliedSize();
+        rememberSize();
         updateZoom();
     });
     ipcMain.handle("mainWindow:setDisplay", (_event, id: number) => {
