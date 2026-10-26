@@ -95,14 +95,19 @@ export function createWindow() {
         }, 100);
     }
 
-    // Windows rounds the size centreOn sets, and saving that back would grow the window a pixel every launch.
-    let placedSize = "";
+    // Windows rounds the sizes we set, and saving that back would creep the setting a pixel at a time.
+    let appliedSize = "";
+
+    function rememberAppliedSize() {
+        appliedSize = mainWindow.getSize().join("x");
+    }
 
     // No size while fullscreen or maximised, since the remembered one is where to return to.
     function reportWindowState() {
         const maximized = mainWindow.isMaximized();
         const [width, height] = mainWindow.getSize();
-        const settled = !maximized && !mainWindow.isFullScreen() && `${width}x${height}` !== placedSize;
+        const settled = !maximized && !mainWindow.isFullScreen() && `${width}x${height}` !== appliedSize;
+        if (settled) appliedSize = "";
 
         webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null });
     }
@@ -130,7 +135,7 @@ export function createWindow() {
         // Windows rescales a window that lands on a monitor with a different scale, so the size is applied again once it is there.
         mainWindow.setBounds(bounds);
         mainWindow.setBounds(bounds);
-        placedSize = mainWindow.getSize().join("x");
+        rememberAppliedSize();
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -196,6 +201,7 @@ export function createWindow() {
 
         mainWindow.setSize(target.width, target.height);
         mainWindow.center();
+        rememberAppliedSize();
         updateZoom();
     });
     ipcMain.handle("mainWindow:setDisplay", (_event, id: number) => {
