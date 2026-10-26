@@ -62,8 +62,18 @@ function readSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
 
 const itemOf = (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ({ kind, source, rootId, id });
 
+const KINDS: readonly string[] = ["campaign", "scenario", "tutorial"] satisfies SingleplayerKind[];
+
+// The kind comes over IPC, so it is checked rather than trusted.
+function checkKind(kind: string) {
+    if (!KINDS.includes(kind)) {
+        throw new Error(`Unknown singleplayer kind ${JSON.stringify(kind)}. Expected one of ${KINDS.join(", ")}`);
+    }
+}
+
 // A result applies under the item's rules as main last scanned them, not as the renderer has them.
 async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
+    checkKind(kind);
     const item = await get(`${kind}s`, ref);
     if (!item) {
         throw new Error(`No ${kind} ${ref.id} in ${ref.source}/${ref.rootId}`);
@@ -83,6 +93,7 @@ async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, re
 }
 
 async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    checkKind(kind);
     await saves.deleteSave(SAVES_PATH, kind, ref);
     onSaveChanged.dispatch({ item: itemOf(kind, ref), save: undefined });
 }

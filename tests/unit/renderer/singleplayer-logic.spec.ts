@@ -251,23 +251,24 @@ describe("singleplayer logic", () => {
 
     describe("save changes from main", () => {
         // Subscribed once for the whole file, the same as at startup, so the handler is caught here.
-        let reportChange: (change: SaveChange) => void;
+        // Gives the change's turn in the queue of changes to the saves, so a test can wait for it.
+        let reportChange: (change: SaveChange) => unknown;
 
         beforeEach(() => {
             api.onSaveChanged.mockImplementation((handler) => (reportChange = handler));
             initSingleplayerLogic();
         });
 
-        it("shows a result main recorded without being asked from here", () => {
-            const save: SingleplayerSave = {
-                formatVersion: 1,
-                item: officialItem,
-                plays: { mission01: { victories: 1, failures: 0 } },
-                campaign: { unlocked: ["mission01", "mission02"], removed: ["tutorial"], prerequisitesMet: [], variables: { lives: 3 } },
-                recent: [],
-            };
+        const recordedByMain: SingleplayerSave = {
+            formatVersion: 1,
+            item: officialItem,
+            plays: { mission01: { victories: 1, failures: 0 } },
+            campaign: { unlocked: ["mission01", "mission02"], removed: ["tutorial"], prerequisitesMet: [], variables: { lives: 3 } },
+            recent: [],
+        };
 
-            reportChange({ item: save.item, save });
+        it("shows a result main recorded without being asked from here", async () => {
+            await reportChange({ item: recordedByMain.item, save: recordedByMain });
 
             expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
             expect(singleplayerLogic.variablesOf(official)).toEqual({ lives: 3 });
@@ -278,10 +279,31 @@ describe("singleplayer logic", () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
             singleplayerUpdates.saveFailed("singleplayer:recordResult failed: boom");
 
-            reportChange({ item: officialItem, save: undefined });
+            await reportChange({ item: officialItem, save: undefined });
 
             expect(playsOf("campaign", official)).toBe(0);
             expect(singleplayerStore.saveError).toBe("singleplayer:recordResult failed: boom");
+        });
+
+        it("applies a change that arrives while the saves load after them, so the load can't overwrite it", async () => {
+            let answer!: (saves: { saves: SingleplayerSave[]; problems: [] }) => void;
+            api.getSaves.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+
+            const loading = singleplayerLogic.loadContent();
+            const change = reportChange({ item: recordedByMain.item, save: recordedByMain });
+            // Main read the folder before it wrote the change.
+            answer({ saves: [], problems: [] });
+            await Promise.all([loading, change]);
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+        });
+
+        it("applies changes in the order they arrive", async () => {
+            const lost = { ...recordedByMain, plays: { mission01: { victories: 0, failures: 1 } } };
+
+            await Promise.all([reportChange({ item: officialItem, save: lost }), reportChange({ item: officialItem, save: recordedByMain })]);
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
         });
     });
 

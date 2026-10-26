@@ -10,13 +10,24 @@ import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, Singlepl
 
 let isInitialized = false;
 
+// Changes to the store's saves apply one at a time, in the order they arrive. A load holds back whatever
+// arrives while it waits for main, so its copy of the saves can't overwrite a change made since.
+let savesQueue: Promise<unknown> = Promise.resolve();
+
+function inOrder<T>(task: () => T | Promise<T>): Promise<T> {
+    const run = savesQueue.then(task);
+    savesQueue = run.catch(() => {});
+
+    return run;
+}
+
 // Keeps the store's saves current with every change main makes to them, not only the ones asked for here.
 export function initSingleplayerLogic() {
     if (isInitialized) {
         return;
     }
 
-    singleplayerApi.onSaveChanged(({ item, save }) => singleplayerUpdates.saveChanged(saveKey(item.kind, item), save));
+    singleplayerApi.onSaveChanged(({ item, save }) => inOrder(() => singleplayerUpdates.saveChanged(saveKey(item.kind, item), save)));
     isInitialized = true;
 }
 
@@ -40,12 +51,18 @@ async function loadContent() {
 }
 
 // A failure is kept apart from the content's own, so the content still shows, and is tried again next load.
-async function loadSaves() {
-    try {
-        singleplayerUpdates.savesLoaded((await singleplayerApi.getSaves()).saves);
-    } catch (error) {
-        singleplayerUpdates.saveFailed(messageOf(error));
-    }
+function loadSaves() {
+    return inOrder(async () => {
+        // A load queued behind another that succeeded has nothing left to do.
+        if (singleplayerStore.savesLoaded) {
+            return;
+        }
+        try {
+            singleplayerUpdates.savesLoaded((await singleplayerApi.getSaves()).saves);
+        } catch (error) {
+            singleplayerUpdates.saveFailed(messageOf(error));
+        }
+    });
 }
 
 const noProgress: ItemProgress = { plays: {} };
@@ -98,7 +115,8 @@ function tutorialsCompleted(source: ContentSource, rootId: string) {
 // Saves a result and keeps the save main wrote. Gives false, with the reason in the store, if it wasn't saved.
 async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
     try {
-        singleplayerUpdates.saveStored(saveKey(kind, ref), await singleplayerApi.recordResult(kind, ref, result));
+        const save = await singleplayerApi.recordResult(kind, ref, result);
+        await inOrder(() => singleplayerUpdates.saveStored(saveKey(kind, ref), save));
         return true;
     } catch (error) {
         singleplayerUpdates.saveFailed(messageOf(error));
@@ -128,7 +146,7 @@ async function recordItemResult(item: ItemRef, outcome: MissionOutcome) {
 async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     try {
         await singleplayerApi.deleteSave(kind, ref);
-        singleplayerUpdates.saveRemoved(saveKey(kind, ref));
+        await inOrder(() => singleplayerUpdates.saveRemoved(saveKey(kind, ref)));
     } catch (error) {
         singleplayerUpdates.saveFailed(messageOf(error));
     }
@@ -146,7 +164,7 @@ async function deleteTutorialSaves(source: ContentSource, rootId: string) {
 async function deleteAllSaves() {
     try {
         await singleplayerApi.deleteAllSaves();
-        singleplayerUpdates.allSavesDeleted();
+        await inOrder(() => singleplayerUpdates.allSavesDeleted());
         return true;
     } catch (error) {
         singleplayerUpdates.saveFailed(messageOf(error));

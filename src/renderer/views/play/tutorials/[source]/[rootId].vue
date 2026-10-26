@@ -19,6 +19,7 @@ SPDX-License-Identifier: MIT
         </div>
         <Panel class="flex-grow">
             <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+            <p v-else-if="singleplayerStore.content && tutorials.length === 0">{{ t("lobby.singleplayer.content.notFound") }}</p>
             <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
             <div class="scroll-container flex-col gap-md">
                 <div v-if="settingsStore.devMode" class="flex-row gap-md">
@@ -39,6 +40,7 @@ SPDX-License-Identifier: MIT
                         @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
                     />
                 </div>
+                <ContentProblems v-if="settingsStore.devMode && singleplayerStore.content" :problems="singleplayerStore.content.problems" />
             </div>
         </Panel>
     </div>
@@ -49,6 +51,7 @@ import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
+import ContentProblems from "@renderer/components/singleplayer/ContentProblems.vue";
 import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";

@@ -43,6 +43,12 @@ describe("singleplayerService.recordResult", () => {
         expect(await singleplayerService.readSave("tutorial", official("sample-tutorial"))).toBeUndefined();
     });
 
+    it("refuses an unknown kind with a clear error", async () => {
+        await expect(singleplayerService.recordResult("mission" as never, official("sample-campaign"), { missionId: "mission01", outcome: "victory" })).rejects.toThrow(
+            /Unknown singleplayer kind "mission"/
+        );
+    });
+
     it("takes any of the campaign's missions for a campaign", async () => {
         const save = await singleplayerService.recordResult("campaign", official("sample-campaign"), { missionId: "mission01", outcome: "victory" });
 
