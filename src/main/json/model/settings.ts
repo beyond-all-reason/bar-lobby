@@ -11,7 +11,7 @@ export const settingsSchema = Type.Object({
     maximized: Type.Boolean({ default: false }),
     windowWidth: Type.Number({ default: 1280 }),
     windowHeight: Type.Number({ default: 720 }),
-    displayId: Type.Union([Type.Null(), Type.Number()], { default: null }),
+    displayId: Type.Optional(Type.Number()),
     uiScale: Type.Union([Type.Number({ minimum: UI_SCALE_MIN, maximum: UI_SCALE_MAX }), Type.Null()], { default: null }),
     skipIntro: Type.Boolean({ default: false }),
     sfxVolume: Type.Number({ default: 5, minimum: 0, maximum: 100 }),

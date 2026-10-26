@@ -52,7 +52,7 @@ export async function initSettingsLogic() {
     watch(
         () => settingsStore.displayId,
         (displayId) => {
-            if (displayId === null) return;
+            if (displayId === undefined) return;
 
             mainWindowApi.setDisplay(displayId);
         }

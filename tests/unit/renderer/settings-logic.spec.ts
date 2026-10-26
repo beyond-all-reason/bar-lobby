@@ -8,7 +8,7 @@ import type { Settings } from "@main/services/settings.service";
 
 let windowStateChanged: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void = () => {};
 
-const getSettings = vi.fn(async () => ({ fullscreen: false, maximized: false, windowWidth: 1280, windowHeight: 720, displayId: null, uiScale: null }) as unknown as Settings);
+const getSettings = vi.fn(async () => ({ fullscreen: false, maximized: false, windowWidth: 1280, windowHeight: 720, uiScale: null }) as unknown as Settings);
 const updateSettings = vi.fn(async () => ({}));
 const setDisplay = vi.fn(async () => {});
 const onWindowStateChanged = vi.fn((handler: typeof windowStateChanged) => {
