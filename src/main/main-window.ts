@@ -111,6 +111,21 @@ export function createWindow() {
     mainWindow.on("leave-full-screen", scheduleZoomUpdate);
     mainWindow.on("closed", () => clearTimeout(zoomUpdate));
 
+    // Sized from the setting, not the window, so it survives leaving fullscreen and isn't trimmed to fit.
+    function centreOn(display: Electron.Display) {
+        const { windowWidth, windowHeight } = settingsService.getSettings();
+        const width = Math.max(windowWidth, MIN_WINDOW_SIZE.width);
+        const height = Math.max(windowHeight, MIN_WINDOW_SIZE.height);
+        const { workArea } = display;
+
+        mainWindow.setBounds({
+            width,
+            height,
+            x: Math.round(workArea.x + (workArea.width - width) / 2),
+            y: Math.round(workArea.y + (workArea.height - height) / 2),
+        });
+    }
+
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
     mainWindow.once("ready-to-show", () => {
@@ -119,7 +134,7 @@ export function createWindow() {
             log.debug(`NODE_ENV is development, opening dev tools`);
             webContents.openDevTools();
         }
-        mainWindow.center();
+        centreOn(screen.getAllDisplays()[settings.displayIndex] ?? screen.getPrimaryDisplay());
         // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
         if (settings.fullscreen) {
             mainWindow.setFullScreen(true);
@@ -180,27 +195,13 @@ export function createWindow() {
         const display = screen.getAllDisplays()[index];
         if (!display) return;
 
-        // Nothing but the display changes. The size comes from the setting rather than the
-        // window, so it survives the trip out of fullscreen or maximised, and it is not
-        // trimmed to the new display: a size that no longer fits is the window's business,
-        // not a reason to rewrite what the user chose.
-        const { windowWidth, windowHeight } = settingsService.getSettings();
-        const width = Math.max(windowWidth, MIN_WINDOW_SIZE.width);
-        const height = Math.max(windowHeight, MIN_WINDOW_SIZE.height);
-        const { workArea } = display;
-
         // Fullscreen and maximised are tied to the display they were entered on.
         const wasFullScreen = mainWindow.isFullScreen();
         const wasMaximized = mainWindow.isMaximized();
         if (wasFullScreen) mainWindow.setFullScreen(false);
         if (wasMaximized) mainWindow.unmaximize();
 
-        mainWindow.setBounds({
-            width,
-            height,
-            x: Math.round(workArea.x + (workArea.width - width) / 2),
-            y: Math.round(workArea.y + (workArea.height - height) / 2),
-        });
+        centreOn(display);
 
         if (wasFullScreen) mainWindow.setFullScreen(true);
         else if (wasMaximized) mainWindow.maximize();
