@@ -303,7 +303,7 @@ describe("content updates to a campaign with progress", () => {
     });
 
     it("drops a mission the campaign no longer has, and keeps its plays", () => {
-        const { missionB: _, ...missions } = config.missions;
+        const missions = Object.fromEntries(Object.entries(config.missions).filter(([id]) => id !== "missionB"));
         const updated: CampaignConfig = { ...config, missions };
 
         expect(campaignState(updated, pastMission02).available).toEqual(["missionA"]);
