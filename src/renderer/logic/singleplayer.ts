@@ -69,7 +69,7 @@ function loadSaves() {
         try {
             singleplayerUpdates.savesLoaded((await singleplayerApi.getSaves()).saves);
         } catch (error) {
-            singleplayerUpdates.saveFailed(messageOf(error));
+            singleplayerUpdates.savesLoadFailed(messageOf(error));
         }
     });
 }
@@ -110,6 +110,11 @@ function itemCompleted(item: ItemRef) {
     return hasWon((saveOf(item.kind, item) ?? noProgress).plays, item.id);
 }
 
+// Why the last change asked for to the item's save failed, if it did.
+function saveErrorOf(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.saveErrors.get(saveKey(kind, ref));
+}
+
 function tutorialsOf(source: ContentSource, rootId: string) {
     return (singleplayerStore.content?.tutorials ?? []).filter((tutorial) => tutorial.source === source && tutorial.rootId === rootId);
 }
@@ -128,7 +133,7 @@ async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, resu
         await inOrder(() => singleplayerUpdates.saveStored(saveKey(kind, ref), save));
         return true;
     } catch (error) {
-        singleplayerUpdates.saveFailed(messageOf(error));
+        singleplayerUpdates.saveFailed(saveKey(kind, ref), messageOf(error));
         return false;
     }
 }
@@ -157,7 +162,7 @@ async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
         await singleplayerApi.deleteSave(kind, ref);
         await inOrder(() => singleplayerUpdates.saveRemoved(saveKey(kind, ref)));
     } catch (error) {
-        singleplayerUpdates.saveFailed(messageOf(error));
+        singleplayerUpdates.saveFailed(saveKey(kind, ref), messageOf(error));
     }
 }
 
@@ -168,16 +173,15 @@ async function deleteTutorialSaves(source: ContentSource, rootId: string) {
     }
 }
 
-// Deletes every singleplayer save, for the settings menu. Gives false, with the reason in the store, if it
-// failed part way; main has then reported each save it did delete.
-async function deleteAllSaves() {
+// Deletes every singleplayer save, for the settings menu. Gives the reason if it failed part way; main has
+// then reported each save it did delete.
+async function deleteAllSaves(): Promise<string | undefined> {
     try {
         await singleplayerApi.deleteAllSaves();
         await inOrder(() => singleplayerUpdates.allSavesDeleted());
-        return true;
+        return undefined;
     } catch (error) {
-        singleplayerUpdates.saveFailed(messageOf(error));
-        return false;
+        return messageOf(error);
     }
 }
 
@@ -188,6 +192,7 @@ export const singleplayerLogic = {
     campaignCompleted,
     variablesOf,
     itemCompleted,
+    saveErrorOf,
     tutorialsOf,
     tutorialsCompleted,
     recordCampaignResult,

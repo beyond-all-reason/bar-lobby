@@ -126,7 +126,7 @@ SPDX-License-Identifier: MIT
                     t("lobby.navbar.settings.deleteSingleplayerSaves")
                 }}</Button>
                 <small v-if="savesDeleted">{{ t("lobby.navbar.settings.singleplayerSavesDeleted") }}</small>
-                <small v-else-if="singleplayerStore.saveError" class="path-error">{{ singleplayerStore.saveError }}</small>
+                <small v-else-if="deleteSavesError" class="path-error">{{ deleteSavesError }}</small>
             </div>
         </div>
     </Modal>
@@ -256,16 +256,21 @@ async function applyPathChange() {
 
 const confirmDeleteSaves = ref(false);
 const savesDeleted = ref(false);
+const deleteSavesError = ref<string>();
 
 async function deleteSaves() {
     confirmDeleteSaves.value = false;
-    savesDeleted.value = await singleplayerLogic.deleteAllSaves();
+    deleteSavesError.value = await singleplayerLogic.deleteAllSaves();
+    savesDeleted.value = deleteSavesError.value === undefined;
 }
 
-// Reopening the menu shouldn't still say the saves were just deleted.
+// Reopening the menu shouldn't still say how the last delete went.
 watch(
     () => props.modelValue,
-    () => (savesDeleted.value = false)
+    () => {
+        savesDeleted.value = false;
+        deleteSavesError.value = undefined;
+    }
 );
 
 const op = ref();

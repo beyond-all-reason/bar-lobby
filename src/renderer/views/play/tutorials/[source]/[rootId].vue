@@ -20,7 +20,8 @@ SPDX-License-Identifier: MIT
         <Panel class="flex-grow">
             <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
             <p v-else-if="singleplayerStore.content && tutorials.length === 0">{{ t("lobby.singleplayer.content.notFound") }}</p>
-            <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
+            <p v-if="singleplayerStore.savesLoadError">{{ singleplayerStore.savesLoadError }}</p>
+            <p v-for="error in saveErrors" :key="error">{{ error }}</p>
             <div class="scroll-container flex-col gap-md">
                 <div v-if="settingsStore.devMode" class="flex-row gap-md">
                     <Button @click="singleplayerLogic.deleteTutorialSaves(source as ContentSource, rootId)">{{
@@ -71,6 +72,12 @@ const text = useContentText();
 const router = useRouter();
 
 const tutorials = computed(() => singleplayerLogic.tutorialsOf(source as ContentSource, rootId) as SingleplayerScenario[]);
+// Each different reason once, as one failure, such as a full disk, can fail several tutorials alike.
+const saveErrors = computed(() => [
+    ...new Set(
+        tutorials.value.map((tutorial) => singleplayerLogic.saveErrorOf("tutorial", tutorial)).filter((error) => error !== undefined)
+    ),
+]);
 
 onMounted(() => {
     if (!singleplayerStore.content) {

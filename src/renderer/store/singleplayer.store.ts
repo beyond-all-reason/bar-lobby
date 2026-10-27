@@ -12,7 +12,8 @@ const state = reactive({
     loadError: undefined,
     saves: new Map(),
     savesLoaded: false,
-    saveError: undefined,
+    savesLoadError: undefined,
+    saveErrors: new Map(),
 } as {
     content: SingleplayerContent | undefined;
     isLoading: boolean;
@@ -21,8 +22,11 @@ const state = reactive({
     // saves; this holds the latest copy of each.
     saves: Map<string, SingleplayerSave>;
     savesLoaded: boolean;
-    // Why the last change to a save failed, cleared by the next one that succeeds.
-    saveError: string | undefined;
+    // Why the saves couldn't be read, which leaves every item's progress unknown until a load succeeds.
+    savesLoadError: string | undefined;
+    // Why the last change asked for to a save failed, keyed by saveKey, cleared by the next change to that
+    // save that succeeds.
+    saveErrors: Map<string, string>;
 });
 
 export const singleplayerStore = readonly(state);
@@ -43,14 +47,18 @@ export const singleplayerUpdates = {
     savesLoaded(saves: readonly SingleplayerSave[]) {
         state.saves = new Map(saves.map((save) => [saveKey(save.item.kind, save.item), save]));
         state.savesLoaded = true;
+        state.savesLoadError = undefined;
+    },
+    savesLoadFailed(message: string) {
+        state.savesLoadError = message;
     },
     saveStored(key: string, save: SingleplayerSave) {
         state.saves.set(key, save);
-        state.saveError = undefined;
+        state.saveErrors.delete(key);
     },
     saveRemoved(key: string) {
         state.saves.delete(key);
-        state.saveError = undefined;
+        state.saveErrors.delete(key);
     },
     // A change reported by main, which may not be one this window asked for, so any error stays.
     saveChanged(key: string, save: SingleplayerSave | undefined) {
@@ -62,10 +70,10 @@ export const singleplayerUpdates = {
     },
     allSavesDeleted() {
         state.saves.clear();
-        state.saveError = undefined;
+        state.saveErrors.clear();
     },
-    saveFailed(message: string) {
-        state.saveError = message;
+    saveFailed(key: string, message: string) {
+        state.saveErrors.set(key, message);
     },
     clear() {
         state.content = undefined;
@@ -73,6 +81,7 @@ export const singleplayerUpdates = {
         state.loadError = undefined;
         state.saves.clear();
         state.savesLoaded = false;
-        state.saveError = undefined;
+        state.savesLoadError = undefined;
+        state.saveErrors.clear();
     },
 };

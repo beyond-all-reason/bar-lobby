@@ -48,7 +48,10 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
                 </div>
                 <div v-if="selected" class="scenario-preview flex-col">
                     <div class="scroll-container flex-col gap-md">
-                        <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
+                        <p v-if="singleplayerStore.savesLoadError">{{ singleplayerStore.savesLoadError }}</p>
+                        <p v-if="singleplayerLogic.saveErrorOf('scenario', selected)">
+                            {{ singleplayerLogic.saveErrorOf("scenario", selected) }}
+                        </p>
                         <div v-if="settingsStore.devMode" class="flex-row gap-md">
                             <Button @click="singleplayerLogic.deleteSave('scenario', selected)">{{
                                 t("lobby.singleplayer.content.deleteSave")

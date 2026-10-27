@@ -110,11 +110,12 @@ describe("singleplayer logic", () => {
 
             expect(singleplayerStore.content).toBeDefined();
             expect(singleplayerStore.loadError).toBeUndefined();
-            expect(singleplayerStore.saveError).toBe("singleplayer:getSaves failed: boom");
+            expect(singleplayerStore.savesLoadError).toBe("singleplayer:getSaves failed: boom");
 
             await singleplayerLogic.loadContent();
             expect(api.getSaves).toHaveBeenCalledTimes(2);
             expect(singleplayerStore.savesLoaded).toBe(true);
+            expect(singleplayerStore.savesLoadError).toBeUndefined();
         });
 
         it("keeps the latest scan when an earlier one finishes after it", async () => {
@@ -188,10 +189,20 @@ describe("singleplayer logic", () => {
 
             expect(state.completed).toEqual([]);
             expect(finishedNow).toBe(false);
-            expect(singleplayerStore.saveError).toBe("singleplayer:recordResult failed: saved by a newer client");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:recordResult failed: saved by a newer client");
 
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
-            expect(singleplayerStore.saveError).toBeUndefined();
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBeUndefined();
+        });
+
+        it("keeps a failure to the campaign it happened to", async () => {
+            api.recordResult.mockRejectedValueOnce(new Error("singleplayer:recordResult failed: boom"));
+
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            await singleplayerLogic.recordCampaignResult(custom, "mission01", "victory");
+
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:recordResult failed: boom");
+            expect(singleplayerLogic.saveErrorOf("campaign", custom)).toBeUndefined();
         });
 
         it("gives the variables the campaign's missions have reported", async () => {
@@ -226,7 +237,7 @@ describe("singleplayer logic", () => {
             await singleplayerLogic.deleteSave("campaign", official);
 
             expect(playsOf("campaign", official)).toBe(1);
-            expect(singleplayerStore.saveError).toBe("singleplayer:deleteSave failed: busy");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:deleteSave failed: busy");
         });
     });
 
@@ -261,23 +272,23 @@ describe("singleplayer logic", () => {
         it("clears every save and an earlier error", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
             await singleplayerLogic.recordItemResult(makeTutorial("basics"), "victory");
-            singleplayerUpdates.saveFailed("singleplayer:recordResult failed: boom");
+            singleplayerUpdates.saveFailed(saveKey("campaign", official), "singleplayer:recordResult failed: boom");
 
-            expect(await singleplayerLogic.deleteAllSaves()).toBe(true);
+            expect(await singleplayerLogic.deleteAllSaves()).toBeUndefined();
 
             expect(api.deleteAllSaves).toHaveBeenCalled();
             expect(singleplayerStore.saves.size).toBe(0);
-            expect(singleplayerStore.saveError).toBeUndefined();
+            expect(singleplayerStore.saveErrors.size).toBe(0);
         });
 
         it("keeps the saves and gives the reason when it fails", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
             api.deleteAllSaves.mockRejectedValueOnce(new Error("singleplayer:deleteAllSaves failed: busy"));
 
-            expect(await singleplayerLogic.deleteAllSaves()).toBe(false);
+            expect(await singleplayerLogic.deleteAllSaves()).toBe("singleplayer:deleteAllSaves failed: busy");
 
             expect(playsOf("campaign", official)).toBe(1);
-            expect(singleplayerStore.saveError).toBe("singleplayer:deleteAllSaves failed: busy");
+            expect(singleplayerStore.saveErrors.size).toBe(0);
         });
     });
 
@@ -309,12 +320,12 @@ describe("singleplayer logic", () => {
 
         it("drops a save main deleted, and leaves an error from this window alone", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
-            singleplayerUpdates.saveFailed("singleplayer:recordResult failed: boom");
+            singleplayerUpdates.saveFailed(saveKey("campaign", official), "singleplayer:recordResult failed: boom");
 
             await reportChange({ item: officialItem, save: undefined });
 
             expect(playsOf("campaign", official)).toBe(0);
-            expect(singleplayerStore.saveError).toBe("singleplayer:recordResult failed: boom");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:recordResult failed: boom");
         });
 
         it("applies a change that arrives while the saves load after them, so the load can't overwrite it", async () => {

@@ -24,7 +24,8 @@ graph: content does not say which missions are alternatives to each other.
         <Panel class="flex-grow">
             <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
             <p v-else-if="singleplayerStore.content && !campaign">{{ t("lobby.singleplayer.content.notFound") }}</p>
-            <p v-if="singleplayerStore.saveError">{{ singleplayerStore.saveError }}</p>
+            <p v-if="singleplayerStore.savesLoadError">{{ singleplayerStore.savesLoadError }}</p>
+            <p v-if="saveError">{{ saveError }}</p>
             <div v-if="campaign && state" class="scroll-container flex-col gap-md">
                 <p>{{ text(campaign.config.descriptionKey, campaign.language) }}</p>
                 <div v-if="compatibility !== 'compatible'" class="flex-row gap-md flex-center-items">
@@ -98,6 +99,7 @@ const campaign = computed(
 const state = computed(() => campaign.value && singleplayerLogic.campaignState(campaign.value));
 const compatibility = computed(() => (campaign.value ? singleplayerLogic.campaignSaveCompatibility(campaign.value) : "compatible"));
 const variables = computed(() => (campaign.value ? singleplayerLogic.variablesOf(campaign.value) : {}));
+const saveError = computed(() => campaign.value && singleplayerLogic.saveErrorOf("campaign", campaign.value));
 
 onMounted(() => {
     if (!singleplayerStore.content) {
