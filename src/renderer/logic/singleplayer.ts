@@ -7,7 +7,7 @@ import { singleplayerApi } from "@renderer/api/singleplayer";
 import type { TranslationKey } from "@renderer/i18n";
 import { singleplayerStore, singleplayerUpdates } from "@renderer/store/singleplayer.store";
 import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
-import { ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue } from "@shared/content/save";
+import { ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
 import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
 
 let isInitialized = false;
@@ -97,7 +97,7 @@ function loadSaves() {
         if ("reason" in read) {
             singleplayerUpdates.savesLoadFailed(read.reason);
         } else {
-            singleplayerUpdates.savesLoaded(read.data.saves);
+            singleplayerUpdates.savesLoaded(read.data);
         }
     });
 }
@@ -118,16 +118,35 @@ function saveOf(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return singleplayerStore.saves.get(saveKey(kind, ref));
 }
 
-// Whether the campaign's save, if it has one, was started under the campaign's current saveVersion.
-function campaignSaveCompatibility(campaign: SingleplayerCampaign): SaveCompatibility {
+// Whether the item has a save that can't be used, such as a damaged file. Main refuses every result for it
+// until it is deleted.
+function saveUnusable(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.unusableSaves.has(saveKey(kind, ref));
+}
+
+// Whether main refused the last result for the item because its save is from a newer version of the content.
+// Deleting the save is how the player gets to play the installed version.
+// TODO: This only works while pass and fail stand in for playing. Once missions launch the game, a result is
+// refused only after the player has finished the mission, too late to ask what they want to do with the save.
+// Whether a save can take a result will have to be checked, and settled with the player, before launching.
+function refusedAsNewer(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.saveErrors.get(saveKey(kind, ref)) === "save_version_newer";
+}
+
+// Whether the campaign's save, if it has one, can be used: whether it can be read at all, and was started
+// under the campaign's current saveVersion.
+function campaignSaveStatus(campaign: SingleplayerCampaign): SaveCompatibility | "unusable" {
+    if (saveUnusable("campaign", campaign)) {
+        return "unusable";
+    }
     const save = saveOf("campaign", campaign);
 
     return save ? saveCompatibility(save, campaign.config.saveVersion) : "compatible";
 }
 
-// A save from another save version counts as no progress until the player starts over.
+// A save that can't be used counts as no progress until the player starts over.
 function campaignProgress(campaign: SingleplayerCampaign): ItemProgress {
-    return (campaignSaveCompatibility(campaign) === "compatible" && saveOf("campaign", campaign)) || noProgress;
+    return (campaignSaveStatus(campaign) === "compatible" && saveOf("campaign", campaign)) || noProgress;
 }
 
 function campaignState(campaign: SingleplayerCampaign): CampaignState {
@@ -167,10 +186,15 @@ function tutorialsCompleted(source: ContentSource, rootId: string) {
 }
 
 // Saves a result and keeps the save main wrote. Gives false, with the reason in the store, if it wasn't saved.
+// A save main found it can't use is marked as such instead, as starting over is the only way past it.
 async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
-    const saved = await fromMain(() => singleplayerApi.recordResult(kind, ref, result), saveFailureKeys, "save_failed");
+    const saved = await fromMain<SingleplayerSave, SaveFailure>(() => singleplayerApi.recordResult(kind, ref, result), saveFailureKeys, "save_failed");
     if ("reason" in saved) {
-        singleplayerUpdates.saveFailed(saveKey(kind, ref), saved.reason);
+        if (saved.reason === "save_unusable") {
+            singleplayerUpdates.saveUnusable(saveKey(kind, ref));
+        } else {
+            singleplayerUpdates.saveFailed(saveKey(kind, ref), saved.reason);
+        }
         return false;
     }
     await inOrder(() => singleplayerUpdates.saveStored(saveKey(kind, ref), saved.data));
@@ -212,6 +236,20 @@ async function deleteTutorialSaves(source: ContentSource, rootId: string) {
     }
 }
 
+// Deletes the saves that can't be used of one root's tutorials, leaving the others' progress.
+async function deleteUnusableTutorialSaves(source: ContentSource, rootId: string) {
+    for (const tutorial of tutorialsOf(source, rootId).filter((tutorial) => saveUnusable("tutorial", tutorial))) {
+        await deleteSave("tutorial", tutorial);
+    }
+}
+
+// Deletes the saves of one root's tutorials that main refused as from a newer version, leaving the others' progress.
+async function deleteNewerTutorialSaves(source: ContentSource, rootId: string) {
+    for (const tutorial of tutorialsOf(source, rootId).filter((tutorial) => refusedAsNewer("tutorial", tutorial))) {
+        await deleteSave("tutorial", tutorial);
+    }
+}
+
 // Deletes every singleplayer save, for the settings menu. Gives the message to show if it failed part way;
 // main has then reported each save it did delete.
 async function deleteAllSaves(): Promise<TranslationKey | undefined> {
@@ -227,7 +265,9 @@ export const singleplayerLogic = {
     loadContent,
     loadErrorOf,
     savesLoadErrorOf,
-    campaignSaveCompatibility,
+    saveUnusable,
+    refusedAsNewer,
+    campaignSaveStatus,
     campaignState,
     campaignCompleted,
     variablesOf,
@@ -239,5 +279,7 @@ export const singleplayerLogic = {
     recordItemResult,
     deleteSave,
     deleteTutorialSaves,
+    deleteUnusableTutorialSaves,
+    deleteNewerTutorialSaves,
     deleteAllSaves,
 };

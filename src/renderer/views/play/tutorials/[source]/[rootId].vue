@@ -23,9 +23,20 @@ SPDX-License-Identifier: MIT
             <p v-if="savesLoadError">{{ t(savesLoadError) }}</p>
             <p v-for="error in saveErrors" :key="error">{{ t(error) }}</p>
             <div class="scroll-container flex-col gap-md">
-                <div v-if="settingsStore.devMode" class="flex-row gap-md">
-                    <Button @click="singleplayerLogic.deleteTutorialSaves(source as ContentSource, rootId)">{{
+                <!-- Only the tutorials whose save can't be used are blocked, so the others keep their progress. -->
+                <div v-if="hasUnusableSaves" class="flex-row gap-md flex-center-items">
+                    <span>{{ t("lobby.singleplayer.content.tutorialSavesUnusable") }}</span>
+                    <Button class="red" @click="singleplayerLogic.deleteUnusableTutorialSaves(source as ContentSource, rootId)">{{
+                        t("lobby.singleplayer.content.deleteUnusableSaves")
+                    }}</Button>
+                </div>
+                <div v-if="settingsStore.devMode || hasNewerSaves" class="flex-row gap-md">
+                    <!-- The message for a save from a newer version tells the player they can delete it, so only those are. -->
+                    <Button v-if="hasNewerSaves" @click="singleplayerLogic.deleteNewerTutorialSaves(source as ContentSource, rootId)">{{
                         t("lobby.singleplayer.content.deleteSave")
+                    }}</Button>
+                    <Button v-if="settingsStore.devMode" @click="singleplayerLogic.deleteTutorialSaves(source as ContentSource, rootId)">{{
+                        t("lobby.singleplayer.content.deleteAllTutorialSaves")
                     }}</Button>
                 </div>
                 <div class="cards">
@@ -36,7 +47,7 @@ SPDX-License-Identifier: MIT
                         :description="text(tutorial.manifest.descriptionKey, tutorial.language)"
                         :image-url="tutorial.imageUrl"
                         :background-image-url="tutorial.backgroundImageUrl"
-                        :status="itemStatus(singleplayerLogic.itemCompleted(tutorial))"
+                        :status="tutorialStatus(tutorial)"
                         @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
                         @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
                     />
@@ -80,6 +91,13 @@ const saveErrors = computed(() => [
         tutorials.value.map((tutorial) => singleplayerLogic.saveErrorOf("tutorial", tutorial)).filter((error) => error !== undefined)
     ),
 ]);
+
+const hasNewerSaves = computed(() => tutorials.value.some((tutorial) => singleplayerLogic.refusedAsNewer("tutorial", tutorial)));
+const hasUnusableSaves = computed(() => tutorials.value.some((tutorial) => singleplayerLogic.saveUnusable("tutorial", tutorial)));
+
+function tutorialStatus(tutorial: SingleplayerScenario) {
+    return { ...itemStatus(singleplayerLogic.itemCompleted(tutorial)), available: !singleplayerLogic.saveUnusable("tutorial", tutorial) };
+}
 
 onMounted(() => {
     if (!singleplayerStore.content) {

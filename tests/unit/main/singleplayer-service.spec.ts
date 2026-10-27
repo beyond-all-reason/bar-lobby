@@ -80,7 +80,18 @@ describe("singleplayer IPC handlers", () => {
             status: "success",
             data: { scenarios: expect.arrayContaining([expect.objectContaining({ id: "sample-scenario" })]) },
         });
-        expect(await ipc.handlers.get("singleplayer:getSaves")!({})).toMatchObject({ status: "success", data: { saves: [{ item: { id: "sample-scenario" } }], problems: [] } });
+        expect(await ipc.handlers.get("singleplayer:getSaves")!({})).toMatchObject({ status: "success", data: { saves: [{ item: { id: "sample-scenario" } }], unusable: [] } });
+    });
+
+    it("names the installed items whose save can't be used, and leaves out a file no installed item's save is kept in", async () => {
+        const { saveFileName } = await import("@main/content/singleplayer/saves");
+        await fs.writeFile(path.join(paths.saves, saveFileName("tutorial", official("sample-tutorial"))), "{ not json");
+        await fs.writeFile(path.join(paths.saves, saveFileName("campaign", official("not-installed"))), "{ not json");
+
+        expect(await ipc.handlers.get("singleplayer:getSaves")!({})).toMatchObject({
+            status: "success",
+            data: { saves: [{ item: { id: "sample-scenario" } }], unusable: [{ kind: "tutorial", ...official("sample-tutorial") }] },
+        });
     });
 
     it("gives the reason a change was refused as a code, with the error behind it as details", async () => {

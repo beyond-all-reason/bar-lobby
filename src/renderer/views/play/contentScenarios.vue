@@ -50,12 +50,23 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
                     <div class="scroll-container flex-col gap-md">
                         <p v-if="savesLoadError">{{ t(savesLoadError) }}</p>
                         <p v-if="saveError">{{ t(saveError) }}</p>
-                        <div v-if="settingsStore.devMode" class="flex-row gap-md">
+                        <!-- The message for a save from a newer version tells the player they can delete it. -->
+                        <div v-if="settingsStore.devMode || singleplayerLogic.refusedAsNewer('scenario', selected)" class="flex-row gap-md">
                             <Button @click="singleplayerLogic.deleteSave('scenario', selected)">{{
                                 t("lobby.singleplayer.content.deleteSave")
                             }}</Button>
                         </div>
+                        <!-- Main refuses every result for a save it can't use, so the scenario can't be played until it is deleted. -->
+                        <template v-if="singleplayerLogic.saveUnusable('scenario', selected)">
+                            <p>{{ t("lobby.singleplayer.content.scenarioSaveUnusable") }}</p>
+                            <div class="flex-row gap-md">
+                                <Button class="red" @click="singleplayerLogic.deleteSave('scenario', selected)">{{
+                                    t("lobby.singleplayer.content.startOver")
+                                }}</Button>
+                            </div>
+                        </template>
                         <MissionCard
+                            v-else
                             :title="text(selected.manifest.titleKey, selected.language)"
                             :description="text(selected.manifest.descriptionKey, selected.language)"
                             :image-url="selected.imageUrl"

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import path from "node:path";
 import { getContentRoots, SAVES_PATH } from "@main/config/app";
 import * as saves from "@main/content/singleplayer/saves";
 import { SaveFailureError } from "@main/content/singleplayer/saves";
@@ -9,7 +10,7 @@ import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer
 import { ipcMain, IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
 import { applyResult } from "@shared/content/campaign-progress";
-import type { ReportedResult, SaveChange, SaveFailure } from "@shared/content/save";
+import type { ReportedResult, SaveChange, SaveFailure, SingleplayerSaves } from "@shared/content/save";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { WebContents } from "electron";
 import { ContentProblem, ContentSource, isSameItem, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
@@ -47,11 +48,20 @@ async function get<K extends "campaigns" | "scenarios" | "tutorials">(kind: K, r
     return (await scanned())[kind].find((item) => isSameItem(item, ref));
 }
 
-async function getSaves() {
-    const read = await saves.readSaves(SAVES_PATH);
+const itemOf = (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ({ kind, source, rootId, id });
+
+const KINDS = ["campaign", "scenario", "tutorial"] as const satisfies SingleplayerKind[];
+
+// A save that can't be used says nothing reliable about whose it is, so it is matched to an item by the file
+// that item's save would be kept in. One whose item isn't installed is only logged, as there is nothing to show it on.
+async function getSaves(): Promise<SingleplayerSaves> {
+    const [read, content] = await Promise.all([saves.readSaves(SAVES_PATH), scanned().catch(() => undefined)]);
     logProblems(read.problems);
 
-    return read;
+    const unusableFiles = new Set(read.problems.map((problem) => path.basename(problem.path)));
+    const unusable = KINDS.flatMap((kind) => (content?.[`${kind}s`] ?? []).filter((item) => unusableFiles.has(saves.saveFileName(kind, item))).map((item) => itemOf(kind, item)));
+
+    return { saves: read.saves, unusable };
 }
 
 // Saved progress, for whatever reports a finished game and for launching a mission with its saved variables.
@@ -61,13 +71,9 @@ function readSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return saves.readSave(SAVES_PATH, kind, ref);
 }
 
-const itemOf = (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ({ kind, source, rootId, id });
-
-const KINDS: readonly string[] = ["campaign", "scenario", "tutorial"] satisfies SingleplayerKind[];
-
 // The kind comes over IPC, so it is checked rather than trusted.
 function checkKind(kind: string) {
-    if (!KINDS.includes(kind)) {
+    if (!(KINDS as readonly string[]).includes(kind)) {
         throw new SaveFailureError("unknown_item", `Unknown singleplayer kind ${JSON.stringify(kind)}. Expected one of ${KINDS.join(", ")}`);
     }
 }

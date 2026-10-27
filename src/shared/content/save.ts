@@ -112,6 +112,9 @@ export type SaveFailure = "save_unusable" | "save_version_older" | "save_version
 // A save as written, or undefined once deleted, for the item it belongs to.
 export type SaveChange = { item: SingleplayerItemRef & { kind: SingleplayerKind }; save: SingleplayerSave | undefined };
 
+// The saves that could be read, and the items whose save is there but can't be used, which only deleting it replaces.
+export type SingleplayerSaves = { saves: SingleplayerSave[]; unusable: SaveChange["item"][] };
+
 /**
  * What a save is kept under. Ids are unique within one root and one kind only, so all four parts are needed:
  * a campaign and a tutorial may share an id, as may official, custom and Workshop items.

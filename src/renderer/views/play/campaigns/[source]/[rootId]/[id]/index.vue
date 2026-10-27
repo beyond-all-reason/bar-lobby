@@ -26,15 +26,19 @@ graph: content does not say which missions are alternatives to each other.
             <p v-else-if="singleplayerStore.content && !campaign">{{ t("lobby.singleplayer.content.notFound") }}</p>
             <p v-if="savesLoadError">{{ t(savesLoadError) }}</p>
             <p v-if="saveError">{{ t(saveError) }}</p>
-            <div v-if="campaign && state" class="scroll-container flex-col gap-md">
-                <p>{{ text(campaign.config.descriptionKey, campaign.language) }}</p>
-                <div v-if="compatibility !== 'compatible'" class="flex-row gap-md flex-center-items">
-                    <span v-if="compatibility === 'older'">{{ t("lobby.singleplayer.content.saveFromOlderVersion") }}</span>
-                    <span v-else>{{ t("lobby.singleplayer.content.saveFromNewerVersion") }}</span>
-                    <Button v-if="compatibility === 'older'" class="red" @click="singleplayerLogic.deleteSave('campaign', campaign)">{{
+            <!-- Main refuses every result for a save it can't use, so none of the campaign is shown until it is dealt with. -->
+            <div v-if="campaign && saveStatus !== 'compatible'" class="flex-col gap-md">
+                <p v-if="saveStatus === 'older'">{{ t("lobby.singleplayer.content.saveFromOlderVersion") }}</p>
+                <p v-else-if="saveStatus === 'newer'">{{ t("lobby.singleplayer.content.saveFromNewerVersion") }}</p>
+                <p v-else>{{ t("lobby.singleplayer.content.campaignSaveUnusable") }}</p>
+                <div class="flex-row gap-md">
+                    <Button class="red" @click="singleplayerLogic.deleteSave('campaign', campaign)">{{
                         t("lobby.singleplayer.content.startOver")
                     }}</Button>
                 </div>
+            </div>
+            <div v-else-if="campaign && state" class="scroll-container flex-col gap-md">
+                <p>{{ text(campaign.config.descriptionKey, campaign.language) }}</p>
                 <div class="flex-row gap-md">
                     <Button @click="router.push(`/play/campaigns/${source}/${rootId}/${id}/credits`)">{{
                         t("lobby.singleplayer.content.showCredits")
@@ -99,7 +103,7 @@ const campaign = computed(
             | undefined
 );
 const state = computed(() => campaign.value && singleplayerLogic.campaignState(campaign.value));
-const compatibility = computed(() => (campaign.value ? singleplayerLogic.campaignSaveCompatibility(campaign.value) : "compatible"));
+const saveStatus = computed(() => (campaign.value ? singleplayerLogic.campaignSaveStatus(campaign.value) : "compatible"));
 const variables = computed(() => (campaign.value ? singleplayerLogic.variablesOf(campaign.value) : {}));
 const saveError = computed(() => campaign.value && singleplayerLogic.saveErrorOf("campaign", campaign.value));
 

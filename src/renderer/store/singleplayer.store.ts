@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive, readonly } from "vue";
-import { saveKey, type SaveFailure, type SingleplayerSave } from "@shared/content/save";
+import { saveKey, type SaveFailure, type SingleplayerSave, type SingleplayerSaves } from "@shared/content/save";
 import type { SingleplayerContent, SingleplayerLoadFailure } from "@shared/content/singleplayer";
 
 const state = reactive({
@@ -14,6 +14,7 @@ const state = reactive({
     savesLoaded: false,
     savesLoadError: undefined,
     saveErrors: new Map(),
+    unusableSaves: new Set(),
 } as {
     content: SingleplayerContent | undefined;
     isLoading: boolean;
@@ -27,6 +28,9 @@ const state = reactive({
     // Why the last change asked for to a save failed, keyed by saveKey, cleared by the next change to that
     // save that succeeds.
     saveErrors: Map<string, SaveFailure>;
+    // Items whose save is there but can't be used, such as a damaged file, keyed by saveKey. Main refuses every
+    // result for them, and only deleting the save, or main writing a new one, clears it.
+    unusableSaves: Set<string>;
 });
 
 export const singleplayerStore = readonly(state);
@@ -44,8 +48,9 @@ export const singleplayerUpdates = {
         state.loadError = reason;
         state.isLoading = false;
     },
-    savesLoaded(saves: readonly SingleplayerSave[]) {
+    savesLoaded({ saves, unusable }: SingleplayerSaves) {
         state.saves = new Map(saves.map((save) => [saveKey(save.item.kind, save.item), save]));
+        state.unusableSaves = new Set(unusable.map((item) => saveKey(item.kind, item)));
         state.savesLoaded = true;
         state.savesLoadError = undefined;
     },
@@ -55,10 +60,12 @@ export const singleplayerUpdates = {
     saveStored(key: string, save: SingleplayerSave) {
         state.saves.set(key, save);
         state.saveErrors.delete(key);
+        state.unusableSaves.delete(key);
     },
     saveRemoved(key: string) {
         state.saves.delete(key);
         state.saveErrors.delete(key);
+        state.unusableSaves.delete(key);
     },
     // A change reported by main, which may not be one this window asked for, so any error stays.
     saveChanged(key: string, save: SingleplayerSave | undefined) {
@@ -67,10 +74,16 @@ export const singleplayerUpdates = {
         } else {
             state.saves.delete(key);
         }
+        state.unusableSaves.delete(key);
     },
     allSavesDeleted() {
         state.saves.clear();
         state.saveErrors.clear();
+        state.unusableSaves.clear();
+    },
+    // Found when main refused a result for it: the save was damaged after the saves were read, or its item wasn't installed then.
+    saveUnusable(key: string) {
+        state.unusableSaves.add(key);
     },
     saveFailed(key: string, reason: SaveFailure) {
         state.saveErrors.set(key, reason);
@@ -83,5 +96,6 @@ export const singleplayerUpdates = {
         state.savesLoaded = false;
         state.savesLoadError = undefined;
         state.saveErrors.clear();
+        state.unusableSaves.clear();
     },
 };
