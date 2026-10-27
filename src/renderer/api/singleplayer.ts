@@ -9,9 +9,6 @@ import type { SingleplayerItemRef, SingleplayerKind } from "@shared/content/sing
 export const singleplayerApi = {
     // Rescans the content roots, so content added since the last call shows up.
     list: () => ipcCall("singleplayer:list", () => window.singleplayer.list()),
-    getCampaign: ({ source, rootId, id }: SingleplayerItemRef) => ipcCall("singleplayer:getCampaign", () => window.singleplayer.getCampaign(source, rootId, id)),
-    getScenario: ({ source, rootId, id }: SingleplayerItemRef) => ipcCall("singleplayer:getScenario", () => window.singleplayer.getScenario(source, rootId, id)),
-    getTutorial: ({ source, rootId, id }: SingleplayerItemRef) => ipcCall("singleplayer:getTutorial", () => window.singleplayer.getTutorial(source, rootId, id)),
     getSaves: () => ipcCall("singleplayer:getSaves", () => window.singleplayer.getSaves()),
     // Returns the save as written.
     recordResult: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, result: ReportedResult) =>

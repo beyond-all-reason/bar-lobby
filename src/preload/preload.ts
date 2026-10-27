@@ -24,7 +24,7 @@ import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
-import type { ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
+import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -199,9 +199,6 @@ contextBridge.exposeInMainWorld("maps", mapsApi);
 const singleplayerApi = {
     // Rescans the content roots.
     list: (): Promise<IpcResult<SingleplayerContent>> => ipcRenderer.invoke("singleplayer:list"),
-    getCampaign: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerCampaign | undefined> => ipcRenderer.invoke("singleplayer:getCampaign", source, rootId, id),
-    getScenario: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getScenario", source, rootId, id),
-    getTutorial: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getTutorial", source, rootId, id),
     getSaves: (): Promise<IpcResult<SingleplayerSaves>> => ipcRenderer.invoke("singleplayer:getSaves"),
     recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult): Promise<IpcResult<SingleplayerSave>> =>
         ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),

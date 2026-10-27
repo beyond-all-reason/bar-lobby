@@ -260,18 +260,12 @@ describe("Preload API Context Bridge", () => {
         await import("@preload/preload");
 
         mockWindow.singleplayer.list();
-        mockWindow.singleplayer.getCampaign("official", "official", "sample-campaign");
-        mockWindow.singleplayer.getScenario("custom", "custom", "sample-scenario");
-        mockWindow.singleplayer.getTutorial("custom", "custom", "sample-tutorial");
         mockWindow.singleplayer.getSaves();
         mockWindow.singleplayer.recordResult("campaign", "official", "official", "sample-campaign", { missionId: "mission01", outcome: "victory" });
         mockWindow.singleplayer.deleteSave("tutorial", "custom", "custom", "sample-tutorial");
         mockWindow.singleplayer.deleteAllSaves();
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:list");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getCampaign", "official", "official", "sample-campaign");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getScenario", "custom", "custom", "sample-scenario");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getTutorial", "custom", "custom", "sample-tutorial");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getSaves");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:recordResult", "campaign", "official", "official", "sample-campaign", {
             missionId: "mission01",

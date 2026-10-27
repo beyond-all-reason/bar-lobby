@@ -22,7 +22,7 @@ import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
-import type { ContentSource, SingleplayerCampaign, SingleplayerContent, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
+import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
@@ -126,9 +126,6 @@ export type IPCCommands = {
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
     "singleplayer:list": () => IpcResult<SingleplayerContent>;
-    "singleplayer:getCampaign": (source: ContentSource, rootId: string, id: string) => SingleplayerCampaign | undefined;
-    "singleplayer:getScenario": (source: ContentSource, rootId: string, id: string) => SingleplayerScenario | undefined;
-    "singleplayer:getTutorial": (source: ContentSource, rootId: string, id: string) => SingleplayerScenario | undefined;
     "singleplayer:getSaves": () => IpcResult<SingleplayerSaves>;
     "singleplayer:recordResult": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) => IpcResult<SingleplayerSave>;
     "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;

@@ -131,9 +131,6 @@ const loadFailureOf = (): SingleplayerLoadFailure => "load_failed";
 
 function registerIpcHandlers(webContents: WebContents) {
     ipcMain.handle("singleplayer:list", () => overIpc(scan, loadFailureOf));
-    ipcMain.handle("singleplayer:getCampaign", (_, source: ContentSource, rootId: string, id: string) => get("campaigns", { source, rootId, id }));
-    ipcMain.handle("singleplayer:getScenario", (_, source: ContentSource, rootId: string, id: string) => get("scenarios", { source, rootId, id }));
-    ipcMain.handle("singleplayer:getTutorial", (_, source: ContentSource, rootId: string, id: string) => get("tutorials", { source, rootId, id }));
     ipcMain.handle("singleplayer:getSaves", () => overIpc(getSaves, loadFailureOf));
     ipcMain.handle("singleplayer:recordResult", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) =>
         overIpc(() => recordResult(kind, { source, rootId, id }, result), saveFailureOf)
