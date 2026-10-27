@@ -32,6 +32,10 @@ export type SingleplayerItemRef = { source: ContentSource; rootId: string; id: s
 
 export type ContentProblem = { path: string; severity: "error" | "warning"; message: string };
 
+// Why main couldn't give the content or the saves. Sent as a code so the renderer words it itself; the error
+// behind it goes to main's log. Nothing it reads can refuse a load, so the only code is for anything unexpected.
+export type SingleplayerLoadFailure = "load_failed";
+
 export type MissionConfigs = {
     default: MissionConfig;
     // Keyed by number of human players, as in the manifest.

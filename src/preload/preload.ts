@@ -198,15 +198,15 @@ contextBridge.exposeInMainWorld("maps", mapsApi);
 
 const singleplayerApi = {
     // Rescans the content roots.
-    list: (): Promise<SingleplayerContent> => ipcRenderer.invoke("singleplayer:list"),
+    list: (): Promise<IpcResult<SingleplayerContent>> => ipcRenderer.invoke("singleplayer:list"),
     getCampaign: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerCampaign | undefined> => ipcRenderer.invoke("singleplayer:getCampaign", source, rootId, id),
     getScenario: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getScenario", source, rootId, id),
     getTutorial: (source: ContentSource, rootId: string, id: string): Promise<SingleplayerScenario | undefined> => ipcRenderer.invoke("singleplayer:getTutorial", source, rootId, id),
-    getSaves: (): Promise<{ saves: SingleplayerSave[]; problems: ContentProblem[] }> => ipcRenderer.invoke("singleplayer:getSaves"),
-    recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult): Promise<SingleplayerSave> =>
+    getSaves: (): Promise<IpcResult<{ saves: SingleplayerSave[]; problems: ContentProblem[] }>> => ipcRenderer.invoke("singleplayer:getSaves"),
+    recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult): Promise<IpcResult<SingleplayerSave>> =>
         ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),
-    deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<void> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
-    deleteAllSaves: (): Promise<void> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
+    deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
+    deleteAllSaves: (): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
     // Every change to a save, including ones main made itself.
     onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
 };

@@ -7,9 +7,20 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import { type AppliedProgress, countPlay, type ItemProgress } from "../../../shared/content/campaign-progress";
-import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, SingleplayerSave } from "../../../shared/content/save";
+import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, type SaveFailure, SingleplayerSave } from "../../../shared/content/save";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
 import { describeError } from "./files";
+
+// A change to a save that was refused, with the code the renderer words it by. The message is for the log.
+export class SaveFailureError extends Error {
+    readonly reason: SaveFailure;
+
+    constructor(reason: SaveFailure, message: string) {
+        super(message);
+        this.name = "SaveFailureError";
+        this.reason = reason;
+    }
+}
 
 // Saves are read exactly as written, as content is. One written by another client version must not be
 // changed by reading it.
@@ -118,7 +129,7 @@ function queued<T>(filePath: string, task: () => Promise<T>): Promise<T> {
 // Without the values, which may be long: a result comes from a mission, not from a file someone can open.
 function checkResult(result: ReportedResult) {
     if (!validateResult(result)) {
-        throw new Error(`Invalid result: ${(validateResult.errors ?? []).map((error) => `${error.instancePath || "(root)"} ${error.message}`).join("; ")}`);
+        throw new SaveFailureError("invalid_result", `Invalid result: ${(validateResult.errors ?? []).map((error) => `${error.instancePath || "(root)"} ${error.message}`).join("; ")}`);
     }
 }
 
@@ -140,24 +151,22 @@ export async function recordResult(dir: string, kind: SingleplayerKind, ref: Sin
     return queued(filePath, async () => {
         const read = await readSaveFile(filePath);
         if ("problem" in read) {
-            throw new Error(`${filePath}: ${read.problem}. Delete the save to start over.`);
+            throw new SaveFailureError("save_unusable", `${filePath}: ${read.problem}. Delete the save to start over.`);
         }
 
         const save: SingleplayerSave =
             "save" in read ? read.save : { formatVersion: SAVE_FORMAT_VERSION, saveVersion, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
         const compatibility = saveCompatibility(save, saveVersion);
         if (compatibility !== "compatible") {
-            throw new Error(
-                compatibility === "older"
-                    ? `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, which is now at ${saveVersion}. Start over to play it.`
-                    : `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, newer than the ${saveVersion} installed.`
-            );
+            throw compatibility === "older"
+                ? new SaveFailureError("save_version_older", `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, which is now at ${saveVersion}. Start over to play it.`)
+                : new SaveFailureError("save_version_newer", `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, newer than the ${saveVersion} installed.`);
         }
 
         const progress = apply(save, result);
         const variableCount = Object.keys(progress.campaign?.variables ?? {}).length;
         if (variableCount > SAVE_LIMITS.variableCount) {
-            throw new Error(`Invalid result: ${variableCount} variables saved, more than the ${SAVE_LIMITS.variableCount} allowed`);
+            throw new SaveFailureError("invalid_result", `Invalid result: ${variableCount} variables saved, more than the ${SAVE_LIMITS.variableCount} allowed`);
         }
 
         const recent = [...save.recent, { ...result, at: new Date().toISOString() }].slice(-SAVE_LIMITS.recentResults);

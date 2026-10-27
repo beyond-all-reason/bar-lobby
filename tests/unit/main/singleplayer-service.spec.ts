@@ -10,7 +10,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 const paths = vi.hoisted(() => ({ saves: "" }));
 
 vi.mock("electron", () => ({}));
-vi.mock("@main/typed-ipc", () => ({ ipcMain: { handle: vi.fn() } }));
+const ipc = vi.hoisted(() => ({ handlers: new Map<string, (...args: unknown[]) => unknown>() }));
+vi.mock("@main/typed-ipc", () => ({ ipcMain: { handle: (channel: string, handler: (...args: unknown[]) => unknown) => ipc.handlers.set(channel, handler) } }));
 // app.ts calls app.setPath at module scope, so it can't be imported in a test.
 vi.mock("@main/config/app", () => ({
     getContentRoots: () => [{ source: "official", rootId: "official", path: path.resolve("tests/fixtures/content") }],
@@ -39,13 +40,15 @@ describe("singleplayerService.recordResult", () => {
     });
 
     it("refuses a scenario or tutorial result that names another mission, and saves nothing", async () => {
-        await expect(singleplayerService.recordResult("tutorial", official("sample-tutorial"), { missionId: "something-else", outcome: "victory" })).rejects.toThrow(/names mission something-else/);
+        await expect(singleplayerService.recordResult("tutorial", official("sample-tutorial"), { missionId: "something-else", outcome: "victory" })).rejects.toThrow(
+            expect.objectContaining({ reason: "invalid_result", message: expect.stringMatching(/names mission something-else/) })
+        );
         expect(await singleplayerService.readSave("tutorial", official("sample-tutorial"))).toBeUndefined();
     });
 
     it("refuses an unknown kind with a clear error", async () => {
         await expect(singleplayerService.recordResult("mission" as never, official("sample-campaign"), { missionId: "mission01", outcome: "victory" })).rejects.toThrow(
-            /Unknown singleplayer kind "mission"/
+            expect.objectContaining({ reason: "unknown_item", message: expect.stringMatching(/Unknown singleplayer kind "mission"/) })
         );
     });
 
@@ -53,5 +56,34 @@ describe("singleplayerService.recordResult", () => {
         const save = await singleplayerService.recordResult("campaign", official("sample-campaign"), { missionId: "mission01", outcome: "victory" });
 
         expect(save.plays).toEqual({ mission01: { victories: 1, failures: 0 } });
+    });
+});
+
+describe("singleplayer IPC handlers", () => {
+    beforeAll(async () => {
+        paths.saves = await fs.mkdtemp(path.join(os.tmpdir(), "singleplayer-service-"));
+        singleplayerService.registerIpcHandlers({ send: vi.fn() } as never);
+    });
+
+    afterAll(async () => {
+        await fs.rm(paths.saves, { recursive: true, force: true });
+    });
+
+    const recordOverIpc = (id: string, missionId: string) => ipc.handlers.get("singleplayer:recordResult")!({}, "scenario", "official", "official", id, { missionId, outcome: "victory" });
+
+    it("gives the save written", async () => {
+        expect(await recordOverIpc("sample-scenario", "sample-scenario")).toMatchObject({ status: "success", data: { plays: { "sample-scenario": { victories: 1, failures: 0 } } } });
+    });
+
+    it("gives the content and the saves as results", async () => {
+        expect(await ipc.handlers.get("singleplayer:list")!({})).toMatchObject({
+            status: "success",
+            data: { scenarios: expect.arrayContaining([expect.objectContaining({ id: "sample-scenario" })]) },
+        });
+        expect(await ipc.handlers.get("singleplayer:getSaves")!({})).toMatchObject({ status: "success", data: { saves: [{ item: { id: "sample-scenario" } }], problems: [] } });
+    });
+
+    it("gives the reason a change was refused as a code, with the error behind it as details", async () => {
+        expect(await recordOverIpc("no-such-scenario", "no-such-scenario")).toEqual({ status: "failed", reason: "unknown_item", details: expect.stringMatching(/No scenario no-such-scenario/) });
     });
 });

@@ -18,10 +18,10 @@ SPDX-License-Identifier: MIT
             <h1>{{ t("lobby.singleplayer.content.tutorials") }}</h1>
         </div>
         <Panel class="flex-grow">
-            <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+            <p v-if="loadError">{{ t(loadError) }}</p>
             <p v-else-if="singleplayerStore.content && tutorials.length === 0">{{ t("lobby.singleplayer.content.notFound") }}</p>
-            <p v-if="singleplayerStore.savesLoadError">{{ singleplayerStore.savesLoadError }}</p>
-            <p v-for="error in saveErrors" :key="error">{{ error }}</p>
+            <p v-if="savesLoadError">{{ t(savesLoadError) }}</p>
+            <p v-for="error in saveErrors" :key="error">{{ t(error) }}</p>
             <div class="scroll-container flex-col gap-md">
                 <div v-if="settingsStore.devMode" class="flex-row gap-md">
                     <Button @click="singleplayerLogic.deleteTutorialSaves(source as ContentSource, rootId)">{{
@@ -68,6 +68,8 @@ const { source, rootId } = defineProps<{
 }>();
 
 const { t } = useTypedI18n();
+const loadError = computed(() => singleplayerLogic.loadErrorOf());
+const savesLoadError = computed(() => singleplayerLogic.savesLoadErrorOf());
 const text = useContentText();
 const router = useRouter();
 

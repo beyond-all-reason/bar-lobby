@@ -133,8 +133,12 @@ describe("singleplayer saves", () => {
             const file = fileOf(saveFileName("campaign", official));
             const before = await fs.readFile(file, "utf8");
 
-            await expect(recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "victory" }, 3)).rejects.toThrow(/Start over/);
-            await expect(recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "victory" }, 1)).rejects.toThrow(/newer than the 1 installed/);
+            await expect(recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "victory" }, 3)).rejects.toThrow(
+                expect.objectContaining({ reason: "save_version_older", message: expect.stringMatching(/Start over/) })
+            );
+            await expect(recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "victory" }, 1)).rejects.toThrow(
+                expect.objectContaining({ reason: "save_version_newer", message: expect.stringMatching(/newer than the 1 installed/) })
+            );
 
             expect(await fs.readFile(file, "utf8")).toBe(before);
         });
@@ -181,7 +185,9 @@ describe("singleplayer saves", () => {
             expect(read.saves).toEqual([]);
             expect(read.problems).toEqual([{ path: file, severity: "error", message: expect.stringMatching(message) }]);
             await expect(readSave(dir, "campaign", official)).rejects.toThrow(message);
-            await expect(recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "victory" })).rejects.toThrow(/Delete the save/);
+            await expect(recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "victory" })).rejects.toThrow(
+                expect.objectContaining({ reason: "save_unusable", message: expect.stringMatching(/Delete the save/) })
+            );
 
             expect(await fs.readFile(file, "utf8")).toBe(before);
         });
@@ -242,7 +248,7 @@ describe("singleplayer saves", () => {
         const record = (variables: Record<string, unknown>) => recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory", variables } as never);
 
         it("refuses a key that is empty or too long", async () => {
-            await expect(record({ "": 1 })).rejects.toThrow(/Invalid result/);
+            await expect(record({ "": 1 })).rejects.toThrow(expect.objectContaining({ reason: "invalid_result", message: expect.stringMatching(/Invalid result/) }));
             await expect(record({ ["k".repeat(SAVE_LIMITS.variableKeyLength + 1)]: 1 })).rejects.toThrow(/Invalid result/);
         });
 
@@ -258,7 +264,7 @@ describe("singleplayer saves", () => {
             // Replacing a saved key doesn't add to the count.
             await record({ v0: "again" });
 
-            await expect(record({ extra: 1 })).rejects.toThrow(/more than the 256 allowed/);
+            await expect(record({ extra: 1 })).rejects.toThrow(expect.objectContaining({ reason: "invalid_result", message: expect.stringMatching(/more than the 256 allowed/) }));
             expect(await files()).toHaveLength(1);
             expect((await readSave(dir, "campaign", official))?.recent).toHaveLength(2);
         });

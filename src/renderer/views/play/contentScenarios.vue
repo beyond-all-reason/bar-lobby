@@ -23,7 +23,7 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
             <div class="flex-row gap-lg fullheight">
                 <div class="list flex-col">
                     <div class="scroll-container gap-lg">
-                        <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+                        <p v-if="loadError">{{ t(loadError) }}</p>
                         <p v-else-if="singleplayerStore.content && groups.length === 0">{{ t("lobby.singleplayer.content.empty") }}</p>
                         <div v-for="group in groups" :key="group.source" class="flex-col gap-md">
                             <h2>{{ group.source }}</h2>
@@ -48,10 +48,8 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
                 </div>
                 <div v-if="selected" class="scenario-preview flex-col">
                     <div class="scroll-container flex-col gap-md">
-                        <p v-if="singleplayerStore.savesLoadError">{{ singleplayerStore.savesLoadError }}</p>
-                        <p v-if="singleplayerLogic.saveErrorOf('scenario', selected)">
-                            {{ singleplayerLogic.saveErrorOf("scenario", selected) }}
-                        </p>
+                        <p v-if="savesLoadError">{{ t(savesLoadError) }}</p>
+                        <p v-if="saveError">{{ t(saveError) }}</p>
                         <div v-if="settingsStore.devMode" class="flex-row gap-md">
                             <Button @click="singleplayerLogic.deleteSave('scenario', selected)">{{
                                 t("lobby.singleplayer.content.deleteSave")
@@ -89,9 +87,12 @@ import { itemStatus } from "@shared/content/campaign-progress";
 import { type ContentSource, isSameItem, type SingleplayerScenario } from "@shared/content/singleplayer";
 
 const { t } = useTypedI18n();
+const loadError = computed(() => singleplayerLogic.loadErrorOf());
+const savesLoadError = computed(() => singleplayerLogic.savesLoadErrorOf());
 const text = useContentText();
 
 const selected = ref<SingleplayerScenario>();
+const saveError = computed(() => selected.value && singleplayerLogic.saveErrorOf("scenario", selected.value));
 
 // Grouped by whatever sources arrive, so a new kind of source shows up without changes here.
 const groups = computed(() => {

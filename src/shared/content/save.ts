@@ -105,6 +105,10 @@ export function saveCompatibility(save: Pick<SingleplayerSave, "saveVersion">, c
     return saveVersion < contentSaveVersion ? "older" : "newer";
 }
 
+// Why main didn't make a change asked for to a save. Sent as codes so the renderer words them itself; the file
+// paths and errors behind them go to main's log. save_failed is anything else, such as a full disk.
+export type SaveFailure = "save_unusable" | "save_version_older" | "save_version_newer" | "invalid_result" | "unknown_item" | "save_failed";
+
 // A save as written, or undefined once deleted, for the item it belongs to.
 export type SaveChange = { item: SingleplayerItemRef & { kind: SingleplayerKind }; save: SingleplayerSave | undefined };
 

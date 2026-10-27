@@ -4,14 +4,15 @@
 
 import { getContentRoots, SAVES_PATH } from "@main/config/app";
 import * as saves from "@main/content/singleplayer/saves";
+import { SaveFailureError } from "@main/content/singleplayer/saves";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
-import { ipcMain } from "@main/typed-ipc";
+import { ipcMain, IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
 import { applyResult } from "@shared/content/campaign-progress";
-import type { ReportedResult, SaveChange } from "@shared/content/save";
+import type { ReportedResult, SaveChange, SaveFailure } from "@shared/content/save";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { WebContents } from "electron";
-import { ContentProblem, ContentSource, isSameItem, SingleplayerContent, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
+import { ContentProblem, ContentSource, isSameItem, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
 
 const log = logger("singleplayer.service.ts");
 
@@ -67,7 +68,7 @@ const KINDS: readonly string[] = ["campaign", "scenario", "tutorial"] satisfies 
 // The kind comes over IPC, so it is checked rather than trusted.
 function checkKind(kind: string) {
     if (!KINDS.includes(kind)) {
-        throw new Error(`Unknown singleplayer kind ${JSON.stringify(kind)}. Expected one of ${KINDS.join(", ")}`);
+        throw new SaveFailureError("unknown_item", `Unknown singleplayer kind ${JSON.stringify(kind)}. Expected one of ${KINDS.join(", ")}`);
     }
 }
 
@@ -76,11 +77,11 @@ async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, re
     checkKind(kind);
     const item = await get(`${kind}s`, ref);
     if (!item) {
-        throw new Error(`No ${kind} ${ref.id} in ${ref.source}/${ref.rootId}`);
+        throw new SaveFailureError("unknown_item", `No ${kind} ${ref.id} in ${ref.source}/${ref.rootId}`);
     }
     // A scenario or tutorial is one mission, and its plays are read under its own id.
     if (item.kind !== "campaign" && result.missionId !== item.id) {
-        throw new Error(`A result for ${kind} ${item.id} names mission ${result.missionId}`);
+        throw new SaveFailureError("invalid_result", `A result for ${kind} ${item.id} names mission ${result.missionId}`);
     }
 
     const save =
@@ -105,17 +106,34 @@ async function deleteAllSaves() {
     }
 }
 
+// A call over IPC gives the renderer the reason it failed as a code to word, since a thrown error would reach
+// it as its message alone. What is behind the code goes to the log.
+async function overIpc<T>(action: () => Promise<T>, reasonOf: (err: unknown) => string): Promise<IpcResult<T>> {
+    try {
+        return { status: "success", data: await action() };
+    } catch (err) {
+        const reason = reasonOf(err);
+        const details = err instanceof Error ? err.message : String(err);
+        log.error(`${reason}: ${details}`);
+
+        return { status: "failed", reason, details };
+    }
+}
+
+const saveFailureOf = (err: unknown): SaveFailure => (err instanceof SaveFailureError ? err.reason : "save_failed");
+const loadFailureOf = (): SingleplayerLoadFailure => "load_failed";
+
 function registerIpcHandlers(webContents: WebContents) {
-    ipcMain.handle("singleplayer:list", () => scan());
+    ipcMain.handle("singleplayer:list", () => overIpc(scan, loadFailureOf));
     ipcMain.handle("singleplayer:getCampaign", (_, source: ContentSource, rootId: string, id: string) => get("campaigns", { source, rootId, id }));
     ipcMain.handle("singleplayer:getScenario", (_, source: ContentSource, rootId: string, id: string) => get("scenarios", { source, rootId, id }));
     ipcMain.handle("singleplayer:getTutorial", (_, source: ContentSource, rootId: string, id: string) => get("tutorials", { source, rootId, id }));
-    ipcMain.handle("singleplayer:getSaves", () => getSaves());
+    ipcMain.handle("singleplayer:getSaves", () => overIpc(getSaves, loadFailureOf));
     ipcMain.handle("singleplayer:recordResult", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) =>
-        recordResult(kind, { source, rootId, id }, result)
+        overIpc(() => recordResult(kind, { source, rootId, id }, result), saveFailureOf)
     );
-    ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => deleteSave(kind, { source, rootId, id }));
-    ipcMain.handle("singleplayer:deleteAllSaves", () => deleteAllSaves());
+    ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => overIpc(() => deleteSave(kind, { source, rootId, id }), saveFailureOf));
+    ipcMain.handle("singleplayer:deleteAllSaves", () => overIpc(deleteAllSaves, saveFailureOf));
 
     onSaveChanged.add((change) => webContents.send("singleplayer:saveChanged", change));
 }

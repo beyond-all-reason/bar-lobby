@@ -23,20 +23,27 @@ const disk = new Map<string, SingleplayerSave>();
 const playsOf = (kind: SingleplayerKind, ref: SingleplayerItemRef) =>
     Object.values(singleplayerStore.saves.get(saveKey(kind, ref))?.plays ?? {}).reduce((total, plays) => total + plays.victories + plays.failures, 0);
 
+const succeeded = <T>(data: T) => ({ status: "success", data }) as const;
+
 function fakeMain() {
     disk.clear();
-    api.list.mockResolvedValue(content([]));
-    api.getSaves.mockImplementation(async () => ({ saves: structuredClone([...disk.values()]), problems: [] }));
+    api.list.mockResolvedValue(succeeded(content([])));
+    api.getSaves.mockImplementation(async () => succeeded({ saves: structuredClone([...disk.values()]), problems: [] }));
     api.recordResult.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) => {
         const key = saveKey(kind, ref);
         const save = disk.get(key) ?? { formatVersion: 1, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
         const progress = kind === "campaign" ? applyResult(sampleCampaign as CampaignConfig, save, result) : { plays: countPlay(save.plays, result.missionId, result.outcome) };
         const updated = { ...save, ...progress };
         disk.set(key, updated);
-        return structuredClone(updated);
+        return { status: "success", data: structuredClone(updated) };
     });
     api.deleteSave.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef) => {
         disk.delete(saveKey(kind, ref));
+        return { status: "success", data: undefined };
+    });
+    api.deleteAllSaves.mockImplementation(async () => {
+        disk.clear();
+        return { status: "success", data: undefined };
     });
 }
 
@@ -74,7 +81,7 @@ describe("singleplayer logic", () => {
     describe("loadContent", () => {
         it("puts the scanned content in the store", async () => {
             const scanned = content([]);
-            api.list.mockResolvedValue(scanned);
+            api.list.mockResolvedValue(succeeded(scanned));
 
             await singleplayerLogic.loadContent();
 
@@ -83,13 +90,22 @@ describe("singleplayer logic", () => {
             expect(singleplayerStore.loadError).toBeUndefined();
         });
 
-        it("records a failed scan without throwing", async () => {
+        it("records a failed scan without throwing, with the message for main's reason", async () => {
+            api.list.mockResolvedValue({ status: "failed", reason: "load_failed", details: "C:/content: EACCES" });
+
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerStore.loadError).toBe("load_failed");
+            expect(singleplayerLogic.loadErrorOf()).toBe("lobby.logic.singleplayer.contentLoadFailures.loadFailed");
+            expect(singleplayerStore.isLoading).toBe(false);
+        });
+
+        it("records a scan that never reached main as failed", async () => {
             api.list.mockRejectedValue(new Error("singleplayer:list failed: boom"));
 
             await singleplayerLogic.loadContent();
 
-            expect(singleplayerStore.loadError).toBe("singleplayer:list failed: boom");
-            expect(singleplayerStore.isLoading).toBe(false);
+            expect(singleplayerLogic.loadErrorOf()).toBe("lobby.logic.singleplayer.contentLoadFailures.loadFailed");
         });
 
         it("loads the saves written before, once", async () => {
@@ -110,27 +126,27 @@ describe("singleplayer logic", () => {
 
             expect(singleplayerStore.content).toBeDefined();
             expect(singleplayerStore.loadError).toBeUndefined();
-            expect(singleplayerStore.savesLoadError).toBe("singleplayer:getSaves failed: boom");
+            expect(singleplayerLogic.savesLoadErrorOf()).toBe("lobby.logic.singleplayer.savesLoadFailures.loadFailed");
 
             await singleplayerLogic.loadContent();
             expect(api.getSaves).toHaveBeenCalledTimes(2);
             expect(singleplayerStore.savesLoaded).toBe(true);
-            expect(singleplayerStore.savesLoadError).toBeUndefined();
+            expect(singleplayerLogic.savesLoadErrorOf()).toBeUndefined();
         });
 
         it("keeps the latest scan when an earlier one finishes after it", async () => {
             const [older, newer] = [content([makeTutorial("older")]), content([makeTutorial("newer")])];
-            let answerOlder!: (scanned: SingleplayerContent) => void;
-            let answerNewer!: (scanned: SingleplayerContent) => void;
+            let answerOlder!: (scanned: ReturnType<typeof succeeded<SingleplayerContent>>) => void;
+            let answerNewer!: (scanned: ReturnType<typeof succeeded<SingleplayerContent>>) => void;
             api.list.mockReturnValueOnce(new Promise((resolve) => (answerOlder = resolve))).mockReturnValueOnce(new Promise((resolve) => (answerNewer = resolve)));
 
             const first = singleplayerLogic.loadContent();
             const second = singleplayerLogic.loadContent();
-            answerOlder(older);
+            answerOlder(succeeded(older));
             await first;
             expect(singleplayerStore.isLoading).toBe(true);
 
-            answerNewer(newer);
+            answerNewer(succeeded(newer));
             await second;
             expect(singleplayerStore.content).toEqual(newer);
             expect(singleplayerStore.isLoading).toBe(false);
@@ -139,7 +155,7 @@ describe("singleplayer logic", () => {
         it("ignores an earlier scan failing after a later one succeeded", async () => {
             const scanned = content([]);
             let failOlder!: (error: Error) => void;
-            api.list.mockReturnValueOnce(new Promise((_, reject) => (failOlder = reject))).mockResolvedValueOnce(scanned);
+            api.list.mockReturnValueOnce(new Promise((_, reject) => (failOlder = reject))).mockResolvedValueOnce(succeeded(scanned));
 
             const first = singleplayerLogic.loadContent();
             await singleplayerLogic.loadContent();
@@ -182,17 +198,27 @@ describe("singleplayer logic", () => {
             expect((await singleplayerLogic.recordCampaignResult(official, "optionalMissionA", "victory")).finishedNow).toBe(false);
         });
 
-        it("leaves the state as it was when a result can't be saved", async () => {
-            api.recordResult.mockRejectedValueOnce(new Error("singleplayer:recordResult failed: saved by a newer client"));
+        it("leaves the state as it was when a result can't be saved, with the message for main's reason", async () => {
+            api.recordResult.mockResolvedValueOnce({ status: "failed", reason: "save_version_newer", details: "C:/saves/campaign-1.json: newer" });
 
             const { state, finishedNow } = await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
 
             expect(state.completed).toEqual([]);
             expect(finishedNow).toBe(false);
-            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:recordResult failed: saved by a newer client");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveVersionNewer");
 
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
             expect(singleplayerLogic.saveErrorOf("campaign", official)).toBeUndefined();
+        });
+
+        it("words a call that never reached main, or a reason it doesn't know, as a failed save", async () => {
+            api.recordResult.mockRejectedValueOnce(new Error("singleplayer:recordResult failed: boom"));
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+
+            api.recordResult.mockResolvedValueOnce({ status: "failed", reason: "from_a_newer_main" });
+            await singleplayerLogic.recordCampaignResult(custom, "mission01", "victory");
+            expect(singleplayerLogic.saveErrorOf("campaign", custom)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
         });
 
         it("keeps a failure to the campaign it happened to", async () => {
@@ -201,7 +227,7 @@ describe("singleplayer logic", () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
             await singleplayerLogic.recordCampaignResult(custom, "mission01", "victory");
 
-            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:recordResult failed: boom");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
             expect(singleplayerLogic.saveErrorOf("campaign", custom)).toBeUndefined();
         });
 
@@ -232,12 +258,12 @@ describe("singleplayer logic", () => {
 
         it("keeps a save that failed to delete", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
-            api.deleteSave.mockRejectedValueOnce(new Error("singleplayer:deleteSave failed: busy"));
+            api.deleteSave.mockResolvedValueOnce({ status: "failed", reason: "save_failed", details: "EBUSY" });
 
             await singleplayerLogic.deleteSave("campaign", official);
 
             expect(playsOf("campaign", official)).toBe(1);
-            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:deleteSave failed: busy");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
         });
     });
 
@@ -272,7 +298,7 @@ describe("singleplayer logic", () => {
         it("clears every save and an earlier error", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
             await singleplayerLogic.recordItemResult(makeTutorial("basics"), "victory");
-            singleplayerUpdates.saveFailed(saveKey("campaign", official), "singleplayer:recordResult failed: boom");
+            singleplayerUpdates.saveFailed(saveKey("campaign", official), "save_failed");
 
             expect(await singleplayerLogic.deleteAllSaves()).toBeUndefined();
 
@@ -283,9 +309,9 @@ describe("singleplayer logic", () => {
 
         it("keeps the saves and gives the reason when it fails", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
-            api.deleteAllSaves.mockRejectedValueOnce(new Error("singleplayer:deleteAllSaves failed: busy"));
+            api.deleteAllSaves.mockResolvedValueOnce({ status: "failed", reason: "save_failed", details: "EBUSY" });
 
-            expect(await singleplayerLogic.deleteAllSaves()).toBe("singleplayer:deleteAllSaves failed: busy");
+            expect(await singleplayerLogic.deleteAllSaves()).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
 
             expect(playsOf("campaign", official)).toBe(1);
             expect(singleplayerStore.saveErrors.size).toBe(0);
@@ -320,22 +346,22 @@ describe("singleplayer logic", () => {
 
         it("drops a save main deleted, and leaves an error from this window alone", async () => {
             await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
-            singleplayerUpdates.saveFailed(saveKey("campaign", official), "singleplayer:recordResult failed: boom");
+            singleplayerUpdates.saveFailed(saveKey("campaign", official), "save_failed");
 
             await reportChange({ item: officialItem, save: undefined });
 
             expect(playsOf("campaign", official)).toBe(0);
-            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("singleplayer:recordResult failed: boom");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
         });
 
         it("applies a change that arrives while the saves load after them, so the load can't overwrite it", async () => {
-            let answer!: (saves: { saves: SingleplayerSave[]; problems: [] }) => void;
+            let answer!: (saves: ReturnType<typeof succeeded<{ saves: SingleplayerSave[]; problems: [] }>>) => void;
             api.getSaves.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
 
             const loading = singleplayerLogic.loadContent();
             const change = reportChange({ item: recordedByMain.item, save: recordedByMain });
             // Main read the folder before it wrote the change.
-            answer({ saves: [], problems: [] });
+            answer(succeeded({ saves: [], problems: [] }));
             await Promise.all([loading, change]);
 
             expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);

@@ -126,7 +126,7 @@ SPDX-License-Identifier: MIT
                     t("lobby.navbar.settings.deleteSingleplayerSaves")
                 }}</Button>
                 <small v-if="savesDeleted">{{ t("lobby.navbar.settings.singleplayerSavesDeleted") }}</small>
-                <small v-else-if="deleteSavesError" class="path-error">{{ deleteSavesError }}</small>
+                <small v-else-if="deleteSavesError" class="path-error">{{ t(deleteSavesError) }}</small>
             </div>
         </div>
     </Modal>
@@ -170,7 +170,7 @@ import { refreshEnginesStore } from "@renderer/store/engine.store";
 import { refreshGameStore } from "@renderer/store/game.store";
 import { refreshMapsStore } from "@renderer/store/maps.store";
 import { uploadLogs } from "@renderer/utils/log";
-import { useTypedI18n } from "@renderer/i18n";
+import { type TranslationKey, useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
@@ -256,7 +256,7 @@ async function applyPathChange() {
 
 const confirmDeleteSaves = ref(false);
 const savesDeleted = ref(false);
-const deleteSavesError = ref<string>();
+const deleteSavesError = ref<TranslationKey>();
 
 async function deleteSaves() {
     confirmDeleteSaves.value = false;

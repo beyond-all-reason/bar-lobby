@@ -11,7 +11,7 @@ grouped by source, so a new kind of source shows up here without changes.
 -->
 <template>
     <div class="flex-col gap-lg">
-        <p v-if="singleplayerStore.loadError">{{ singleplayerStore.loadError }}</p>
+        <p v-if="loadError">{{ t(loadError) }}</p>
         <p v-else-if="official && !infosStore.features.officialContent">{{ t("lobby.singleplayer.content.notInEdition") }}</p>
         <p v-else-if="singleplayerStore.content && groups.length === 0">{{ t("lobby.singleplayer.content.empty") }}</p>
         <div v-for="group in groups" :key="group.source" class="flex-col gap-md">
@@ -61,6 +61,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTypedI18n();
+const loadError = computed(() => singleplayerLogic.loadErrorOf());
 const text = useContentText();
 const router = useRouter();
 

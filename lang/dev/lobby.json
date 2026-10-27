@@ -5,6 +5,22 @@
                 "refusals": {
                     "contentBundledWithInstall": "{content} is misnsig. It cmeos wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam. | {content} are misnsig. Tehy cmoe wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam."
                 }
+            },
+            "singleplayer": {
+                "saveFailures": {
+                    "saveUnusable": "Your seavd prsgeros can't be raed, so tihs ruselt wasn't seavd. Deetle the save to strat oevr.",
+                    "saveVersionOlder": "Tihs ruselt wasn't seavd: your seavd prsgeros is form an older veoirsn of tihs ctnnoet. Strat oevr to paly it.",
+                    "saveVersionNewer": "Tihs ruselt wasn't seavd: your seavd prsgeros is form a nweer veoirsn of tihs ctnnoet. Uadpte it to cotiunne.",
+                    "invalidResult": "Tihs ruselt wasn't seavd: the mosiisn reeortpd shmoneitg that can't be seavd.",
+                    "unknownItem": "Tihs ctnnoet culod not be fnuod, so your seavd prsgeros wasn't cngeahd.",
+                    "saveFailed": "Your seavd prsgeros coludn't be cngeahd. The log has the daleits."
+                },
+                "contentLoadFailures": {
+                    "loadFailed": "Sieeyglnplar ctnnoet coludn't be lodaed. The log has the daleits."
+                },
+                "savesLoadFailures": {
+                    "loadFailed": "Your seavd prsgeros coludn't be lodaed. The log has the daleits."
+                }
             }
         },
         "api": {

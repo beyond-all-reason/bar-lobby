@@ -1862,6 +1862,22 @@
                 "refusals": {
                     "contentBundledWithInstall": null
                 }
+            },
+            "singleplayer": {
+                "saveFailures": {
+                    "saveUnusable": null,
+                    "saveVersionOlder": null,
+                    "saveVersionNewer": null,
+                    "invalidResult": null,
+                    "unknownItem": null,
+                    "saveFailed": null
+                },
+                "contentLoadFailures": {
+                    "loadFailed": null
+                },
+                "savesLoadFailures": {
+                    "loadFailed": null
+                }
             }
         },
         "api": {

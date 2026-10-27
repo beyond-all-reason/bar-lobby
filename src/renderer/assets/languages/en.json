@@ -1836,6 +1836,22 @@
                 "refusals": {
                     "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam."
                 }
+            },
+            "singleplayer": {
+                "saveFailures": {
+                    "saveUnusable": "Your saved progress can't be read, so this result wasn't saved. Delete the save to start over.",
+                    "saveVersionOlder": "This result wasn't saved: your saved progress is from an older version of this content. Start over to play it.",
+                    "saveVersionNewer": "This result wasn't saved: your saved progress is from a newer version of this content. Update it to continue.",
+                    "invalidResult": "This result wasn't saved: the mission reported something that can't be saved.",
+                    "unknownItem": "This content could not be found, so your saved progress wasn't changed.",
+                    "saveFailed": "Your saved progress couldn't be changed. The log has the details."
+                },
+                "contentLoadFailures": {
+                    "loadFailed": "Singleplayer content couldn't be loaded. The log has the details."
+                },
+                "savesLoadFailures": {
+                    "loadFailed": "Your saved progress couldn't be loaded. The log has the details."
+                }
             }
         },
         "api": {

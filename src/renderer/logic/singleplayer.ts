@@ -2,11 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { IpcResult } from "@main/typed-ipc";
 import { singleplayerApi } from "@renderer/api/singleplayer";
+import type { TranslationKey } from "@renderer/i18n";
 import { singleplayerStore, singleplayerUpdates } from "@renderer/store/singleplayer.store";
 import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
-import { ReportedResult, SaveCompatibility, saveCompatibility, saveKey, SaveVariables, SaveVariableValue } from "@shared/content/save";
-import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
+import { ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue } from "@shared/content/save";
+import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
 
 let isInitialized = false;
 
@@ -34,8 +36,34 @@ export function initSingleplayerLogic() {
 // A scenario or tutorial, by what its save is kept under.
 type ItemRef = SingleplayerItemRef & { kind: "scenario" | "tutorial" };
 
-function messageOf(error: unknown) {
-    return error instanceof Error ? error.message : String(error);
+// Keyed on every reason main can give for failing a load, so a new one does not compile until it has wording.
+const contentLoadFailureKeys: Record<SingleplayerLoadFailure, TranslationKey> = {
+    load_failed: "lobby.logic.singleplayer.contentLoadFailures.loadFailed",
+};
+
+const savesLoadFailureKeys: Record<SingleplayerLoadFailure, TranslationKey> = {
+    load_failed: "lobby.logic.singleplayer.savesLoadFailures.loadFailed",
+};
+
+// Keyed on every reason main can give for not changing a save, so a new one does not compile until it has wording.
+const saveFailureKeys: Record<SaveFailure, TranslationKey> = {
+    save_unusable: "lobby.logic.singleplayer.saveFailures.saveUnusable",
+    save_version_older: "lobby.logic.singleplayer.saveFailures.saveVersionOlder",
+    save_version_newer: "lobby.logic.singleplayer.saveFailures.saveVersionNewer",
+    invalid_result: "lobby.logic.singleplayer.saveFailures.invalidResult",
+    unknown_item: "lobby.logic.singleplayer.saveFailures.unknownItem",
+    save_failed: "lobby.logic.singleplayer.saveFailures.saveFailed",
+};
+
+// The data main gave, or the reason it gave for failing if it is one of `reasons`. Any other reason, or a call
+// that never reached main, which ipcCall has logged, fails as `fallback`.
+async function fromMain<T, R extends string>(call: () => Promise<IpcResult<T>>, reasons: Record<R, unknown>, fallback: R): Promise<{ data: T } | { reason: R }> {
+    const result = await call().catch(() => undefined);
+    if (result?.status === "success") {
+        return { data: result.data };
+    }
+
+    return { reason: result && result.reason in reasons ? (result.reason as R) : fallback };
 }
 
 // Counts content loads, so only the latest one started sets the store's content; an earlier one that
@@ -47,15 +75,14 @@ let latestLoad = 0;
 async function loadContent() {
     const load = ++latestLoad;
     singleplayerUpdates.loading();
-    try {
-        const [content] = await Promise.all([singleplayerApi.list(), singleplayerStore.savesLoaded ? undefined : loadSaves()]);
-        if (load === latestLoad) {
-            singleplayerUpdates.loaded(content);
-        }
-    } catch (error) {
-        if (load === latestLoad) {
-            singleplayerUpdates.failed(messageOf(error));
-        }
+    const [listed] = await Promise.all([fromMain(() => singleplayerApi.list(), contentLoadFailureKeys, "load_failed"), singleplayerStore.savesLoaded ? undefined : loadSaves()]);
+    if (load !== latestLoad) {
+        return;
+    }
+    if ("reason" in listed) {
+        singleplayerUpdates.failed(listed.reason);
+    } else {
+        singleplayerUpdates.loaded(listed.data);
     }
 }
 
@@ -66,12 +93,23 @@ function loadSaves() {
         if (singleplayerStore.savesLoaded) {
             return;
         }
-        try {
-            singleplayerUpdates.savesLoaded((await singleplayerApi.getSaves()).saves);
-        } catch (error) {
-            singleplayerUpdates.savesLoadFailed(messageOf(error));
+        const read = await fromMain(() => singleplayerApi.getSaves(), savesLoadFailureKeys, "load_failed");
+        if ("reason" in read) {
+            singleplayerUpdates.savesLoadFailed(read.reason);
+        } else {
+            singleplayerUpdates.savesLoaded(read.data.saves);
         }
     });
+}
+
+// Why the last content load failed, if it did, as the message to show.
+function loadErrorOf(): TranslationKey | undefined {
+    return singleplayerStore.loadError && contentLoadFailureKeys[singleplayerStore.loadError];
+}
+
+// Why the saves couldn't be read, if they couldn't, as the message to show.
+function savesLoadErrorOf(): TranslationKey | undefined {
+    return singleplayerStore.savesLoadError && savesLoadFailureKeys[singleplayerStore.savesLoadError];
 }
 
 const noProgress: ItemProgress = { plays: {} };
@@ -110,9 +148,11 @@ function itemCompleted(item: ItemRef) {
     return hasWon((saveOf(item.kind, item) ?? noProgress).plays, item.id);
 }
 
-// Why the last change asked for to the item's save failed, if it did.
-function saveErrorOf(kind: SingleplayerKind, ref: SingleplayerItemRef) {
-    return singleplayerStore.saveErrors.get(saveKey(kind, ref));
+// Why the last change asked for to the item's save failed, if it did, as the message to show.
+function saveErrorOf(kind: SingleplayerKind, ref: SingleplayerItemRef): TranslationKey | undefined {
+    const reason = singleplayerStore.saveErrors.get(saveKey(kind, ref));
+
+    return reason && saveFailureKeys[reason];
 }
 
 function tutorialsOf(source: ContentSource, rootId: string) {
@@ -128,14 +168,13 @@ function tutorialsCompleted(source: ContentSource, rootId: string) {
 
 // Saves a result and keeps the save main wrote. Gives false, with the reason in the store, if it wasn't saved.
 async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
-    try {
-        const save = await singleplayerApi.recordResult(kind, ref, result);
-        await inOrder(() => singleplayerUpdates.saveStored(saveKey(kind, ref), save));
-        return true;
-    } catch (error) {
-        singleplayerUpdates.saveFailed(saveKey(kind, ref), messageOf(error));
+    const saved = await fromMain(() => singleplayerApi.recordResult(kind, ref, result), saveFailureKeys, "save_failed");
+    if ("reason" in saved) {
+        singleplayerUpdates.saveFailed(saveKey(kind, ref), saved.reason);
         return false;
     }
+    await inOrder(() => singleplayerUpdates.saveStored(saveKey(kind, ref), saved.data));
+    return true;
 }
 
 /**
@@ -158,12 +197,12 @@ async function recordItemResult(item: ItemRef, outcome: MissionOutcome) {
 }
 
 async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
-    try {
-        await singleplayerApi.deleteSave(kind, ref);
-        await inOrder(() => singleplayerUpdates.saveRemoved(saveKey(kind, ref)));
-    } catch (error) {
-        singleplayerUpdates.saveFailed(saveKey(kind, ref), messageOf(error));
+    const deleted = await fromMain(() => singleplayerApi.deleteSave(kind, ref), saveFailureKeys, "save_failed");
+    if ("reason" in deleted) {
+        singleplayerUpdates.saveFailed(saveKey(kind, ref), deleted.reason);
+        return;
     }
+    await inOrder(() => singleplayerUpdates.saveRemoved(saveKey(kind, ref)));
 }
 
 // Deletes the save of every tutorial in one root, which are shown and completed as one group.
@@ -173,20 +212,21 @@ async function deleteTutorialSaves(source: ContentSource, rootId: string) {
     }
 }
 
-// Deletes every singleplayer save, for the settings menu. Gives the reason if it failed part way; main has
-// then reported each save it did delete.
-async function deleteAllSaves(): Promise<string | undefined> {
-    try {
-        await singleplayerApi.deleteAllSaves();
-        await inOrder(() => singleplayerUpdates.allSavesDeleted());
-        return undefined;
-    } catch (error) {
-        return messageOf(error);
+// Deletes every singleplayer save, for the settings menu. Gives the message to show if it failed part way;
+// main has then reported each save it did delete.
+async function deleteAllSaves(): Promise<TranslationKey | undefined> {
+    const deleted = await fromMain(() => singleplayerApi.deleteAllSaves(), saveFailureKeys, "save_failed");
+    if ("reason" in deleted) {
+        return saveFailureKeys[deleted.reason];
     }
+    await inOrder(() => singleplayerUpdates.allSavesDeleted());
+    return undefined;
 }
 
 export const singleplayerLogic = {
     loadContent,
+    loadErrorOf,
+    savesLoadErrorOf,
     campaignSaveCompatibility,
     campaignState,
     campaignCompleted,
