@@ -103,10 +103,12 @@ function working(config: CampaignConfig, progress: NonNullable<ItemProgress["cam
     };
 }
 
-function settled(config: CampaignConfig, working: Working, variables: Record<string, SaveVariableValue>): CampaignProgress {
+// Keeps any fields of `base` this client doesn't know, so a newer client's additions survive.
+function settled(config: CampaignConfig, base: ItemProgress["campaign"], working: Working, variables: Record<string, SaveVariableValue>): CampaignProgress {
     const order = Object.keys(config.missions);
 
     return {
+        ...base,
         unlocked: order.filter((id) => working.unlocked.has(id)),
         removed: order.filter((id) => working.removed.has(id)),
         prerequisitesMet: order.filter((id) => working.prerequisitesMet.has(id)),
@@ -124,7 +126,7 @@ export function reconcileCampaign(config: CampaignConfig, progress: ItemProgress
     const current = working(config, progress.campaign ?? newCampaignProgress(config));
     unlockByPrerequisites(config, current, progress.plays);
 
-    return settled(config, current, { ...progress.campaign?.variables });
+    return settled(config, progress.campaign, current, { ...progress.campaign?.variables });
 }
 
 function mergeVariables(variables: Readonly<Record<string, SaveVariableValue>>, reported: ReportedResult["variables"]): Record<string, SaveVariableValue> {
@@ -162,7 +164,7 @@ export function applyResult(config: CampaignConfig, progress: ItemProgress, resu
     (victory ? mission.victoryRemoves : mission.failureRemoves)?.forEach((id) => remove(current, id));
     unlockByPrerequisites(config, current, plays);
 
-    return { plays, campaign: settled(config, current, mergeVariables(progress.campaign?.variables ?? {}, result.variables)) };
+    return { plays, campaign: settled(config, progress.campaign, current, mergeVariables(progress.campaign?.variables ?? {}, result.variables)) };
 }
 
 /**

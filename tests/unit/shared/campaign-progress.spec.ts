@@ -101,6 +101,15 @@ describe("applyResult and campaignState", () => {
         });
     });
 
+    // A newer client may add fields, and the save has to carry them through this one.
+    it("keeps campaign progress fields it doesn't know", () => {
+        const played = play(config, [win("mission01")]);
+        const progress = { ...played, campaign: { ...played.campaign!, difficulty: "hard" } };
+
+        expect(reconcileCampaign(config, progress)).toMatchObject({ difficulty: "hard" });
+        expect(applyResult(config, progress, win("mission02")).campaign).toMatchObject({ difficulty: "hard" });
+    });
+
     it("stays the same size however often a mission is replayed", () => {
         const once = play(config, [win("tutorial")]);
         const often = play(
