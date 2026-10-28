@@ -25,19 +25,17 @@ const e2eRejected: string[] = [];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).__e2eInit = { pending: e2ePending, rejected: e2eRejected };
 
-function track<T>(name: string, start: () => Promise<T>): Promise<T> {
+// Some init functions are synchronous, so the result is awaited rather than assumed to be a promise.
+async function track<T>(name: string, start: () => T | Promise<T>): Promise<T> {
     e2ePending.add(name);
-    return start().then(
-        (value) => {
-            e2ePending.delete(name);
-            return value;
-        },
-        (error) => {
-            e2ePending.delete(name);
-            e2eRejected.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
-            throw error;
-        }
-    );
+    try {
+        return await start();
+    } catch (error) {
+        e2eRejected.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
+        throw error;
+    } finally {
+        e2ePending.delete(name);
+    }
 }
 
 export async function initPreMountStores() {
