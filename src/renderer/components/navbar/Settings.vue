@@ -153,7 +153,6 @@ import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
-import { asyncComputed } from "@vueuse/core";
 import { mainWindowApi } from "@renderer/api/main-window";
 import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -204,12 +203,14 @@ watch(
     () => props.modelValue,
     async (isOpen) => {
         if (isOpen) {
+            loadDisplays();
             currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
         }
     }
 );
 
 onMounted(async () => {
+    loadDisplays();
     currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
     cleanupCopyProgress = window.paths.onCopyProgress((progress) => {
         copyProgress.value = progress;
@@ -259,7 +260,12 @@ async function applyPathChange() {
 const op = ref();
 const tooltipMessage = ref("");
 
-const displays = asyncComputed(() => mainWindowApi.getDisplays(), []);
+const displays = ref<Awaited<ReturnType<typeof mainWindowApi.getDisplays>>>([]);
+
+// Fetched again rather than kept, since the window moves between displays without telling this.
+async function loadDisplays() {
+    displays.value = await mainWindowApi.getDisplays();
+}
 
 // Where the window is, not the saved display, since a keyboard move or any move on Linux isn't saved.
 const targetDisplay = computed(() => displays.value.find((d) => d.current) ?? displays.value.find((d) => d.primary) ?? displays.value[0]);
@@ -328,7 +334,12 @@ const displayMode = computed<string>({
 
 const selectedDisplay = computed<number | undefined>({
     get: () => targetDisplay.value?.id,
-    set: (displayId) => displayId !== undefined && settingsLogic.setDisplay(displayId),
+    set: async (displayId) => {
+        if (displayId === undefined) return;
+
+        await settingsLogic.setDisplay(displayId);
+        await loadDisplays();
+    },
 });
 
 const scaleRange = ref({ min: 1, max: 1, os: 1 });

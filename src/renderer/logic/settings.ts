@@ -68,7 +68,8 @@ function update(values: Partial<Settings>) {
 // Not watched like the other window settings, since main also reports the display it was dragged to.
 function setDisplay(displayId: number) {
     settingsUpdates.changed({ displayId });
-    mainWindowApi.setDisplay(displayId);
+
+    return mainWindowApi.setDisplay(displayId);
 }
 
 export const settingsLogic = { update, setDisplay };
