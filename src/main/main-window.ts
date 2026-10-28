@@ -159,6 +159,8 @@ export function createWindow() {
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
     mainWindow.once("ready-to-show", () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TEMP e2e diagnostics
+        (globalThis as any).__e2eDiag = { readyToShow: Date.now() };
         // Open the DevTools.
         if (process.env.NODE_ENV === "development" && settings.devMode) {
             log.debug(`NODE_ENV is development, opening dev tools`);
@@ -174,6 +176,8 @@ export function createWindow() {
         updateZoom();
         mainWindow.show();
         mainWindow.focus();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TEMP e2e diagnostics
+        Object.assign((globalThis as any).__e2eDiag, { shown: Date.now(), visibleAfterShow: mainWindow.isVisible(), bounds: mainWindow.getBounds() });
     });
 
     webContents.on("render-process-gone", (event, details) => {

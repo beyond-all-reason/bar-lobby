@@ -60,7 +60,25 @@ describe("Electron App", async () => {
 
         // Polled rather than waiting on ready-to-show: the event can fire before the test subscribes,
         // and under Xvfb the window can still report hidden just after show(), which hung the wait forever.
-        await expect.poll(async () => (await getWindowState()).isVisible, { message: "The main window was not visible", timeout: 20_000 }).toBeTruthy();
+        try {
+            await expect.poll(async () => (await getWindowState()).isVisible, { message: "The main window was not visible", timeout: 20_000 }).toBeTruthy();
+        } catch (e) {
+            // TEMP e2e diagnostics
+            const diag = await electronApp.evaluate(({ BrowserWindow }) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                diag: (globalThis as any).__e2eDiag ?? "ready-to-show never fired",
+                now: Date.now(),
+                windows: BrowserWindow.getAllWindows().map((w) => ({
+                    url: w.webContents.getURL(),
+                    visible: w.isVisible(),
+                    minimized: w.isMinimized(),
+                    fullscreen: w.isFullScreen(),
+                    bounds: w.getBounds(),
+                    loading: w.webContents.isLoading(),
+                })),
+            }));
+            throw new Error(`${(e as Error).message}\n${JSON.stringify(diag, null, 2)}`);
+        }
         const windowState = await getWindowState();
 
         expect(windowState.isCrashed, "The app has crashed").toBeFalsy();
