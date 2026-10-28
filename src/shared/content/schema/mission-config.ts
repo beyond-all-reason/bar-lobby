@@ -17,6 +17,10 @@ const teamName = name("Team", "A team named in `alliances`.");
 const byName = <T extends TSchema>(value: T, options: { title: string; description: string; minProperties?: number }) =>
     Type.Record(Type.String({ pattern: NAME_PATTERN }), value, { ...options, additionalProperties: false, description: `${options.description} ${NAME_RULE}` });
 
+// An enum rather than a union of literals, so a wrong value is one error naming them all instead of one per value.
+const START_POS_TYPES = ["fixed", "random", "in-game", "in-client"] as const;
+type StartPosType = (typeof START_POS_TYPES)[number];
+
 const startRectEdge = (title: string) => Type.Number({ minimum: 0, maximum: 1, title, description: "Edge of the start box, as a fraction of the map size from 0 to 1." });
 
 const optionValue = Type.Union([Type.String(), Type.Number(), Type.Boolean()], { title: "Value", description: "Value of the option." });
@@ -59,7 +63,9 @@ export const MissionConfig = Type.Object(
             description: "Teams for the human players, assigned in the order players are in the lobby.",
         }),
         startPosType: Type.Optional(
-            Type.Union([Type.Literal("fixed"), Type.Literal("random"), Type.Literal("in-game"), Type.Literal("in-client")], {
+            Type.Unsafe<StartPosType>({
+                type: "string",
+                enum: START_POS_TYPES,
                 title: "Start position type",
                 description: "How start positions are picked: fixed, random, in-game or in-client.",
             })

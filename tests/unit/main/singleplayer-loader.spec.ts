@@ -156,6 +156,18 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([{ path: path.join(root, "scenarios", "manifest.json"), severity: "warning", message: expect.stringMatching(/"missing"/) }]);
         });
 
+        it("reports a wrong startPosType once, with every value it takes", async () => {
+            const configPath = path.join(root, "scenarios", "alpha", "missionConfig.json");
+            const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, startPosType: "boxes" }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.problems.map((p) => p.message)).toEqual([
+                '/startPosType must be equal to one of the allowed values (got "boxes"). Expected one of "fixed", "random", "in-game", "in-client"',
+            ]);
+        });
+
         // So a content repository can be cloned straight into a content root.
         it("skips hidden folders", async () => {
             await fs.mkdir(path.join(root, ".git"));

@@ -31,14 +31,10 @@
             "items": { "pattern": "^[A-Za-z0-9_]+$", "title": "Team", "description": "A team named in `alliances`. Names use letters, digits and underscores only.", "type": "string" }
         },
         "startPosType": {
+            "type": "string",
+            "enum": ["fixed", "random", "in-game", "in-client"],
             "title": "Start position type",
-            "description": "How start positions are picked: fixed, random, in-game or in-client.",
-            "anyOf": [
-                { "const": "fixed", "type": "string" },
-                { "const": "random", "type": "string" },
-                { "const": "in-game", "type": "string" },
-                { "const": "in-client", "type": "string" }
-            ]
+            "description": "How start positions are picked: fixed, random, in-game or in-client."
         },
         "allianceSettings": {
             "title": "Alliance settings",

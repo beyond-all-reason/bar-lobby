@@ -32,7 +32,12 @@ export function describeError(error: ErrorObject) {
     // that misses a pattern-keyed object's pattern is the same mistake.
     const patterned = error.keyword === "pattern" || (error.keyword === "additionalProperties" && error.parentSchema?.patternProperties);
     const hint = patterned && error.parentSchema?.description ? `. ${error.parentSchema.description}` : "";
-    const expected = error.keyword === "const" ? `. Expected ${JSON.stringify(error.params.allowedValue)}` : "";
+    const expected =
+        error.keyword === "const"
+            ? `. Expected ${JSON.stringify(error.params.allowedValue)}`
+            : error.keyword === "enum"
+              ? `. Expected one of ${error.params.allowedValues.map((value: unknown) => JSON.stringify(value)).join(", ")}`
+              : "";
 
     return `${where} ${error.message}${got}${hint}${expected}`;
 }
