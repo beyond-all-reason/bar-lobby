@@ -1,0 +1,194 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
+import fs from "node:fs/promises";
+import path from "node:path";
+import { toBarUrl } from "../../../shared/bar-url";
+import { FALLBACK_LOCALE, hasFallbackText, type LanguageTables } from "../../../shared/content/content-text";
+import { DEV_COMPATIBILITY, type ItemCompatibility } from "../../../shared/content/schema/common";
+import { LanguageFile } from "../../../shared/content/schema/language-file";
+import { MissionConfig } from "../../../shared/content/schema/mission-config";
+import { MissionManifest } from "../../../shared/content/schema/mission-manifest";
+import type { MissionConfigs, SingleplayerMission } from "../../../shared/content/singleplayer";
+import { fileInside, isHidden, readContentJson } from "./files";
+import type { Problems } from "./problems";
+
+export const MANIFEST_FILE = "manifest.json";
+
+// Every language/<locale>.json in a folder, keyed by locale. A folder without language/ has no text of its own.
+export async function readLanguageFolder(folder: string, problems: Problems): Promise<LanguageTables> {
+    const languageFolder = path.join(folder, "language");
+    let names: string[];
+    try {
+        names = await fs.readdir(languageFolder);
+    } catch {
+        return {};
+    }
+
+    const tables: LanguageTables = {};
+    for (const name of names.filter((n) => !isHidden(n) && n.endsWith(".json")).sort()) {
+        const table = await readContentJson(path.join(languageFolder, name), LanguageFile, problems);
+        if (table) {
+            tables[name.slice(0, -".json".length)] = table;
+        }
+    }
+
+    return tables;
+}
+
+// `tables` in the order the client looks the key up in. Missing text in other languages is normal, as
+// they fall back to English.
+export function checkTextKey(key: string, field: string, tables: readonly LanguageTables[], filePath: string, problems: Problems) {
+    if (!hasFallbackText(key, tables)) {
+        problems.warning(filePath, `${field} "${key}" has no text in ${FALLBACK_LOCALE}.json, which every language falls back to, so players would see the key itself`);
+    }
+}
+
+// Listing an engine twice would leave which games go with it to whichever entry is read first.
+export function checkCompatibility(compatibility: ItemCompatibility, filePath: string, devContent: boolean, problems: Problems) {
+    if (compatibility === DEV_COMPATIBILITY) {
+        if (devContent) {
+            problems.warning(filePath, `compatibility is "${DEV_COMPATIBILITY}", so this has not been tested on a released engine and game. It loads only in dev mode`);
+        } else {
+            problems.error(filePath, `compatibility is "${DEV_COMPATIBILITY}", which loads only in dev mode. Name the engine and game pairs it has been tested with to release it`);
+        }
+
+        return;
+    }
+
+    const seen = new Set<string>();
+    for (const { engineVersion } of compatibility) {
+        if (seen.has(engineVersion)) {
+            problems.error(filePath, `compatibility lists engine ${engineVersion} more than once. Put all its games in one entry`);
+        }
+        seen.add(engineVersion);
+    }
+}
+
+// The startscript is built from these names, so one that matches nothing would quietly drop a team or
+// alliance from the game.
+function checkTeams(config: MissionConfig, filePath: string, problems: Problems) {
+    const alliances = new Set(Object.keys(config.alliances));
+    const teams = new Set<string>();
+    for (const [alliance, members] of Object.entries(config.alliances)) {
+        for (const team of members) {
+            if (teams.has(team)) {
+                problems.error(filePath, `Team "${team}" is in more than one alliance, last seen in "${alliance}"`);
+            }
+            teams.add(team);
+        }
+    }
+
+    const unknownTeam = (team: string, where: string) => {
+        if (!teams.has(team)) {
+            problems.error(filePath, `${where} names team "${team}", which is in no alliance`);
+        }
+    };
+    const unknownAlliance = (alliance: string, where: string) => {
+        if (!alliances.has(alliance)) {
+            problems.error(filePath, `${where} names alliance "${alliance}", which is not in alliances`);
+        }
+    };
+
+    config.playerTeam.forEach((team) => unknownTeam(team, "playerTeam"));
+    Object.keys(config.teamSettings ?? {}).forEach((team) => unknownTeam(team, "teamSettings"));
+    for (const [alliance, settings] of Object.entries(config.allianceSettings ?? {})) {
+        unknownAlliance(alliance, "allianceSettings");
+        if (settings.alliedWith !== undefined) {
+            unknownAlliance(settings.alliedWith, `allianceSettings.${alliance}.alliedWith`);
+        }
+    }
+}
+
+async function readMissionConfig(folder: string, file: string, language: readonly LanguageTables[], problems: Problems, manifestPath: string): Promise<MissionConfig | undefined> {
+    const filePath = await fileInside(folder, file, problems, manifestPath, "Mission config");
+    if (!filePath) {
+        return undefined;
+    }
+    const config = await readContentJson(filePath, MissionConfig, problems);
+    if (config) {
+        checkTeams(config, filePath, problems);
+        for (const [team, settings] of Object.entries(config.teamSettings ?? {})) {
+            if (settings.displayNameKey !== undefined) {
+                checkTextKey(settings.displayNameKey, `teamSettings.${team}.displayNameKey`, language, filePath, problems);
+            }
+        }
+    }
+
+    return config;
+}
+
+export type MissionFolderOptions = {
+    // Campaign missions take the campaign's compatibility; scenarios and tutorials declare their own.
+    partOfCampaign: boolean;
+    // Whether content whose compatibility is "dev" loads, as it does in dev mode.
+    devContent: boolean;
+    // Language tables looked in after the mission's own, such as the campaign's shared/language/.
+    languageAfter: LanguageTables[];
+    // Folders added to SpringData ahead of this one, such as the campaign's shared/.
+    springDataPathsBefore: string[];
+    // Where image and backgroundImage are looked up: the campaign's shared/media/ for a campaign mission,
+    // the item's own media/ for a scenario or tutorial.
+    mediaFolder: string;
+};
+
+/**
+ * Reads one mission, scenario or tutorial folder. Gives undefined when it has an error, after reporting
+ * every problem it can find rather than stopping at the first.
+ */
+export async function readMissionFolder(folder: string, options: MissionFolderOptions, problems: Problems): Promise<SingleplayerMission | undefined> {
+    const id = path.basename(folder);
+    const manifestPath = path.join(folder, MANIFEST_FILE);
+    const manifest = await readContentJson(manifestPath, MissionManifest, problems);
+    if (!manifest) {
+        return undefined;
+    }
+
+    if (manifest.missionId !== id) {
+        problems.error(manifestPath, `missionId "${manifest.missionId}" does not match its folder name "${id}"`);
+    }
+    if (options.partOfCampaign && manifest.compatibility) {
+        problems.warning(manifestPath, "compatibility is ignored in a campaign mission. The campaign's compatibility applies to all its missions");
+    } else if (!options.partOfCampaign) {
+        if (manifest.compatibility) {
+            checkCompatibility(manifest.compatibility, manifestPath, options.devContent, problems);
+        } else {
+            problems.error(manifestPath, "compatibility is required for a scenario or tutorial");
+        }
+    }
+
+    const language = await readLanguageFolder(folder, problems);
+    const languageTables = [language, ...options.languageAfter];
+    checkTextKey(manifest.titleKey, "titleKey", languageTables, manifestPath, problems);
+    checkTextKey(manifest.descriptionKey, "descriptionKey", languageTables, manifestPath, problems);
+
+    const entryPointPath = await fileInside(folder, manifest.entryPoint, problems, manifestPath, "entryPoint");
+    const defaultConfig = await readMissionConfig(folder, manifest.config.default, languageTables, problems, manifestPath);
+    const numPlayers: MissionConfigs["numPlayers"] = {};
+    for (const [players, file] of Object.entries(manifest.config.numPlayers ?? {})) {
+        const config = await readMissionConfig(folder, file, languageTables, problems, manifestPath);
+        if (config) {
+            numPlayers[players] = config;
+        }
+    }
+    const mediaFile = (file: string | undefined, field: string) => (file === undefined ? undefined : fileInside(options.mediaFolder, file, problems, manifestPath, field));
+    const imagePath = await mediaFile(manifest.image, "image");
+    const backgroundImagePath = await mediaFile(manifest.backgroundImage, "backgroundImage");
+
+    if (problems.hasErrors || !entryPointPath || !defaultConfig) {
+        return undefined;
+    }
+
+    return {
+        id,
+        path: folder,
+        manifest,
+        configs: { default: defaultConfig, numPlayers },
+        entryPointPath,
+        language,
+        imageUrl: imagePath && toBarUrl(imagePath),
+        backgroundImageUrl: backgroundImagePath && toBarUrl(backgroundImagePath),
+        springDataPaths: [...options.springDataPathsBefore, folder],
+    };
+}

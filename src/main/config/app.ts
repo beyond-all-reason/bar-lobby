@@ -10,6 +10,7 @@ import { homedir } from "os";
 import { Type, Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import type { ContentRoot } from "@shared/content/singleplayer";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -139,6 +140,29 @@ export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH,
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 
 /**
+ * Where singleplayer content is read from, one root per source the edition reads. Official content is the
+ * content depot, which in practice only the premium edition has anything in. Custom content is the
+ * player's own. Where the depot finally lands is decided here and nowhere else.
+ *
+ * Saved progress is keyed by each root's `rootId`, so a root keeps its id for good once it has shipped
+ * content. A further official root, such as a DLC depot, gets a fixed id of its own.
+ *
+ * As with BAR_EDITION, the overrides only work from `npm start`.
+ */
+export function getContentRoots(): ContentRoot[] {
+    const override = (name: "BAR_CONTENT_PATH" | "BAR_CUSTOM_CONTENT_PATH") => (app.isPackaged ? undefined : process.env[name]);
+    const roots: ContentRoot[] = [];
+    if (EDITION_FEATURES.officialContent) {
+        roots.push({ source: "official", rootId: "official", path: path.resolve(override("BAR_CONTENT_PATH") || path.join(ASSETS_PATH, "content")) });
+    }
+    if (EDITION_FEATURES.customContent) {
+        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override("BAR_CUSTOM_CONTENT_PATH") || path.join(WRITE_DATA_PATH, "content")) });
+    }
+
+    return roots;
+}
+
+/**
  * Where content this client acquires itself lands. pr-downloader lays it out under the root the same way
  * either way, and the engine already searches both roots.
  */
@@ -146,6 +170,15 @@ export const getContentWriteRoot = () => (EDITION_FEATURES.assetsReadOnly ? WRIT
 
 // Map directories whose files are ours to delete.
 export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.assetsReadOnly ? [path.join(WRITE_DATA_PATH, "maps")] : getMapsPaths());
+
+/**
+ * Saved singleplayer progress, one small JSON file per item played. The folder holds nothing else and its
+ * files hold no paths or machine-specific values, so Steam Cloud can sync it as it is: with Auto-Cloud, the
+ * pattern `*.json` in `WinAppDataRoaming` + `BeyondAllReason/saves/singleplayer`. On Linux STATE_PATH is under
+ * XDG_STATE_HOME, which Steam has no root for, so that either assumes the default `LinuxHome` +
+ * `.local/state/...` or goes through the ISteamRemoteStorage API, which only needs the file names and contents.
+ */
+export const SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");

@@ -1988,6 +1988,22 @@
                 "refusals": {
                     "contentBundledWithInstall": null
                 }
+            },
+            "singleplayer": {
+                "saveFailures": {
+                    "saveUnusable": null,
+                    "saveVersionOlder": null,
+                    "saveVersionNewer": null,
+                    "invalidResult": null,
+                    "unknownItem": null,
+                    "saveFailed": null
+                },
+                "contentLoadFailures": {
+                    "loadFailed": null
+                },
+                "savesLoadFailures": {
+                    "loadFailed": null
+                }
             }
         },
         "api": {
@@ -2351,6 +2367,32 @@
                 "faction": null,
                 "difficulty": null,
                 "launch": null
+            },
+            "content": {
+                "campaigns": null,
+                "customCampaigns": null,
+                "scenarios": null,
+                "tutorials": null,
+                "credits": null,
+                "completed": null,
+                "pass": null,
+                "fail": null,
+                "showCredits": null,
+                "deleteSave": null,
+                "deleteAllTutorialSaves": null,
+                "variables": null,
+                "saveFromOlderVersion": null,
+                "saveFromNewerVersion": null,
+                "campaignSaveUnusable": null,
+                "scenarioSaveUnusable": null,
+                "tutorialSavesUnusable": null,
+                "deleteUnusableSaves": null,
+                "startOver": null,
+                "back": null,
+                "notInEdition": null,
+                "empty": null,
+                "notFound": null,
+                "problems": null
             }
         },
         "navbar": {
@@ -2477,7 +2519,14 @@
                 "useNewLocationOnlyDesc": null,
                 "apply": null,
                 "restartRequired": null,
-                "transferringFiles": null
+                "transferringFiles": null,
+                "singleplayerSaves": null,
+                "deleteSingleplayerSaves": null,
+                "deleteSingleplayerSavesTitle": null,
+                "deleteSingleplayerSavesBody": null,
+                "deleteSingleplayerSavesConfirm": null,
+                "singleplayerSavesDeleted": null,
+                "cancel": null
             },
             "friends": {
                 "unknownUser": null,

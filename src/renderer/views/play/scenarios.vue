@@ -8,6 +8,12 @@ SPDX-License-Identifier: MIT
 { meta: { title: "Scenarios", order: 1, transition: { name: "slide-left" } } }
 </route>
 
+<!--
+Scenarios read out of the game archive for the selected game version. contentScenarios.vue shows scenarios
+from singleplayer content instead. If the design team settles that scenarios ship as their own content,
+like campaigns, rather than inside the game, this view and the game-version scenario parsing behind it
+(window.game.getScenarios, src/main/content/game/game-scenarios.ts) may be removed.
+-->
 <template>
     <div class="scenarios-container">
         <div class="view-title">

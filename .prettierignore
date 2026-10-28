@@ -17,3 +17,5 @@ buildResources
 *.license
 *.ttf
 LICENSES/
+# Deliberately invalid JSON, for the content loader tests.
+tests/fixtures/content-broken/scenarios/bad-json/manifest.json

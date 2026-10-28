@@ -1,0 +1,10 @@
+{
+    "missionId": "mission01",
+    "titleKey": "missions.mission01.title",
+    "descriptionKey": "missions.mission01.description",
+    "entryPoint": "mission.lua",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    }
+}

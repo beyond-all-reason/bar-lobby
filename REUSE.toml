@@ -41,3 +41,11 @@ path = ["lang/**/*.json", "src/renderer/assets/languages/*.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 The BAR Lobby Authors"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+# Singleplayer content test fixtures and the content JSON Schemas generated from src/shared/content/schema.
+# Images for sample/test content are expressly MIT license so they can be used as examples for custom content
+path = ["tests/fixtures/**", "schemas/content/*.schema.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The BAR Lobby Authors"
+SPDX-License-Identifier = "MIT"

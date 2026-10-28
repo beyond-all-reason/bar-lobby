@@ -1,0 +1,110 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/mission-manifest.schema.json",
+    "title": "Mission manifest",
+    "$comment": "Difficulty settings are still being defined and are not part of this format yet. Still undecided: whether there is one standard set of difficulties the client and the mission API agree on, or each campaign, scenario or tutorial lists its own with language keys, and where a default is set. See the README.",
+    "description": "manifest.json in a campaign mission, scenario or tutorial folder.",
+    "type": "object",
+    "properties": {
+        "$schema": { "title": "Schema", "description": "Path or URL of the JSON Schema for this file, for editor autocomplete and errors. The client ignores it.", "type": "string" },
+        "formatVersion": {
+            "minimum": 1,
+            "title": "Format version",
+            "description": "Version of the content format this file follows. Leave it out for version 1. A client that supports an older version reports the content as needing a newer client. This client supports version 1.",
+            "type": "integer"
+        },
+        "missionId": {
+            "minLength": 1,
+            "title": "Mission id",
+            "description": "Id of the mission, scenario or tutorial. Must equal its folder name, and for a campaign mission its key in `missions`. Stays the same once released.",
+            "type": "string"
+        },
+        "titleKey": { "minLength": 1, "title": "Title key", "description": "Language key of the title.", "type": "string" },
+        "descriptionKey": { "minLength": 1, "title": "Description key", "description": "Language key of the description.", "type": "string" },
+        "entryPoint": { "minLength": 1, "title": "Entry point", "description": "Lua file the mission starts from, relative to this folder.", "type": "string" },
+        "mapName": { "minLength": 1, "title": "Map", "description": "Name of the map the mission is played on, as the engine names it.", "type": "string" },
+        "image": {
+            "minLength": 1,
+            "title": "Image",
+            "description": "Image file shown for the mission. A campaign mission's is in the campaign's shared/media/ folder, a scenario's or tutorial's in its own media/ folder.",
+            "type": "string"
+        },
+        "backgroundImage": {
+            "minLength": 1,
+            "title": "Background image",
+            "description": "Image file shown behind the mission. A campaign mission's is in the campaign's shared/media/ folder, a scenario's or tutorial's in its own media/ folder.",
+            "type": "string"
+        },
+        "config": {
+            "title": "Mission configs",
+            "description": "The mission config files, relative to this folder: a default, and optionally a config per player count.",
+            "type": "object",
+            "properties": {
+                "default": { "minLength": 1, "title": "Default config", "description": "Mission config used for any player count without its own, relative to this folder.", "type": "string" },
+                "numPlayers": {
+                    "additionalProperties": false,
+                    "title": "Configs by player count",
+                    "description": "Mission config for a number of human players, keyed by that number, such as \"2\".",
+                    "type": "object",
+                    "patternProperties": {
+                        "^[1-9][0-9]*$": {
+                            "minLength": 1,
+                            "title": "File",
+                            "description": "Path of a file, relative to the folder this file is in. It must stay inside that folder.",
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "required": ["default"]
+        },
+        "compatibility": {
+            "title": "Compatibility",
+            "description": "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once. Content still in development, with no released pair to name, gives \"dev\" instead and loads only in dev mode. Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.",
+            "anyOf": [
+                {
+                    "minItems": 1,
+                    "title": "Compatibility",
+                    "description": "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once.",
+                    "type": "array",
+                    "items": {
+                        "title": "Compatible engine and games",
+                        "description": "One engine version and the game versions that work with it.",
+                        "type": "object",
+                        "properties": {
+                            "engineVersion": {
+                                "minLength": 1,
+                                "pattern": "^[^:]+$",
+                                "title": "Engine version",
+                                "description": "Exact engine version, as the client names installed engines. Rapid tags and wildcards are not accepted.",
+                                "type": "string"
+                            },
+                            "gameVersions": {
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "title": "Game versions",
+                                "description": "Every game version that works with this engine version. A game listed here pairs with this engine only.",
+                                "type": "array",
+                                "items": {
+                                    "minLength": 1,
+                                    "pattern": "^[^:]+$",
+                                    "title": "Game version",
+                                    "description": "Exact game version, the full version string of the game archive. Rapid tags such as `byar:test` are not accepted.",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": ["engineVersion", "gameVersions"]
+                    }
+                },
+                {
+                    "title": "In development",
+                    "description": "Not yet tested on a released engine and game, such as content still being made in the mission editor. Loads only in dev mode.",
+                    "const": "dev",
+                    "type": "string"
+                }
+            ]
+        }
+    },
+    "required": ["missionId", "titleKey", "descriptionKey", "entryPoint", "mapName", "config"]
+}

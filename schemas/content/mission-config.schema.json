@@ -1,0 +1,136 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/mission-config.schema.json",
+    "title": "Mission config",
+    "description": "A mission config file named by a mission manifest's `config`: the teams, alliances and options the mission starts with.",
+    "type": "object",
+    "properties": {
+        "$schema": { "title": "Schema", "description": "Path or URL of the JSON Schema for this file, for editor autocomplete and errors. The client ignores it.", "type": "string" },
+        "alliances": {
+            "minProperties": 1,
+            "title": "Alliances",
+            "description": "Every alliance in the mission, keyed by name, with the teams in it. Names use letters, digits and underscores only.",
+            "additionalProperties": false,
+            "type": "object",
+            "patternProperties": {
+                "^[A-Za-z0-9_]+$": {
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "title": "Teams",
+                    "description": "The teams in this alliance. Each team belongs to one alliance.",
+                    "type": "array",
+                    "items": { "pattern": "^[A-Za-z0-9_]+$", "title": "Team", "description": "A team named in `alliances`. Names use letters, digits and underscores only.", "type": "string" }
+                }
+            }
+        },
+        "playerTeam": {
+            "minItems": 1,
+            "title": "Player teams",
+            "description": "Teams for the human players, assigned in the order players are in the lobby.",
+            "type": "array",
+            "items": { "pattern": "^[A-Za-z0-9_]+$", "title": "Team", "description": "A team named in `alliances`. Names use letters, digits and underscores only.", "type": "string" }
+        },
+        "startPosType": {
+            "type": "string",
+            "enum": ["fixed", "random", "in-game", "in-client"],
+            "title": "Start position type",
+            "description": "How start positions are picked: fixed, random, in-game or in-client."
+        },
+        "allianceSettings": {
+            "title": "Alliance settings",
+            "description": "Settings per alliance, keyed by a name in `alliances`. Names use letters, digits and underscores only.",
+            "additionalProperties": false,
+            "type": "object",
+            "patternProperties": {
+                "^[A-Za-z0-9_]+$": {
+                    "title": "Alliance settings",
+                    "description": "Settings for one alliance.",
+                    "type": "object",
+                    "properties": {
+                        "alliedWith": {
+                            "pattern": "^[A-Za-z0-9_]+$",
+                            "title": "Allied with",
+                            "description": "An alliance named in `alliances` that this alliance is allied with. Names use letters, digits and underscores only.",
+                            "type": "string"
+                        },
+                        "startRectTop": { "minimum": 0, "maximum": 1, "title": "Start box top", "description": "Edge of the start box, as a fraction of the map size from 0 to 1.", "type": "number" },
+                        "startRectLeft": {
+                            "minimum": 0,
+                            "maximum": 1,
+                            "title": "Start box left",
+                            "description": "Edge of the start box, as a fraction of the map size from 0 to 1.",
+                            "type": "number"
+                        },
+                        "startRectBottom": {
+                            "minimum": 0,
+                            "maximum": 1,
+                            "title": "Start box bottom",
+                            "description": "Edge of the start box, as a fraction of the map size from 0 to 1.",
+                            "type": "number"
+                        },
+                        "startRectRight": {
+                            "minimum": 0,
+                            "maximum": 1,
+                            "title": "Start box right",
+                            "description": "Edge of the start box, as a fraction of the map size from 0 to 1.",
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "teamSettings": {
+            "title": "Team settings",
+            "description": "Settings per team, keyed by a team in `alliances`. Names use letters, digits and underscores only.",
+            "additionalProperties": false,
+            "type": "object",
+            "patternProperties": {
+                "^[A-Za-z0-9_]+$": {
+                    "title": "Team settings",
+                    "description": "Settings for one team. Other startscript team settings may be added too.",
+                    "type": "object",
+                    "properties": {
+                        "side": { "minLength": 1, "title": "Side", "description": "Faction the team plays, such as Armada.", "type": "string" },
+                        "incomeMultiplier": { "exclusiveMinimum": 0, "title": "Income multiplier", "description": "Multiplier on the team's resource income.", "type": "number" },
+                        "startPosX": { "minimum": 0, "title": "Start X", "description": "Start position on the map's X axis, in elmos.", "type": "number" },
+                        "startPosZ": { "minimum": 0, "title": "Start Z", "description": "Start position on the map's Z axis, in elmos.", "type": "number" },
+                        "luaAI": { "minLength": 1, "title": "Lua AI", "description": "Lua AI that controls the team. Leave it out for a team with no AI.", "type": "string" },
+                        "rgbColor": {
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "title": "Color",
+                            "description": "The team's color as red, green and blue, each from 0 to 1, such as [0.1, 0.5, 0.9].",
+                            "type": "array",
+                            "items": { "minimum": 0, "maximum": 1, "type": "number" }
+                        },
+                        "displayNameKey": {
+                            "minLength": 1,
+                            "title": "Display name key",
+                            "description": "Language key of the team's name as players see it. The team's name in `alliances` is what the startscript and the mission API use.",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "restrictions": {
+            "title": "Unit restrictions",
+            "description": "Build limits keyed by unit name.",
+            "type": "object",
+            "patternProperties": { "^(.*)$": { "minimum": 0, "title": "Limit", "description": "The most of this unit a team may build. 0 disables it.", "type": "integer" } }
+        },
+        "modOptions": {
+            "title": "Game options",
+            "description": "Game mod options keyed by option key.",
+            "type": "object",
+            "patternProperties": { "^(.*)$": { "title": "Value", "description": "Value of the option.", "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] } }
+        },
+        "mapOptions": {
+            "title": "Map options",
+            "description": "Map options keyed by option key.",
+            "type": "object",
+            "patternProperties": { "^(.*)$": { "title": "Value", "description": "Value of the option.", "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] } }
+        }
+    },
+    "required": ["alliances", "playerTeam"]
+}

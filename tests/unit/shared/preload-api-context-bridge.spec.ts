@@ -256,6 +256,37 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("misc:getDevlogRssFeed", 3);
     });
 
+    it("should expose singleplayer API", async () => {
+        await import("@preload/preload");
+
+        mockWindow.singleplayer.list();
+        mockWindow.singleplayer.getSaves();
+        mockWindow.singleplayer.recordResult("campaign", "official", "official", "sample-campaign", { missionId: "mission01", outcome: "victory" });
+        mockWindow.singleplayer.deleteSave("tutorial", "custom", "custom", "sample-tutorial");
+        mockWindow.singleplayer.deleteAllSaves();
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:list");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getSaves");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:recordResult", "campaign", "official", "official", "sample-campaign", {
+            missionId: "mission01",
+            outcome: "victory",
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteSave", "tutorial", "custom", "custom", "sample-tutorial");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteAllSaves");
+    });
+
+    it("should pass save changes from main to the singleplayer callback", async () => {
+        await import("@preload/preload");
+        const callback = vi.fn();
+        const change = { item: { kind: "campaign", source: "official", rootId: "official", id: "sample-campaign" }, save: undefined };
+
+        mockWindow.singleplayer.onSaveChanged(callback);
+        const [dispatch] = listenersFor("singleplayer:saveChanged");
+        dispatch({}, change);
+
+        expect(callback).toHaveBeenCalledWith(change);
+    });
+
     it("should expose barNavigation API", async () => {
         await import("@preload/preload");
 

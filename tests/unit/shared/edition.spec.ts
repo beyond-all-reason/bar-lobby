@@ -63,16 +63,20 @@ describe("editionFeatures", () => {
             changeAssetsPath: true,
             assetsReadOnly: false,
             assetsBesideExecutable: false,
+            officialContent: false,
+            customContent: true,
         });
     });
 
-    it("turns off updating, engine and game downloads and moving the assets on steam", () => {
+    it("turns off updating, engine and game downloads and moving the assets on steam, and reads official content", () => {
         expect(editionFeatures("steam")).toEqual({
             selfUpdate: false,
             downloadEngineAndGame: false,
             changeAssetsPath: false,
             assetsReadOnly: true,
             assetsBesideExecutable: true,
+            officialContent: true,
+            customContent: true,
         });
     });
 });

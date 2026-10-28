@@ -1836,6 +1836,22 @@
                 "refusals": {
                     "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam."
                 }
+            },
+            "singleplayer": {
+                "saveFailures": {
+                    "saveUnusable": "Your saved progress can't be read, so this result wasn't saved. Delete the save to start over.",
+                    "saveVersionOlder": "This result wasn't saved: your saved progress is from an older version of this content. Start over to play it.",
+                    "saveVersionNewer": "This result wasn't saved: your saved progress is from a newer version of this content. Update it to continue, or delete your save to play the installed version.",
+                    "invalidResult": "This result wasn't saved: the mission reported something that can't be saved.",
+                    "unknownItem": "This content could not be found, so your saved progress wasn't changed.",
+                    "saveFailed": "Your saved progress couldn't be changed. The log has the details."
+                },
+                "contentLoadFailures": {
+                    "loadFailed": "Singleplayer content couldn't be loaded. The log has the details."
+                },
+                "savesLoadFailures": {
+                    "loadFailed": "Your saved progress couldn't be loaded. The log has the details."
+                }
             }
         },
         "api": {
@@ -2199,6 +2215,32 @@
                 "faction": "Faction",
                 "difficulty": "Difficulty",
                 "launch": "Launch"
+            },
+            "content": {
+                "campaigns": "Campaigns",
+                "customCampaigns": "Custom Campaigns",
+                "scenarios": "Scenarios",
+                "tutorials": "Tutorials",
+                "credits": "Credits",
+                "completed": "Completed",
+                "pass": "Pass",
+                "fail": "Fail",
+                "showCredits": "Show credits",
+                "deleteSave": "Delete save",
+                "deleteAllTutorialSaves": "Delete all tutorial saves",
+                "variables": "Variables",
+                "saveFromOlderVersion": "Your saved progress was made with an older version of this campaign, which isn't compatible with the version you have now. To play it, delete your save and start over.",
+                "saveFromNewerVersion": "Your saved progress was made with a newer version of this campaign than the one you have now. Update the campaign to continue, or delete your save to start over with this version.",
+                "campaignSaveUnusable": "Your saved progress for this campaign can't be read. It may be damaged, or saved by a newer version of the lobby. To play it, delete your save and start over.",
+                "scenarioSaveUnusable": "Your saved progress for this scenario can't be read. It may be damaged, or saved by a newer version of the lobby. To play it, delete your save and start over.",
+                "tutorialSavesUnusable": "Your saved progress for some of these tutorials can't be read. It may be damaged, or saved by a newer version of the lobby. Those tutorials can't be played until their saves are deleted.",
+                "deleteUnusableSaves": "Delete unreadable saves",
+                "startOver": "Delete save and start over",
+                "back": "Back",
+                "notInEdition": "Official campaigns are not part of this edition.",
+                "empty": "No content found.",
+                "notFound": "This content could not be found.",
+                "problems": "Content problems: {count}"
             }
         },
         "navbar": {
@@ -2325,7 +2367,14 @@
                 "useNewLocationOnlyDesc": "Points the game at the new folder. No files are moved or copied — you will need to re-download.",
                 "apply": "Apply",
                 "restartRequired": "The application will reload after changing the location.",
-                "transferringFiles": "Transferring files... {percent}%"
+                "transferringFiles": "Transferring files... {percent}%",
+                "singleplayerSaves": "Singleplayer Saves",
+                "deleteSingleplayerSaves": "Delete all singleplayer saved data",
+                "deleteSingleplayerSavesTitle": "Delete all singleplayer saved data?",
+                "deleteSingleplayerSavesBody": "This deletes your progress and saved values in every campaign, scenario and tutorial, official and custom. It cannot be undone.",
+                "deleteSingleplayerSavesConfirm": "Delete all",
+                "singleplayerSavesDeleted": "Singleplayer saved data deleted.",
+                "cancel": "Cancel"
             },
             "friends": {
                 "unknownUser": "Unknown User",

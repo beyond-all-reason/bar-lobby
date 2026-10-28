@@ -21,7 +21,7 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, SCENARIO_IMAGE_PATH, setAssetsPath } from "./config/app";
+import { APP_NAME, SCENARIO_IMAGE_PATH, getContentRoots, setAssetsPath } from "./config/app";
 import { shellService } from "@main/services/shell.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
@@ -31,6 +31,7 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { singleplayerService } from "@main/services/singleplayer.service";
 import { configService } from "./services/config.service";
 import { EDITION_FEATURES } from "@main/config/edition";
 import { reconcileCustomServers } from "@shared/lobby-server";
@@ -72,7 +73,7 @@ function registerBarFileProtocol() {
             const filePath = decodedUrl.slice("bar://".length);
             // Security Check: Ensure the file is within the content folder
             const resolvedFilePath = path.resolve(filePath);
-            const whitelistedPaths = [SCENARIO_IMAGE_PATH];
+            const whitelistedPaths = [SCENARIO_IMAGE_PATH, ...getContentRoots().map((root) => root.path)];
             if (!whitelistedPaths.some((p) => resolvedFilePath.startsWith(p + path.sep))) {
                 log.error(`Attempt to access file outside whitelisted paths: ${resolvedFilePath}`);
                 return new Response();
@@ -174,4 +175,5 @@ app.whenReady().then(async () => {
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
+    singleplayerService.registerIpcHandlers(webContents);
 });

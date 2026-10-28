@@ -9,8 +9,24 @@ import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
-const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
+const standalone: EditionFeatures = {
+    selfUpdate: true,
+    downloadEngineAndGame: true,
+    changeAssetsPath: true,
+    assetsReadOnly: false,
+    assetsBesideExecutable: false,
+    officialContent: false,
+    customContent: true,
+};
+const steam: EditionFeatures = {
+    selfUpdate: false,
+    downloadEngineAndGame: false,
+    changeAssetsPath: false,
+    assetsReadOnly: true,
+    assetsBesideExecutable: true,
+    officialContent: true,
+    customContent: true,
+};
 
 const { missing, ensure, edition } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn(), edition: { features: {} as EditionFeatures } }));
 

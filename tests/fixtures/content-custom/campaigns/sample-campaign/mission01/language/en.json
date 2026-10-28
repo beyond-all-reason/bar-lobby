@@ -1,0 +1,4 @@
+{
+    "missions.mission01.title": "Sample mission01",
+    "missions.mission01.description": "Start mission. Win: unlocks mission02 and mission03. Lose: nothing unlocks."
+}

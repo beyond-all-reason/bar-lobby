@@ -1,0 +1,16 @@
+{
+    "missionId": "engine-without-games",
+    "titleKey": "missions.engine-without-games.title",
+    "descriptionKey": "missions.engine-without-games.description",
+    "entryPoint": "mission.lua",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    },
+    "compatibility": [
+        {
+            "engineVersion": "2025.04.10",
+            "gameVersions": []
+        }
+    ]
+}

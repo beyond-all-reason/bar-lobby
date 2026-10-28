@@ -1,0 +1,4 @@
+{
+    "missions.supplyRun.title": "Supply run",
+    "missions.supplyRun.description": "Optional, opened by losing landing. Win: removes this mission. Lose: nothing changes."
+}

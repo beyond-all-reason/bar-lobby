@@ -1,0 +1,495 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { applyResult, countPlay } from "@shared/content/campaign-progress";
+import { saveKey, type SaveChange, type ReportedResult, type SingleplayerSave, type SingleplayerSaves } from "@shared/content/save";
+import type { CampaignConfig } from "@shared/content/schema/campaign-config";
+import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
+import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
+
+const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), deleteSave: vi.fn(), deleteAllSaves: vi.fn(), onSaveChanged: vi.fn() }));
+vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
+
+const { singleplayerStore, singleplayerUpdates } = await import("@renderer/store/singleplayer.store");
+const { initSingleplayerLogic, singleplayerLogic } = await import("@renderer/logic/singleplayer");
+
+// Stands in for main, which keeps the saves, applies each result under the item's rules and returns the save
+// as written. Every campaign here is the sample campaign.
+const disk = new Map<string, SingleplayerSave>();
+
+// How many plays of one item, or of one campaign's missions, the save holds.
+const playsOf = (kind: SingleplayerKind, ref: SingleplayerItemRef) =>
+    Object.values(singleplayerStore.saves.get(saveKey(kind, ref))?.plays ?? {}).reduce((total, plays) => total + plays.victories + plays.failures, 0);
+
+const succeeded = <T>(data: T) => ({ status: "success", data }) as const;
+
+function fakeMain() {
+    disk.clear();
+    api.list.mockResolvedValue(succeeded(content([])));
+    api.getSaves.mockImplementation(async () => succeeded({ saves: structuredClone([...disk.values()]), unusable: [] }));
+    api.recordResult.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) => {
+        const key = saveKey(kind, ref);
+        const save = disk.get(key) ?? { formatVersion: 1, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
+        const progress = kind === "campaign" ? applyResult(sampleCampaign as CampaignConfig, save, result) : { plays: countPlay(save.plays, result.missionId, result.outcome) };
+        const updated = { ...save, ...progress };
+        disk.set(key, updated);
+        return { status: "success", data: structuredClone(updated) };
+    });
+    api.deleteSave.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef) => {
+        disk.delete(saveKey(kind, ref));
+        return { status: "success", data: undefined };
+    });
+    api.deleteAllSaves.mockImplementation(async () => {
+        disk.clear();
+        return { status: "success", data: undefined };
+    });
+}
+
+function makeCampaign(source: "official" | "custom"): SingleplayerCampaign {
+    const config = sampleCampaign as CampaignConfig;
+
+    return { kind: "campaign", source, rootId: source, id: "sample-campaign", path: "", config, credits: [], language: {}, compatibility: config.compatibility, missions: [] };
+}
+
+function makeTutorial(id: string, source: "official" | "custom" = "official"): SingleplayerScenario {
+    return { kind: "tutorial", source, rootId: source, id, compatibility: [] } as unknown as SingleplayerScenario;
+}
+
+function content(tutorials: SingleplayerScenario[]): SingleplayerContent {
+    return { campaigns: [], scenarios: [], tutorials, problems: [] };
+}
+
+const official = makeCampaign("official");
+const custom = makeCampaign("custom");
+const officialItem = { kind: "campaign", source: "official", rootId: "official", id: "sample-campaign" } as const;
+
+async function winThroughToFinal(campaign: SingleplayerCampaign) {
+    for (const missionId of ["mission01", "mission02", "missionA", "missionB"]) {
+        await singleplayerLogic.recordCampaignResult(campaign, missionId, "victory");
+    }
+}
+
+describe("singleplayer logic", () => {
+    beforeEach(() => {
+        singleplayerUpdates.clear();
+        vi.resetAllMocks();
+        fakeMain();
+    });
+
+    describe("loadContent", () => {
+        it("puts the scanned content in the store", async () => {
+            const scanned = content([]);
+            api.list.mockResolvedValue(succeeded(scanned));
+
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerStore.content).toEqual(scanned);
+            expect(singleplayerStore.isLoading).toBe(false);
+            expect(singleplayerStore.loadError).toBeUndefined();
+        });
+
+        it("records a failed scan without throwing, with the message for main's reason", async () => {
+            api.list.mockResolvedValue({ status: "failed", reason: "load_failed", details: "C:/content: EACCES" });
+
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerStore.loadError).toBe("load_failed");
+            expect(singleplayerLogic.loadErrorOf()).toBe("lobby.logic.singleplayer.contentLoadFailures.loadFailed");
+            expect(singleplayerStore.isLoading).toBe(false);
+        });
+
+        it("records a scan that never reached main as failed", async () => {
+            api.list.mockRejectedValue(new Error("singleplayer:list failed: boom"));
+
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerLogic.loadErrorOf()).toBe("lobby.logic.singleplayer.contentLoadFailures.loadFailed");
+        });
+
+        it("loads the saves written before, once", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            singleplayerUpdates.clear();
+
+            await singleplayerLogic.loadContent();
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+            expect(api.getSaves).toHaveBeenCalledTimes(1);
+        });
+
+        it("shows the content when the saves can't be read, and tries them again next time", async () => {
+            api.getSaves.mockRejectedValueOnce(new Error("singleplayer:getSaves failed: boom"));
+
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerStore.content).toBeDefined();
+            expect(singleplayerStore.loadError).toBeUndefined();
+            expect(singleplayerLogic.savesLoadErrorOf()).toBe("lobby.logic.singleplayer.savesLoadFailures.loadFailed");
+
+            await singleplayerLogic.loadContent();
+            expect(api.getSaves).toHaveBeenCalledTimes(2);
+            expect(singleplayerStore.savesLoaded).toBe(true);
+            expect(singleplayerLogic.savesLoadErrorOf()).toBeUndefined();
+        });
+
+        it("keeps the latest scan when an earlier one finishes after it", async () => {
+            const [older, newer] = [content([makeTutorial("older")]), content([makeTutorial("newer")])];
+            let answerOlder!: (scanned: ReturnType<typeof succeeded<SingleplayerContent>>) => void;
+            let answerNewer!: (scanned: ReturnType<typeof succeeded<SingleplayerContent>>) => void;
+            api.list.mockReturnValueOnce(new Promise((resolve) => (answerOlder = resolve))).mockReturnValueOnce(new Promise((resolve) => (answerNewer = resolve)));
+
+            const first = singleplayerLogic.loadContent();
+            const second = singleplayerLogic.loadContent();
+            answerOlder(succeeded(older));
+            await first;
+            expect(singleplayerStore.isLoading).toBe(true);
+
+            answerNewer(succeeded(newer));
+            await second;
+            expect(singleplayerStore.content).toEqual(newer);
+            expect(singleplayerStore.isLoading).toBe(false);
+        });
+
+        it("ignores an earlier scan failing after a later one succeeded", async () => {
+            const scanned = content([]);
+            let failOlder!: (error: Error) => void;
+            api.list.mockReturnValueOnce(new Promise((_, reject) => (failOlder = reject))).mockResolvedValueOnce(succeeded(scanned));
+
+            const first = singleplayerLogic.loadContent();
+            await singleplayerLogic.loadContent();
+            failOlder(new Error("singleplayer:list failed: boom"));
+            await first;
+
+            expect(singleplayerStore.content).toEqual(scanned);
+            expect(singleplayerStore.loadError).toBeUndefined();
+        });
+
+        it("keeps results recorded before a rescan", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+        });
+    });
+
+    describe("campaign results", () => {
+        it("moves the campaign on as results are recorded", async () => {
+            const { state, finishedNow } = await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+
+            expect(state.available).toEqual(["mission02"]);
+            expect(state.removed).toEqual(["tutorial"]);
+            expect(finishedNow).toBe(false);
+        });
+
+        it("saves each result through main", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "failure", { lives: 2 });
+
+            expect(api.recordResult).toHaveBeenCalledWith("campaign", official, { missionId: "mission01", outcome: "failure", variables: { lives: 2 } });
+        });
+
+        it("completes the campaign on winning a final mission, and says so only once", async () => {
+            await winThroughToFinal(official);
+
+            expect((await singleplayerLogic.recordCampaignResult(official, "finalMission", "victory")).finishedNow).toBe(true);
+            expect(singleplayerLogic.campaignCompleted(official)).toBe(true);
+            expect((await singleplayerLogic.recordCampaignResult(official, "optionalMissionA", "victory")).finishedNow).toBe(false);
+        });
+
+        it("leaves the state as it was when a result can't be saved, with the message for main's reason", async () => {
+            api.recordResult.mockResolvedValueOnce({ status: "failed", reason: "save_version_newer", details: "C:/saves/campaign-1.json: newer" });
+
+            const { state, finishedNow } = await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+
+            expect(state.completed).toEqual([]);
+            expect(finishedNow).toBe(false);
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveVersionNewer");
+
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBeUndefined();
+        });
+
+        it("words a call that never reached main, or a reason it doesn't know, as a failed save", async () => {
+            api.recordResult.mockRejectedValueOnce(new Error("singleplayer:recordResult failed: boom"));
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+
+            api.recordResult.mockResolvedValueOnce({ status: "failed", reason: "from_a_newer_main" });
+            await singleplayerLogic.recordCampaignResult(custom, "mission01", "victory");
+            expect(singleplayerLogic.saveErrorOf("campaign", custom)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+        });
+
+        it("keeps a failure to the campaign it happened to", async () => {
+            api.recordResult.mockRejectedValueOnce(new Error("singleplayer:recordResult failed: boom"));
+
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            await singleplayerLogic.recordCampaignResult(custom, "mission01", "victory");
+
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+            expect(singleplayerLogic.saveErrorOf("campaign", custom)).toBeUndefined();
+        });
+
+        it("gives the variables the campaign's missions have reported", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory", { lives: 3, hero: "alice" });
+            await singleplayerLogic.recordCampaignResult(official, "mission02", "failure", { lives: null, gold: 10 });
+
+            expect(singleplayerLogic.variablesOf(official)).toEqual({ hero: "alice", gold: 10 });
+            expect(singleplayerLogic.variablesOf(custom)).toEqual({});
+        });
+
+        it("keeps official and custom campaigns with the same id apart", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+
+            expect(singleplayerLogic.campaignState(custom).completed).toEqual([]);
+        });
+
+        it("deletes one campaign's save only", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            await singleplayerLogic.recordCampaignResult(custom, "mission01", "victory");
+
+            await singleplayerLogic.deleteSave("campaign", official);
+
+            expect(api.deleteSave).toHaveBeenCalledWith("campaign", official);
+            expect(playsOf("campaign", official)).toBe(0);
+            expect(playsOf("campaign", custom)).toBe(1);
+        });
+
+        it("keeps a save that failed to delete", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            api.deleteSave.mockResolvedValueOnce({ status: "failed", reason: "save_failed", details: "EBUSY" });
+
+            await singleplayerLogic.deleteSave("campaign", official);
+
+            expect(playsOf("campaign", official)).toBe(1);
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+        });
+    });
+
+    describe("save versions", () => {
+        const updated: SingleplayerCampaign = { ...official, config: { ...official.config, saveVersion: 2 } };
+
+        it("counts a save from an older version as no progress until it is started over", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory", { lives: 3 });
+
+            expect(singleplayerLogic.campaignSaveStatus(updated)).toBe("older");
+            expect(singleplayerLogic.campaignState(updated).completed).toEqual([]);
+            expect(singleplayerLogic.variablesOf(updated)).toEqual({});
+
+            await singleplayerLogic.deleteSave("campaign", updated);
+            expect(singleplayerLogic.campaignSaveStatus(updated)).toBe("compatible");
+        });
+
+        it("leaves a save from a newer version unused", () => {
+            singleplayerUpdates.saveStored(saveKey("campaign", official), { formatVersion: 1, saveVersion: 2, item: officialItem, plays: { mission01: { victories: 1, failures: 0 } }, recent: [] });
+
+            expect(singleplayerLogic.campaignSaveStatus(official)).toBe("newer");
+            expect(singleplayerLogic.campaignState(official).completed).toEqual([]);
+            expect(singleplayerLogic.campaignSaveStatus(updated)).toBe("compatible");
+        });
+
+        it("counts a campaign without a save as compatible", () => {
+            expect(singleplayerLogic.campaignSaveStatus(updated)).toBe("compatible");
+        });
+    });
+
+    describe("unusable saves", () => {
+        it("marks the saves main couldn't use, until one is deleted", async () => {
+            api.getSaves.mockResolvedValueOnce(succeeded({ saves: [], unusable: [officialItem] }));
+            await singleplayerLogic.loadContent();
+
+            expect(singleplayerLogic.campaignSaveStatus(official)).toBe("unusable");
+            expect(singleplayerLogic.campaignSaveStatus(custom)).toBe("compatible");
+
+            await singleplayerLogic.deleteSave("campaign", official);
+            expect(singleplayerLogic.campaignSaveStatus(official)).toBe("compatible");
+        });
+
+        it("marks a save main refused a result for as unusable, rather than as a failed save", async () => {
+            api.recordResult.mockResolvedValueOnce({ status: "failed", reason: "save_unusable", details: "Not valid JSON" });
+
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+
+            expect(singleplayerLogic.campaignSaveStatus(official)).toBe("unusable");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBeUndefined();
+        });
+
+        it("clears the mark when main writes the save anew", async () => {
+            singleplayerUpdates.saveUnusable(saveKey("campaign", official));
+
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+
+            expect(singleplayerLogic.campaignSaveStatus(official)).toBe("compatible");
+        });
+
+        it("deletes only the unusable saves of one root's tutorials", async () => {
+            const [damaged, played, other] = [makeTutorial("damaged"), makeTutorial("played"), makeTutorial("damaged", "custom")];
+            singleplayerUpdates.loaded(content([damaged, played, other]));
+            await singleplayerLogic.recordItemResult(played, "victory");
+            for (const tutorial of [damaged, other]) {
+                singleplayerUpdates.saveUnusable(saveKey("tutorial", tutorial));
+            }
+
+            await singleplayerLogic.deleteUnusableTutorialSaves("official", "official");
+
+            expect(singleplayerLogic.saveUnusable("tutorial", damaged)).toBe(false);
+            expect(singleplayerLogic.saveUnusable("tutorial", other)).toBe(true);
+            expect(singleplayerLogic.itemCompleted(played)).toBe(true);
+        });
+    });
+
+    describe("saves from a newer version", () => {
+        it("deletes only the tutorial saves of one root that main refused as newer", async () => {
+            const [newer, played, other] = [makeTutorial("newer"), makeTutorial("played"), makeTutorial("newer", "custom")];
+            singleplayerUpdates.loaded(content([newer, played, other]));
+            await singleplayerLogic.recordItemResult(played, "victory");
+            api.recordResult.mockResolvedValue({ status: "failed", reason: "save_version_newer", details: "newer" });
+            for (const tutorial of [newer, other]) {
+                await singleplayerLogic.recordItemResult(tutorial, "victory");
+            }
+            expect(singleplayerLogic.refusedAsNewer("tutorial", newer)).toBe(true);
+
+            await singleplayerLogic.deleteNewerTutorialSaves("official", "official");
+
+            expect(singleplayerLogic.refusedAsNewer("tutorial", newer)).toBe(false);
+            expect(singleplayerLogic.refusedAsNewer("tutorial", other)).toBe(true);
+            expect(singleplayerLogic.itemCompleted(played)).toBe(true);
+        });
+    });
+
+    describe("deleteAllSaves", () => {
+        it("clears every save and an earlier error", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            await singleplayerLogic.recordItemResult(makeTutorial("basics"), "victory");
+            singleplayerUpdates.saveFailed(saveKey("campaign", official), "save_failed");
+
+            expect(await singleplayerLogic.deleteAllSaves()).toBeUndefined();
+
+            expect(api.deleteAllSaves).toHaveBeenCalled();
+            expect(singleplayerStore.saves.size).toBe(0);
+            expect(singleplayerStore.saveErrors.size).toBe(0);
+        });
+
+        it("keeps the saves and gives the reason when it fails", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            api.deleteAllSaves.mockResolvedValueOnce({ status: "failed", reason: "save_failed", details: "EBUSY" });
+
+            expect(await singleplayerLogic.deleteAllSaves()).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+
+            expect(playsOf("campaign", official)).toBe(1);
+            expect(singleplayerStore.saveErrors.size).toBe(0);
+        });
+    });
+
+    describe("save changes from main", () => {
+        // Subscribed once for the whole file, the same as at startup, so the handler is caught here.
+        // Gives the change's turn in the queue of changes to the saves, so a test can wait for it.
+        let reportChange: (change: SaveChange) => unknown;
+
+        beforeEach(() => {
+            api.onSaveChanged.mockImplementation((handler) => (reportChange = handler));
+            initSingleplayerLogic();
+        });
+
+        const recordedByMain: SingleplayerSave = {
+            formatVersion: 1,
+            item: officialItem,
+            plays: { mission01: { victories: 1, failures: 0 } },
+            campaign: { unlocked: ["mission01", "mission02"], removed: ["tutorial"], prerequisitesMet: [], variables: { lives: 3 } },
+            recent: [],
+        };
+
+        it("shows a result main recorded without being asked from here", async () => {
+            await reportChange({ item: recordedByMain.item, save: recordedByMain });
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+            expect(singleplayerLogic.variablesOf(official)).toEqual({ lives: 3 });
+            expect(singleplayerLogic.campaignState(custom).completed).toEqual([]);
+        });
+
+        it("drops a save main deleted, and leaves an error from this window alone", async () => {
+            await singleplayerLogic.recordCampaignResult(official, "mission01", "victory");
+            singleplayerUpdates.saveFailed(saveKey("campaign", official), "save_failed");
+
+            await reportChange({ item: officialItem, save: undefined });
+
+            expect(playsOf("campaign", official)).toBe(0);
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+        });
+
+        it("applies a change that arrives while the saves load after them, so the load can't overwrite it", async () => {
+            let answer!: (saves: ReturnType<typeof succeeded<SingleplayerSaves>>) => void;
+            api.getSaves.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+
+            const loading = singleplayerLogic.loadContent();
+            const change = reportChange({ item: recordedByMain.item, save: recordedByMain });
+            // Main read the folder before it wrote the change.
+            answer(succeeded({ saves: [], unusable: [] }));
+            await Promise.all([loading, change]);
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+        });
+
+        it("applies changes in the order they arrive", async () => {
+            const lost = { ...recordedByMain, plays: { mission01: { victories: 0, failures: 1 } } };
+
+            await Promise.all([reportChange({ item: officialItem, save: lost }), reportChange({ item: officialItem, save: recordedByMain })]);
+
+            expect(singleplayerLogic.campaignState(official).completed).toEqual(["mission01"]);
+        });
+    });
+
+    describe("tutorials", () => {
+        it("completes a tutorial on a win but not on a loss", async () => {
+            const tutorial = makeTutorial("basics");
+
+            await singleplayerLogic.recordItemResult(tutorial, "failure");
+            expect(singleplayerLogic.itemCompleted(tutorial)).toBe(false);
+
+            await singleplayerLogic.recordItemResult(tutorial, "victory");
+            expect(singleplayerLogic.itemCompleted(tutorial)).toBe(true);
+        });
+
+        it("completes a root's tutorials once every one of them is won", async () => {
+            const [first, second, other] = [makeTutorial("first"), makeTutorial("second"), makeTutorial("first", "custom")];
+            singleplayerUpdates.loaded(content([first, second, other]));
+
+            await singleplayerLogic.recordItemResult(first, "victory");
+            expect(singleplayerLogic.tutorialsCompleted("official", "official")).toBe(false);
+
+            await singleplayerLogic.recordItemResult(second, "victory");
+            expect(singleplayerLogic.tutorialsCompleted("official", "official")).toBe(true);
+            expect(singleplayerLogic.tutorialsCompleted("custom", "custom")).toBe(false);
+        });
+
+        it("deletes the save of every tutorial in one root only", async () => {
+            const [first, second, other] = [makeTutorial("first"), makeTutorial("second"), makeTutorial("first", "custom")];
+            singleplayerUpdates.loaded(content([first, second, other]));
+            for (const tutorial of [first, second, other]) {
+                await singleplayerLogic.recordItemResult(tutorial, "victory");
+            }
+
+            await singleplayerLogic.deleteTutorialSaves("official", "official");
+
+            expect(singleplayerLogic.itemCompleted(first)).toBe(false);
+            expect(singleplayerLogic.itemCompleted(second)).toBe(false);
+            expect(singleplayerLogic.itemCompleted(other)).toBe(true);
+        });
+
+        it("never counts a root without tutorials as completed", () => {
+            singleplayerUpdates.loaded(content([]));
+
+            expect(singleplayerLogic.tutorialsCompleted("official", "official")).toBe(false);
+        });
+
+        // A tutorial and a campaign in the same root may share an id.
+        it("keeps a tutorial's results apart from a campaign with the same id", async () => {
+            const tutorial = makeTutorial("sample-campaign");
+
+            await singleplayerLogic.recordItemResult(tutorial, "victory");
+
+            expect(playsOf("campaign", official)).toBe(0);
+        });
+    });
+});

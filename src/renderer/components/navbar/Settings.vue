@@ -119,6 +119,25 @@ SPDX-License-Identifier: MIT
                     </div>
                 </div>
             </template>
+
+            <div>{{ t("lobby.navbar.settings.singleplayerSaves") }}</div>
+            <div class="flex-col gap-sm">
+                <Button class="red slim" @click="confirmDeleteSaves = true">{{
+                    t("lobby.navbar.settings.deleteSingleplayerSaves")
+                }}</Button>
+                <small v-if="savesDeleted">{{ t("lobby.navbar.settings.singleplayerSavesDeleted") }}</small>
+                <small v-else-if="deleteSavesError" class="path-error">{{ t(deleteSavesError) }}</small>
+            </div>
+        </div>
+    </Modal>
+
+    <Modal v-model="confirmDeleteSaves" :title="t('lobby.navbar.settings.deleteSingleplayerSavesTitle')">
+        <div class="confirm flex-col gap-md">
+            <div>{{ t("lobby.navbar.settings.deleteSingleplayerSavesBody") }}</div>
+            <div class="flex-row gap-md">
+                <Button class="fullwidth" @click="confirmDeleteSaves = false">{{ t("lobby.navbar.settings.cancel") }}</Button>
+                <Button class="fullwidth red" @click="deleteSaves">{{ t("lobby.navbar.settings.deleteSingleplayerSavesConfirm") }}</Button>
+            </div>
         </div>
     </Modal>
 </template>
@@ -144,12 +163,14 @@ import {
 } from "@main/config/window";
 import { contentsStore } from "@renderer/store/contents.store";
 import { infosStore } from "@renderer/store/infos.store";
+import { singleplayerStore } from "@renderer/store/singleplayer.store";
+import { singleplayerLogic } from "@renderer/logic/singleplayer";
 import { isUnsettled } from "@main/content/content-state";
 import { refreshEnginesStore } from "@renderer/store/engine.store";
 import { refreshGameStore } from "@renderer/store/game.store";
 import { refreshMapsStore } from "@renderer/store/maps.store";
 import { uploadLogs } from "@renderer/utils/log";
-import { useTypedI18n } from "@renderer/i18n";
+import { type TranslationKey, useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
@@ -232,6 +253,25 @@ async function applyPathChange() {
         contentsStore.isPathChanging = false;
     }
 }
+
+const confirmDeleteSaves = ref(false);
+const savesDeleted = ref(false);
+const deleteSavesError = ref<TranslationKey>();
+
+async function deleteSaves() {
+    confirmDeleteSaves.value = false;
+    deleteSavesError.value = await singleplayerLogic.deleteAllSaves();
+    savesDeleted.value = deleteSavesError.value === undefined;
+}
+
+// Reopening the menu shouldn't still say how the last delete went.
+watch(
+    () => props.modelValue,
+    () => {
+        savesDeleted.value = false;
+        deleteSavesError.value = undefined;
+    }
+);
 
 const op = ref();
 const tooltipMessage = ref("");
@@ -357,6 +397,10 @@ async function uploadLogsCommand(event) {
 </script>
 
 <style lang="scss" scoped>
+.confirm {
+    width: 352px;
+}
+
 .container {
     background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);

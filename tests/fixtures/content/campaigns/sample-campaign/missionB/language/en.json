@@ -1,0 +1,4 @@
+{
+    "missions.missionB.title": "Sample missionB",
+    "missions.missionB.description": "Win: unlocks optionalMissionB. Required with missionA for finalMission. Lose: nothing unlocks."
+}
