@@ -17,6 +17,9 @@ import { suppressBrowserBehaviours } from "@main/browser-behaviours";
 
 const log = logger("main-window");
 
+// How long after the page loads to wait for ready-to-show before showing the window regardless.
+const SHOW_FALLBACK_MS = 3000;
+
 export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
@@ -158,9 +161,16 @@ export function createWindow() {
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
-    mainWindow.once("ready-to-show", () => {
+    let shown = false;
+
+    function showWindow(via: "ready-to-show" | "fallback") {
+        if (shown || mainWindow.isDestroyed()) return;
+        shown = true;
+
+        if (via === "fallback") log.warn(`ready-to-show did not fire within ${SHOW_FALLBACK_MS}ms of the page loading, showing the window anyway`);
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TEMP e2e diagnostics
-        (globalThis as any).__e2eDiag = { readyToShow: Date.now() };
+        (globalThis as any).__e2eDiag = { via, readyToShow: Date.now() };
         // Open the DevTools.
         if (process.env.NODE_ENV === "development" && settings.devMode) {
             log.debug(`NODE_ENV is development, opening dev tools`);
@@ -178,7 +188,11 @@ export function createWindow() {
         mainWindow.focus();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TEMP e2e diagnostics
         Object.assign((globalThis as any).__e2eDiag, { shown: Date.now(), visibleAfterShow: mainWindow.isVisible(), bounds: mainWindow.getBounds() });
-    });
+    }
+
+    mainWindow.once("ready-to-show", () => showWindow("ready-to-show"));
+    // ready-to-show relies on a paint while hidden, which Linux sometimes never reports, leaving the lobby running unseen.
+    webContents.once("did-finish-load", () => setTimeout(() => showWindow("fallback"), SHOW_FALLBACK_MS));
 
     webContents.on("render-process-gone", (event, details) => {
         log.error(details);
