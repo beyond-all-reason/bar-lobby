@@ -12,6 +12,8 @@ const { describe, beforeAll, afterAll } = test;
 describe("Electron App", async () => {
     let electronApp: ElectronApplication;
     let mainWindow: Page;
+    // TEMP e2e diagnostics
+    const e2eLog: string[] = [];
 
     beforeAll(async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +26,14 @@ describe("Electron App", async () => {
         }
 
         electronApp = await electron.launch({ args });
+        electronApp.on("console", (msg) => {
+            if (msg.type() === "error" || msg.type() === "warning") e2eLog.push(`[main ${msg.type()}] ${msg.text()}`);
+        });
         mainWindow = await electronApp.firstWindow();
+        mainWindow.on("console", (msg) => {
+            if (msg.type() === "error" || msg.type() === "warning") e2eLog.push(`[renderer ${msg.type()}] ${msg.text()}`);
+        });
+        mainWindow.on("pageerror", (error) => e2eLog.push(`[renderer pageerror] ${error.message}`));
     });
 
     afterAll(async () => {
@@ -77,7 +86,19 @@ describe("Electron App", async () => {
                     loading: w.webContents.isLoading(),
                 })),
             }));
-            throw new Error(`${(e as Error).message}\n${JSON.stringify(diag, null, 2)}`);
+            const renderer = await mainWindow
+                .evaluate(() => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const w = window as any;
+                    return {
+                        stage: w.__e2eStage ?? "index.ts never ran",
+                        pending: w.__e2eInit ? [...w.__e2eInit.pending] : null,
+                        rejected: w.__e2eInit?.rejected ?? null,
+                        appHtmlLength: document.querySelector("#app")?.innerHTML.length ?? -1,
+                    };
+                })
+                .catch((error: Error) => `renderer evaluate failed: ${error.message}`);
+            throw new Error(`${(e as Error).message}\n${JSON.stringify({ ...diag, renderer, log: e2eLog }, null, 2)}`);
         }
         const windowState = await getWindowState();
 
