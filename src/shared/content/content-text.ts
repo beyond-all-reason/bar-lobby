@@ -34,6 +34,11 @@ function lookup(table: LanguageTable | undefined, key: string): string | undefin
     return undefined;
 }
 
+// Every locale falls back to English, so a key with English text never shows as the key itself.
+export function hasFallbackText(key: string, tables: readonly LanguageTables[]): boolean {
+    return tables.some((folder) => lookup(folder[FALLBACK_LOCALE], key) !== undefined);
+}
+
 /**
  * Text for a content language key. `tables` runs from the most specific folder to the least, such as a
  * mission's language/ and then its campaign's shared/language/. Each is tried in the locale asked for,

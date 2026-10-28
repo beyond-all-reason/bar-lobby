@@ -112,6 +112,17 @@ describe("exported content schemas", () => {
         }
     });
 
+    it("accept a team color of three numbers from 0 to 1", () => {
+        const validate = validatorFor("mission-config");
+        const config = { alliances: { north: ["red"] }, playerTeam: ["red"] };
+        const withColor = (rgbColor: unknown) => ({ ...config, teamSettings: { red: { rgbColor } } });
+
+        expect(validate(withColor([0, 0.5, 1]))).toBe(true);
+        for (const rgbColor of [[255, 128, 0], [0.1, 0.5], [0.1, 0.5, 0.9, 1], [-0.1, 0.5, 0.9], "0.1 0.5 0.9", "#1a80e6"]) {
+            expect(validate(withColor(rgbColor)), JSON.stringify(rgbColor)).toBe(false);
+        }
+    });
+
     it('accept "dev" compatibility, and no other word', () => {
         const campaigns = validatorFor("campaign-config");
         const manifests = validatorFor("mission-manifest");

@@ -4,7 +4,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { LanguageTables } from "../../../shared/content/content-text";
+import { FALLBACK_LOCALE, hasFallbackText, type LanguageTables } from "../../../shared/content/content-text";
 import { DEV_COMPATIBILITY, type ItemCompatibility } from "../../../shared/content/schema/common";
 import { LanguageFile } from "../../../shared/content/schema/language-file";
 import { MissionConfig } from "../../../shared/content/schema/mission-config";
@@ -34,6 +34,14 @@ export async function readLanguageFolder(folder: string, problems: Problems): Pr
     }
 
     return tables;
+}
+
+// `tables` in the order the client looks the key up in. Missing text in other languages is normal, as
+// they fall back to English.
+export function checkTextKey(key: string, field: string, tables: readonly LanguageTables[], filePath: string, problems: Problems) {
+    if (!hasFallbackText(key, tables)) {
+        problems.warning(filePath, `${field} "${key}" has no text in ${FALLBACK_LOCALE}.json, which every language falls back to, so players would see the key itself`);
+    }
 }
 
 // Listing an engine twice would leave which games go with it to whichever entry is read first.
@@ -92,7 +100,7 @@ function checkTeams(config: MissionConfig, filePath: string, problems: Problems)
     }
 }
 
-async function readMissionConfig(folder: string, file: string, problems: Problems, manifestPath: string): Promise<MissionConfig | undefined> {
+async function readMissionConfig(folder: string, file: string, language: readonly LanguageTables[], problems: Problems, manifestPath: string): Promise<MissionConfig | undefined> {
     const filePath = await fileInside(folder, file, problems, manifestPath, "Mission config");
     if (!filePath) {
         return undefined;
@@ -100,6 +108,11 @@ async function readMissionConfig(folder: string, file: string, problems: Problem
     const config = await readContentJson(filePath, MissionConfig, problems);
     if (config) {
         checkTeams(config, filePath, problems);
+        for (const [team, settings] of Object.entries(config.teamSettings ?? {})) {
+            if (settings.displayNameKey !== undefined) {
+                checkTextKey(settings.displayNameKey, `teamSettings.${team}.displayNameKey`, language, filePath, problems);
+            }
+        }
     }
 
     return config;
@@ -110,6 +123,8 @@ export type MissionFolderOptions = {
     partOfCampaign: boolean;
     // Whether content whose compatibility is "dev" loads, as it does in dev mode.
     devContent: boolean;
+    // Language tables looked in after the mission's own, such as the campaign's shared/language/.
+    languageAfter: LanguageTables[];
     // Folders added to SpringData ahead of this one, such as the campaign's shared/.
     springDataPathsBefore: string[];
     // Where image and backgroundImage are looked up: the campaign's shared/media/ for a campaign mission,
@@ -142,16 +157,20 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         }
     }
 
+    const language = await readLanguageFolder(folder, problems);
+    const languageTables = [language, ...options.languageAfter];
+    checkTextKey(manifest.titleKey, "titleKey", languageTables, manifestPath, problems);
+    checkTextKey(manifest.descriptionKey, "descriptionKey", languageTables, manifestPath, problems);
+
     const entryPointPath = await fileInside(folder, manifest.entryPoint, problems, manifestPath, "entryPoint");
-    const defaultConfig = await readMissionConfig(folder, manifest.config.default, problems, manifestPath);
+    const defaultConfig = await readMissionConfig(folder, manifest.config.default, languageTables, problems, manifestPath);
     const numPlayers: MissionConfigs["numPlayers"] = {};
     for (const [players, file] of Object.entries(manifest.config.numPlayers ?? {})) {
-        const config = await readMissionConfig(folder, file, problems, manifestPath);
+        const config = await readMissionConfig(folder, file, languageTables, problems, manifestPath);
         if (config) {
             numPlayers[players] = config;
         }
     }
-    const language = await readLanguageFolder(folder, problems);
     const mediaFile = (file: string | undefined, field: string) => (file === undefined ? undefined : fileInside(options.mediaFolder, file, problems, manifestPath, field));
     const imagePath = await mediaFile(manifest.image, "image");
     const backgroundImagePath = await mediaFile(manifest.backgroundImage, "backgroundImage");

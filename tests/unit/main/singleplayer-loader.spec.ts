@@ -168,6 +168,43 @@ describe("loadSingleplayerContent", () => {
             ]);
         });
 
+        // English is what every language falls back to, so text only in another language still shows the key.
+        it("warns about language keys with no English text, and still loads the item", async () => {
+            const editJson = async (file: string, change: (json: Record<string, unknown>) => object) => fs.writeFile(file, JSON.stringify(change(JSON.parse(await fs.readFile(file, "utf8")))));
+            const alpha = path.join(root, "scenarios", "alpha");
+            await editJson(path.join(alpha, "manifest.json"), (manifest) => ({ ...manifest, titleKey: "missions.alpha.title" }));
+            await fs.writeFile(path.join(alpha, "language", "fr.json"), JSON.stringify({ "missions.alpha.title": "Alpha" }));
+            await editJson(path.join(alpha, "missionConfig.json"), (config) => ({ ...config, teamSettings: { heroes: { displayNameKey: "teams.nobody" } } }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.scenarios.map((s) => s.id)).toEqual(["alpha", "beta", "gamma"]);
+            expect(content.problems).toEqual([
+                { path: path.join(alpha, "manifest.json"), severity: "warning", message: expect.stringMatching(/^titleKey "missions.alpha.title" has no text in en.json/) },
+                { path: path.join(alpha, "missionConfig.json"), severity: "warning", message: expect.stringMatching(/^teamSettings.heroes.displayNameKey "teams.nobody" has no text in en.json/) },
+            ]);
+        });
+
+        it("looks a campaign mission's keys up in its own language folder, then the campaign's", async () => {
+            const campaign = path.join(root, "campaigns", "sample-campaign");
+            await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
+            const manifestPath = path.join(campaign, "mission01", "manifest.json");
+            const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+            // One key only the campaign's shared/language/ has, one nobody has.
+            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, titleKey: "missions.tutorial.title", descriptionKey: "missions.mission01.nothing" }));
+            const configPath = path.join(campaign, "campaignConfig.json");
+            const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, $schema: undefined, descriptionKey: "campaign.nothing" }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.campaigns).toHaveLength(1);
+            expect(content.problems).toEqual([
+                { path: configPath, severity: "warning", message: expect.stringMatching(/^descriptionKey "campaign.nothing" has no text/) },
+                { path: manifestPath, severity: "warning", message: expect.stringMatching(/^descriptionKey "missions.mission01.nothing" has no text/) },
+            ]);
+        });
+
         // So a content repository can be cloned straight into a content root.
         it("skips hidden folders", async () => {
             await fs.mkdir(path.join(root, ".git"));

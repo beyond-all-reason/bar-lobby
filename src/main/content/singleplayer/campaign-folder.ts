@@ -7,7 +7,7 @@ import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
 import { fileInside, isFolder, listFolders, readContentJson, toBarUrl } from "./files";
-import { checkCompatibility, readLanguageFolder, readMissionFolder } from "./mission-folder";
+import { checkCompatibility, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
 export const CAMPAIGN_CONFIG_FILE = "campaignConfig.json";
@@ -102,6 +102,11 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         problems.warning(path.join(folder, name), `Folder "${name}" is not a mission in ${CAMPAIGN_CONFIG_FILE}, so it is ignored`);
     }
 
+    // Read ahead of the missions, which fall back to it for their own text.
+    const language = await readLanguageFolder(sharedFolder, problems);
+    checkTextKey(config.titleKey, "titleKey", [language], configPath, problems);
+    checkTextKey(config.descriptionKey, "descriptionKey", [language], configPath, problems);
+
     const springDataPathsBefore = (await isFolder(sharedFolder)) ? [sharedFolder] : [];
     const missions: SingleplayerMission[] = [];
     for (const missionId of Object.keys(config.missions).filter((missionId) => missionId !== SHARED_FOLDER)) {
@@ -114,6 +119,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
             {
                 partOfCampaign: true,
                 devContent,
+                languageAfter: [language],
                 springDataPathsBefore,
                 mediaFolder: path.join(sharedFolder, "media"),
             },
@@ -124,7 +130,6 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         }
     }
 
-    const language = await readLanguageFolder(sharedFolder, problems);
     const backgroundImageUrl = await mediaUrl(sharedFolder, config.backgroundImage, problems, configPath, "backgroundImage");
     const logoUrl = await mediaUrl(sharedFolder, config.logo, problems, configPath, "logo");
 

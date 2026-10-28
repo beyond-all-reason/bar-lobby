@@ -66,6 +66,7 @@ A JSON Schema sees one file at a time. These checks span files or need more than
 - No mission is called `shared`, and every mission folder is listed in `missions`.
 - The `entryPoint`, mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images, including each mission's `image` and `backgroundImage`, are looked up in the campaign's `shared/media/`. A scenario's or tutorial's are looked up in its own `media/`.
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
+- Every language key (`titleKey`, `descriptionKey` and a team's `displayNameKey`) has English text where the client looks it up: a campaign's in `shared/language/en.json`, a campaign mission's in its own `language/en.json` and then the campaign's, a scenario's or tutorial's in its own. Every language falls back to English, so a key without it shows as the key itself. This is a warning.
 - `compatibility` is required in a scenario or tutorial manifest, and `"dev"` loads only in dev mode. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
 
 Run all of these over a content folder with the loader itself:

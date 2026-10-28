@@ -43,6 +43,22 @@ export const TeamSettings = Type.Object(
         startPosX: Type.Optional(Type.Number({ minimum: 0, title: "Start X", description: "Start position on the map's X axis, in elmos." })),
         startPosZ: Type.Optional(Type.Number({ minimum: 0, title: "Start Z", description: "Start position on the map's Z axis, in elmos." })),
         luaAI: Type.Optional(Type.String({ minLength: 1, title: "Lua AI", description: "Lua AI that controls the team, such as BarbAI." })),
+        // The startscript's RgbColor, three floats from 0 to 1, as the engine and the mission editor have it.
+        rgbColor: Type.Optional(
+            Type.Array(Type.Number({ minimum: 0, maximum: 1 }), {
+                minItems: 3,
+                maxItems: 3,
+                title: "Color",
+                description: "The team's color as red, green and blue, each from 0 to 1, such as [0.1, 0.5, 0.9].",
+            })
+        ),
+        displayNameKey: Type.Optional(
+            Type.String({
+                minLength: 1,
+                title: "Display name key",
+                description: "Language key of the team's name as players see it. The team's name in `alliances` is what the startscript and the mission API use.",
+            })
+        ),
     },
     { title: "Team settings", description: "Settings for one team. Other startscript team settings may be added too." }
 );
