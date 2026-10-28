@@ -104,6 +104,16 @@ Content made in the mission editor runs on unreleased game code, so it has no re
 
 The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. `validate-content` also reports it as an error, so it cannot ship as official content by accident. Pass `--allow-dev` to check content still in development, and `--bundle` then passes over it. Replace `"dev"` with the tested pairs before release.
 
+## Difficulty
+
+Difficulty settings are still being defined and are not part of the format yet. The client is to pass the chosen difficulty to the mission by name, and the mission decides what it means. Still undecided:
+
+- whether there is one standard set of difficulties that the client and the mission API agree on, or each campaign, scenario or tutorial lists its own, with language keys for their names
+- where a default difficulty is set, and whether scenarios and tutorials can set one as well as campaigns
+- whether a difficulty is chosen once per campaign playthrough and saved, or at each launch
+
+Until this is settled, content has nowhere to set a difficulty. `campaign-config.schema.json` and `mission-manifest.schema.json` carry a `$comment` saying so.
+
 ## Saved progress and changing a released campaign
 
 ### How progress is saved

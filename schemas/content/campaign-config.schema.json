@@ -2,6 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/campaign-config.schema.json",
     "title": "Campaign config",
+    "$comment": "Difficulty settings are still being defined and are not part of this format yet. Still undecided: whether there is one standard set of difficulties the client and the mission API agree on, or each campaign, scenario or tutorial lists its own with language keys, and where a default is set. See the README.",
     "description": "campaignConfig.json in a campaign folder: the campaign's details and how its missions unlock.",
     "type": "object",
     "properties": {

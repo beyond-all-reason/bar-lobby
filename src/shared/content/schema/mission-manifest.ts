@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { ContentFileName, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
+import { ContentFileName, DIFFICULTY_PENDING, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
 
 // manifest.json in a campaign mission, scenario or tutorial folder.
 export const MissionManifest = Type.Object(
@@ -59,6 +59,7 @@ export const MissionManifest = Type.Object(
     },
     {
         title: "Mission manifest",
+        $comment: DIFFICULTY_PENDING,
         description: "manifest.json in a campaign mission, scenario or tutorial folder.",
     }
 );

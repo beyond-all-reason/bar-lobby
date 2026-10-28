@@ -21,6 +21,11 @@ export const FormatVersion = Type.Integer({
 
 // Editors read `$schema` to find the schema for a file. It is listed so the hover docs explain it, and the
 // loader ignores it.
+// A placeholder in the exported schemas of the files a difficulty setting would go in, so authors and the
+// mission API team can see it is coming. Remove it once difficulty is part of the format.
+export const DIFFICULTY_PENDING =
+    "Difficulty settings are still being defined and are not part of this format yet. Still undecided: whether there is one standard set of difficulties the client and the mission API agree on, or each campaign, scenario or tutorial lists its own with language keys, and where a default is set. See the README.";
+
 export const SchemaReference = Type.String({
     title: "Schema",
     description: "Path or URL of the JSON Schema for this file, for editor autocomplete and errors. The client ignores it.",
