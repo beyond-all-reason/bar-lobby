@@ -85,6 +85,18 @@ describe("exported content schemas", () => {
         expect(validate.errors?.map((error) => error.message)).toEqual(expect.arrayContaining(["must have required property 'mapName'", "must be string"]));
     });
 
+    it("accept only the listed start position types", () => {
+        const validate = validatorFor("mission-config");
+        const config = readJson(sample, "scenarios", "sample-scenario", "missionConfig.json");
+
+        for (const startPosType of ["fixed", "random", "in-game", "in-client"]) {
+            expect(validate({ ...config, startPosType }), startPosType).toBe(true);
+        }
+        for (const startPosType of ["boxes", "Fixed", "", 0]) {
+            expect(validate({ ...config, startPosType }), String(startPosType)).toBe(false);
+        }
+    });
+
     it("reject a rapid tag, an empty compatibility and an engine with no games", () => {
         const validate = validatorFor("mission-manifest");
 

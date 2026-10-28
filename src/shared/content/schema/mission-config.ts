@@ -48,7 +48,12 @@ export const MissionConfig = Type.Object(
             title: "Player teams",
             description: "Teams for the human players, assigned in the order players are in the lobby.",
         }),
-        startPosType: Type.Optional(Type.String({ minLength: 1, title: "Start position type", description: "How start positions are picked, such as fixed." })),
+        startPosType: Type.Optional(
+            Type.Union([Type.Literal("fixed"), Type.Literal("random"), Type.Literal("in-game"), Type.Literal("in-client")], {
+                title: "Start position type",
+                description: "How start positions are picked: fixed, random, in-game or in-client.",
+            })
+        ),
         allianceSettings: Type.Optional(
             Type.Record(Type.String({ minLength: 1 }), AllianceSettings, { title: "Alliance settings", description: "Settings per alliance, keyed by a name in `alliances`." })
         ),
