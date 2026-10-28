@@ -291,16 +291,21 @@ const resolutionOptions = computed(() => {
     const display = targetDisplay.value;
     if (!display) return [fullscreen, maximized];
 
-    const { label: ratioLabel, ratio } = displayRatio.value;
-    const windowed = WINDOW_HEIGHT_STEPS.map((height) => ({ width: Math.round((height * ratio) / 2) * 2, height }))
-        .filter(
-            ({ width, height }) =>
-                width >= MIN_WINDOW_SIZE.width &&
-                height >= MIN_WINDOW_SIZE.height &&
-                width <= display.workArea.width &&
-                height <= display.workArea.height
-        )
-        .map(({ width, height }) => ({ label: `${width} x ${height} (${ratioLabel})`, value: sizeKey(width, height) }));
+    // Dev mode offers every shape, so the UI can be checked at a known size such as 1920 x 1080 on any monitor.
+    const ratios = settingsStore.devMode
+        ? [displayRatio.value, ...SUPPORTED_ASPECT_RATIOS.filter((candidate) => candidate !== displayRatio.value)]
+        : [displayRatio.value];
+    const windowed = ratios.flatMap(({ label: ratioLabel, ratio }) =>
+        WINDOW_HEIGHT_STEPS.map((height) => ({ width: Math.round((height * ratio) / 2) * 2, height }))
+            .filter(
+                ({ width, height }) =>
+                    width >= MIN_WINDOW_SIZE.width &&
+                    height >= MIN_WINDOW_SIZE.height &&
+                    width <= display.workArea.width &&
+                    height <= display.workArea.height
+            )
+            .map(({ width, height }) => ({ label: `${width} x ${height} (${ratioLabel})`, value: sizeKey(width, height) }))
+    );
 
     // The window can be dragged to any size, so its current one may be none of these.
     const stored = sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
