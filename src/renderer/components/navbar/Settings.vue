@@ -37,10 +37,22 @@ SPDX-License-Identifier: MIT
             <div class="section-header">{{ t("lobby.navbar.settings.sectionSound") }}</div>
 
             <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
-            <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
+            <Range
+                :modelValue="settingsStore.sfxVolume"
+                @update:modelValue="(value: number | number[]) => settingsLogic.update({ sfxVolume: value as number })"
+                :min="0"
+                :max="100"
+                :step="1"
+            />
 
             <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
-            <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
+            <Range
+                :modelValue="settingsStore.musicVolume"
+                @update:modelValue="(value: number | number[]) => settingsLogic.update({ musicVolume: value as number })"
+                :min="0"
+                :max="100"
+                :step="1"
+            />
 
             <div class="section-header">{{ t("lobby.navbar.settings.sectionGeneral") }}</div>
 
@@ -50,18 +62,27 @@ SPDX-License-Identifier: MIT
                     {{ t("lobby.navbar.settings.language") }}
                 </span>
             </div>
-            <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
+            <Select
+                :modelValue="settingsStore.language"
+                @update:modelValue="(language: string) => settingsLogic.update({ language })"
+                :options="localeOptions"
+                optionLabel="label"
+                optionValue="value"
+            />
 
             <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
-            <Checkbox v-model="settingsStore.skipIntro" />
+            <Checkbox :modelValue="settingsStore.skipIntro" @update:modelValue="(skipIntro) => settingsLogic.update({ skipIntro })" />
 
             <template v-if="settingsStore.devMode">
                 <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
-                <Checkbox v-model="settingsStore.loginAutomatically" />
+                <Checkbox
+                    :modelValue="settingsStore.loginAutomatically"
+                    @update:modelValue="(loginAutomatically) => settingsLogic.update({ loginAutomatically })"
+                />
             </template>
 
             <div>{{ t("lobby.navbar.settings.devMode") }}</div>
-            <Checkbox v-model="settingsStore.devMode" />
+            <Checkbox :modelValue="settingsStore.devMode" @update:modelValue="(devMode) => settingsLogic.update({ devMode })" />
 
             <OverlayPanel ref="op">
                 <div class="container">
@@ -132,7 +153,8 @@ import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
-import { asyncComputed } from "@vueuse/core";
+import { mainWindowApi } from "@renderer/api/main-window";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import {
     MIN_WINDOW_SIZE,
@@ -181,12 +203,14 @@ watch(
     () => props.modelValue,
     async (isOpen) => {
         if (isOpen) {
+            loadDisplays();
             currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
         }
     }
 );
 
 onMounted(async () => {
+    loadDisplays();
     currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
     cleanupCopyProgress = window.paths.onCopyProgress((progress) => {
         copyProgress.value = progress;
@@ -236,9 +260,19 @@ async function applyPathChange() {
 const op = ref();
 const tooltipMessage = ref("");
 
-const displays = asyncComputed(() => window.mainWindow.getDisplays(), []);
+const displays = ref<Awaited<ReturnType<typeof mainWindowApi.getDisplays>>>([]);
 
-const targetDisplay = computed(() => displays.value.find((d) => d.index === settingsStore.displayIndex) ?? displays.value[0]);
+// Fetched again rather than kept, since monitors come and go and the window moves between them.
+async function loadDisplays() {
+    displays.value = await mainWindowApi.getDisplays();
+}
+
+// Reported once the window settles after any move or resize, keyboard and Linux moves included.
+const stopFollowingWindowState = mainWindowApi.onWindowStateChanged(() => loadDisplays());
+onUnmounted(stopFollowingWindowState);
+
+// Where the window is, which the sizes are for. It can differ from the saved display, since a keyboard move or any move on Linux isn't saved.
+const targetDisplay = computed(() => displays.value.find((d) => d.current) ?? displays.value.find((d) => d.primary) ?? displays.value[0]);
 
 const sizeKey = (width: number, height: number) => `${width}x${height}`;
 
@@ -261,16 +295,21 @@ const resolutionOptions = computed(() => {
     const display = targetDisplay.value;
     if (!display) return [fullscreen, maximized];
 
-    const { label: ratioLabel, ratio } = displayRatio.value;
-    const windowed = WINDOW_HEIGHT_STEPS.map((height) => ({ width: Math.round((height * ratio) / 2) * 2, height }))
-        .filter(
-            ({ width, height }) =>
-                width >= MIN_WINDOW_SIZE.width &&
-                height >= MIN_WINDOW_SIZE.height &&
-                width <= display.workArea.width &&
-                height <= display.workArea.height
-        )
-        .map(({ width, height }) => ({ label: `${width} x ${height} (${ratioLabel})`, value: sizeKey(width, height) }));
+    // Dev mode offers every shape, so the UI can be checked at a known size such as 1920 x 1080 on any monitor.
+    const ratios = settingsStore.devMode
+        ? [displayRatio.value, ...SUPPORTED_ASPECT_RATIOS.filter((candidate) => candidate !== displayRatio.value)]
+        : [displayRatio.value];
+    const windowed = ratios.flatMap(({ label: ratioLabel, ratio }) =>
+        WINDOW_HEIGHT_STEPS.map((height) => ({ width: Math.round((height * ratio) / 2) * 2, height }))
+            .filter(
+                ({ width, height }) =>
+                    width >= MIN_WINDOW_SIZE.width &&
+                    height >= MIN_WINDOW_SIZE.height &&
+                    width <= display.workArea.width &&
+                    height <= display.workArea.height
+            )
+            .map(({ width, height }) => ({ label: `${width} x ${height} (${ratioLabel})`, value: sizeKey(width, height) }))
+    );
 
     // The window can be dragged to any size, so its current one may be none of these.
     const stored = sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
@@ -289,27 +328,38 @@ const displayMode = computed<string>({
         return sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
     },
     set: (value) => {
-        settingsStore.fullscreen = value === "fullscreen";
-        settingsStore.maximized = value === "maximized";
-        if (value === "fullscreen" || value === "maximized") return;
+        const fullscreen = value === "fullscreen";
+        const maximized = value === "maximized";
+        if (fullscreen || maximized) {
+            settingsLogic.update({ fullscreen, maximized });
 
-        const [width, height] = value.split("x").map(Number);
-        settingsStore.windowWidth = width;
-        settingsStore.windowHeight = height;
+            return;
+        }
+
+        const [windowWidth, windowHeight] = value.split("x").map(Number);
+        settingsLogic.update({ fullscreen, maximized, windowWidth, windowHeight });
     },
 });
 
-const selectedDisplay = computed<number>({
-    get: () => settingsStore.displayIndex,
-    set: (index) => (settingsStore.displayIndex = index),
+const selectedDisplay = computed<number | undefined>({
+    // The one the lobby reopens on, falling back to where it is when none is saved or it is unplugged.
+    get: () => (displays.value.some((d) => d.id === settingsStore.displayId) ? settingsStore.displayId : targetDisplay.value?.id),
+    set: async (displayId) => {
+        if (displayId === undefined) return;
+
+        await settingsLogic.setDisplay(displayId);
+        await loadDisplays();
+    },
 });
 
 const scaleRange = ref({ min: 1, max: 1, os: 1 });
 
+// The achievable range moves with the window, so the control has to follow it.
+const stopFollowingScaleRange = mainWindowApi.onScaleRangeChanged((range) => (scaleRange.value = range));
+onUnmounted(stopFollowingScaleRange);
+
 onMounted(async () => {
-    scaleRange.value = await window.mainWindow.getScaleRange();
-    // The achievable range moves with the window, so the control has to follow it.
-    window.mainWindow.onScaleRangeChanged((range) => (scaleRange.value = range));
+    scaleRange.value = await mainWindowApi.getScaleRange();
 });
 
 // Null means the user has never set one, and the OS scale is what to start them at.
@@ -325,12 +375,25 @@ function commitScalePercent(value: number | number[]) {
     // Against what the slider showed, not the stored value, which is null until first set.
     if (percent === uiScalePercent.value) return;
 
-    settingsStore.uiScale = percent / 100;
+    settingsLogic.update({ uiScale: percent / 100 });
 }
 
 // Same source as the move and the size list, so a detached monitor cannot be offered.
+// The monitor's own resolution rather than the OS-scaled one, since that is what players know it by.
+// The number stays, as two of the same model share a name, and some platforms give none.
 const displayOptions = computed(() =>
-    displays.value.map(({ index }) => ({ label: t("lobby.navbar.settings.labelDisplay", { id: index + 1 }), value: index }))
+    displays.value.map(({ index, id, label, primary, scaleFactor, size }) => {
+        const resolution = `${Math.round(size.width * scaleFactor)} x ${Math.round(size.height * scaleFactor)}`;
+        const details = primary ? t("lobby.navbar.settings.displayDetailsPrimary", { size: resolution }) : resolution;
+        const name = label.trim();
+
+        return {
+            label: name
+                ? t("lobby.navbar.settings.labelDisplayNamed", { id: index + 1, name, details })
+                : t("lobby.navbar.settings.labelDisplay", { id: index + 1, details }),
+            value: id,
+        };
+    })
 );
 
 async function uploadLogsCommand(event) {

@@ -43,7 +43,7 @@ export type IPCEvents = {
     "maps:mapAdded": (filename: string) => void;
     "maps:mapDeleted": (filename: string) => void;
     "mainWindow:scaleRangeChanged": (range: { min: number; max: number; os: number }) => void;
-    "mainWindow:windowStateChanged": (state: { maximized: boolean; size: { width: number; height: number } | null }) => void;
+    "mainWindow:windowStateChanged": (state: { maximized: boolean; size: { width: number; height: number } | null; displayId?: number }) => void;
     "mainWindow:uiScaleNudged": (scale: number | null) => void;
     "navigation:navigateTo": (target: string) => void;
     "notifications:showAlert": (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void;
@@ -98,8 +98,17 @@ export type IPCCommands = {
     "mainWindow:setSize": (width: number, height: number) => void;
     "mainWindow:setUiScale": (scale: number | null) => void;
     "mainWindow:getScaleRange": () => { min: number; max: number; os: number };
-    "mainWindow:getDisplays": () => Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>;
-    "mainWindow:setDisplay": (index: number) => void;
+    "mainWindow:getDisplays": () => Array<{
+        index: number;
+        id: number;
+        label: string;
+        primary: boolean;
+        current: boolean;
+        scaleFactor: number;
+        workArea: { width: number; height: number };
+        size: { width: number; height: number };
+    }>;
+    "mainWindow:setDisplay": (id: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;
     "maps:downloadMap": (springName: string) => void;
@@ -122,7 +131,6 @@ export type IPCCommands = {
     "replays:searchOnlineByPlayer": (username: string, limit: number) => IpcResult<OnlineReplayOverview[]>;
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
-    "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;
     "customLobbies:update": (data: Partial<CustomLobbiesPreferences>) => Partial<CustomLobbiesPreferences>;

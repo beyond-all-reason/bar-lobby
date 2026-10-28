@@ -15,7 +15,13 @@ SPDX-License-Identifier: MIT
                 </span>
             </h4>
             <div class="padding-xl">
-                <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
+                <Select
+                    :modelValue="settingsStore.language"
+                    @update:modelValue="(language: string) => settingsLogic.update({ language })"
+                    :options="localeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                />
             </div>
             <Button class="green" @click="confirmLanguageSelection">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
         </template>
@@ -86,6 +92,7 @@ import { downloadGame, gameStore } from "@renderer/store/game.store";
 import { contentsStore } from "@renderer/store/contents.store";
 import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
 import { editionLogic } from "@renderer/logic/edition";
@@ -387,11 +394,8 @@ onMounted(async () => {
     if (!settingsStore.language) {
         state.value = "language-selection";
         const detectedLanguage = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
-        if (localeOptions.value.some((option) => option.value === detectedLanguage)) {
-            settingsStore.language = detectedLanguage;
-        } else {
-            settingsStore.language = "en";
-        }
+        const supported = localeOptions.value.some((option) => option.value === detectedLanguage);
+        settingsLogic.update({ language: supported ? detectedLanguage : "en" });
         await new Promise<void>((resolve) => {
             resolveLanguageSelection = resolve;
         });

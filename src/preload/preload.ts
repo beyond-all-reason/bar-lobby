@@ -55,10 +55,21 @@ const mainWindowApi = {
     setUiScale: (scale: number | null): Promise<void> => ipcRenderer.invoke("mainWindow:setUiScale", scale),
     getScaleRange: (): Promise<{ min: number; max: number; os: number }> => ipcRenderer.invoke("mainWindow:getScaleRange"),
     onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => subscribe("mainWindow:scaleRangeChanged", callback),
-    getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
-        ipcRenderer.invoke("mainWindow:getDisplays"),
-    setDisplay: (index: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", index),
-    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) => subscribe("mainWindow:windowStateChanged", callback),
+    getDisplays: (): Promise<
+        Array<{
+            index: number;
+            id: number;
+            label: string;
+            primary: boolean;
+            current: boolean;
+            scaleFactor: number;
+            workArea: { width: number; height: number };
+            size: { width: number; height: number };
+        }>
+    > => ipcRenderer.invoke("mainWindow:getDisplays"),
+    setDisplay: (id: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", id),
+    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null; displayId?: number }) => void) =>
+        subscribe("mainWindow:windowStateChanged", callback),
     onUiScaleNudged: (callback: (scale: number | null) => void) => subscribe("mainWindow:uiScaleNudged", callback),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
@@ -99,7 +110,6 @@ contextBridge.exposeInMainWorld("replays", replaysApi);
 const settingsApi = {
     getSettings: (): Promise<Settings> => ipcRenderer.invoke("settings:get"),
     updateSettings: (settings: Partial<Settings>): Promise<Partial<Settings>> => ipcRenderer.invoke("settings:update", settings),
-    toggleFullscreen: (): Promise<void> => ipcRenderer.invoke("settings:toggleFullscreen"),
 };
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);

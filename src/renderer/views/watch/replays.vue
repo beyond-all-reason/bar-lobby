@@ -19,7 +19,8 @@ SPDX-License-Identifier: MIT
                     <div class="flex-col fullheight gap-md">
                         <div class="flex-row gap-md fullwidth">
                             <TriStateCheckbox
-                                v-model="settingsStore.endedNormallyFilter"
+                                :modelValue="settingsStore.endedNormallyFilter"
+                                @update:modelValue="(endedNormallyFilter) => settingsLogic.update({ endedNormallyFilter })"
                                 :label="t('lobby.views.watch.replays.endedNormally')"
                             />
                             <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
@@ -161,6 +162,7 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { configStore } from "@renderer/store/config.store";
 import { shellApi } from "@renderer/api/shell";

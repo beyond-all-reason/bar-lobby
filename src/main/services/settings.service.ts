@@ -23,14 +23,9 @@ async function updateSettings(data: Partial<typeof settingsSchema>) {
     return await settingsStore.update(data);
 }
 
-function toggleFullscreen() {
-    settingsStore.update({ fullscreen: !settingsStore.model.fullscreen });
-}
-
 function registerIpcHandlers() {
     ipcMain.handle("settings:get", () => getSettings());
     ipcMain.handle("settings:update", (_, data: Partial<Settings>) => updateSettings(data));
-    ipcMain.handle("settings:toggleFullscreen", () => toggleFullscreen());
 }
 
 export type Settings = typeof settingsStore.model;
