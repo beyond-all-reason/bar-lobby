@@ -85,15 +85,16 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
-import { configStore } from "@renderer/store/config.store";
 import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
 
 import { enginesStore } from "@renderer/store/engine.store";
 
-const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
-const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion) : [];
+// Scenarios are listed from the installed build, so they launch on it too. A rapid tag such as byar:test may
+// point at a build that is not installed, and the Steam edition cannot download it.
+const gameVersion = computed(() => gameStore.selectedGameVersion?.gameVersion);
+const loadedScenarios = gameVersion.value ? await window.game.getScenarios(gameVersion.value) : [];
 const scenarios = ref<Scenario[]>(loadedScenarios);
 const selectedScenario = ref<Scenario>(scenarios.value[0]);
 
@@ -122,14 +123,11 @@ const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === sel
 const factions = computed(() => selectedScenario.value.allowedsides);
 const selectedFaction = ref(factions.value[0]);
 
-watch(
-    () => gameStore.selectedGameVersion?.gameVersion,
-    async (selectedVersion) => {
-        const loadedScenarios = selectedVersion ? await window.game.getScenarios(selectedVersion) : [];
-        scenarios.value = loadedScenarios;
-        selectedScenario.value = scenarios.value[0];
-    }
-);
+watch(gameVersion, async (selectedVersion) => {
+    const loadedScenarios = selectedVersion ? await window.game.getScenarios(selectedVersion) : [];
+    scenarios.value = loadedScenarios;
+    selectedScenario.value = scenarios.value[0];
+});
 
 watch(selectedScenario, (newScenario) => {
     selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario.defaultdifficulty);
@@ -137,6 +135,11 @@ watch(selectedScenario, (newScenario) => {
 });
 
 async function launch() {
+    const launchGameVersion = gameVersion.value;
+    if (!launchGameVersion) {
+        throw new Error("No game version selected");
+    }
+
     const scenarioOptions = {
         ...selectedScenario.value.scenariooptions,
         version: selectedScenario.value.version,
@@ -155,7 +158,7 @@ async function launch() {
         .replaceAll("__SCENARIOOPTIONS__", scenarioOptionsStr)
         //TODO replace with online name when implemented
         .replaceAll("__PLAYERNAME__", "Player")
-        .replaceAll("__BARVERSION__", configStore.latestGameVersion)
+        .replaceAll("__BARVERSION__", launchGameVersion)
         .replaceAll("__MAPNAME__", selectedScenario.value.mapfilename)
         .replaceAll("__PLAYERSIDE__", selectedFaction.value)
         .replaceAll("__ENEMYHANDICAP__", selectedDifficulty.value?.enemyhandicap?.toString() ?? "0")
@@ -166,7 +169,7 @@ async function launch() {
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    await window.game.launchScript(script, configStore.latestGameVersion, enginesStore.selectedEngineVersion.id);
+    await window.game.launchScript(script, launchGameVersion, enginesStore.selectedEngineVersion.id);
 }
 </script>
 
