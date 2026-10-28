@@ -27,9 +27,11 @@ function validatorFor(schema: TSchema) {
 
 export function describeError(error: ErrorObject) {
     const where = error.instancePath || "(root)";
-    const got = error.keyword === "required" || error.keyword === "additionalProperties" ? "" : ` (got ${JSON.stringify(error.data)})`;
-    // A pattern on its own tells an author nothing, so the field's own description says what was wanted.
-    const hint = error.keyword === "pattern" && error.parentSchema?.description ? `. ${error.parentSchema.description}` : "";
+    const got = error.keyword === "required" ? "" : error.keyword === "additionalProperties" ? ` (got ${JSON.stringify(error.params.additionalProperty)})` : ` (got ${JSON.stringify(error.data)})`;
+    // A pattern on its own tells an author nothing, so the field's own description says what was wanted. A key
+    // that misses a pattern-keyed object's pattern is the same mistake.
+    const patterned = error.keyword === "pattern" || (error.keyword === "additionalProperties" && error.parentSchema?.patternProperties);
+    const hint = patterned && error.parentSchema?.description ? `. ${error.parentSchema.description}` : "";
 
     return `${where} ${error.message}${got}${hint}`;
 }

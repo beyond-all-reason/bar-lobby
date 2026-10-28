@@ -2,10 +2,20 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Type, Static } from "@sinclair/typebox";
+import { Type, Static, type TSchema } from "@sinclair/typebox";
 import { SchemaReference } from "./common";
 
-const teamName = Type.String({ minLength: 1, title: "Team", description: "A team named in `alliances`." });
+// Team and alliance names become the startscript team and allyteam `name`, which is how the mission API finds them.
+const NAME_PATTERN = "^[A-Za-z0-9_]+$";
+const NAME_RULE = "Names use letters, digits and underscores only.";
+
+const name = (title: string, description: string) => Type.String({ pattern: NAME_PATTERN, title, description: `${description} ${NAME_RULE}` });
+
+const teamName = name("Team", "A team named in `alliances`.");
+
+// Keyed by name, so any other key is a mistake rather than a newer field.
+const byName = <T extends TSchema>(value: T, options: { title: string; description: string; minProperties?: number }) =>
+    Type.Record(Type.String({ pattern: NAME_PATTERN }), value, { ...options, additionalProperties: false, description: `${options.description} ${NAME_RULE}` });
 
 const startRectEdge = (title: string) => Type.Number({ minimum: 0, maximum: 1, title, description: "Edge of the start box, as a fraction of the map size from 0 to 1." });
 
@@ -13,7 +23,7 @@ const optionValue = Type.Union([Type.String(), Type.Number(), Type.Boolean()], {
 
 export const AllianceSettings = Type.Object(
     {
-        alliedWith: Type.Optional(Type.String({ minLength: 1, title: "Allied with", description: "An alliance named in `alliances` that this alliance is allied with." })),
+        alliedWith: Type.Optional(name("Allied with", "An alliance named in `alliances` that this alliance is allied with.")),
         startRectTop: Type.Optional(startRectEdge("Start box top")),
         startRectLeft: Type.Optional(startRectEdge("Start box left")),
         startRectBottom: Type.Optional(startRectEdge("Start box bottom")),
@@ -38,11 +48,11 @@ export const TeamSettings = Type.Object(
 export const MissionConfig = Type.Object(
     {
         $schema: Type.Optional(SchemaReference),
-        alliances: Type.Record(
-            Type.String({ minLength: 1 }),
-            Type.Array(teamName, { minItems: 1, uniqueItems: true, title: "Teams", description: "The teams in this alliance. Each team belongs to one alliance." }),
-            { minProperties: 1, title: "Alliances", description: "Every alliance in the mission, keyed by name, with the teams in it." }
-        ),
+        alliances: byName(Type.Array(teamName, { minItems: 1, uniqueItems: true, title: "Teams", description: "The teams in this alliance. Each team belongs to one alliance." }), {
+            minProperties: 1,
+            title: "Alliances",
+            description: "Every alliance in the mission, keyed by name, with the teams in it.",
+        }),
         playerTeam: Type.Array(teamName, {
             minItems: 1,
             title: "Player teams",
@@ -54,10 +64,8 @@ export const MissionConfig = Type.Object(
                 description: "How start positions are picked: fixed, random, in-game or in-client.",
             })
         ),
-        allianceSettings: Type.Optional(
-            Type.Record(Type.String({ minLength: 1 }), AllianceSettings, { title: "Alliance settings", description: "Settings per alliance, keyed by a name in `alliances`." })
-        ),
-        teamSettings: Type.Optional(Type.Record(Type.String({ minLength: 1 }), TeamSettings, { title: "Team settings", description: "Settings per team, keyed by a team in `alliances`." })),
+        allianceSettings: Type.Optional(byName(AllianceSettings, { title: "Alliance settings", description: "Settings per alliance, keyed by a name in `alliances`." })),
+        teamSettings: Type.Optional(byName(TeamSettings, { title: "Team settings", description: "Settings per team, keyed by a team in `alliances`." })),
         restrictions: Type.Optional(
             Type.Record(Type.String({ minLength: 1 }), Type.Integer({ minimum: 0, title: "Limit", description: "The most of this unit a team may build. 0 disables it." }), {
                 title: "Unit restrictions",

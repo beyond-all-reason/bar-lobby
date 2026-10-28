@@ -103,6 +103,8 @@ describe("loadSingleplayerContent", () => {
             ["scenarios/path-traversal/manifest.json", /entryPoint "..\/still-valid\/mission.lua" is outside/],
             ["scenarios/unknown-team/missionConfig.json", /playerTeam names team "nobody"/],
             ["scenarios/unknown-team/missionConfig.json", /teamSettings names team "ghosts"/],
+            ["scenarios/bad-team-name/missionConfig.json", /\/alliances must NOT have additional properties \(got "good guys"\)\. .*letters, digits and underscores only/],
+            ["scenarios/bad-team-name/missionConfig.json", /\/alliances\/enemies\/1 must match pattern .*"hench;men".*letters, digits and underscores only/],
             ["scenarios/newer-format/manifest.json", /Requires a newer client: format version 99/],
             ["scenarios/no-compatibility/manifest.json", /compatibility is required/],
             ["scenarios/empty-compatibility/manifest.json", /\/compatibility must NOT have fewer than 1 items/],

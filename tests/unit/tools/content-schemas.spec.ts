@@ -97,6 +97,21 @@ describe("exported content schemas", () => {
         }
     });
 
+    it("accept only startscript-safe team and alliance names", () => {
+        const validate = validatorFor("mission-config");
+        const config = { alliances: { north: ["red_1"], south: ["Blue2"] }, playerTeam: ["red_1"] };
+
+        expect(validate(config)).toBe(true);
+        for (const bad of ["red team", "red;team", "red=team", "rød", ""]) {
+            expect(validate({ ...config, alliances: { ...config.alliances, [bad]: ["green"] } }), `alliance ${bad}`).toBe(false);
+            expect(validate({ ...config, alliances: { north: ["red_1", bad], south: ["Blue2"] } }), `team ${bad}`).toBe(false);
+            expect(validate({ ...config, playerTeam: [bad] }), `player team ${bad}`).toBe(false);
+            expect(validate({ ...config, allianceSettings: { [bad]: {} } }), `alliance settings ${bad}`).toBe(false);
+            expect(validate({ ...config, allianceSettings: { north: { alliedWith: bad } } }), `allied with ${bad}`).toBe(false);
+            expect(validate({ ...config, teamSettings: { [bad]: {} } }), `team settings ${bad}`).toBe(false);
+        }
+    });
+
     it("reject a rapid tag, an empty compatibility and an engine with no games", () => {
         const validate = validatorFor("mission-manifest");
 

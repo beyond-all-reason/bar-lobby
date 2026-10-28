@@ -9,16 +9,17 @@
         "alliances": {
             "minProperties": 1,
             "title": "Alliances",
-            "description": "Every alliance in the mission, keyed by name, with the teams in it.",
+            "description": "Every alliance in the mission, keyed by name, with the teams in it. Names use letters, digits and underscores only.",
+            "additionalProperties": false,
             "type": "object",
             "patternProperties": {
-                "^(.*)$": {
+                "^[A-Za-z0-9_]+$": {
                     "minItems": 1,
                     "uniqueItems": true,
                     "title": "Teams",
                     "description": "The teams in this alliance. Each team belongs to one alliance.",
                     "type": "array",
-                    "items": { "minLength": 1, "title": "Team", "description": "A team named in `alliances`.", "type": "string" }
+                    "items": { "pattern": "^[A-Za-z0-9_]+$", "title": "Team", "description": "A team named in `alliances`. Names use letters, digits and underscores only.", "type": "string" }
                 }
             }
         },
@@ -27,7 +28,7 @@
             "title": "Player teams",
             "description": "Teams for the human players, assigned in the order players are in the lobby.",
             "type": "array",
-            "items": { "minLength": 1, "title": "Team", "description": "A team named in `alliances`.", "type": "string" }
+            "items": { "pattern": "^[A-Za-z0-9_]+$", "title": "Team", "description": "A team named in `alliances`. Names use letters, digits and underscores only.", "type": "string" }
         },
         "startPosType": {
             "title": "Start position type",
@@ -41,15 +42,21 @@
         },
         "allianceSettings": {
             "title": "Alliance settings",
-            "description": "Settings per alliance, keyed by a name in `alliances`.",
+            "description": "Settings per alliance, keyed by a name in `alliances`. Names use letters, digits and underscores only.",
+            "additionalProperties": false,
             "type": "object",
             "patternProperties": {
-                "^(.*)$": {
+                "^[A-Za-z0-9_]+$": {
                     "title": "Alliance settings",
                     "description": "Settings for one alliance.",
                     "type": "object",
                     "properties": {
-                        "alliedWith": { "minLength": 1, "title": "Allied with", "description": "An alliance named in `alliances` that this alliance is allied with.", "type": "string" },
+                        "alliedWith": {
+                            "pattern": "^[A-Za-z0-9_]+$",
+                            "title": "Allied with",
+                            "description": "An alliance named in `alliances` that this alliance is allied with. Names use letters, digits and underscores only.",
+                            "type": "string"
+                        },
                         "startRectTop": { "minimum": 0, "maximum": 1, "title": "Start box top", "description": "Edge of the start box, as a fraction of the map size from 0 to 1.", "type": "number" },
                         "startRectLeft": {
                             "minimum": 0,
@@ -78,10 +85,11 @@
         },
         "teamSettings": {
             "title": "Team settings",
-            "description": "Settings per team, keyed by a team in `alliances`.",
+            "description": "Settings per team, keyed by a team in `alliances`. Names use letters, digits and underscores only.",
+            "additionalProperties": false,
             "type": "object",
             "patternProperties": {
-                "^(.*)$": {
+                "^[A-Za-z0-9_]+$": {
                     "title": "Team settings",
                     "description": "Settings for one team. Other startscript team settings may be added too.",
                     "type": "object",
