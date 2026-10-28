@@ -101,6 +101,7 @@ export type IPCCommands = {
     "mainWindow:getDisplays": () => Array<{
         index: number;
         id: number;
+        label: string;
         primary: boolean;
         current: boolean;
         scaleFactor: number;

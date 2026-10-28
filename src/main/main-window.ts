@@ -248,6 +248,8 @@ export function createWindow() {
         screen.getAllDisplays().map((display, index) => ({
             index,
             id: display.id,
+            // The monitor's model name on Windows; may be blank elsewhere.
+            label: display.label,
             primary: display.id === screen.getPrimaryDisplay().id,
             current: display.id === screen.getDisplayMatching(mainWindow.getBounds()).id,
             scaleFactor: display.scaleFactor || 1,

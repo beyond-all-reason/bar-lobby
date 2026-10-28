@@ -379,8 +379,21 @@ function commitScalePercent(value: number | number[]) {
 }
 
 // Same source as the move and the size list, so a detached monitor cannot be offered.
+// The monitor's own resolution rather than the OS-scaled one, since that is what players know it by.
+// The number stays, as two of the same model share a name, and some platforms give none.
 const displayOptions = computed(() =>
-    displays.value.map(({ index, id }) => ({ label: t("lobby.navbar.settings.labelDisplay", { id: index + 1 }), value: id }))
+    displays.value.map(({ index, id, label, primary, scaleFactor, size }) => {
+        const resolution = `${Math.round(size.width * scaleFactor)} x ${Math.round(size.height * scaleFactor)}`;
+        const details = primary ? t("lobby.navbar.settings.displayDetailsPrimary", { size: resolution }) : resolution;
+        const name = label.trim();
+
+        return {
+            label: name
+                ? t("lobby.navbar.settings.labelDisplayNamed", { id: index + 1, name, details })
+                : t("lobby.navbar.settings.labelDisplay", { id: index + 1, details }),
+            value: id,
+        };
+    })
 );
 
 async function uploadLogsCommand(event) {
