@@ -65,10 +65,6 @@ export function relevantErrors(errors: readonly ErrorObject[]): ErrorObject[] {
     return errors.filter((error) => !dropped.has(error));
 }
 
-export function toBarUrl(filePath: string) {
-    return `bar://${encodeURIComponent(filePath)}`;
-}
-
 // Hidden entries are skipped everywhere, so a content repo can be cloned straight into a content root.
 export function isHidden(name: string) {
     return name.startsWith(".");

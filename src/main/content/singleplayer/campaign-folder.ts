@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import path from "node:path";
+import { toBarUrl } from "../../../shared/bar-url";
 import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
-import { fileInside, isFolder, listFolders, readContentJson, toBarUrl } from "./files";
+import { fileInside, isFolder, listFolders, readContentJson } from "./files";
 import { checkCompatibility, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 

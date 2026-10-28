@@ -4,13 +4,14 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { toBarUrl } from "../../../shared/bar-url";
 import { FALLBACK_LOCALE, hasFallbackText, type LanguageTables } from "../../../shared/content/content-text";
 import { DEV_COMPATIBILITY, type ItemCompatibility } from "../../../shared/content/schema/common";
 import { LanguageFile } from "../../../shared/content/schema/language-file";
 import { MissionConfig } from "../../../shared/content/schema/mission-config";
 import { MissionManifest } from "../../../shared/content/schema/mission-manifest";
 import type { MissionConfigs, SingleplayerMission } from "../../../shared/content/singleplayer";
-import { fileInside, isHidden, readContentJson, toBarUrl } from "./files";
+import { fileInside, isHidden, readContentJson } from "./files";
 import type { Problems } from "./problems";
 
 export const MANIFEST_FILE = "manifest.json";
