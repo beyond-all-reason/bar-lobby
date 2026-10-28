@@ -2302,7 +2302,7 @@
                 "resolution": "Resolution",
                 "fullscreenOption": "Fullscreen",
                 "maximizedOption": "Maximized",
-                "display": "Display",
+                "display": "Launch on",
                 "skipIntro": "Skip Intro",
                 "loginAutomatically": "Login Automatically",
                 "uiScale": "Interface scale",

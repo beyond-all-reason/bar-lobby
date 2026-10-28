@@ -271,7 +271,7 @@ async function loadDisplays() {
 const stopFollowingWindowState = mainWindowApi.onWindowStateChanged(() => loadDisplays());
 onUnmounted(stopFollowingWindowState);
 
-// Where the window is, not the saved display, since a keyboard move or any move on Linux isn't saved.
+// Where the window is, which the sizes are for. It can differ from the saved display, since a keyboard move or any move on Linux isn't saved.
 const targetDisplay = computed(() => displays.value.find((d) => d.current) ?? displays.value.find((d) => d.primary) ?? displays.value[0]);
 
 const sizeKey = (width: number, height: number) => `${width}x${height}`;
@@ -342,7 +342,8 @@ const displayMode = computed<string>({
 });
 
 const selectedDisplay = computed<number | undefined>({
-    get: () => targetDisplay.value?.id,
+    // The one the lobby reopens on, falling back to where it is when none is saved or it is unplugged.
+    get: () => (displays.value.some((d) => d.id === settingsStore.displayId) ? settingsStore.displayId : targetDisplay.value?.id),
     set: async (displayId) => {
         if (displayId === undefined) return;
 
