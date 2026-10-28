@@ -262,10 +262,14 @@ const tooltipMessage = ref("");
 
 const displays = ref<Awaited<ReturnType<typeof mainWindowApi.getDisplays>>>([]);
 
-// Fetched again rather than kept, since the window moves between displays without telling this.
+// Fetched again rather than kept, since monitors come and go and the window moves between them.
 async function loadDisplays() {
     displays.value = await mainWindowApi.getDisplays();
 }
+
+// Reported once the window settles after any move or resize, keyboard and Linux moves included.
+const stopFollowingWindowState = mainWindowApi.onWindowStateChanged(() => loadDisplays());
+onUnmounted(stopFollowingWindowState);
 
 // Where the window is, not the saved display, since a keyboard move or any move on Linux isn't saved.
 const targetDisplay = computed(() => displays.value.find((d) => d.current) ?? displays.value.find((d) => d.primary) ?? displays.value[0]);
