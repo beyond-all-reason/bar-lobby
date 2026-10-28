@@ -7,7 +7,7 @@
 
 import type { LanguageTables } from "./content-text";
 import type { CampaignConfig } from "./schema/campaign-config";
-import type { Compatibility } from "./schema/common";
+import type { ItemCompatibility } from "./schema/common";
 import type { MissionConfig } from "./schema/mission-config";
 import type { MissionManifest } from "./schema/mission-manifest";
 
@@ -66,7 +66,7 @@ export type SingleplayerCampaign = SingleplayerItemRef & {
     language: LanguageTables;
     backgroundImageUrl?: string;
     logoUrl?: string;
-    compatibility: Compatibility;
+    compatibility: ItemCompatibility;
     // In the order the config lists them.
     missions: SingleplayerMission[];
 };
@@ -74,7 +74,7 @@ export type SingleplayerCampaign = SingleplayerItemRef & {
 export type SingleplayerScenario = SingleplayerItemRef &
     SingleplayerMission & {
         kind: "scenario" | "tutorial";
-        compatibility: Compatibility;
+        compatibility: ItemCompatibility;
     };
 
 export type SingleplayerContent = {

@@ -6,11 +6,15 @@
 // including the checks that span files, which the exported JSON Schemas cannot do. A last check for CI;
 // authors get errors while editing from the schemas in schemas/content/.
 //
-//   npm run validate-content -- <content root> [--bundle <bundle.json>]
+//   npm run validate-content -- <content root> [--bundle <bundle.json>] [--allow-dev]
 //
 // --bundle names a JSON file listing the engine and game versions a build ships with, in the same shape as
 // `compatibility`: { "bundled": [{ "engineVersion": "…", "gameVersions": ["…"] }] }. Each item must accept
 // at least one bundled pair, meaning the same engine and one of that engine's games.
+//
+// Content whose compatibility is "dev" is an error, so it cannot ship as official content. --allow-dev
+// accepts it, as the client does in dev mode, for checking content still in the editor. It names no pair, so
+// --bundle passes over it.
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -19,7 +23,7 @@ import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { loadSingleplayerContent } from "../src/main/content/singleplayer/singleplayer-loader";
 import { describeCompatibility, isCompatible } from "../src/shared/content/compatibility";
-import { Compatibility } from "../src/shared/content/schema/common";
+import { Compatibility, DEV_COMPATIBILITY } from "../src/shared/content/schema/common";
 import type { SingleplayerContent } from "../src/shared/content/singleplayer";
 
 const Bundle = Type.Object({ bundled: Compatibility });
@@ -28,9 +32,11 @@ const Bundle = Type.Object({ bundled: Compatibility });
 export function unbundledItems(content: SingleplayerContent, bundled: Compatibility): string[] {
     const items = [...content.campaigns, ...content.scenarios, ...content.tutorials];
 
-    return items
-        .filter((item) => !isCompatible(item.compatibility, bundled))
-        .map((item) => `${item.kind} ${item.id} (${item.path}) runs on none of the bundled engine and game pairs. It accepts: ${describeCompatibility(item.compatibility)}`);
+    return items.flatMap((item) =>
+        item.compatibility === DEV_COMPATIBILITY || isCompatible(item.compatibility, bundled)
+            ? []
+            : [`${item.kind} ${item.id} (${item.path}) runs on none of the bundled engine and game pairs. It accepts: ${describeCompatibility(item.compatibility)}`]
+    );
 }
 
 async function readBundle(file: string) {
@@ -44,9 +50,9 @@ async function readBundle(file: string) {
 }
 
 async function main() {
-    const { positionals, values } = parseArgs({ allowPositionals: true, options: { bundle: { type: "string" } } });
+    const { positionals, values } = parseArgs({ allowPositionals: true, options: { bundle: { type: "string" }, "allow-dev": { type: "boolean" } } });
     if (positionals.length !== 1) {
-        console.error("Usage: npm run validate-content -- <content root> [--bundle <bundle.json>]");
+        console.error("Usage: npm run validate-content -- <content root> [--bundle <bundle.json>] [--allow-dev]");
         process.exitCode = 2;
         return;
     }
@@ -60,7 +66,7 @@ async function main() {
         return;
     }
 
-    const content = await loadSingleplayerContent([{ source: "official", rootId: "official", path: root }]);
+    const content = await loadSingleplayerContent([{ source: "official", rootId: "official", path: root }], { devContent: values["allow-dev"] });
     for (const problem of content.problems) {
         console.log(`${problem.severity}: ${path.relative(process.cwd(), problem.path)}: ${problem.message}`);
     }

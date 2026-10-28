@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { Compatibility, CompatibilityEntry, ContentFileName, FormatVersion, SchemaReference } from "./common";
+import { ContentFileName, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
 
 // manifest.json in a campaign mission, scenario or tutorial folder.
 export const MissionManifest = Type.Object(
@@ -51,10 +51,9 @@ export const MissionManifest = Type.Object(
             }
         ),
         compatibility: Type.Optional(
-            Type.Array(CompatibilityEntry, {
-                minItems: 1,
-                title: "Compatibility",
-                description: `${Compatibility.description} Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.`,
+            Type.Union(ItemCompatibility.anyOf, {
+                title: ItemCompatibility.title,
+                description: `${ItemCompatibility.description} Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.`,
             })
         ),
     },

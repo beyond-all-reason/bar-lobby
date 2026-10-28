@@ -16,6 +16,11 @@ import { Problems } from "./problems";
 
 export const KIND_FOLDERS = { campaign: "campaigns", scenario: "scenarios", tutorial: "tutorials" } as const;
 
+export type LoadOptions = {
+    // Load content whose compatibility is "dev", as the client does in dev mode. Otherwise it is an error.
+    devContent?: boolean;
+};
+
 const byCodePoint = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
@@ -44,13 +49,13 @@ async function orderedFolders(kindFolder: string, problems: Problems): Promise<s
     return [...order.filter((name) => names.includes(name)), ...names.filter((name) => !order.includes(name))];
 }
 
-async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", all: ContentProblem[]): Promise<SingleplayerScenario[]> {
+async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", devContent: boolean, all: ContentProblem[]): Promise<SingleplayerScenario[]> {
     const kindFolder = path.join(root.path, KIND_FOLDERS[kind]);
     const items: SingleplayerScenario[] = [];
     for (const name of await orderedFolders(kindFolder, new Problems(all))) {
         const mission = await readMissionFolder(
             path.join(kindFolder, name),
-            { partOfCampaign: false, springDataPathsBefore: [], mediaFolder: path.join(kindFolder, name, "media") },
+            { partOfCampaign: false, devContent, springDataPathsBefore: [], mediaFolder: path.join(kindFolder, name, "media") },
             new Problems(all)
         );
         // readMissionFolder only gives a scenario with compatibility back.
@@ -62,11 +67,11 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", a
     return items;
 }
 
-async function readCampaigns(root: ContentRoot, all: ContentProblem[]): Promise<SingleplayerCampaign[]> {
+async function readCampaigns(root: ContentRoot, devContent: boolean, all: ContentProblem[]): Promise<SingleplayerCampaign[]> {
     const kindFolder = path.join(root.path, KIND_FOLDERS.campaign);
     const items: SingleplayerCampaign[] = [];
     for (const name of await orderedFolders(kindFolder, new Problems(all))) {
-        const campaign = await readCampaignFolder(root, path.join(kindFolder, name), new Problems(all));
+        const campaign = await readCampaignFolder(root, path.join(kindFolder, name), devContent, new Problems(all));
         if (campaign) {
             items.push(campaign);
         }
@@ -79,7 +84,7 @@ async function readCampaigns(root: ContentRoot, all: ContentProblem[]): Promise<
  * Everything valid under the given roots, in root order and then display order, with every problem found.
  * An item with an error is left out and its problems listed, without hiding anything else.
  */
-export async function loadSingleplayerContent(roots: readonly ContentRoot[]): Promise<SingleplayerContent> {
+export async function loadSingleplayerContent(roots: readonly ContentRoot[], { devContent = false }: LoadOptions = {}): Promise<SingleplayerContent> {
     const content: SingleplayerContent = { campaigns: [], scenarios: [], tutorials: [], problems: [] };
     for (const root of roots) {
         try {
@@ -88,9 +93,9 @@ export async function loadSingleplayerContent(roots: readonly ContentRoot[]): Pr
             // A root nobody has put content in yet is normal, not a problem.
             continue;
         }
-        content.campaigns.push(...(await readCampaigns(root, content.problems)));
-        content.scenarios.push(...(await readScenarios(root, "scenario", content.problems)));
-        content.tutorials.push(...(await readScenarios(root, "tutorial", content.problems)));
+        content.campaigns.push(...(await readCampaigns(root, devContent, content.problems)));
+        content.scenarios.push(...(await readScenarios(root, "scenario", devContent, content.problems)));
+        content.tutorials.push(...(await readScenarios(root, "tutorial", devContent, content.problems)));
     }
 
     return content;

@@ -52,8 +52,28 @@ export const Compatibility = Type.Array(CompatibilityEntry, {
     description: "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once.",
 });
 
+// Content made in the mission editor runs on its overlay of unreleased game code, so there is no released
+// pair to name yet. The client loads it only in dev mode, and validate-content refuses it unless told
+// otherwise, so it cannot ship as official content by accident.
+export const DEV_COMPATIBILITY = "dev";
+
+export const ItemCompatibility = Type.Union(
+    [
+        Compatibility,
+        Type.Literal(DEV_COMPATIBILITY, {
+            title: "In development",
+            description: "Not yet tested on a released engine and game, such as content still being made in the mission editor. Loads only in dev mode.",
+        }),
+    ],
+    {
+        title: "Compatibility",
+        description: `${Compatibility.description} Content still in development, with no released pair to name, gives "${DEV_COMPATIBILITY}" instead and loads only in dev mode.`,
+    }
+);
+
 export type CompatibilityEntry = Static<typeof CompatibilityEntry>;
 export type Compatibility = Static<typeof Compatibility>;
+export type ItemCompatibility = Static<typeof ItemCompatibility>;
 
 export const ContentFileName = Type.String({
     minLength: 1,

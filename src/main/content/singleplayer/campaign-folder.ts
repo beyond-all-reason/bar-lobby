@@ -78,7 +78,7 @@ async function mediaUrl(sharedFolder: string, file: string | undefined, problems
  * Reads one campaign folder and every mission in it. Gives undefined when the campaign or any of its
  * missions has an error, after reporting every problem found.
  */
-export async function readCampaignFolder(root: ContentRoot, folder: string, problems: Problems): Promise<SingleplayerCampaign | undefined> {
+export async function readCampaignFolder(root: ContentRoot, folder: string, devContent: boolean, problems: Problems): Promise<SingleplayerCampaign | undefined> {
     const id = path.basename(folder);
     const configPath = path.join(folder, CAMPAIGN_CONFIG_FILE);
     const sharedFolder = path.join(folder, SHARED_FOLDER);
@@ -94,7 +94,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, prob
     if (Object.hasOwn(config.missions, SHARED_FOLDER)) {
         problems.error(configPath, `A mission may not be named "${SHARED_FOLDER}", which is the campaign's shared folder`);
     }
-    checkCompatibility(config.compatibility, configPath, problems);
+    checkCompatibility(config.compatibility, configPath, devContent, problems);
     checkMissionGraph(config, configPath, problems);
 
     const folders = new Set((await listFolders(folder)).filter((name) => name !== SHARED_FOLDER));
@@ -113,6 +113,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, prob
             path.join(folder, missionId),
             {
                 partOfCampaign: true,
+                devContent,
                 springDataPathsBefore,
                 mediaFolder: path.join(sharedFolder, "media"),
             },

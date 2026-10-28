@@ -5,7 +5,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { LanguageTables } from "../../../shared/content/content-text";
-import type { Compatibility } from "../../../shared/content/schema/common";
+import { DEV_COMPATIBILITY, type ItemCompatibility } from "../../../shared/content/schema/common";
 import { LanguageFile } from "../../../shared/content/schema/language-file";
 import { MissionConfig } from "../../../shared/content/schema/mission-config";
 import { MissionManifest } from "../../../shared/content/schema/mission-manifest";
@@ -37,7 +37,17 @@ export async function readLanguageFolder(folder: string, problems: Problems): Pr
 }
 
 // Listing an engine twice would leave which games go with it to whichever entry is read first.
-export function checkCompatibility(compatibility: Compatibility, filePath: string, problems: Problems) {
+export function checkCompatibility(compatibility: ItemCompatibility, filePath: string, devContent: boolean, problems: Problems) {
+    if (compatibility === DEV_COMPATIBILITY) {
+        if (devContent) {
+            problems.warning(filePath, `compatibility is "${DEV_COMPATIBILITY}", so this has not been tested on a released engine and game. It loads only in dev mode`);
+        } else {
+            problems.error(filePath, `compatibility is "${DEV_COMPATIBILITY}", which loads only in dev mode. Name the engine and game pairs it has been tested with to release it`);
+        }
+
+        return;
+    }
+
     const seen = new Set<string>();
     for (const { engineVersion } of compatibility) {
         if (seen.has(engineVersion)) {
@@ -98,6 +108,8 @@ async function readMissionConfig(folder: string, file: string, problems: Problem
 export type MissionFolderOptions = {
     // Campaign missions take the campaign's compatibility; scenarios and tutorials declare their own.
     partOfCampaign: boolean;
+    // Whether content whose compatibility is "dev" loads, as it does in dev mode.
+    devContent: boolean;
     // Folders added to SpringData ahead of this one, such as the campaign's shared/.
     springDataPathsBefore: string[];
     // Where image and backgroundImage are looked up: the campaign's shared/media/ for a campaign mission,
@@ -124,7 +136,7 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         problems.warning(manifestPath, "compatibility is ignored in a campaign mission. The campaign's compatibility applies to all its missions");
     } else if (!options.partOfCampaign) {
         if (manifest.compatibility) {
-            checkCompatibility(manifest.compatibility, manifestPath, problems);
+            checkCompatibility(manifest.compatibility, manifestPath, options.devContent, problems);
         } else {
             problems.error(manifestPath, "compatibility is required for a scenario or tutorial");
         }

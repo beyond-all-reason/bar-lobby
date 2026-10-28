@@ -66,7 +66,7 @@ A JSON Schema sees one file at a time. These checks span files or need more than
 - No mission is called `shared`, and every mission folder is listed in `missions`.
 - The `entryPoint`, mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images, including each mission's `image` and `backgroundImage`, are looked up in the campaign's `shared/media/`. A scenario's or tutorial's are looked up in its own `media/`.
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
-- `compatibility` is required in a scenario or tutorial manifest. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
+- `compatibility` is required in a scenario or tutorial manifest, and `"dev"` loads only in dev mode. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
 
 Run all of these over a content folder with the loader itself:
 
@@ -74,7 +74,7 @@ Run all of these over a content folder with the loader itself:
 npm run validate-content -- <content root>
 ```
 
-Add `--bundle <bundle.json>` to also check that every item runs on an engine and game a build ships with. The bundle file uses the same shape as `compatibility`:
+Add `--allow-dev` to accept content still in development (see [Content still in development](#content-still-in-development)). Add `--bundle <bundle.json>` to also check that every item runs on an engine and game a build ships with. The bundle file uses the same shape as `compatibility`:
 
 ```json
 { "bundled": [{ "engineVersion": "2025.04.10", "gameVersions": ["Beyond All Reason test-28000-aaaaaaa"] }] }
@@ -92,6 +92,16 @@ Every campaign, scenario and tutorial lists the engine and game pairs it has bee
 ```
 
 Here engine A with game 4 is not a valid pair. Versions are exact. Wildcards and rapid tags such as `byar:test` are refused, because a tag points at a different version over time.
+
+### Content still in development
+
+Content made in the mission editor runs on unreleased game code, so it has no released pair to name yet. Give `"compatibility": "dev"` instead, in `campaignConfig.json` or a scenario or tutorial manifest:
+
+```json
+"compatibility": "dev"
+```
+
+The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. `validate-content` also reports it as an error, so it cannot ship as official content by accident. Pass `--allow-dev` to check content still in development, and `--bundle` then passes over it. Replace `"dev"` with the tested pairs before release.
 
 ## Saved progress and changing a released campaign
 

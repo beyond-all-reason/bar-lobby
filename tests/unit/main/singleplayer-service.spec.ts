@@ -20,6 +20,9 @@ vi.mock("@main/config/app", () => ({
     },
 }));
 
+// The real settings service reads its file from the mocked config paths.
+vi.mock("@main/services/settings.service", () => ({ settingsService: { getSettings: () => ({ devMode: false }) } }));
+
 const { singleplayerService } = await import("@main/services/singleplayer.service");
 
 const official = (id: string) => ({ source: "official" as const, rootId: "official", id });

@@ -7,6 +7,7 @@ import { getContentRoots, SAVES_PATH } from "@main/config/app";
 import * as saves from "@main/content/singleplayer/saves";
 import { SaveFailureError } from "@main/content/singleplayer/saves";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
+import { settingsService } from "@main/services/settings.service";
 import { ipcMain, IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
 import { applyResult } from "@shared/content/campaign-progress";
@@ -31,8 +32,10 @@ function logProblems(problems: readonly ContentProblem[]) {
     }
 }
 
+// Dev mode is read on each scan, and the renderer rescans whenever it lists content, so turning it on or off
+// shows or hides dev content the next time a list is opened.
 function scan() {
-    lastScan = loadSingleplayerContent(getContentRoots()).then((content) => {
+    lastScan = loadSingleplayerContent(getContentRoots(), { devContent: settingsService.getSettings().devMode }).then((content) => {
         logProblems(content.problems);
         return content;
     });

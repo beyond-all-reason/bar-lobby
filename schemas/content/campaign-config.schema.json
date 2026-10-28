@@ -115,39 +115,51 @@
             "items": { "minLength": 1, "title": "Mission id", "description": "A key of `missions`.", "type": "string" }
         },
         "compatibility": {
-            "minItems": 1,
             "title": "Compatibility",
-            "description": "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once.",
-            "type": "array",
-            "items": {
-                "title": "Compatible engine and games",
-                "description": "One engine version and the game versions that work with it.",
-                "type": "object",
-                "properties": {
-                    "engineVersion": {
-                        "minLength": 1,
-                        "pattern": "^[^:]+$",
-                        "title": "Engine version",
-                        "description": "Exact engine version, as the client names installed engines. Rapid tags and wildcards are not accepted.",
-                        "type": "string"
-                    },
-                    "gameVersions": {
-                        "minItems": 1,
-                        "uniqueItems": true,
-                        "title": "Game versions",
-                        "description": "Every game version that works with this engine version. A game listed here pairs with this engine only.",
-                        "type": "array",
-                        "items": {
-                            "minLength": 1,
-                            "pattern": "^[^:]+$",
-                            "title": "Game version",
-                            "description": "Exact game version, the full version string of the game archive. Rapid tags such as `byar:test` are not accepted.",
-                            "type": "string"
-                        }
+            "description": "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once. Content still in development, with no released pair to name, gives \"dev\" instead and loads only in dev mode.",
+            "anyOf": [
+                {
+                    "minItems": 1,
+                    "title": "Compatibility",
+                    "description": "Engine and game pairs this content has been tested with. Each entry pairs one engine with its games, and only those pairs count. List each engine once.",
+                    "type": "array",
+                    "items": {
+                        "title": "Compatible engine and games",
+                        "description": "One engine version and the game versions that work with it.",
+                        "type": "object",
+                        "properties": {
+                            "engineVersion": {
+                                "minLength": 1,
+                                "pattern": "^[^:]+$",
+                                "title": "Engine version",
+                                "description": "Exact engine version, as the client names installed engines. Rapid tags and wildcards are not accepted.",
+                                "type": "string"
+                            },
+                            "gameVersions": {
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "title": "Game versions",
+                                "description": "Every game version that works with this engine version. A game listed here pairs with this engine only.",
+                                "type": "array",
+                                "items": {
+                                    "minLength": 1,
+                                    "pattern": "^[^:]+$",
+                                    "title": "Game version",
+                                    "description": "Exact game version, the full version string of the game archive. Rapid tags such as `byar:test` are not accepted.",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": ["engineVersion", "gameVersions"]
                     }
                 },
-                "required": ["engineVersion", "gameVersions"]
-            }
+                {
+                    "title": "In development",
+                    "description": "Not yet tested on a released engine and game, such as content still being made in the mission editor. Loads only in dev mode.",
+                    "const": "dev",
+                    "type": "string"
+                }
+            ]
         }
     },
     "required": ["campaignId", "titleKey", "descriptionKey", "players", "missions", "startMission", "finalMission", "compatibility"]

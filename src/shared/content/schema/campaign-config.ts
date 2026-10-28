@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { Compatibility, FormatVersion, SchemaReference } from "./common";
+import { FormatVersion, ItemCompatibility, SchemaReference } from "./common";
 
 const missionIds = (title: string, description: string) =>
     Type.Array(Type.String({ minLength: 1, title: "Mission id", description: "A key of `missions`." }), {
@@ -83,7 +83,7 @@ export const CampaignConfig = Type.Object(
             description: "Missions available when the campaign starts.",
         }),
         finalMission: missionIds("Final missions", "Missions that finish the campaign when won."),
-        compatibility: Compatibility,
+        compatibility: ItemCompatibility,
     },
     {
         title: "Campaign config",

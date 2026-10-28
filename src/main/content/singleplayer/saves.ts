@@ -9,7 +9,7 @@ import Ajv2020 from "ajv/dist/2020";
 import { type AppliedProgress, countPlay, type ItemProgress } from "../../../shared/content/campaign-progress";
 import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, type SaveFailure, SingleplayerSave } from "../../../shared/content/save";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
-import { describeError } from "./files";
+import { describeError, relevantErrors } from "./files";
 
 // A change to a save that was refused, with the code the renderer words it by. The message is for the log.
 export class SaveFailureError extends Error {
@@ -61,7 +61,11 @@ async function readSaveFile(filePath: string): Promise<ReadSave> {
         return { problem: `Saved by a newer client: format version ${formatVersion}, and this client supports up to ${SAVE_FORMAT_VERSION}` };
     }
     if (!validateSave(value)) {
-        return { problem: (validateSave.errors ?? []).map(describeError).join("; ") };
+        return {
+            problem: relevantErrors(validateSave.errors ?? [])
+                .map(describeError)
+                .join("; "),
+        };
     }
 
     const save = value as SingleplayerSave;

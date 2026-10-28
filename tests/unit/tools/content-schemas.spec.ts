@@ -112,6 +112,20 @@ describe("exported content schemas", () => {
         }
     });
 
+    it('accept "dev" compatibility, and no other word', () => {
+        const campaigns = validatorFor("campaign-config");
+        const manifests = validatorFor("mission-manifest");
+        const config = readJson(campaign, "campaignConfig.json");
+        const manifest = readJson(sample, "scenarios", "sample-scenario", "manifest.json");
+
+        expect(campaigns({ ...config, compatibility: "dev" })).toBe(true);
+        expect(manifests({ ...manifest, compatibility: "dev" })).toBe(true);
+        for (const compatibility of ["Dev", "development", ""]) {
+            expect(campaigns({ ...config, compatibility }), compatibility).toBe(false);
+            expect(manifests({ ...manifest, compatibility }), compatibility).toBe(false);
+        }
+    });
+
     it("reject a rapid tag, an empty compatibility and an engine with no games", () => {
         const validate = validatorFor("mission-manifest");
 
@@ -146,6 +160,14 @@ describe("validate-content --bundle", () => {
         expect(failures[7]).toMatch(/^tutorial economy /);
         expect(failures[8]).toMatch(/^tutorial combat /);
         expect(failures[9]).toMatch(/^tutorial final-exam /);
+    });
+
+    // Dev content only loads when the tool is told to allow it, and names no pair to check.
+    it("passes over dev content", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+
+        expect(unbundledItems({ ...content, campaigns: [], tutorials: [], scenarios: [{ ...scenario, compatibility: "dev" }] }, [{ engineVersion: "2099.01.01", gameVersions: ["x"] }])).toEqual([]);
     });
 
     it("fails every item when the engine is not bundled", async () => {

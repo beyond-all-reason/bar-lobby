@@ -32,8 +32,32 @@ export function describeError(error: ErrorObject) {
     // that misses a pattern-keyed object's pattern is the same mistake.
     const patterned = error.keyword === "pattern" || (error.keyword === "additionalProperties" && error.parentSchema?.patternProperties);
     const hint = patterned && error.parentSchema?.description ? `. ${error.parentSchema.description}` : "";
+    const expected = error.keyword === "const" ? `. Expected ${JSON.stringify(error.params.allowedValue)}` : "";
 
-    return `${where} ${error.message}${got}${hint}`;
+    return `${where} ${error.message}${got}${hint}${expected}`;
+}
+
+/**
+ * Ajv reports why every branch of a failed anyOf failed. A branch the value is not even the type of was never
+ * the one meant, so while some branch does match its type, only that branch's errors are kept: a bad list of
+ * engine and game pairs is not also told it should have been the string "dev".
+ */
+export function relevantErrors(errors: readonly ErrorObject[]): ErrorObject[] {
+    const dropped = new Set<ErrorObject>();
+    for (const anyOf of errors.filter((error) => error.keyword === "anyOf")) {
+        const branches = new Map<string, ErrorObject[]>();
+        for (const error of errors.filter((error) => error.schemaPath.startsWith(`${anyOf.schemaPath}/`))) {
+            const branch = error.schemaPath.slice(anyOf.schemaPath.length + 1).split("/")[0];
+            branches.set(branch, [...(branches.get(branch) ?? []), error]);
+        }
+        const wrongType = [...branches.values()].filter((branchErrors) => branchErrors.some((error) => error.keyword === "type" && error.instancePath === anyOf.instancePath));
+        if (wrongType.length < branches.size) {
+            wrongType.flat().forEach((error) => dropped.add(error));
+            dropped.add(anyOf);
+        }
+    }
+
+    return errors.filter((error) => !dropped.has(error));
 }
 
 export function toBarUrl(filePath: string) {
@@ -135,7 +159,7 @@ export async function readContentJson<T extends TSchema>(filePath: string, schem
 
     const validate = validatorFor(schema);
     if (!validate(read.value)) {
-        for (const error of validate.errors ?? []) {
+        for (const error of relevantErrors(validate.errors ?? [])) {
             problems.error(filePath, describeError(error));
         }
         return undefined;

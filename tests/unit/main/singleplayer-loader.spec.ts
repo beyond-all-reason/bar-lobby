@@ -228,4 +228,67 @@ describe("loadSingleplayerContent", () => {
             ]);
         });
     });
+
+    describe("dev content", () => {
+        let root: ContentRoot;
+        let campaignConfig: string;
+        let scenarioManifest: string;
+
+        // The sample campaign and scenario, marked as still in development.
+        beforeEach(async () => {
+            root = { source: "custom", rootId: "custom", path: await fs.mkdtemp(path.join(os.tmpdir(), "bar-content-")) };
+            campaignConfig = path.join(root.path, "campaigns", "sample-campaign", "campaignConfig.json");
+            scenarioManifest = path.join(root.path, "scenarios", "sample-scenario", "manifest.json");
+            for (const [kind, id, file] of [
+                ["campaigns", "sample-campaign", campaignConfig],
+                ["scenarios", "sample-scenario", scenarioManifest],
+            ]) {
+                await fs.cp(path.join(official.path, kind, id), path.join(root.path, kind, id), { recursive: true });
+                const json = JSON.parse(await fs.readFile(file, "utf8"));
+                await fs.writeFile(file, JSON.stringify({ ...json, $schema: undefined, compatibility: "dev" }));
+            }
+        });
+
+        afterEach(async () => {
+            await fs.rm(root.path, { recursive: true, force: true });
+        });
+
+        it("leaves it out with an error outside dev mode", async () => {
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.campaigns).toEqual([]);
+            expect(content.scenarios).toEqual([]);
+            expect(content.problems).toEqual([
+                { path: campaignConfig, severity: "error", message: expect.stringMatching(/compatibility is "dev", which loads only in dev mode/) },
+                { path: scenarioManifest, severity: "error", message: expect.stringMatching(/compatibility is "dev", which loads only in dev mode/) },
+            ]);
+        });
+
+        it("loads it with a warning in dev mode", async () => {
+            const content = await loadSingleplayerContent([root], { devContent: true });
+
+            expect(content.campaigns.map((c) => [c.id, c.compatibility])).toEqual([["sample-campaign", "dev"]]);
+            expect(content.scenarios.map((s) => [s.id, s.compatibility])).toEqual([["sample-scenario", "dev"]]);
+            expect(content.problems).toEqual([
+                { path: campaignConfig, severity: "warning", message: expect.stringMatching(/has not been tested on a released engine and game/) },
+                { path: scenarioManifest, severity: "warning", message: expect.stringMatching(/has not been tested on a released engine and game/) },
+            ]);
+        });
+
+        // Only the string branch of compatibility is reported, not that it should have been a list of pairs.
+        it("reports a misspelt dev with what it expected", async () => {
+            const json = JSON.parse(await fs.readFile(scenarioManifest, "utf8"));
+            await fs.writeFile(scenarioManifest, JSON.stringify({ ...json, compatibility: "Dev" }));
+
+            const content = await loadSingleplayerContent([root], { devContent: true });
+
+            expect(content.problems.filter((p) => p.path === scenarioManifest).map((p) => p.message)).toEqual(['/compatibility must be equal to constant (got "Dev"). Expected "dev"']);
+        });
+
+        it("changes nothing for released content in dev mode", async () => {
+            const content = await loadSingleplayerContent([official], { devContent: true });
+
+            expect(content.problems).toEqual([]);
+        });
+    });
 });
