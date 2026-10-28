@@ -169,8 +169,6 @@ export function createWindow() {
 
         if (via === "fallback") log.warn(`ready-to-show did not fire within ${SHOW_FALLBACK_MS}ms of the page loading, showing the window anyway`);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TEMP e2e diagnostics
-        (globalThis as any).__e2eDiag = { via, readyToShow: Date.now() };
         // Open the DevTools.
         if (process.env.NODE_ENV === "development" && settings.devMode) {
             log.debug(`NODE_ENV is development, opening dev tools`);
@@ -186,8 +184,6 @@ export function createWindow() {
         updateZoom();
         mainWindow.show();
         mainWindow.focus();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TEMP e2e diagnostics
-        Object.assign((globalThis as any).__e2eDiag, { shown: Date.now(), visibleAfterShow: mainWindow.isVisible(), bounds: mainWindow.getBounds() });
     }
 
     mainWindow.once("ready-to-show", () => showWindow("ready-to-show"));

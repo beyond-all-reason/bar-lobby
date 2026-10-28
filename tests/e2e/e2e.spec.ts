@@ -12,8 +12,6 @@ const { describe, beforeAll, afterAll } = test;
 describe("Electron App", async () => {
     let electronApp: ElectronApplication;
     let mainWindow: Page;
-    // TEMP e2e diagnostics
-    const e2eLog: string[] = [];
 
     beforeAll(async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -26,14 +24,7 @@ describe("Electron App", async () => {
         }
 
         electronApp = await electron.launch({ args });
-        electronApp.on("console", (msg) => {
-            if (msg.type() === "error" || msg.type() === "warning") e2eLog.push(`[main ${msg.type()}] ${msg.text()}`);
-        });
         mainWindow = await electronApp.firstWindow();
-        mainWindow.on("console", (msg) => {
-            if (msg.type() === "error" || msg.type() === "warning") e2eLog.push(`[renderer ${msg.type()}] ${msg.text()}`);
-        });
-        mainWindow.on("pageerror", (error) => e2eLog.push(`[renderer pageerror] ${error.message}`));
     });
 
     afterAll(async () => {
@@ -69,37 +60,7 @@ describe("Electron App", async () => {
 
         // Polled rather than waiting on ready-to-show: the event can fire before the test subscribes,
         // and under Xvfb the window can still report hidden just after show(), which hung the wait forever.
-        try {
-            await expect.poll(async () => (await getWindowState()).isVisible, { message: "The main window was not visible", timeout: 20_000 }).toBeTruthy();
-        } catch (e) {
-            // TEMP e2e diagnostics
-            const diag = await electronApp.evaluate(({ BrowserWindow }) => ({
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                diag: (globalThis as any).__e2eDiag ?? "ready-to-show never fired",
-                now: Date.now(),
-                windows: BrowserWindow.getAllWindows().map((w) => ({
-                    url: w.webContents.getURL(),
-                    visible: w.isVisible(),
-                    minimized: w.isMinimized(),
-                    fullscreen: w.isFullScreen(),
-                    bounds: w.getBounds(),
-                    loading: w.webContents.isLoading(),
-                })),
-            }));
-            const renderer = await mainWindow
-                .evaluate(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const w = window as any;
-                    return {
-                        stage: w.__e2eStage ?? "index.ts never ran",
-                        pending: w.__e2eInit ? [...w.__e2eInit.pending] : null,
-                        rejected: w.__e2eInit?.rejected ?? null,
-                        appHtmlLength: document.querySelector("#app")?.innerHTML.length ?? -1,
-                    };
-                })
-                .catch((error: Error) => `renderer evaluate failed: ${error.message}`);
-            throw new Error(`${(e as Error).message}\n${JSON.stringify({ ...diag, renderer, log: e2eLog }, null, 2)}`);
-        }
+        await expect.poll(async () => (await getWindowState()).isVisible, { message: "The main window was not visible", timeout: 20_000 }).toBeTruthy();
         const windowState = await getWindowState();
 
         expect(windowState.isCrashed, "The app has crashed").toBeFalsy();

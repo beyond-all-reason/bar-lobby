@@ -28,16 +28,9 @@ async function setupVue() {
 
     provideUi(appUi);
 
-    // TEMP e2e diagnostics
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const e2e = window as any;
-    e2e.__e2eStage = "initPreMountStores";
-
     // Init stores before mounting app
     await initPreMountStores();
-    e2e.__e2eStage = "audioApi.init";
     await audioApi.init();
-    e2e.__e2eStage = "mounting";
 
     // Plugins
     app.use(router);
@@ -50,5 +43,4 @@ async function setupVue() {
     app.directive("tooltip", Tooltip);
 
     app.mount("#app");
-    e2e.__e2eStage = "mounted";
 }
