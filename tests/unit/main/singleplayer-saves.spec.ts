@@ -5,10 +5,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteAllSaves, deleteSave, readSave, readSaves, recordResult as recordWith, saveFileName } from "@main/content/singleplayer/saves";
 import { applyResult } from "@shared/content/campaign-progress";
-import { type ReportedResult, SAVE_LIMITS } from "@shared/content/save";
+import { type ReportedResult, SAVE_LIMITS, type SingleplayerSave } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerKind } from "@shared/content/singleplayer";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
@@ -35,6 +35,14 @@ afterEach(async () => {
 
 const files = async () => (await fs.readdir(dir).catch(() => [])).sort();
 const fileOf = (name: string) => path.join(dir, name);
+
+type SaveItem = SingleplayerSave["item"];
+
+const deletingAll = async () => {
+    const deleted: SaveItem[] = [];
+    await deleteAllSaves(dir, (item) => deleted.push(item));
+    return deleted;
+};
 
 describe("singleplayer saves", () => {
     it("writes nothing until the first result, then one file named by the item's hash", async () => {
@@ -220,7 +228,7 @@ describe("singleplayer saves", () => {
         await fs.writeFile(fileOf(`${saveFileName("scenario", custom)}.tmp`), "{ half");
         await fs.writeFile(fileOf("notes.txt"), "kept");
 
-        const deleted = await deleteAllSaves(dir);
+        const deleted = await deletingAll();
 
         expect(deleted).toEqual(
             expect.arrayContaining([
@@ -232,8 +240,24 @@ describe("singleplayer saves", () => {
         expect(await files()).toEqual(["notes.txt"]);
     });
 
+    it("names each save it deleted before a later delete fails", async () => {
+        await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+        await recordResult(dir, "campaign", custom, { missionId: "mission01", outcome: "victory" });
+        const rm = fs.rm;
+        let calls = 0;
+        vi.spyOn(fs, "rm").mockImplementation((...args) => (++calls === 2 ? Promise.reject(new Error("EBUSY")) : rm(...args)));
+
+        const deleted: SaveItem[] = [];
+        await expect(deleteAllSaves(dir, (item) => deleted.push(item))).rejects.toThrow("EBUSY");
+        vi.restoreAllMocks();
+
+        expect(deleted).toHaveLength(1);
+        expect(await files()).toHaveLength(1);
+        expect(await files()).not.toContain(saveFileName(deleted[0].kind, deleted[0]));
+    });
+
     it("deletes nothing when there are no saves", async () => {
-        expect(await deleteAllSaves(dir)).toEqual([]);
+        expect(await deletingAll()).toEqual([]);
     });
 
     it("ignores files that aren't saves", async () => {

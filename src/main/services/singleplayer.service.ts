@@ -110,9 +110,7 @@ async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
 
 // Every singleplayer save, for the settings menu. The player has confirmed it there.
 async function deleteAllSaves() {
-    for (const item of await saves.deleteAllSaves(SAVES_PATH)) {
-        onSaveChanged.dispatch({ item, save: undefined });
-    }
+    await saves.deleteAllSaves(SAVES_PATH, (item) => onSaveChanged.dispatch({ item, save: undefined }));
 }
 
 // A call over IPC gives the renderer the reason it failed as a code to word, since a thrown error would reach

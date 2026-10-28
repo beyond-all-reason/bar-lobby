@@ -198,28 +198,26 @@ export function deleteSave(dir: string, kind: SingleplayerKind, ref: Singleplaye
 }
 
 /**
- * Deletes every save in the folder, unreadable ones included, and leftover temp files with them. Gives the
- * items whose saves were readable, so whoever shows them can be told. Anything else in the folder is left.
+ * Deletes every save in the folder, unreadable ones included, and leftover temp files with them. Calls onDeleted
+ * with the item of each readable save as soon as it is gone, so whoever shows them is told even if a later delete
+ * throws. Anything else in the folder is left.
  */
-export async function deleteAllSaves(dir: string): Promise<SaveItem[]> {
+export async function deleteAllSaves(dir: string, onDeleted: (item: SaveItem) => void): Promise<void> {
     let names: string[];
     try {
         names = await fs.readdir(dir);
     } catch {
-        return [];
+        return;
     }
 
-    const deleted: SaveItem[] = [];
     for (const name of names.filter((name) => name.endsWith(".json") || name.endsWith(".json.tmp"))) {
         const filePath = path.join(dir, name);
         await queued(filePath, async () => {
             const read = await readSaveFile(filePath);
             await fs.rm(filePath, { force: true });
             if ("save" in read) {
-                deleted.push(read.save.item);
+                onDeleted(read.save.item);
             }
         });
     }
-
-    return deleted;
 }
