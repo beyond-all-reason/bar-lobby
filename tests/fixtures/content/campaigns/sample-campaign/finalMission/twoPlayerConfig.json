@@ -26,7 +26,7 @@
             "startPosZ": 200
         },
         "mainBadGuy": {
-            "luaAI": "BarbAI"
+            "luaAI": "SampleAI"
         }
     },
     "restrictions": {

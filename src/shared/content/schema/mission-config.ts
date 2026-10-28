@@ -42,7 +42,13 @@ export const TeamSettings = Type.Object(
         incomeMultiplier: Type.Optional(Type.Number({ exclusiveMinimum: 0, title: "Income multiplier", description: "Multiplier on the team's resource income." })),
         startPosX: Type.Optional(Type.Number({ minimum: 0, title: "Start X", description: "Start position on the map's X axis, in elmos." })),
         startPosZ: Type.Optional(Type.Number({ minimum: 0, title: "Start Z", description: "Start position on the map's Z axis, in elmos." })),
-        luaAI: Type.Optional(Type.String({ minLength: 1, title: "Lua AI", description: "Lua AI that controls the team, such as BarbAI." })),
+        luaAI: Type.Optional(
+            Type.String({
+                minLength: 1,
+                title: "Lua AI",
+                description: "Lua AI that controls the team. Leave it out for a team with no AI.",
+            })
+        ),
         // The startscript's RgbColor, three floats from 0 to 1, as the engine and the mission editor have it.
         rgbColor: Type.Optional(
             Type.Array(Type.Number({ minimum: 0, maximum: 1 }), {

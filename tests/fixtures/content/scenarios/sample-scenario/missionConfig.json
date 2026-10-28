@@ -28,7 +28,7 @@
             "displayNameKey": "missions.sample-scenario.teams.heroes"
         },
         "mainBadGuy": {
-            "luaAI": "BarbAI"
+            "luaAI": "SampleAI"
         }
     },
     "restrictions": {
