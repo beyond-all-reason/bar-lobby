@@ -16,12 +16,19 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { configStore } from "@renderer/store/config.store";
+import { gameStore } from "@renderer/store/game.store";
+import { enginesStore } from "@renderer/store/engine.store";
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
 
-const script = ref(`[game] {
+// Launch with the installed build rather than a rapid tag such as byar:test, which may not be installed and
+// which the Steam edition cannot download.
+const gameVersion = computed(() => gameStore.selectedGameVersion?.gameVersion);
+
+function defaultScript(gametype: string | undefined) {
+    return `[game] {
     [ais] {
     }
     [allyteam0] {
@@ -38,10 +45,27 @@ const script = ref(`[game] {
     mapname=${configStore.defaultMaps[0]};
     myplayername=player;
     ishost=1;
-    gametype=${configStore.latestGameVersion};
-}`);
+    gametype=${gametype ?? ""};
+}`;
+}
+
+const script = ref(defaultScript(gameVersion.value));
+
+// Keep the default script on the selected version until it is edited.
+watch(gameVersion, (newVersion, oldVersion) => {
+    if (script.value === defaultScript(oldVersion)) {
+        script.value = defaultScript(newVersion);
+    }
+});
 
 async function launch() {
-    window.game.launchScript(script.value, configStore.latestGameVersion, configStore.defaultEngineVersion);
+    const launchGameVersion = gameVersion.value;
+    if (!launchGameVersion) {
+        throw new Error("No game version selected");
+    }
+    if (!enginesStore.selectedEngineVersion) {
+        throw new Error("No engine version selected");
+    }
+    await window.game.launchScript(script.value, launchGameVersion, enginesStore.selectedEngineVersion.id);
 }
 </script>
