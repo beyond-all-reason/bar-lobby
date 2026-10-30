@@ -38,7 +38,6 @@ describe("loadSingleplayerContent", () => {
             expect(campaign.missions.map((m) => m.id)).toEqual(["tutorial", "mission01", "mission02", "missionA", "missionB", "optionalMissionA", "optionalMissionB", "finalMission"]);
 
             const mission01 = campaign.missions[1];
-            expect(mission01.entryPointPath).toBe(path.join(folder, "mission01", "mission.lua"));
             expect(mission01.configs.default.playerTeam).toEqual(["heroes"]);
             expect(Object.keys(mission01.configs.numPlayers)).toEqual(["1", "2"]);
             expect(mission01.configs.numPlayers["2"].playerTeam).toEqual(["heroes", "allies"]);
@@ -98,9 +97,8 @@ describe("loadSingleplayerContent", () => {
             ["scenarios/schema-violation/manifest.json", /required property 'mapName'/],
             ["scenarios/schema-violation/manifest.json", /\/titleKey must be string/],
             ["scenarios/id-mismatch/manifest.json", /missionId "some-other-id" does not match its folder name "id-mismatch"/],
-            ["scenarios/missing-files/manifest.json", /entryPoint "not-here.lua" does not exist/],
             ["scenarios/missing-files/manifest.json", /Mission config "noConfig.json" does not exist/],
-            ["scenarios/path-traversal/manifest.json", /entryPoint "..\/still-valid\/mission.lua" is outside/],
+            ["scenarios/path-traversal/manifest.json", /Mission config "..\/still-valid\/missionConfig.json" is outside/],
             ["scenarios/unknown-team/missionConfig.json", /playerTeam names team "nobody"/],
             ["scenarios/unknown-team/missionConfig.json", /teamSettings names team "ghosts"/],
             ["scenarios/bad-team-name/missionConfig.json", /\/alliances must NOT have additional properties \(got "good guys"\)\. .*letters, digits and underscores only/],

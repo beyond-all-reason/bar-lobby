@@ -2,7 +2,6 @@
     "missionId": "sample-tutorial",
     "titleKey": "missions.sample-tutorial.title",
     "descriptionKey": "missions.sample-tutorial.description",
-    "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
     "image": "preview.png",
     "backgroundImage": "background.png",

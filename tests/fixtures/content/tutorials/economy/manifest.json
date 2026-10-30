@@ -2,7 +2,6 @@
     "missionId": "economy",
     "titleKey": "missions.economy.title",
     "descriptionKey": "missions.economy.description",
-    "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
     "config": {
         "default": "missionConfig.json"

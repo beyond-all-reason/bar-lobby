@@ -64,7 +64,7 @@ A JSON Schema sees one file at a time. These checks span files or need more than
 - A campaign's `campaignId` equals its folder name, and every key in `missions` equals a mission folder name and that mission's `missionId`. A scenario's or tutorial's `missionId` equals its folder name.
 - Every mission named in `startMission`, `finalMission`, unlocks, removes and prerequisites is in `missions`, and every mission is reachable from `startMission`.
 - No mission is called `shared`, and every mission folder is listed in `missions`.
-- The `entryPoint`, mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images, including each mission's `image` and `backgroundImage`, are looked up in the campaign's `shared/media/`. A scenario's or tutorial's are looked up in its own `media/`.
+- The mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images, including each mission's `image` and `backgroundImage`, are looked up in the campaign's `shared/media/`. A scenario's or tutorial's are looked up in its own `media/`.
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
 - Every language key (`titleKey`, `descriptionKey` and a team's `displayNameKey`) has English text where the client looks it up: a campaign's in `shared/language/en.json`, a campaign mission's in its own `language/en.json` and then the campaign's, a scenario's or tutorial's in its own. Every language falls back to English, so a key without it shows as the key itself. This is a warning.
 - `compatibility` is required in a scenario or tutorial manifest, and `"dev"` loads only in dev mode. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
@@ -93,6 +93,8 @@ Every campaign, scenario and tutorial lists the engine and game pairs it has bee
 ```
 
 Here engine A with game 4 is not a valid pair. Versions are exact. Wildcards and rapid tags such as `byar:test` are refused, because a tag points at a different version over time.
+
+Listing several pairs suits A/B testing and development, but expect to ship one. A campaign's, scenario's or tutorial's Lua is packaged as an `.sdz` archive, whose `modinfo.lua` names the one game it runs on in `depend`. Every pair listed here should name that game, or the archive won't run with it. The client doesn't check this yet.
 
 ### Content still in development
 

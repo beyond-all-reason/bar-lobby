@@ -21,7 +21,6 @@
         },
         "titleKey": { "minLength": 1, "title": "Title key", "description": "Language key of the title.", "type": "string" },
         "descriptionKey": { "minLength": 1, "title": "Description key", "description": "Language key of the description.", "type": "string" },
-        "entryPoint": { "minLength": 1, "title": "Entry point", "description": "Lua file the mission starts from, relative to this folder.", "type": "string" },
         "mapName": { "minLength": 1, "title": "Map", "description": "Name of the map the mission is played on, as the engine names it.", "type": "string" },
         "image": {
             "minLength": 1,
@@ -106,5 +105,5 @@
             ]
         }
     },
-    "required": ["missionId", "titleKey", "descriptionKey", "entryPoint", "mapName", "config"]
+    "required": ["missionId", "titleKey", "descriptionKey", "mapName", "config"]
 }

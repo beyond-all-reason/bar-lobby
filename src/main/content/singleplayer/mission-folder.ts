@@ -163,7 +163,6 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
     checkTextKey(manifest.titleKey, "titleKey", languageTables, manifestPath, problems);
     checkTextKey(manifest.descriptionKey, "descriptionKey", languageTables, manifestPath, problems);
 
-    const entryPointPath = await fileInside(folder, manifest.entryPoint, problems, manifestPath, "entryPoint");
     const defaultConfig = await readMissionConfig(folder, manifest.config.default, languageTables, problems, manifestPath);
     const numPlayers: MissionConfigs["numPlayers"] = {};
     for (const [players, file] of Object.entries(manifest.config.numPlayers ?? {})) {
@@ -176,7 +175,7 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
     const imagePath = await mediaFile(manifest.image, "image");
     const backgroundImagePath = await mediaFile(manifest.backgroundImage, "backgroundImage");
 
-    if (problems.hasErrors || !entryPointPath || !defaultConfig) {
+    if (problems.hasErrors || !defaultConfig) {
         return undefined;
     }
 
@@ -185,7 +184,6 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
         path: folder,
         manifest,
         configs: { default: defaultConfig, numPlayers },
-        entryPointPath,
         language,
         imageUrl: imagePath && toBarUrl(imagePath),
         backgroundImageUrl: backgroundImagePath && toBarUrl(backgroundImagePath),

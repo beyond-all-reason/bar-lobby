@@ -2,7 +2,6 @@
     "missionId": "schema-violation",
     "titleKey": 42,
     "descriptionKey": "missions.schema-violation.description",
-    "entryPoint": "mission.lua",
     "config": {
         "default": "missionConfig.json"
     },

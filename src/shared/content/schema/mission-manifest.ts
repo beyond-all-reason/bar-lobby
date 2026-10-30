@@ -17,7 +17,6 @@ export const MissionManifest = Type.Object(
         }),
         titleKey: Type.String({ minLength: 1, title: "Title key", description: "Language key of the title." }),
         descriptionKey: Type.String({ minLength: 1, title: "Description key", description: "Language key of the description." }),
-        entryPoint: Type.String({ minLength: 1, title: "Entry point", description: "Lua file the mission starts from, relative to this folder." }),
         mapName: Type.String({ minLength: 1, title: "Map", description: "Name of the map the mission is played on, as the engine names it." }),
         image: Type.Optional(
             Type.String({

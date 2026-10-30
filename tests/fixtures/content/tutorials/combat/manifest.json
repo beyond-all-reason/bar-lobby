@@ -2,7 +2,6 @@
     "missionId": "combat",
     "titleKey": "missions.combat.title",
     "descriptionKey": "missions.combat.description",
-    "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
     "config": {
         "default": "missionConfig.json"

@@ -2,7 +2,6 @@
     "missionId": "bad-team-name",
     "titleKey": "missions.bad-team-name.title",
     "descriptionKey": "missions.bad-team-name.description",
-    "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
     "config": {
         "default": "missionConfig.json"

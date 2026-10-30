@@ -2,7 +2,6 @@
     "missionId": "missing-files",
     "titleKey": "missions.missing-files.title",
     "descriptionKey": "missions.missing-files.description",
-    "entryPoint": "not-here.lua",
     "mapName": "Quicksilver Remake 1.24",
     "config": {
         "default": "noConfig.json"

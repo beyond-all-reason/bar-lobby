@@ -48,7 +48,6 @@ export type SingleplayerMission = {
     path: string;
     manifest: MissionManifest;
     configs: MissionConfigs;
-    entryPointPath: string;
     language: LanguageTables;
     // The manifest's image and backgroundImage as bar:// URLs.
     imageUrl?: string;

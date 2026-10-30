@@ -2,7 +2,6 @@
     "missionId": "river-crossing",
     "titleKey": "missions.river-crossing.title",
     "descriptionKey": "missions.river-crossing.description",
-    "entryPoint": "mission.lua",
     "mapName": "Supreme Isthmus v1.6.4",
     "config": {
         "default": "missionConfig.json"

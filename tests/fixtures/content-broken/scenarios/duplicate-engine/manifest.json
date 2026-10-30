@@ -2,7 +2,6 @@
     "missionId": "duplicate-engine",
     "titleKey": "missions.duplicate-engine.title",
     "descriptionKey": "missions.duplicate-engine.description",
-    "entryPoint": "mission.lua",
     "mapName": "Quicksilver Remake 1.24",
     "config": {
         "default": "missionConfig.json"
