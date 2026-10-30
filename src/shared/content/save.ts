@@ -22,6 +22,10 @@ export const SAVE_LIMITS = {
     variableKeyLength: 128,
     variableStringLength: 4096,
     variableCount: 256,
+    // All of a campaign's variables, and all of one result's, as UTF-8 JSON. They travel between the mission and
+    // the game in one Lua network message, which holds at most 65535 bytes, 7 of them the engine's header. The
+    // rest is left for whatever is sent with the variables, such as the mission id and outcome.
+    variablesBytes: 60 * 1024,
     // Results kept for support, newest last. Nothing is worked out from them.
     recentResults: 20,
 };
@@ -81,6 +85,11 @@ export const SingleplayerSave = Type.Object({
     campaign: Type.Optional(CampaignProgress),
     recent: Type.Array(RecentResult),
 });
+
+// The size SAVE_LIMITS.variablesBytes counts: the variables as compact JSON, in UTF-8 bytes.
+export function variablesBytes(variables: Readonly<Record<string, SaveVariableValue | null>>): number {
+    return new TextEncoder().encode(JSON.stringify(variables)).length;
+}
 
 export type SaveVariableValue = Static<typeof SaveVariableValue>;
 export type SaveVariables = Static<typeof SaveVariables>;

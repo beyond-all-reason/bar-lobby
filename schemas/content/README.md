@@ -180,7 +180,11 @@ Missions can report variables when they end, won or lost. Each reported value re
 
 Any mission can change any variable, so give each variable to one mission, for example by prefixing its name with the mission id, unless several missions are meant to share it. A replayable mission that sets a shared variable changes it for every mission played after it.
 
-A mission can report `null` for a variable to delete it. Names are 1 to 128 characters, values are strings of up to 4096 characters, numbers or booleans, and a campaign can hold at most 256 variables at once. A result that breaks these limits is refused and not saved.
+A mission can report `null` for a variable to delete it. Names are 1 to 128 characters, values are strings of up to 4096 characters, numbers or booleans, and a campaign can hold at most 256 variables at once.
+
+All of a campaign's variables together must also fit in 61440 bytes (60 KiB), and so must the variables one result reports. They travel in a single Lua network message, which holds less than 64 KB. The size is counted as compact JSON in UTF-8, such as `{"mission01_choice":"left","mission01_score":1200}`, which counts the names, quotes and punctuation as well as the values. A character outside ASCII takes 2 to 4 bytes. This is the limit you will usually reach first: 256 variables of 4096 characters each would not fit.
+
+A result that breaks any of these limits is refused and not saved.
 
 ## Format versions
 

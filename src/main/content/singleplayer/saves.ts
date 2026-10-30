@@ -7,7 +7,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import { type AppliedProgress, countPlay, type ItemProgress } from "../../../shared/content/campaign-progress";
-import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, type SaveFailure, SingleplayerSave } from "../../../shared/content/save";
+import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, type SaveFailure, SingleplayerSave, variablesBytes } from "../../../shared/content/save";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
 import { describeError, relevantErrors } from "./files";
 
@@ -135,6 +135,11 @@ function checkResult(result: ReportedResult) {
     if (!validateResult(result)) {
         throw new SaveFailureError("invalid_result", `Invalid result: ${(validateResult.errors ?? []).map((error) => `${error.instancePath || "(root)"} ${error.message}`).join("; ")}`);
     }
+
+    const bytes = variablesBytes(result.variables ?? {});
+    if (bytes > SAVE_LIMITS.variablesBytes) {
+        throw new SaveFailureError("invalid_result", `Invalid result: ${bytes} bytes of variables reported, more than the ${SAVE_LIMITS.variablesBytes} allowed`);
+    }
 }
 
 // How a result changes an item's progress. Without unlock rules, a scenario or tutorial only counts the play.
@@ -171,6 +176,11 @@ export async function recordResult(dir: string, kind: SingleplayerKind, ref: Sin
         const variableCount = Object.keys(progress.campaign?.variables ?? {}).length;
         if (variableCount > SAVE_LIMITS.variableCount) {
             throw new SaveFailureError("invalid_result", `Invalid result: ${variableCount} variables saved, more than the ${SAVE_LIMITS.variableCount} allowed`);
+        }
+
+        const bytes = variablesBytes(progress.campaign?.variables ?? {});
+        if (bytes > SAVE_LIMITS.variablesBytes) {
+            throw new SaveFailureError("invalid_result", `Invalid result: ${bytes} bytes of variables saved, more than the ${SAVE_LIMITS.variablesBytes} allowed`);
         }
 
         const recent = [...save.recent, { ...result, at: new Date().toISOString() }].slice(-SAVE_LIMITS.recentResults);

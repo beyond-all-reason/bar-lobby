@@ -292,5 +292,30 @@ describe("singleplayer saves", () => {
             expect(await files()).toHaveLength(1);
             expect((await readSave(dir, "campaign", official))?.recent).toHaveLength(2);
         });
+
+        // Strings just under the length limit, enough of them to pass the byte limit.
+        const big = (from: number, count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`b${from + i}`, "s".repeat(SAVE_LIMITS.variableStringLength)]));
+        const overBytes = Math.ceil(SAVE_LIMITS.variablesBytes / SAVE_LIMITS.variableStringLength);
+
+        it("refuses a result whose variables are too many bytes", async () => {
+            await expect(record(big(0, overBytes))).rejects.toThrow(expect.objectContaining({ reason: "invalid_result", message: expect.stringMatching(/bytes of variables reported/) }));
+            expect(await files()).toHaveLength(0);
+        });
+
+        it("refuses a result that leaves the saved variables too many bytes, counted after merging", async () => {
+            const half = Math.ceil(overBytes / 2);
+            await record(big(0, half));
+            // Replacing saved keys doesn't add to the size.
+            await record(big(0, half));
+
+            await expect(record(big(half, half))).rejects.toThrow(expect.objectContaining({ reason: "invalid_result", message: expect.stringMatching(/bytes of variables saved/) }));
+            expect((await readSave(dir, "campaign", official))?.recent).toHaveLength(2);
+        });
+
+        it("counts bytes, not characters", async () => {
+            // Three UTF-8 bytes each, so the same number of characters as above, under the string limit, passes the byte limit.
+            const wide = (count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`w${i}`, "€".repeat(SAVE_LIMITS.variableStringLength / 2)]));
+            await expect(record(wide(Math.ceil(overBytes / 1.5)))).rejects.toThrow(/bytes of variables reported/);
+        });
     });
 });
