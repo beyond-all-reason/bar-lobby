@@ -58,9 +58,10 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", d
             { partOfCampaign: false, devContent, languageAfter: [], springDataPathsBefore: [], mediaFolder: path.join(kindFolder, name, "media") },
             new Problems(all)
         );
-        // readMissionFolder only gives a scenario with compatibility back.
-        if (mission?.manifest.compatibility) {
-            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility: mission.manifest.compatibility });
+        // readMissionFolder only gives a scenario with compatibility and difficulties back.
+        const { compatibility, difficulties, defaultDifficulty } = mission?.manifest ?? {};
+        if (mission && compatibility && difficulties && defaultDifficulty) {
+            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty });
         }
     }
 

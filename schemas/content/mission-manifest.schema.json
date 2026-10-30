@@ -2,7 +2,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/mission-manifest.schema.json",
     "title": "Mission manifest",
-    "$comment": "Difficulty settings are still being defined and are not part of this format yet. Still undecided: whether there is one standard set of difficulties the client and the mission API agree on, or each campaign, scenario or tutorial lists its own with language keys, and where a default is set. See the README.",
     "description": "manifest.json in a campaign mission, scenario or tutorial folder.",
     "type": "object",
     "properties": {
@@ -102,6 +101,33 @@
                     "const": "dev",
                     "type": "string"
                 }
+            ]
+        },
+        "difficulties": {
+            "minItems": 1,
+            "uniqueItems": true,
+            "title": "Difficulties",
+            "description": "The difficulties this content can be played at. The player chooses from these. Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.",
+            "type": "array",
+            "items": {
+                "title": "Difficulty",
+                "description": "One of the mission API's difficulties: story, easy, medium, hard.",
+                "anyOf": [
+                    { "const": "story", "type": "string" },
+                    { "const": "easy", "type": "string" },
+                    { "const": "medium", "type": "string" },
+                    { "const": "hard", "type": "string" }
+                ]
+            }
+        },
+        "defaultDifficulty": {
+            "title": "Default difficulty",
+            "description": "The difficulty chosen until the player picks another. Must be one of `difficulties`. Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.",
+            "anyOf": [
+                { "const": "story", "type": "string" },
+                { "const": "easy", "type": "string" },
+                { "const": "medium", "type": "string" },
+                { "const": "hard", "type": "string" }
             ]
         }
     },

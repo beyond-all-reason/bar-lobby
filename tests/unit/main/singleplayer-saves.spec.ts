@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteAllSaves, deleteSave, readSave, readSaves, recordResult as recordWith, saveFileName } from "@main/content/singleplayer/saves";
+import { deleteAllSaves, deleteSave, readSave, readSaves, recordResult as recordWith, saveFileName, setDifficulty } from "@main/content/singleplayer/saves";
 import { applyResult } from "@shared/content/campaign-progress";
 import { type ReportedResult, SAVE_LIMITS, type SingleplayerSave } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
@@ -158,6 +158,56 @@ describe("singleplayer saves", () => {
             const save = await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" }, 2);
 
             expect(save).toMatchObject({ saveVersion: 2, plays: { mission01: { victories: 1, failures: 0 } } });
+        });
+    });
+
+    describe("difficulty", () => {
+        it("creates the save when chosen before the first result", async () => {
+            const save = await setDifficulty(dir, "scenario", official, "hard");
+
+            expect(save).toMatchObject({ formatVersion: 1, saveVersion: 1, item: { kind: "scenario", ...official }, plays: {}, recent: [], difficulty: "hard" });
+            expect(await readSave(dir, "scenario", official)).toEqual(save);
+        });
+
+        it("replaces the choice, and keeps it and the progress through results", async () => {
+            await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+            await setDifficulty(dir, "campaign", official, "easy");
+            await setDifficulty(dir, "campaign", official, "story");
+            await recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "failure" });
+
+            expect(await readSave(dir, "campaign", official)).toMatchObject({
+                difficulty: "story",
+                plays: { mission01: { victories: 1, failures: 0 }, mission02: { victories: 0, failures: 1 } },
+            });
+        });
+
+        it("refuses for a save started under another version, and leaves it alone", async () => {
+            await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" }, 2);
+            const file = fileOf(saveFileName("campaign", official));
+            const before = await fs.readFile(file, "utf8");
+
+            await expect(setDifficulty(dir, "campaign", official, "hard", 3)).rejects.toThrow(expect.objectContaining({ reason: "save_version_older" }));
+            await expect(setDifficulty(dir, "campaign", official, "hard", 1)).rejects.toThrow(expect.objectContaining({ reason: "save_version_newer" }));
+
+            expect(await fs.readFile(file, "utf8")).toBe(before);
+        });
+
+        it("refuses for a save it can't use, and leaves it alone", async () => {
+            const file = fileOf(saveFileName("scenario", official));
+            await fs.mkdir(dir, { recursive: true });
+            await fs.writeFile(file, "{ half");
+
+            await expect(setDifficulty(dir, "scenario", official, "hard")).rejects.toThrow(expect.objectContaining({ reason: "save_unusable" }));
+            expect(await fs.readFile(file, "utf8")).toBe("{ half");
+        });
+
+        // So a save synced from a client that knows more difficulties is still read.
+        it("reads a save whose difficulty this client doesn't know", async () => {
+            await recordResult(dir, "scenario", official, { missionId: "sample-campaign", outcome: "victory" });
+            const file = fileOf(saveFileName("scenario", official));
+            await fs.writeFile(file, JSON.stringify({ ...JSON.parse(await fs.readFile(file, "utf8")), difficulty: "nightmare" }));
+
+            expect(await readSave(dir, "scenario", official)).toMatchObject({ difficulty: "nightmare" });
         });
     });
 

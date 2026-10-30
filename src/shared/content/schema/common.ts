@@ -21,11 +21,6 @@ export const FormatVersion = Type.Integer({
 
 // Editors read `$schema` to find the schema for a file. It is listed so the hover docs explain it, and the
 // loader ignores it.
-// A placeholder in the exported schemas of the files a difficulty setting would go in, so authors and the
-// mission API team can see it is coming. Remove it once difficulty is part of the format.
-export const DIFFICULTY_PENDING =
-    "Difficulty settings are still being defined and are not part of this format yet. Still undecided: whether there is one standard set of difficulties the client and the mission API agree on, or each campaign, scenario or tutorial lists its own with language keys, and where a default is set. See the README.";
-
 export const SchemaReference = Type.String({
     title: "Schema",
     description: "Path or URL of the JSON Schema for this file, for editor autocomplete and errors. The client ignores it.",
@@ -79,6 +74,29 @@ export const ItemCompatibility = Type.Union(
 export type CompatibilityEntry = Static<typeof CompatibilityEntry>;
 export type Compatibility = Static<typeof Compatibility>;
 export type ItemCompatibility = Static<typeof ItemCompatibility>;
+
+// The difficulties the mission API defines, in its luarules/mission_api/difficulties.json, easiest first.
+// The client passes the chosen one to the mission by id, and the mission decides what it means.
+export const DIFFICULTIES = ["story", "easy", "medium", "hard"] as const;
+
+export const Difficulty = Type.Union(
+    DIFFICULTIES.map((id) => Type.Literal(id)),
+    { title: "Difficulty", description: `One of the mission API's difficulties: ${DIFFICULTIES.join(", ")}.` }
+);
+
+export const Difficulties = Type.Array(Difficulty, {
+    minItems: 1,
+    uniqueItems: true,
+    title: "Difficulties",
+    description: "The difficulties this content can be played at. The player chooses from these.",
+});
+
+export const DefaultDifficulty = Type.Union(Difficulty.anyOf, {
+    title: "Default difficulty",
+    description: "The difficulty chosen until the player picks another. Must be one of `difficulties`.",
+});
+
+export type Difficulty = Static<typeof Difficulty>;
 
 export const ContentFileName = Type.String({
     minLength: 1,

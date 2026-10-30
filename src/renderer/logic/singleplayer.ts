@@ -7,8 +7,9 @@ import { singleplayerApi } from "@renderer/api/singleplayer";
 import type { TranslationKey } from "@renderer/i18n";
 import { singleplayerStore, singleplayerUpdates } from "@renderer/store/singleplayer.store";
 import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
-import { ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
-import type { ContentSource, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
+import { chosenDifficulty, ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
+import { DIFFICULTIES, type Difficulty } from "@shared/content/schema/common";
+import type { ContentSource, ItemDifficulties, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
 
 let isInitialized = false;
 
@@ -51,6 +52,7 @@ const saveFailureKeys: Record<SaveFailure, TranslationKey> = {
     save_version_older: "lobby.logic.singleplayer.saveFailures.saveVersionOlder",
     save_version_newer: "lobby.logic.singleplayer.saveFailures.saveVersionNewer",
     invalid_result: "lobby.logic.singleplayer.saveFailures.invalidResult",
+    invalid_difficulty: "lobby.logic.singleplayer.saveFailures.invalidDifficulty",
     unknown_item: "lobby.logic.singleplayer.saveFailures.unknownItem",
     save_failed: "lobby.logic.singleplayer.saveFailures.saveFailed",
 };
@@ -162,6 +164,38 @@ function variablesOf(campaign: SingleplayerCampaign): Record<string, SaveVariabl
     return campaignVariables(campaignProgress(campaign));
 }
 
+// Keyed on every difficulty, so a new one does not compile until it has a name.
+const difficultyKeys: Record<Difficulty, TranslationKey> = {
+    story: "lobby.singleplayer.content.difficulties.story",
+    easy: "lobby.singleplayer.content.difficulties.easy",
+    medium: "lobby.singleplayer.content.difficulties.medium",
+    hard: "lobby.singleplayer.content.difficulties.hard",
+};
+
+function difficultyName(difficulty: Difficulty): TranslationKey {
+    return difficultyKeys[difficulty];
+}
+
+// The difficulties an item offers, easiest first, whatever order its content lists them in.
+function offeredDifficulties(item: ItemDifficulties): Difficulty[] {
+    return DIFFICULTIES.filter((difficulty) => item.difficulties.includes(difficulty));
+}
+
+/**
+ * The difficulty the campaign's missions are played at: the one the player chose, or the campaign's default
+ * until they choose. A save that can't be used counts as no choice, as it counts as no progress.
+ */
+function campaignDifficulty(campaign: SingleplayerCampaign): Difficulty {
+    const usable = campaignSaveStatus(campaign) === "compatible";
+
+    return chosenDifficulty(usable ? saveOf("campaign", campaign) : undefined, campaign);
+}
+
+// The difficulty a scenario or tutorial is played at: the one the player chose, or its default until they choose.
+function itemDifficulty(item: ItemRef & ItemDifficulties): Difficulty {
+    return chosenDifficulty(saveOf(item.kind, item), item);
+}
+
 // A scenario or tutorial is completed once it has been won.
 function itemCompleted(item: ItemRef) {
     return hasWon((saveOf(item.kind, item) ?? noProgress).plays, item.id);
@@ -185,10 +219,10 @@ function tutorialsCompleted(source: ContentSource, rootId: string) {
     return tutorials.length > 0 && tutorials.every(itemCompleted);
 }
 
-// Saves a result and keeps the save main wrote. Gives false, with the reason in the store, if it wasn't saved.
-// A save main found it can't use is marked as such instead, as starting over is the only way past it.
-async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
-    const saved = await fromMain<SingleplayerSave, SaveFailure>(() => singleplayerApi.recordResult(kind, ref, result), saveFailureKeys, "save_failed");
+// Asks main to change a save and keeps the save main wrote. Gives false, with the reason in the store, if it
+// wasn't changed. A save main found it can't use is marked as such instead, as starting over is the only way past it.
+async function changeSave(kind: SingleplayerKind, ref: SingleplayerItemRef, call: () => Promise<IpcResult<SingleplayerSave>>) {
+    const saved = await fromMain<SingleplayerSave, SaveFailure>(call, saveFailureKeys, "save_failed");
     if ("reason" in saved) {
         if (saved.reason === "save_unusable") {
             singleplayerUpdates.saveUnusable(saveKey(kind, ref));
@@ -199,6 +233,15 @@ async function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, resu
     }
     await inOrder(() => singleplayerUpdates.saveStored(saveKey(kind, ref), saved.data));
     return true;
+}
+
+function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
+    return changeSave(kind, ref, () => singleplayerApi.recordResult(kind, ref, result));
+}
+
+// Saves the difficulty the player chose for a campaign, scenario or tutorial, creating its save if it has none.
+async function setDifficulty(kind: SingleplayerKind, item: SingleplayerItemRef, difficulty: Difficulty) {
+    await changeSave(kind, item, () => singleplayerApi.setDifficulty(kind, item, difficulty));
 }
 
 /**
@@ -271,6 +314,11 @@ export const singleplayerLogic = {
     campaignState,
     campaignCompleted,
     variablesOf,
+    difficultyName,
+    offeredDifficulties,
+    campaignDifficulty,
+    itemDifficulty,
+    setDifficulty,
     itemCompleted,
     saveErrorOf,
     tutorialsOf,

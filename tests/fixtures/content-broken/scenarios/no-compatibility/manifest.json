@@ -5,5 +5,7 @@
     "mapName": "Quicksilver Remake 1.24",
     "config": {
         "default": "missionConfig.json"
-    }
+    },
+    "difficulties": ["easy", "medium", "hard"],
+    "defaultDifficulty": "medium"
 }

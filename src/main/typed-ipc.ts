@@ -128,6 +128,7 @@ export type IPCCommands = {
     "singleplayer:list": () => IpcResult<SingleplayerContent>;
     "singleplayer:getSaves": () => IpcResult<SingleplayerSaves>;
     "singleplayer:recordResult": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) => IpcResult<SingleplayerSave>;
+    "singleplayer:setDifficulty": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, difficulty: string) => IpcResult<SingleplayerSave>;
     "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
     "singleplayer:deleteAllSaves": () => IpcResult;
     "settings:toggleFullscreen": () => void;

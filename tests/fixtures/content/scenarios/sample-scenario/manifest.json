@@ -18,5 +18,7 @@
             "gameVersions": ["Beyond All Reason test-28100-bbbbbbb", "Beyond All Reason test-28200-ccccccc"]
         }
     ],
-    "$schema": "../../../../../schemas/content/mission-manifest.schema.json"
+    "$schema": "../../../../../schemas/content/mission-manifest.schema.json",
+    "difficulties": ["easy", "medium", "hard"],
+    "defaultDifficulty": "medium"
 }

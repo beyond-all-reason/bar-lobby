@@ -35,6 +35,7 @@ describe("loadSingleplayerContent", () => {
             expect(campaign.backgroundImageUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "background.png"))}`);
             expect(campaign.logoUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "sample-logo.png"))}`);
             expect(campaign.compatibility).toEqual(campaign.config.compatibility);
+            expect(campaign).toMatchObject({ difficulties: ["story", "easy", "medium", "hard"], defaultDifficulty: "medium" });
             expect(campaign.missions.map((m) => m.id)).toEqual(["tutorial", "mission01", "mission02", "missionA", "missionB", "optionalMissionA", "optionalMissionB", "finalMission"]);
 
             const mission01 = campaign.missions[1];
@@ -56,6 +57,7 @@ describe("loadSingleplayerContent", () => {
 
             expect(scenario).toMatchObject({ kind: "scenario", source: "official", rootId: "official" });
             expect(scenario.compatibility).toHaveLength(2);
+            expect(scenario).toMatchObject({ difficulties: ["easy", "medium", "hard"], defaultDifficulty: "medium" });
             expect(scenario.springDataPaths).toEqual([path.join(official.path, "scenarios", "sample-scenario")]);
             expect(tutorial).toMatchObject({ kind: "tutorial", id: "sample-tutorial" });
         });
@@ -105,6 +107,8 @@ describe("loadSingleplayerContent", () => {
             ["scenarios/bad-team-name/missionConfig.json", /\/alliances\/enemies\/1 must match pattern .*"hench;men".*letters, digits and underscores only/],
             ["scenarios/newer-format/manifest.json", /Requires a newer client: format version 99/],
             ["scenarios/no-compatibility/manifest.json", /compatibility is required/],
+            ["scenarios/no-difficulties/manifest.json", /difficulties and defaultDifficulty are required/],
+            ["scenarios/bad-default-difficulty/manifest.json", /defaultDifficulty "story" is not one of difficulties \(easy, medium, hard\)/],
             ["scenarios/empty-compatibility/manifest.json", /\/compatibility must NOT have fewer than 1 items/],
             ["scenarios/engine-without-games/manifest.json", /\/compatibility\/0\/gameVersions must NOT have fewer than 1 items/],
             ["scenarios/duplicate-engine/manifest.json", /lists engine 2025.04.10 more than once/],
@@ -201,6 +205,32 @@ describe("loadSingleplayerContent", () => {
                 { path: configPath, severity: "warning", message: expect.stringMatching(/^descriptionKey "campaign.nothing" has no text/) },
                 { path: manifestPath, severity: "warning", message: expect.stringMatching(/^descriptionKey "missions.mission01.nothing" has no text/) },
             ]);
+        });
+
+        it("refuses a campaign whose default difficulty it doesn't offer", async () => {
+            const campaign = path.join(root, "campaigns", "sample-campaign");
+            await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
+            const configPath = path.join(campaign, "campaignConfig.json");
+            const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, difficulties: ["easy", "medium"], defaultDifficulty: "hard" }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.campaigns).toEqual([]);
+            expect(content.problems).toEqual([{ path: configPath, severity: "error", message: 'defaultDifficulty "hard" is not one of difficulties (easy, medium)' }]);
+        });
+
+        it("warns that a campaign mission's own difficulties are ignored", async () => {
+            const campaign = path.join(root, "campaigns", "sample-campaign");
+            await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
+            const manifestPath = path.join(campaign, "mission01", "manifest.json");
+            const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, difficulties: ["hard"], defaultDifficulty: "hard" }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.campaigns).toHaveLength(1);
+            expect(content.problems).toEqual([{ path: manifestPath, severity: "warning", message: expect.stringMatching(/difficulties and defaultDifficulty are ignored in a campaign mission/) }]);
         });
 
         // So a content repository can be cloned straight into a content root.

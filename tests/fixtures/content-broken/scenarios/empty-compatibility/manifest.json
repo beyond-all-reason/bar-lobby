@@ -6,5 +6,7 @@
     "config": {
         "default": "missionConfig.json"
     },
-    "compatibility": []
+    "compatibility": [],
+    "difficulties": ["easy", "medium", "hard"],
+    "defaultDifficulty": "medium"
 }

@@ -19,5 +19,7 @@
         }
     },
     "startMission": ["mission01"],
-    "finalMission": ["mission01"]
+    "finalMission": ["mission01"],
+    "difficulties": ["story", "easy", "medium", "hard"],
+    "defaultDifficulty": "medium"
 }

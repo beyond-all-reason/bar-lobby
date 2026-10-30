@@ -7,7 +7,7 @@
 
 import type { LanguageTables } from "./content-text";
 import type { CampaignConfig } from "./schema/campaign-config";
-import type { ItemCompatibility } from "./schema/common";
+import type { Difficulty, ItemCompatibility } from "./schema/common";
 import type { MissionConfig } from "./schema/mission-config";
 import type { MissionManifest } from "./schema/mission-manifest";
 
@@ -56,22 +56,30 @@ export type SingleplayerMission = {
     springDataPaths: string[];
 };
 
-export type SingleplayerCampaign = SingleplayerItemRef & {
-    kind: "campaign";
-    path: string;
-    config: CampaignConfig;
-    credits: string[];
-    // shared/language/, the fallback for every mission's own language/.
-    language: LanguageTables;
-    backgroundImageUrl?: string;
-    logoUrl?: string;
-    compatibility: ItemCompatibility;
-    // In the order the config lists them.
-    missions: SingleplayerMission[];
+// The difficulties a campaign, scenario or tutorial offers. A campaign mission is played at its campaign's.
+export type ItemDifficulties = {
+    difficulties: Difficulty[];
+    defaultDifficulty: Difficulty;
 };
 
+export type SingleplayerCampaign = SingleplayerItemRef &
+    ItemDifficulties & {
+        kind: "campaign";
+        path: string;
+        config: CampaignConfig;
+        credits: string[];
+        // shared/language/, the fallback for every mission's own language/.
+        language: LanguageTables;
+        backgroundImageUrl?: string;
+        logoUrl?: string;
+        compatibility: ItemCompatibility;
+        // In the order the config lists them.
+        missions: SingleplayerMission[];
+    };
+
 export type SingleplayerScenario = SingleplayerItemRef &
-    SingleplayerMission & {
+    SingleplayerMission &
+    ItemDifficulties & {
         kind: "scenario" | "tutorial";
         compatibility: ItemCompatibility;
     };

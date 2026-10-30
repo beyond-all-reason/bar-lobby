@@ -3959,6 +3959,7 @@
                     "saveVersionOlder": null,
                     "saveVersionNewer": null,
                     "invalidResult": null,
+                    "invalidDifficulty": null,
                     "unknownItem": null,
                     "saveFailed": null
                 },
@@ -4345,6 +4346,13 @@
                 "deleteSave": null,
                 "deleteAllTutorialSaves": null,
                 "variables": null,
+                "difficulty": null,
+                "difficulties": {
+                    "story": null,
+                    "easy": null,
+                    "medium": null,
+                    "hard": null
+                },
                 "saveFromOlderVersion": null,
                 "saveFromNewerVersion": null,
                 "campaignSaveUnusable": null,

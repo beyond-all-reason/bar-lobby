@@ -20,6 +20,8 @@ while its data is being worked on.
             <h3>{{ title }}</h3>
             <p v-if="description">{{ description }}</p>
             <code v-if="settingsStore.devMode" class="dev-status">{{ devStatus }}</code>
+            <!-- Settings for playing it, such as its difficulty. -->
+            <slot />
             <div class="flex-row gap-sm flex-center-items actions">
                 <span v-if="status.completed" class="completed">{{ t("lobby.singleplayer.content.completed") }}</span>
                 <Button class="green" :disabled="!status.available" @click="emit('pass')">{{

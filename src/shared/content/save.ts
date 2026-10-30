@@ -11,7 +11,8 @@
 // by a co-op host to the other players, as it is, and it stays the same size however often the item is played.
 
 import { Type, Static } from "@sinclair/typebox";
-import type { SingleplayerItemRef, SingleplayerKind } from "./singleplayer";
+import type { Difficulty } from "./schema/common";
+import type { ItemDifficulties, SingleplayerItemRef, SingleplayerKind } from "./singleplayer";
 
 // The newest save format this client reads. A save with a higher version was written by a newer client, maybe
 // on another machine, and is left alone rather than overwritten.
@@ -82,6 +83,9 @@ export const SingleplayerSave = Type.Object({
     }),
     // Victories and failures per mission. A scenario or tutorial has one entry, under its own id.
     plays: Type.Record(Type.String(), MissionPlays),
+    // The difficulty the player chose. Any string, not only the ones this client knows, so a save from a
+    // client that knows more still reads; chosenDifficulty gives the content's default for one it doesn't offer.
+    difficulty: Type.Optional(Type.String({ minLength: 1 })),
     campaign: Type.Optional(CampaignProgress),
     recent: Type.Array(RecentResult),
 });
@@ -97,6 +101,16 @@ export type ReportedResult = Static<typeof ReportedResult>;
 export type MissionPlays = Static<typeof MissionPlays>;
 export type CampaignProgress = Static<typeof CampaignProgress>;
 export type SingleplayerSave = Static<typeof SingleplayerSave> & { item: { kind: SingleplayerKind } & SingleplayerItemRef };
+
+/**
+ * The difficulty to play an item at: the one saved, while the content still offers it, otherwise the
+ * content's default. A campaign's missions are all played at the campaign's.
+ */
+export function chosenDifficulty(save: Pick<SingleplayerSave, "difficulty"> | undefined, item: ItemDifficulties): Difficulty {
+    const saved = item.difficulties.find((difficulty) => difficulty === save?.difficulty);
+
+    return saved ?? item.defaultDifficulty;
+}
 
 /**
  * Whether a save can be used with the content as it is now. A campaign raises its saveVersion for a change that
@@ -115,8 +129,9 @@ export function saveCompatibility(save: Pick<SingleplayerSave, "saveVersion">, c
 }
 
 // Why main didn't make a change asked for to a save. Sent as codes so the renderer words them itself; the file
-// paths and errors behind them go to main's log. save_failed is anything else, such as a full disk.
-export type SaveFailure = "save_unusable" | "save_version_older" | "save_version_newer" | "invalid_result" | "unknown_item" | "save_failed";
+// paths and errors behind them go to main's log. invalid_difficulty is one the item doesn't offer. save_failed
+// is anything else, such as a full disk.
+export type SaveFailure = "save_unusable" | "save_version_older" | "save_version_newer" | "invalid_result" | "invalid_difficulty" | "unknown_item" | "save_failed";
 
 // A save as written, or undefined once deleted, for the item it belongs to.
 export type SaveChange = { item: SingleplayerItemRef & { kind: SingleplayerKind }; save: SingleplayerSave | undefined };

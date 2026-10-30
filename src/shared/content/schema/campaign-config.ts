@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { DIFFICULTY_PENDING, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
+import { DefaultDifficulty, Difficulties, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
 
 const missionIds = (title: string, description: string) =>
     Type.Array(Type.String({ minLength: 1, title: "Mission id", description: "A key of `missions`." }), {
@@ -84,10 +84,11 @@ export const CampaignConfig = Type.Object(
         }),
         finalMission: missionIds("Final missions", "Missions that finish the campaign when won."),
         compatibility: ItemCompatibility,
+        difficulties: Difficulties,
+        defaultDifficulty: DefaultDifficulty,
     },
     {
         title: "Campaign config",
-        $comment: DIFFICULTY_PENDING,
         description: "campaignConfig.json in a campaign folder: the campaign's details and how its missions unlock.",
     }
 );

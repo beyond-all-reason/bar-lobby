@@ -8,6 +8,7 @@ import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import { type AppliedProgress, countPlay, type ItemProgress } from "../../../shared/content/campaign-progress";
 import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, saveKey, type SaveFailure, SingleplayerSave, variablesBytes } from "../../../shared/content/save";
+import type { Difficulty } from "../../../shared/content/schema/common";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
 import { describeError, relevantErrors } from "./files";
 
@@ -148,13 +149,11 @@ export type ApplyResult = (progress: ItemProgress, result: ReportedResult) => Ap
 const countOnly: ApplyResult = (progress, result) => ({ plays: countPlay(progress.plays, result.missionId, result.outcome) });
 
 /**
- * Applies a played result to an item's save, creating the save on its first result, and returns the save as
- * written. `saveVersion` is the content's, which a new save records, and `apply` is how the result changes the
- * item's progress. Refuses, and leaves the file alone, if the existing save can't be used or was started under
- * another save version, or if the result would leave the save over its limits.
+ * Changes an item's save, creating it if there is none, and returns the save as written. `saveVersion` is the
+ * content's, which a new save records. Refuses, and leaves the file alone, if the existing save can't be used
+ * or was started under another save version, or if `change` throws.
  */
-export async function recordResult(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult, saveVersion = 1, apply: ApplyResult = countOnly): Promise<SingleplayerSave> {
-    checkResult(result);
+async function changeSave(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, saveVersion: number, change: (save: SingleplayerSave) => SingleplayerSave): Promise<SingleplayerSave> {
     const filePath = path.join(dir, saveFileName(kind, ref));
 
     return queued(filePath, async () => {
@@ -172,6 +171,23 @@ export async function recordResult(dir: string, kind: SingleplayerKind, ref: Sin
                 : new SaveFailureError("save_version_newer", `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, newer than the ${saveVersion} installed.`);
         }
 
+        const updated = change(save);
+        await writeSave(filePath, updated);
+
+        return updated;
+    });
+}
+
+/**
+ * Applies a played result to an item's save, creating the save on its first result, and returns the save as
+ * written. `saveVersion` is the content's, which a new save records, and `apply` is how the result changes the
+ * item's progress. Refuses, and leaves the file alone, if the existing save can't be used or was started under
+ * another save version, or if the result would leave the save over its limits.
+ */
+export async function recordResult(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult, saveVersion = 1, apply: ApplyResult = countOnly): Promise<SingleplayerSave> {
+    checkResult(result);
+
+    return changeSave(dir, kind, ref, saveVersion, (save) => {
         const progress = apply(save, result);
         const variableCount = Object.keys(progress.campaign?.variables ?? {}).length;
         if (variableCount > SAVE_LIMITS.variableCount) {
@@ -184,11 +200,18 @@ export async function recordResult(dir: string, kind: SingleplayerKind, ref: Sin
         }
 
         const recent = [...save.recent, { ...result, at: new Date().toISOString() }].slice(-SAVE_LIMITS.recentResults);
-        const updated: SingleplayerSave = { ...save, ...progress, recent };
-        await writeSave(filePath, updated);
 
-        return updated;
+        return { ...save, ...progress, recent };
     });
+}
+
+/**
+ * Saves the difficulty the player chose for an item, creating the save if the item hasn't been played yet, and
+ * returns the save as written. Whether the item offers the difficulty is the caller's to check. Refuses, as
+ * recordResult does, if the existing save can't be used or was started under another save version.
+ */
+export async function setDifficulty(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, difficulty: Difficulty, saveVersion = 1): Promise<SingleplayerSave> {
+    return changeSave(dir, kind, ref, saveVersion, (save) => ({ ...save, difficulty }));
 }
 
 // Through a temp file, so a crash mid-write can't truncate the save. The temp file doesn't end in .json, so

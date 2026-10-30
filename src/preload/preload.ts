@@ -202,6 +202,8 @@ const singleplayerApi = {
     getSaves: (): Promise<IpcResult<SingleplayerSaves>> => ipcRenderer.invoke("singleplayer:getSaves"),
     recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult): Promise<IpcResult<SingleplayerSave>> =>
         ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),
+    setDifficulty: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, difficulty: string): Promise<IpcResult<SingleplayerSave>> =>
+        ipcRenderer.invoke("singleplayer:setDifficulty", kind, source, rootId, id, difficulty),
     deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
     deleteAllSaves: (): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
     // Every change to a save, including ones main made itself.

@@ -50,7 +50,14 @@ SPDX-License-Identifier: MIT
                         :status="tutorialStatus(tutorial)"
                         @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
                         @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
-                    />
+                    >
+                        <DifficultySelect
+                            :offered="singleplayerLogic.offeredDifficulties(tutorial)"
+                            :model-value="singleplayerLogic.itemDifficulty(tutorial)"
+                            :disabled="singleplayerLogic.saveUnusable('tutorial', tutorial)"
+                            @update:model-value="(difficulty) => singleplayerLogic.setDifficulty('tutorial', tutorial, difficulty)"
+                        />
+                    </MissionCard>
                 </div>
                 <ContentProblems v-if="settingsStore.devMode && singleplayerStore.content" :problems="singleplayerStore.content.problems" />
             </div>
@@ -64,6 +71,7 @@ import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import ContentProblems from "@renderer/components/singleplayer/ContentProblems.vue";
+import DifficultySelect from "@renderer/components/singleplayer/DifficultySelect.vue";
 import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";

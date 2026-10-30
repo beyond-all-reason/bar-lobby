@@ -39,6 +39,14 @@ graph: content does not say which missions are alternatives to each other.
             </div>
             <div v-else-if="campaign && state" class="scroll-container flex-col gap-md">
                 <p>{{ text(campaign.config.descriptionKey, campaign.language) }}</p>
+                <!-- One difficulty for the whole campaign: every mission is played at it. -->
+                <div class="difficulty">
+                    <DifficultySelect
+                        :offered="singleplayerLogic.offeredDifficulties(campaign)"
+                        :model-value="singleplayerLogic.campaignDifficulty(campaign)"
+                        @update:model-value="(difficulty) => singleplayerLogic.setDifficulty('campaign', campaign!, difficulty)"
+                    />
+                </div>
                 <div class="flex-row gap-md">
                     <Button @click="router.push(`/play/campaigns/${source}/${rootId}/${id}/credits`)">{{
                         t("lobby.singleplayer.content.showCredits")
@@ -75,6 +83,7 @@ import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
+import DifficultySelect from "@renderer/components/singleplayer/DifficultySelect.vue";
 import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";
@@ -117,6 +126,10 @@ onMounted(() => {
 <style lang="scss" scoped>
 .logo {
     max-height: 48px;
+}
+
+.difficulty {
+    width: 300px;
 }
 
 .cards {

@@ -4,6 +4,7 @@
 
 import { ipcCall } from "@renderer/api/ipc-call";
 import type { SaveChange, ReportedResult } from "@shared/content/save";
+import type { Difficulty } from "@shared/content/schema/common";
 import type { SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
 
 export const singleplayerApi = {
@@ -13,6 +14,9 @@ export const singleplayerApi = {
     // Returns the save as written.
     recordResult: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, result: ReportedResult) =>
         ipcCall("singleplayer:recordResult", () => window.singleplayer.recordResult(kind, source, rootId, id, result)),
+    // Returns the save as written.
+    setDifficulty: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, difficulty: Difficulty) =>
+        ipcCall("singleplayer:setDifficulty", () => window.singleplayer.setDifficulty(kind, source, rootId, id, difficulty)),
     deleteAllSaves: () => ipcCall("singleplayer:deleteAllSaves", () => window.singleplayer.deleteAllSaves()),
     // Every change to a save, including ones main made itself. Gives the function that unsubscribes.
     onSaveChanged: (handler: (change: SaveChange) => void) => window.singleplayer.onSaveChanged(handler),

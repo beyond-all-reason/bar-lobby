@@ -67,9 +67,9 @@ async function getSaves(): Promise<SingleplayerSaves> {
     return { saves: read.saves, unusable };
 }
 
-// Saved progress, for whatever reports a finished game and for launching a mission with its saved variables.
-// A campaign's save is only usable while saveCompatibility with the campaign's saveVersion says so: launching
-// must check that, then pass on campaignVariables(save).
+// Saved progress, for whatever reports a finished game and for launching a mission with its saved variables
+// and difficulty. A campaign's save is only usable while saveCompatibility with the campaign's saveVersion says
+// so: launching must check that, then pass on campaignVariables(save) and chosenDifficulty(save, item).
 function readSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return saves.readSave(SAVES_PATH, kind, ref);
 }
@@ -97,6 +97,24 @@ async function recordResult(kind: SingleplayerKind, ref: SingleplayerItemRef, re
         item.kind === "campaign"
             ? await saves.recordResult(SAVES_PATH, kind, ref, result, item.config.saveVersion ?? 1, (progress, reported) => applyResult(item.config, progress, reported))
             : await saves.recordResult(SAVES_PATH, kind, ref, result);
+    onSaveChanged.dispatch({ item: itemOf(kind, ref), save });
+
+    return save;
+}
+
+// The difficulty comes over IPC, so it is checked against what the item offers rather than trusted.
+async function setDifficulty(kind: SingleplayerKind, ref: SingleplayerItemRef, difficulty: string) {
+    checkKind(kind);
+    const item = await get(`${kind}s`, ref);
+    if (!item) {
+        throw new SaveFailureError("unknown_item", `No ${kind} ${ref.id} in ${ref.source}/${ref.rootId}`);
+    }
+    const offered = item.difficulties.find((offered) => offered === difficulty);
+    if (!offered) {
+        throw new SaveFailureError("invalid_difficulty", `${kind} ${item.id} does not offer difficulty ${JSON.stringify(difficulty)}. It offers ${item.difficulties.join(", ")}`);
+    }
+
+    const save = await saves.setDifficulty(SAVES_PATH, kind, ref, offered, item.kind === "campaign" ? (item.config.saveVersion ?? 1) : 1);
     onSaveChanged.dispatch({ item: itemOf(kind, ref), save });
 
     return save;
@@ -135,6 +153,9 @@ function registerIpcHandlers(webContents: WebContents) {
     ipcMain.handle("singleplayer:getSaves", () => overIpc(getSaves, loadFailureOf));
     ipcMain.handle("singleplayer:recordResult", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) =>
         overIpc(() => recordResult(kind, { source, rootId, id }, result), saveFailureOf)
+    );
+    ipcMain.handle("singleplayer:setDifficulty", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, difficulty: string) =>
+        overIpc(() => setDifficulty(kind, { source, rootId, id }, difficulty), saveFailureOf)
     );
     ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => overIpc(() => deleteSave(kind, { source, rootId, id }), saveFailureOf));
     ipcMain.handle("singleplayer:deleteAllSaves", () => overIpc(deleteAllSaves, saveFailureOf));

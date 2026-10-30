@@ -9,7 +9,7 @@ import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 
-const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), deleteSave: vi.fn(), deleteAllSaves: vi.fn(), onSaveChanged: vi.fn() }));
+const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), setDifficulty: vi.fn(), deleteSave: vi.fn(), deleteAllSaves: vi.fn(), onSaveChanged: vi.fn() }));
 vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { singleplayerStore, singleplayerUpdates } = await import("@renderer/store/singleplayer.store");
@@ -37,6 +37,13 @@ function fakeMain() {
         disk.set(key, updated);
         return { status: "success", data: structuredClone(updated) };
     });
+    api.setDifficulty.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef, difficulty: string) => {
+        const key = saveKey(kind, ref);
+        const save = disk.get(key) ?? { formatVersion: 1, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
+        const updated = { ...save, difficulty };
+        disk.set(key, updated);
+        return { status: "success", data: structuredClone(updated) };
+    });
     api.deleteSave.mockImplementation(async (kind: SingleplayerKind, ref: SingleplayerItemRef) => {
         disk.delete(saveKey(kind, ref));
         return { status: "success", data: undefined };
@@ -50,7 +57,20 @@ function fakeMain() {
 function makeCampaign(source: "official" | "custom"): SingleplayerCampaign {
     const config = sampleCampaign as CampaignConfig;
 
-    return { kind: "campaign", source, rootId: source, id: "sample-campaign", path: "", config, credits: [], language: {}, compatibility: config.compatibility, missions: [] };
+    return {
+        kind: "campaign",
+        source,
+        rootId: source,
+        id: "sample-campaign",
+        path: "",
+        config,
+        credits: [],
+        language: {},
+        compatibility: config.compatibility,
+        difficulties: config.difficulties,
+        defaultDifficulty: config.defaultDifficulty,
+        missions: [],
+    };
 }
 
 function makeTutorial(id: string, source: "official" | "custom" = "official"): SingleplayerScenario {
@@ -264,6 +284,46 @@ describe("singleplayer logic", () => {
 
             expect(playsOf("campaign", official)).toBe(1);
             expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.saveFailed");
+        });
+    });
+
+    describe("difficulty", () => {
+        it("gives the campaign's default until one is chosen, then the one chosen", async () => {
+            expect(singleplayerLogic.campaignDifficulty(official)).toBe("medium");
+
+            await singleplayerLogic.setDifficulty("campaign", official, "hard");
+
+            expect(singleplayerLogic.campaignDifficulty(official)).toBe("hard");
+            expect(api.setDifficulty).toHaveBeenCalledWith("campaign", official, "hard");
+            expect(singleplayerLogic.campaignDifficulty(custom)).toBe("medium");
+        });
+
+        it("keeps the choice when it can't be saved, with the message for main's reason", async () => {
+            api.setDifficulty.mockResolvedValueOnce({ status: "failed", reason: "invalid_difficulty" });
+
+            await singleplayerLogic.setDifficulty("campaign", official, "story");
+
+            expect(singleplayerLogic.campaignDifficulty(official)).toBe("medium");
+            expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.invalidDifficulty");
+        });
+
+        it("counts the choice in a save from another version as none, like its progress", async () => {
+            await singleplayerLogic.setDifficulty("campaign", official, "hard");
+
+            expect(singleplayerLogic.campaignDifficulty({ ...official, config: { ...official.config, saveVersion: 2 } })).toBe("medium");
+        });
+
+        it("keeps a tutorial's choice to that tutorial", async () => {
+            const [combat, economy] = ["combat", "economy"].map((id): SingleplayerScenario => ({ ...makeTutorial(id), difficulties: ["easy", "hard"], defaultDifficulty: "easy" }));
+
+            await singleplayerLogic.setDifficulty("tutorial", combat, "hard");
+
+            expect(singleplayerLogic.itemDifficulty(combat)).toBe("hard");
+            expect(singleplayerLogic.itemDifficulty(economy)).toBe("easy");
+        });
+
+        it("offers the item's difficulties easiest first, whatever order it lists them in", () => {
+            expect(singleplayerLogic.offeredDifficulties({ difficulties: ["hard", "story", "medium"], defaultDifficulty: "medium" })).toEqual(["story", "medium", "hard"]);
         });
     });
 

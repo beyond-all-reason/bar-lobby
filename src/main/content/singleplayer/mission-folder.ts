@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { toBarUrl } from "../../../shared/bar-url";
 import { FALLBACK_LOCALE, hasFallbackText, type LanguageTables } from "../../../shared/content/content-text";
-import { DEV_COMPATIBILITY, type ItemCompatibility } from "../../../shared/content/schema/common";
+import { DEV_COMPATIBILITY, type Difficulty, type ItemCompatibility } from "../../../shared/content/schema/common";
 import { LanguageFile } from "../../../shared/content/schema/language-file";
 import { MissionConfig } from "../../../shared/content/schema/mission-config";
 import { MissionManifest } from "../../../shared/content/schema/mission-manifest";
@@ -63,6 +63,13 @@ export function checkCompatibility(compatibility: ItemCompatibility, filePath: s
             problems.error(filePath, `compatibility lists engine ${engineVersion} more than once. Put all its games in one entry`);
         }
         seen.add(engineVersion);
+    }
+}
+
+// The default is what the player gets without choosing, so it has to be one they could have chosen.
+export function checkDefaultDifficulty(difficulties: readonly Difficulty[], defaultDifficulty: Difficulty, filePath: string, problems: Problems) {
+    if (!difficulties.includes(defaultDifficulty)) {
+        problems.error(filePath, `defaultDifficulty "${defaultDifficulty}" is not one of difficulties (${difficulties.join(", ")})`);
     }
 }
 
@@ -155,6 +162,15 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
             checkCompatibility(manifest.compatibility, manifestPath, options.devContent, problems);
         } else {
             problems.error(manifestPath, "compatibility is required for a scenario or tutorial");
+        }
+    }
+    if (options.partOfCampaign && (manifest.difficulties || manifest.defaultDifficulty)) {
+        problems.warning(manifestPath, "difficulties and defaultDifficulty are ignored in a campaign mission. The campaign's apply to all its missions");
+    } else if (!options.partOfCampaign) {
+        if (!manifest.difficulties || !manifest.defaultDifficulty) {
+            problems.error(manifestPath, "difficulties and defaultDifficulty are required for a scenario or tutorial");
+        } else {
+            checkDefaultDifficulty(manifest.difficulties, manifest.defaultDifficulty, manifestPath, problems);
         }
     }
 

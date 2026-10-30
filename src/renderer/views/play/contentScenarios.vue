@@ -74,7 +74,13 @@ src/main/content/game/game-scenarios.ts) may be removed in favour of this view.
                             :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
                             @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
                             @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
-                        />
+                        >
+                            <DifficultySelect
+                                :offered="singleplayerLogic.offeredDifficulties(selected)"
+                                :model-value="singleplayerLogic.itemDifficulty(selected)"
+                                @update:model-value="(difficulty) => singleplayerLogic.setDifficulty('scenario', selected!, difficulty)"
+                            />
+                        </MissionCard>
                     </div>
                 </div>
             </div>
@@ -88,6 +94,7 @@ import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import ContentProblems from "@renderer/components/singleplayer/ContentProblems.vue";
 import ContentTile from "@renderer/components/singleplayer/ContentTile.vue";
+import DifficultySelect from "@renderer/components/singleplayer/DifficultySelect.vue";
 import MissionCard from "@renderer/components/singleplayer/MissionCard.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";

@@ -68,6 +68,7 @@ A JSON Schema sees one file at a time. These checks span files or need more than
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
 - Every language key (`titleKey`, `descriptionKey` and a team's `displayNameKey`) has English text where the client looks it up: a campaign's in `shared/language/en.json`, a campaign mission's in its own `language/en.json` and then the campaign's, a scenario's or tutorial's in its own. Every language falls back to English, so a key without it shows as the key itself. This is a warning.
 - `compatibility` is required in a scenario or tutorial manifest, and `"dev"` loads only in dev mode. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
+- `difficulties` and `defaultDifficulty` are required in a scenario or tutorial manifest, and `defaultDifficulty` is one of `difficulties`. A campaign mission leaves them out and uses the campaign's.
 
 Run all of these over a content folder with the loader itself:
 
@@ -108,13 +109,18 @@ The client loads it only in dev mode, with a warning. Outside dev mode it is rep
 
 ## Difficulty
 
-Difficulty settings are still being defined and are not part of the format yet. The client is to pass the chosen difficulty to the mission by name, and the mission decides what it means. Still undecided:
+The difficulties are the mission API's own set, from its `luarules/mission_api/difficulties.json`: `story`, `easy`, `medium` and `hard`. The client names them in the player's language and passes the chosen one to the mission by id. The mission decides what each one means.
 
-- whether there is one standard set of difficulties that the client and the mission API agree on, or each campaign, scenario or tutorial lists its own, with language keys for their names
-- where a default difficulty is set, and whether scenarios and tutorials can set one as well as campaigns
-- whether a difficulty is chosen once per campaign playthrough and saved, or at each launch
+`campaignConfig.json` and each scenario's or tutorial's manifest list the difficulties they offer, at least one, and the one chosen until the player picks another:
 
-Until this is settled, content has nowhere to set a difficulty. `campaign-config.schema.json` and `mission-manifest.schema.json` carry a `$comment` saying so.
+```json
+"difficulties": ["easy", "medium", "hard"],
+"defaultDifficulty": "medium"
+```
+
+The player chooses from the ones listed, which are shown easiest first whatever order they are listed in. A campaign's missions leave both out: the player chooses once for the whole campaign, and every mission is played at it. They can change it at any time, and the next mission is played at the new one.
+
+The choice is kept in the player's saved progress. If a release stops offering the difficulty a player chose, they play at `defaultDifficulty` until they choose again. Starting a campaign over goes back to the default.
 
 ## Saved progress and changing a released campaign
 

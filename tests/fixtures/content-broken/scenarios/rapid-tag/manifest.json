@@ -11,5 +11,7 @@
             "engineVersion": "2025.04.10",
             "gameVersions": ["byar:test"]
         }
-    ]
+    ],
+    "difficulties": ["easy", "medium", "hard"],
+    "defaultDifficulty": "medium"
 }

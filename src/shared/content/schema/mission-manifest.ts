@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { ContentFileName, DIFFICULTY_PENDING, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
+import { ContentFileName, DefaultDifficulty, Difficulties, Difficulty, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
 
 // manifest.json in a campaign mission, scenario or tutorial folder.
 export const MissionManifest = Type.Object(
@@ -55,10 +55,23 @@ export const MissionManifest = Type.Object(
                 description: `${ItemCompatibility.description} Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.`,
             })
         ),
+        difficulties: Type.Optional(
+            Type.Array(Difficulty, {
+                minItems: Difficulties.minItems,
+                uniqueItems: Difficulties.uniqueItems,
+                title: Difficulties.title,
+                description: `${Difficulties.description} Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.`,
+            })
+        ),
+        defaultDifficulty: Type.Optional(
+            Type.Union(DefaultDifficulty.anyOf, {
+                title: DefaultDifficulty.title,
+                description: `${DefaultDifficulty.description} Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.`,
+            })
+        ),
     },
     {
         title: "Mission manifest",
-        $comment: DIFFICULTY_PENDING,
         description: "manifest.json in a campaign mission, scenario or tutorial folder.",
     }
 );

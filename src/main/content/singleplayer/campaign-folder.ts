@@ -8,7 +8,7 @@ import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
 import { fileInside, isFolder, listFolders, readContentJson } from "./files";
-import { checkCompatibility, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
+import { checkCompatibility, checkDefaultDifficulty, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
 export const CAMPAIGN_CONFIG_FILE = "campaignConfig.json";
@@ -96,6 +96,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         problems.error(configPath, `A mission may not be named "${SHARED_FOLDER}", which is the campaign's shared folder`);
     }
     checkCompatibility(config.compatibility, configPath, devContent, problems);
+    checkDefaultDifficulty(config.difficulties, config.defaultDifficulty, configPath, problems);
     checkMissionGraph(config, configPath, problems);
 
     const folders = new Set((await listFolders(folder)).filter((name) => name !== SHARED_FOLDER));
@@ -150,6 +151,8 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         backgroundImageUrl,
         logoUrl,
         compatibility: config.compatibility,
+        difficulties: config.difficulties,
+        defaultDifficulty: config.defaultDifficulty,
         missions,
     };
 }

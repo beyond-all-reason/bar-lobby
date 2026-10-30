@@ -16,5 +16,7 @@
             "gameVersions": ["Beyond All Reason test-28100-bbbbbbb", "Beyond All Reason test-28200-ccccccc"]
         }
     ],
-    "formatVersion": 99
+    "formatVersion": 99,
+    "difficulties": ["easy", "medium", "hard"],
+    "defaultDifficulty": "medium"
 }
