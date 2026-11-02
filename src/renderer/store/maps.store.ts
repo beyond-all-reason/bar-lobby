@@ -8,6 +8,7 @@ import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
+import { isEditionRefusal } from "@shared/edition";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -178,7 +179,9 @@ export async function downloadMap(springName: string) {
         })
         .catch((error) => {
             console.error("Failed to download map:", springName, error);
-            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            if (!isEditionRefusal(error)) {
+                notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            }
             dbDelegate.update(springName, { isDownloading: false });
         });
 }

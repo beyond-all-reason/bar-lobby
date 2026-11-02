@@ -3,7 +3,8 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": "{content} is misnsig. It cmeos wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam. | {content} are misnsig. Tehy cmoe wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam."
+                    "contentBundledWithInstall": "{content} is misnsig. It cmeos wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam. | {content} are misnsig. Tehy cmoe wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam.",
+                    "contentUnavailableInEdition": "{content} is not aablviale in tihs etidoin. | {content} are not aablviale in tihs etidoin."
                 }
             }
         },
@@ -814,7 +815,8 @@
                 "downloadContentButton": {
                     "downloading": "Doanondlwig...",
                     "download": "Dlawonod",
-                    "verifyGameFiles": "Gmae fleis misnsig — virefy tehm in Steam"
+                    "verifyGameFiles": "Gmae fleis misnsig — virefy tehm in Steam",
+                    "mapUnavailable": "Map uilalnbaave"
                 },
                 "select": {
                     "search": "Sacreh"

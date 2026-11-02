@@ -7,8 +7,8 @@ import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
-const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
+const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, downloadMaps: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
+const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, downloadMaps: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
 
 const { setup, held } = vi.hoisted(() => {
     // Every label the component asked for, so a test can tell one was never shown even in passing.
@@ -171,6 +171,7 @@ describe("InitialSetup stage labels", () => {
     });
 
     it("says it is downloading maps once it starts downloading them", async () => {
+        setup.features = standalone;
         setup.installedMaps = 0;
         const release = hold("download");
         const wrapper = mountSetup();
@@ -183,6 +184,16 @@ describe("InitialSetup stage labels", () => {
         await flushPromises();
 
         expect(wrapper.emitted("complete")).toHaveLength(1);
+    });
+
+    it("does not download the default maps where maps cannot be acquired", async () => {
+        setup.installedMaps = 0;
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(wrapper.emitted("complete")).toHaveLength(1);
+        expect(downloadMaps).not.toHaveBeenCalled();
+        expect(setup.requested).not.toContain("lobby.components.misc.initialSetup.downloadingMaps");
     });
 
     it("does not run the update stage where the client cannot update itself", async () => {

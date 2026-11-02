@@ -90,8 +90,14 @@ export class ReplaysAPI {
     // Having the map makes the replay previewable, but the replay is what the caller asked to add, so a
     // map that will not download must not keep it out of the list.
     private async fetchReplayMap(replay: Replay) {
+        // Not even asked for where maps cannot be acquired: every replay synced at startup would report a refusal.
+        const ref = { type: "map" as const, id: replay.mapSpringName };
+        if (!contentAPI.canAcquire(ref)) {
+            return;
+        }
+
         try {
-            await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
+            await contentAPI.ensure([ref]);
         } catch (err) {
             log.error(`Could not fetch map ${replay.mapSpringName} for replay ${replay.fileName}`, err);
         }

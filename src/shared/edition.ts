@@ -41,8 +41,11 @@ export function editionFeatures(edition: Edition) {
     return {
         // electron-updater; Steam updates the client itself.
         selfUpdate: edition === "standalone",
-        // Engines, games and the pool seed. Maps can always be downloaded.
+        // Engines, games and the pool seed.
         downloadEngineAndGame: edition === "standalone",
+        // The one switch for map downloads. Everything that lists, offers or fetches a map asks whether maps
+        // can be acquired rather than which edition this is, so turning this on restores all of it.
+        downloadMaps: edition === "standalone",
         changeAssetsPath: edition === "standalone",
         // Steam owns the assets root and verifies it, so nothing may be written or removed under it.
         assetsReadOnly: edition === "steam",
@@ -53,14 +56,27 @@ export function editionFeatures(edition: Edition) {
 
 export type EditionFeatures = ReturnType<typeof editionFeatures>;
 
-// Engines and games arrive with the install on an edition that does not download them, so a missing one
-// means the install is damaged and only the store that installed it can put it back.
 export function canAcquireInEdition(features: EditionFeatures, contentType: "engine" | "game" | "map") {
-    return features.downloadEngineAndGame || (contentType !== "engine" && contentType !== "game");
+    if (contentType === "engine" || contentType === "game") {
+        return features.downloadEngineAndGame;
+    }
+    if (contentType === "map") {
+        return features.downloadMaps;
+    }
+
+    // Reached over IPC, so an unknown type is left for the provider lookup to reject as the caller bug it is.
+    return true;
 }
 
 // What main refuses to do because of the edition. Sent as codes so the renderer words them itself.
-export type EditionRefusal = "content_bundled_with_install";
+export type EditionRefusal = "content_bundled_with_install" | "content_unavailable_in_edition";
+
+// Engines and games arrive with the install on an edition that does not download them, so a missing one
+// means the install is damaged and only the store that installed it can put it back. A map may never have
+// been part of the install at all, so a missing one is only unavailable.
+export function refusalFor(contentType: "engine" | "game" | "map"): EditionRefusal {
+    return contentType === "map" ? "content_unavailable_in_edition" : "content_bundled_with_install";
+}
 
 export class EditionRefusalError extends Error {
     readonly refusal: EditionRefusal;

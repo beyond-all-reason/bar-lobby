@@ -11,10 +11,12 @@ import { canAcquireInEdition, EditionRefusal } from "@shared/edition";
 // message takes the refused names as {content} and is pluralised on how many there are.
 const refusalMessageKeys: Record<EditionRefusal, TranslationKey> = {
     content_bundled_with_install: "lobby.logic.edition.refusals.contentBundledWithInstall",
+    content_unavailable_in_edition: "lobby.logic.edition.refusals.contentUnavailableInEdition",
 };
 
 // Whether this client can fetch content of this type at all. Engines and games come with the install on
-// an edition that does not download them, so offering a download for one would only fail.
+// an edition that does not download them, and maps may not be downloaded there either, so offering a
+// download for one would only fail.
 function canAcquire(type: ContentType) {
     return canAcquireInEdition(infosStore.features, type);
 }

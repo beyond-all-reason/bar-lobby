@@ -3839,7 +3839,8 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": null
+                    "contentBundledWithInstall": null,
+                    "contentUnavailableInEdition": null
                 }
             }
         },
@@ -4650,7 +4651,8 @@
                 "downloadContentButton": {
                     "downloading": null,
                     "download": null,
-                    "verifyGameFiles": null
+                    "verifyGameFiles": null,
+                    "mapUnavailable": null
                 },
                 "select": {
                     "search": null
