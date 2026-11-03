@@ -133,6 +133,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import { editionLogic } from "@renderer/logic/edition";
 import { enginesStore, installedEngineVersions, selectEngineVersion } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
@@ -140,7 +141,9 @@ import gridIcon from "@iconify-icons/mdi/grid";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
-const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+const mapListOptions = useDexieLiveQuery(() =>
+    editionLogic.canAcquire("map") ? db.maps.toArray() : db.maps.filter((map) => !!map.isInstalled).toArray()
+);
 const gameListOptions = computed(() => {
     return Array.from(gameStore.availableGameVersions.values());
 });

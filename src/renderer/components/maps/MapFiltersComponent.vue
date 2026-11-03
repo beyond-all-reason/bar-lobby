@@ -21,6 +21,7 @@ SPDX-License-Identifier: MIT
                     @update:modelValue="(favoritesOnly: boolean) => update({ favoritesOnly })"
                 />
                 <DownloadedFilter
+                    v-if="editionLogic.canAcquire('map')"
                     :modelValue="filters.downloadedOnly"
                     @update:modelValue="(downloadedOnly: boolean) => update({ downloadedOnly })"
                 />
@@ -66,6 +67,7 @@ import FavoritesFilter from "@renderer/components/maps/filters/FavoritesFilter.v
 import DownloadedFilter from "@renderer/components/maps/filters/DownloadedFilter.vue";
 import type { MapFilterState } from "@renderer/components/maps/filters/map-filter-state";
 import { useTypedI18n } from "@renderer/i18n";
+import { editionLogic } from "@renderer/logic/edition";
 const { t } = useTypedI18n();
 
 // Caller-owned so each view or modal keeps its own filters.
