@@ -94,6 +94,20 @@ export async function startBattle(battle: BattleWithMetadata) {
     }
 }
 
+export async function launchScript(script: string, gameVersion: string, engineVersion: string) {
+    try {
+        gameStore.status = GameStatus.LOADING;
+        await window.game.launchScript(script, gameVersion, engineVersion);
+        gameStore.status = GameStatus.RUNNING;
+    } catch (error) {
+        console.error("Failed to launch script:", error);
+        gameStore.status = GameStatus.CLOSED;
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "launchScript failed", severity: "error" });
+        }
+    }
+}
+
 export async function watchReplay(replay: Replay) {
     try {
         gameStore.status = GameStatus.LOADING;

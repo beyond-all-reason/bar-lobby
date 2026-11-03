@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
 import { configStore } from "@renderer/store/config.store";
-import { gameStore } from "@renderer/store/game.store";
+import { gameStore, launchScript } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { mapsStore } from "@renderer/store/maps.store";
 import Button from "@renderer/components/controls/Button.vue";
@@ -77,6 +77,6 @@ async function launch() {
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    await window.game.launchScript(script.value, launchGameVersion, enginesStore.selectedEngineVersion.id);
+    await launchScript(script.value, launchGameVersion, enginesStore.selectedEngineVersion.id);
 }
 </script>

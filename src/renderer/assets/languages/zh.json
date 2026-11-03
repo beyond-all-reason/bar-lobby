@@ -4079,7 +4079,8 @@
                     "wayTeamFFA": null,
                     "gameIsRunning": null,
                     "launching": null,
-                    "watch": null
+                    "watch": null,
+                    "unavailable": null
                 }
             },
             "index": {

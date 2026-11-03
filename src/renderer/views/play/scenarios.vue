@@ -85,7 +85,7 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { GameStatus, gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore, launchScript } from "@renderer/store/game.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { editionLogic } from "@renderer/logic/edition";
 
@@ -194,7 +194,7 @@ async function launch() {
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    await window.game.launchScript(script, launchGameVersion, enginesStore.selectedEngineVersion.id);
+    await launchScript(script, launchGameVersion, enginesStore.selectedEngineVersion.id);
 }
 </script>
 

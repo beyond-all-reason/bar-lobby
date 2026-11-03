@@ -132,7 +132,8 @@
                     "wayTeamFFA": "Way Team FFA",
                     "gameIsRunning": "Game is running",
                     "launching": "Launching...",
-                    "watch": "Watch"
+                    "watch": "Watch",
+                    "unavailable": "Not available in this edition: {content}"
                 }
             },
             "index": {
