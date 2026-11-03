@@ -368,7 +368,8 @@
                 "loseCondition": "Lose ciondiotn",
                 "faction": "Faticon",
                 "difficulty": "Difulcfity",
-                "launch": "Lacnuh"
+                "launch": "Lacnuh",
+                "noScenarios": "No sraecions are aablviale."
             }
         },
         "navbar": {

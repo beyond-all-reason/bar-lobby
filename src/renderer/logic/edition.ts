@@ -2,9 +2,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ContentType } from "@main/content/content-ref";
+import { ContentRef, ContentType } from "@main/content/content-ref";
 import type { TranslationKey } from "@renderer/i18n";
 import { infosStore } from "@renderer/store/infos.store";
+import { mapsStore } from "@renderer/store/maps.store";
+import { installedEngineVersions } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 import { canAcquireInEdition, EditionRefusal } from "@shared/edition";
 
 // Keyed on every code main can refuse with, so a new one does not compile until it has wording. Each
@@ -27,6 +30,22 @@ function isInstallationIncomplete(installed: { engine: boolean; game: boolean })
     return (!installed.engine && !canAcquire("engine")) || (!installed.game && !canAcquire("game"));
 }
 
+function isInstalled(ref: ContentRef) {
+    switch (ref.type) {
+        case "engine":
+            return installedEngineVersions.value.some((engine) => engine.id === ref.id);
+        case "game":
+            return gameStore.availableGameVersions.has(ref.id);
+        case "map":
+            return mapsStore.availableMapNames.has(ref.id);
+    }
+}
+
+// Missing and nothing in the client can supply it, so whatever needs it cannot be played.
+function isUnavailable(ref: ContentRef) {
+    return !canAcquire(ref.type) && !isInstalled(ref);
+}
+
 function refusalMessageKey(refusal: EditionRefusal) {
     return refusalMessageKeys[refusal];
 }
@@ -34,5 +53,6 @@ function refusalMessageKey(refusal: EditionRefusal) {
 export const editionLogic = {
     canAcquire,
     isInstallationIncomplete,
+    isUnavailable,
     refusalMessageKey,
 };

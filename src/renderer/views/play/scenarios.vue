@@ -20,16 +20,17 @@ SPDX-License-Identifier: MIT
                     <div class="scenarios scroll-container">
                         <TransitionGroup name="fade">
                             <ScenarioTile
-                                v-for="scenario in scenarios"
+                                v-for="scenario in playableScenarios"
                                 :key="scenario.title"
                                 :scenario="scenario"
-                                :class="{ selected: selectedScenario.scenarioid === scenario.scenarioid }"
+                                :class="{ selected: selectedScenario?.scenarioid === scenario.scenarioid }"
                                 @click="selectedScenario = scenario"
                             />
                         </TransitionGroup>
+                        <p v-if="playableScenarios.length === 0">{{ t("lobby.singleplayer.scenarios.noScenarios") }}</p>
                     </div>
                 </div>
-                <div class="scenario-preview flex-col gap-md">
+                <div v-if="selectedScenario" class="scenario-preview flex-col gap-md">
                     <h4>{{ selectedScenario.title }}</h4>
                     <div class="scroll-container flex-grow">
                         <Markdown :source="selectedScenario.summary" />
@@ -86,6 +87,7 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { editionLogic } from "@renderer/logic/edition";
 
 const { t } = useTypedI18n();
 
@@ -94,9 +96,24 @@ import { enginesStore } from "@renderer/store/engine.store";
 // Scenarios are listed from the installed build, so they launch on it too. A rapid tag such as byar:test may
 // point at a build that is not installed, and the Steam edition cannot download it.
 const gameVersion = computed(() => gameStore.selectedGameVersion?.gameVersion);
-const loadedScenarios = gameVersion.value ? await window.game.getScenarios(gameVersion.value) : [];
-const scenarios = ref<Scenario[]>(loadedScenarios);
-const selectedScenario = ref<Scenario>(scenarios.value[0]);
+
+const isPlayable = (scenario: Scenario) => !editionLogic.isUnavailable({ type: "map", id: scenario.mapfilename });
+
+// Logged so a packager can tell which map, down to its version, an install left out.
+async function loadScenarios(version: string | undefined) {
+    const loaded = version ? await window.game.getScenarios(version) : [];
+    for (const scenario of loaded.filter((scenario) => !isPlayable(scenario))) {
+        console.info(
+            `Scenario hidden: ${scenario.scenarioid} "${scenario.title}" needs map "${scenario.mapfilename}", which is not installed`
+        );
+    }
+
+    return loaded;
+}
+
+const scenarios = ref<Scenario[]>(await loadScenarios(gameVersion.value));
+const playableScenarios = computed(() => scenarios.value.filter(isPlayable));
+const selectedScenario = ref<Scenario | undefined>(playableScenarios.value[0]);
 
 const map = useDexieLiveQueryWithDeps([selectedScenario], async () => {
     let selected = selectedScenario.value;
@@ -117,49 +134,57 @@ const map = useDexieLiveQueryWithDeps([selectedScenario], async () => {
     return map;
 });
 
-const difficulties = computed(() => selectedScenario.value.difficulties);
-const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value.defaultdifficulty));
+const difficulties = computed(() => selectedScenario.value?.difficulties ?? []);
+const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value?.defaultdifficulty));
 
-const factions = computed(() => selectedScenario.value.allowedsides);
+const factions = computed(() => selectedScenario.value?.allowedsides ?? []);
 const selectedFaction = ref(factions.value[0]);
 
 watch(gameVersion, async (selectedVersion) => {
-    const loadedScenarios = selectedVersion ? await window.game.getScenarios(selectedVersion) : [];
-    scenarios.value = loadedScenarios;
-    selectedScenario.value = scenarios.value[0];
+    scenarios.value = await loadScenarios(selectedVersion);
+});
+
+watch(playableScenarios, (playable) => {
+    if (!playable.some((scenario) => scenario.scenarioid === selectedScenario.value?.scenarioid)) {
+        selectedScenario.value = playable[0];
+    }
 });
 
 watch(selectedScenario, (newScenario) => {
-    selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario.defaultdifficulty);
+    selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario?.defaultdifficulty);
     selectedFaction.value = factions.value[0] ?? "Armada";
 });
 
 async function launch() {
+    const scenario = selectedScenario.value;
+    if (!scenario) {
+        throw new Error("No scenario selected");
+    }
     const launchGameVersion = gameVersion.value;
     if (!launchGameVersion) {
         throw new Error("No game version selected");
     }
 
     const scenarioOptions = {
-        ...selectedScenario.value.scenariooptions,
-        version: selectedScenario.value.version,
+        ...scenario.scenariooptions,
+        version: scenario.version,
         difficulty: selectedDifficulty.value,
     };
     const scenarioOptionsStr = btoa(JSON.stringify(scenarioOptions));
 
     let restrictionsStr = "";
     let restrictionCount = 0;
-    for (const [unitId, limit] of Object.entries(selectedScenario.value.unitlimits)) {
+    for (const [unitId, limit] of Object.entries(scenario.unitlimits)) {
         restrictionsStr += `unit${restrictionCount}=${unitId};\nlimit${restrictionCount}=${limit};\n`;
         restrictionCount++;
     }
 
-    const script = selectedScenario.value.startscript
+    const script = scenario.startscript
         .replaceAll("__SCENARIOOPTIONS__", scenarioOptionsStr)
         //TODO replace with online name when implemented
         .replaceAll("__PLAYERNAME__", "Player")
         .replaceAll("__BARVERSION__", launchGameVersion)
-        .replaceAll("__MAPNAME__", selectedScenario.value.mapfilename)
+        .replaceAll("__MAPNAME__", scenario.mapfilename)
         .replaceAll("__PLAYERSIDE__", selectedFaction.value)
         .replaceAll("__ENEMYHANDICAP__", selectedDifficulty.value?.enemyhandicap?.toString() ?? "0")
         .replaceAll("__PLAYERHANDICAP__", selectedDifficulty.value?.playerhandicap?.toString() ?? "0")

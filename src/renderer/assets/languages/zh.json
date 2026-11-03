@@ -4315,7 +4315,8 @@
                 "loseCondition": null,
                 "faction": null,
                 "difficulty": null,
-                "launch": null
+                "launch": null,
+                "noScenarios": null
             }
         },
         "navbar": {
