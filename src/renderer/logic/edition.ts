@@ -26,8 +26,20 @@ function canAcquire(type: ContentType) {
 
 // An engine or game is missing and nothing in the client can supply it, so offering retries or a
 // download would only send the player round in circles. Only the store that installed it can put it back.
+// One the install says it shipped with counts as well, even when some other version is present.
 function isInstallationIncomplete(installed: { engine: boolean; game: boolean }) {
-    return (!installed.engine && !canAcquire("engine")) || (!installed.game && !canAcquire("game"));
+    const missingBundled = bundledRefs().filter(isUnavailable);
+    for (const ref of missingBundled) {
+        console.warn(`${ref.type} ${ref.id} is listed as bundled with the install but is not installed`);
+    }
+
+    return (!installed.engine && !canAcquire("engine")) || (!installed.game && !canAcquire("game")) || missingBundled.length > 0;
+}
+
+function bundledRefs(): ContentRef[] {
+    const content = infosStore.bundledContent;
+
+    return [...(content?.engines ?? []).map((id) => ({ type: "engine" as const, id })), ...(content?.games ?? []).map((id) => ({ type: "game" as const, id }))];
 }
 
 function isInstalled(ref: ContentRef) {

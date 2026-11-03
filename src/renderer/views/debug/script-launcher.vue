@@ -20,6 +20,7 @@ import { computed, ref, watch } from "vue";
 import { configStore } from "@renderer/store/config.store";
 import { gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
+import { mapsStore } from "@renderer/store/maps.store";
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
 
@@ -27,7 +28,17 @@ import Textarea from "@renderer/components/controls/Textarea.vue";
 // which the Steam edition cannot download.
 const gameVersion = computed(() => gameStore.selectedGameVersion?.gameVersion);
 
-function defaultScript(gametype: string | undefined) {
+// An install may not have the configured default maps, and may not be able to download them.
+const mapName = computed(
+    () =>
+        configStore.defaultMaps.find((map) => mapsStore.availableMapNames.has(map)) ??
+        mapsStore.availableMapNames.values().next().value ??
+        configStore.defaultMaps[0]
+);
+
+const defaults = computed(() => ({ gametype: gameVersion.value, mapname: mapName.value }));
+
+function defaultScript({ gametype, mapname }: { gametype: string | undefined; mapname: string | undefined }) {
     return `[game] {
     [ais] {
     }
@@ -42,19 +53,19 @@ function defaultScript(gametype: string | undefined) {
         team=0;
         name=player;
     }
-    mapname=${configStore.defaultMaps[0]};
+    mapname=${mapname ?? ""};
     myplayername=player;
     ishost=1;
     gametype=${gametype ?? ""};
 }`;
 }
 
-const script = ref(defaultScript(gameVersion.value));
+const script = ref(defaultScript(defaults.value));
 
-// Keep the default script on the selected version until it is edited.
-watch(gameVersion, (newVersion, oldVersion) => {
-    if (script.value === defaultScript(oldVersion)) {
-        script.value = defaultScript(newVersion);
+// Keep the default script on the selected version and map until it is edited.
+watch(defaults, (newDefaults, oldDefaults) => {
+    if (script.value === defaultScript(oldDefaults)) {
+        script.value = defaultScript(newDefaults);
     }
 });
 

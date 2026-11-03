@@ -9,6 +9,8 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 import { isEditionRefusal } from "@shared/edition";
+import { bundledDefault } from "@shared/bundled-content";
+import { infosStore } from "@renderer/store/infos.store";
 import { reactive, watch } from "vue";
 
 export enum GameStatus {
@@ -35,6 +37,11 @@ async function refreshStore() {
         gameStore.availableGameVersions.set(version.gameVersion, version);
         // The last version provided is always the default "selected" version.
         gameStore.selectedGameVersion = version;
+    }
+
+    const bundled = bundledDefault(infosStore.bundledContent, "game");
+    if (bundled && gameStore.availableGameVersions.has(bundled)) {
+        gameStore.selectedGameVersion = gameStore.availableGameVersions.get(bundled);
     }
 }
 

@@ -8,10 +8,13 @@ import os from "os";
 import { STATE_PATH, getAssetsPath } from "@main/config/app";
 import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import { Edition, EditionFeatures } from "@shared/edition";
+import { getBundledContent } from "@main/config/bundled-content";
+import { BundledContent } from "@shared/bundled-content";
 
 export type Info = {
     edition: Edition;
     features: EditionFeatures;
+    bundledContent: BundledContent;
     statePath: string;
     assetsPath: string;
     lobby: {
@@ -37,6 +40,7 @@ function getInfo() {
     const info: Info = {
         edition: EDITION,
         features: EDITION_FEATURES,
+        bundledContent: getBundledContent(),
         statePath: STATE_PATH,
         assetsPath: getAssetsPath(),
         lobby: {
