@@ -22,7 +22,7 @@
         "build:unpack": "electron-builder --dir",
         "dev-cert": "electron-builder create-self-signed-cert -p \"BAR Team\"",
         "build:win:dev-cert": "cross-env CSC_LINK=\"./BAR Team.pfx\" npm run build:win",
-        "postinstall": "electron-builder install-app-deps",
+        "postinstall": "electron-builder install-app-deps && node --import=tsx tools/fix-7za-permissions.ts",
         "release": "electron-builder --publish always",
         "lint": "eslint --cache",
         "test": "vitest run tests",
