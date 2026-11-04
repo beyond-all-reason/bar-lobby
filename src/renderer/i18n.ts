@@ -61,7 +61,7 @@ export function resolveLocale(language: string | null | undefined, systemLocale 
     return isLocale(systemLanguage) ? systemLanguage : "en";
 }
 
-// Also covers the initial load, since initSettingsStore assigns the saved language after this module runs.
+// Also covers the initial load, since initSettingsLogic assigns the saved language after this module runs.
 watch(
     () => settingsStore.language,
     (language) => {

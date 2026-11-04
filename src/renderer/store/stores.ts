@@ -12,7 +12,7 @@ import { initMeStore } from "@renderer/store/me.store";
 import { initPartyLogic } from "@renderer/logic/party";
 import { initSingleplayerLogic } from "@renderer/logic/singleplayer";
 
-import { initSettingsStore } from "@renderer/store/settings.store";
+import { initSettingsLogic } from "@renderer/logic/settings";
 import { initTachyonStore } from "@renderer/store/tachyon.store";
 import { initUsersStore } from "@renderer/store/users.store";
 import { initLobbyStore } from "./lobby.store";
@@ -22,7 +22,7 @@ import { initCustomLobbiesStore } from "@renderer/store/custom-lobbies.store";
 
 export async function initPreMountStores() {
     await Promise.all([
-        Promise.all([initConfigStore(), initSettingsStore()]).then(() => initCustomLobbiesStore()),
+        Promise.all([initConfigStore(), initSettingsLogic()]).then(() => initCustomLobbiesStore()),
         initInfosLogic(),
         initSingleplayerLogic(),
         initGameStore(),

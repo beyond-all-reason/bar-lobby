@@ -2386,6 +2386,8 @@
                 "logUrlCopied": null,
                 "couldNotUploadLog": null,
                 "labelDisplay": null,
+                "labelDisplayNamed": null,
+                "displayDetailsPrimary": null,
                 "language": null,
                 "storage": null,
                 "assetsPath": null,

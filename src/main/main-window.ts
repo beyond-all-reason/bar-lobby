@@ -17,6 +17,9 @@ import { suppressBrowserBehaviours } from "@main/browser-behaviours";
 
 const log = logger("main-window");
 
+// How long after the page loads to wait for ready-to-show before showing the window regardless.
+const SHOW_FALLBACK_MS = 3000;
+
 export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
@@ -95,15 +98,40 @@ export function createWindow() {
         }, 100);
     }
 
+    // Electron reads sizes back a few pixels off, even unresized, and saving that would creep the setting.
+    let knownSize = [0, 0];
+
+    function rememberSize() {
+        knownSize = mainWindow.getSize();
+    }
+
+    function resizedByUser(width: number, height: number) {
+        return Math.abs(width - knownSize[0]) > 2 || Math.abs(height - knownSize[1]) > 2;
+    }
+
+    // will-move fires only for drags: not our setBounds, not OS moves, and not on Linux, where Wayland hides position.
+    let draggedByUser = false;
+
+    function draggedToDisplayId() {
+        if (!draggedByUser) return undefined;
+
+        draggedByUser = false;
+
+        return screen.getDisplayMatching(mainWindow.getBounds()).id;
+    }
+
     // No size while fullscreen or maximised, since the remembered one is where to return to.
     function reportWindowState() {
         const maximized = mainWindow.isMaximized();
         const [width, height] = mainWindow.getSize();
-        const settled = !maximized && !mainWindow.isFullScreen();
+        const reportSize = !maximized && !mainWindow.isFullScreen() && resizedByUser(width, height);
+        if (reportSize) knownSize = [width, height];
 
-        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null });
+        webContents.send("mainWindow:windowStateChanged", { maximized, size: reportSize ? { width, height } : null, displayId: draggedToDisplayId() });
     }
 
+    mainWindow.on("will-move", () => (draggedByUser = true));
+    mainWindow.on("move", scheduleZoomUpdate);
     mainWindow.on("resize", scheduleZoomUpdate);
     mainWindow.on("maximize", scheduleZoomUpdate);
     mainWindow.on("unmaximize", scheduleZoomUpdate);
@@ -111,15 +139,42 @@ export function createWindow() {
     mainWindow.on("leave-full-screen", scheduleZoomUpdate);
     mainWindow.on("closed", () => clearTimeout(zoomUpdate));
 
+    // Sized from the setting, not the window, so it survives leaving fullscreen and isn't trimmed to fit.
+    function centreOn(display: Electron.Display) {
+        const { windowWidth, windowHeight } = settingsService.getSettings();
+        const width = Math.max(windowWidth, MIN_WINDOW_SIZE.width);
+        const height = Math.max(windowHeight, MIN_WINDOW_SIZE.height);
+        const { workArea } = display;
+        // A size bigger than the display still keeps its top left on screen, where the frameless window's navbar and drag area are.
+        const bounds = {
+            width,
+            height,
+            x: Math.max(workArea.x, Math.round(workArea.x + (workArea.width - width) / 2)),
+            y: Math.max(workArea.y, Math.round(workArea.y + (workArea.height - height) / 2)),
+        };
+
+        // Windows rescales a window that lands on a monitor with a different scale, so the size is applied again once it is there.
+        mainWindow.setBounds(bounds);
+        mainWindow.setBounds(bounds);
+        rememberSize();
+    }
+
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
-    mainWindow.once("ready-to-show", () => {
+    let shown = false;
+
+    function showWindow(via: "ready-to-show" | "fallback") {
+        if (shown || mainWindow.isDestroyed()) return;
+        shown = true;
+
+        if (via === "fallback") log.warn(`ready-to-show did not fire within ${SHOW_FALLBACK_MS}ms of the page loading, showing the window anyway`);
+
         // Open the DevTools.
         if (process.env.NODE_ENV === "development" && settings.devMode) {
             log.debug(`NODE_ENV is development, opening dev tools`);
             webContents.openDevTools();
         }
-        mainWindow.center();
+        centreOn(screen.getAllDisplays().find((display) => display.id === settings.displayId) ?? screen.getPrimaryDisplay());
         // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
         if (settings.fullscreen) {
             mainWindow.setFullScreen(true);
@@ -129,7 +184,11 @@ export function createWindow() {
         updateZoom();
         mainWindow.show();
         mainWindow.focus();
-    });
+    }
+
+    mainWindow.once("ready-to-show", () => showWindow("ready-to-show"));
+    // ready-to-show relies on a paint while hidden, which Linux sometimes never reports, leaving the lobby running unseen.
+    webContents.once("did-finish-load", () => setTimeout(() => showWindow("fallback"), SHOW_FALLBACK_MS));
 
     webContents.on("render-process-gone", (event, details) => {
         log.error(details);
@@ -174,20 +233,12 @@ export function createWindow() {
 
         mainWindow.setSize(target.width, target.height);
         mainWindow.center();
+        rememberSize();
         updateZoom();
     });
-    ipcMain.handle("mainWindow:setDisplay", (_event, index: number) => {
-        const display = screen.getAllDisplays()[index];
+    ipcMain.handle("mainWindow:setDisplay", (_event, id: number) => {
+        const display = screen.getAllDisplays().find((display) => display.id === id);
         if (!display) return;
-
-        // Nothing but the display changes. The size comes from the setting rather than the
-        // window, so it survives the trip out of fullscreen or maximised, and it is not
-        // trimmed to the new display: a size that no longer fits is the window's business,
-        // not a reason to rewrite what the user chose.
-        const { windowWidth, windowHeight } = settingsService.getSettings();
-        const width = Math.max(windowWidth, MIN_WINDOW_SIZE.width);
-        const height = Math.max(windowHeight, MIN_WINDOW_SIZE.height);
-        const { workArea } = display;
 
         // Fullscreen and maximised are tied to the display they were entered on.
         const wasFullScreen = mainWindow.isFullScreen();
@@ -195,12 +246,7 @@ export function createWindow() {
         if (wasFullScreen) mainWindow.setFullScreen(false);
         if (wasMaximized) mainWindow.unmaximize();
 
-        mainWindow.setBounds({
-            width,
-            height,
-            x: Math.round(workArea.x + (workArea.width - width) / 2),
-            y: Math.round(workArea.y + (workArea.height - height) / 2),
-        });
+        centreOn(display);
 
         if (wasFullScreen) mainWindow.setFullScreen(true);
         else if (wasMaximized) mainWindow.maximize();
@@ -215,6 +261,11 @@ export function createWindow() {
     ipcMain.handle("mainWindow:getDisplays", () =>
         screen.getAllDisplays().map((display, index) => ({
             index,
+            id: display.id,
+            // The monitor's model name on Windows; may be blank elsewhere.
+            label: display.label,
+            primary: display.id === screen.getPrimaryDisplay().id,
+            current: display.id === screen.getDisplayMatching(mainWindow.getBounds()).id,
             scaleFactor: display.scaleFactor || 1,
             workArea: { width: display.workAreaSize.width, height: display.workAreaSize.height },
             // workArea has the taskbar removed, so it is the wrong shape for an aspect ratio.
