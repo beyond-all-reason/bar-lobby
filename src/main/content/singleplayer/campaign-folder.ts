@@ -8,6 +8,7 @@ import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
 import { fileInside, isFolder, listFolders, readContentJson } from "./files";
+import { checkMissionArchive } from "./mission-archive";
 import { checkCompatibility, checkDefaultDifficulty, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
@@ -134,6 +135,8 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
 
     const backgroundImageUrl = await mediaUrl(sharedFolder, config.backgroundImage, problems, configPath, "backgroundImage");
     const logoUrl = await mediaUrl(sharedFolder, config.logo, problems, configPath, "logo");
+    // Where a mission's Lua sits inside the campaign archive is not settled yet, so only the archive itself is checked.
+    const archivePath = await checkMissionArchive({ folder, kind: "campaign", id }, problems);
 
     if (problems.hasErrors || !credits) {
         return undefined;
@@ -153,6 +156,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         compatibility: config.compatibility,
         difficulties: config.difficulties,
         defaultDifficulty: config.defaultDifficulty,
+        archivePath,
         missions,
     };
 }

@@ -49,3 +49,14 @@ path = ["tests/fixtures/**", "schemas/content/*.schema.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The BAR Lobby Authors"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+# The mission API team's example scenario, kept under the game's license rather than the fixtures' MIT. The
+# English text is copied from the archive's own language file. The manifest and mission config are ours.
+path = [
+    "tests/fixtures/content-sdz/scenarios/outpost-strike/bar-scenario-outpost-strike.sdz",
+    "tests/fixtures/content-sdz/scenarios/outpost-strike/language/en.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Beyond All Reason contributors"
+SPDX-License-Identifier = "GPL-2.0-or-later"

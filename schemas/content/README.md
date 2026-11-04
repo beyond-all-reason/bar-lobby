@@ -95,7 +95,7 @@ Every campaign, scenario and tutorial lists the engine and game pairs it has bee
 
 Here engine A with game 4 is not a valid pair. Versions are exact. Wildcards and rapid tags such as `byar:test` are refused, because a tag points at a different version over time.
 
-Listing several pairs suits A/B testing and development, but expect to ship one. A campaign's, scenario's or tutorial's Lua is packaged as an `.sdz` archive, whose `modinfo.lua` names the one game it runs on in `depend`. Every pair listed here should name that game, or the archive won't run with it. The client doesn't check this yet.
+Listing several pairs suits A/B testing and development, but expect to ship one. A campaign's, scenario's or tutorial's Lua is packaged as an `.sdz` archive (see [Mission archive](#mission-archive)), whose `modinfo.lua` names the one game it runs on in `depend`. Every pair listed here should name that game, or the archive won't run with it. The client doesn't check this yet.
 
 ### Content still in development
 
@@ -106,6 +106,33 @@ Content made in the mission editor runs on unreleased game code, so it has no re
 ```
 
 The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. `validate-content` also reports it as an error, so it cannot ship as official content by accident. Pass `--allow-dev` to check content still in development, and `--bundle` then passes over it. Replace `"dev"` with the tested pairs before release.
+
+## Mission archive
+
+A campaign's, scenario's or tutorial's Lua ships as a mutator archive named `bar-<kind>-<id>.sdz`, at the root of its own folder:
+
+```
+scenarios/outpost-strike/bar-scenario-outpost-strike.sdz
+tutorials/movement/bar-tutorial-movement.sdz
+campaigns/sample-campaign/bar-campaign-sample-campaign.sdz
+```
+
+The kind and id are in the name because archives with the same name shadow each other in the engine.
+
+The client reads only the archive's list of files. It must open, and must hold:
+
+- `modinfo.lua` at its root;
+- for a scenario or tutorial, its mission's Lua at `<kind folder>/<id>/mission.lua`, such as `scenarios/outpost-strike/mission.lua`. Case matters, as it does to the engine on Linux.
+
+Anything else is an error, and the item is left out. Where a campaign mission's Lua sits inside the campaign's archive isn't settled yet, so a campaign archive is only checked for `modinfo.lua`.
+
+The client doesn't read `modinfo.lua` itself. Keeping it right is up to the author:
+
+- `name` is the archive's name without `.sdz`, such as `bar-scenario-outpost-strike`;
+- `depend` names the game listed in `compatibility`;
+- `version` goes up with every release.
+
+Until missions can be launched from the client, the archive is optional: an item without one loads as before. Once they can, an item without an archive will load with a warning that it cannot be launched.
 
 ## Difficulty
 
@@ -207,6 +234,10 @@ Point the client at a content folder from `npm start`. These variables have no e
 BAR_EDITION=steam BAR_CONTENT_PATH=tests/fixtures/content npm start
 # Custom content works in every edition.
 BAR_CUSTOM_CONTENT_PATH=tests/fixtures/content-custom npm start
+# The mission API team's example scenario, with its mission archive.
+BAR_EDITION=steam BAR_CONTENT_PATH=tests/fixtures/content-sdz npm start
 ```
 
 Then run `await window.singleplayer.list()` in DevTools to see what loaded and any problems.
+
+In `tests/fixtures/content-sdz`, the map, the engine version and the enemy alliance's name are placeholders until the mission API team gives them. The enemy team has no AI yet either.

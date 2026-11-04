@@ -11,6 +11,7 @@ import { IndexManifest } from "../../../shared/content/schema/index-manifest";
 import type { ContentProblem, ContentRoot, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "../../../shared/content/singleplayer";
 import { readCampaignFolder } from "./campaign-folder";
 import { isFile, listFolders, readContentJson } from "./files";
+import { checkMissionArchive } from "./mission-archive";
 import { MANIFEST_FILE, readMissionFolder } from "./mission-folder";
 import { Problems } from "./problems";
 
@@ -53,15 +54,17 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", d
     const kindFolder = path.join(root.path, KIND_FOLDERS[kind]);
     const items: SingleplayerScenario[] = [];
     for (const name of await orderedFolders(kindFolder, new Problems(all))) {
-        const mission = await readMissionFolder(
-            path.join(kindFolder, name),
-            { partOfCampaign: false, devContent, languageAfter: [], springDataPathsBefore: [], mediaFolder: path.join(kindFolder, name, "media") },
-            new Problems(all)
-        );
+        const folder = path.join(kindFolder, name);
+        const problems = new Problems(all);
+        const mission = await readMissionFolder(folder, { partOfCampaign: false, devContent, languageAfter: [], springDataPathsBefore: [], mediaFolder: path.join(folder, "media") }, problems);
         // readMissionFolder only gives a scenario with compatibility and difficulties back.
         const { compatibility, difficulties, defaultDifficulty } = mission?.manifest ?? {};
-        if (mission && compatibility && difficulties && defaultDifficulty) {
-            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty });
+        if (!mission || !compatibility || !difficulties || !defaultDifficulty) {
+            continue;
+        }
+        const archivePath = await checkMissionArchive({ folder, kind, id: name, missionLuaPath: `${KIND_FOLDERS[kind]}/${name}/mission.lua` }, problems);
+        if (!problems.hasErrors) {
+            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty, archivePath });
         }
     }
 

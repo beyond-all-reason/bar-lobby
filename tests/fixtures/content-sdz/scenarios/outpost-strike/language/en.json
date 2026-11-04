@@ -1,0 +1,6 @@
+{
+    "missions.outpost-strike.title": "Outpost Strike",
+    "missions.outpost-strike.description": "Hold the outpost against two minutes of raids, then destroy the enemy factory.",
+    "missions.outpost-strike.teams.player": "Outpost",
+    "missions.outpost-strike.teams.enemy": "Raiders"
+}

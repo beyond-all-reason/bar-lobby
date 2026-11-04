@@ -73,6 +73,8 @@ export type SingleplayerCampaign = SingleplayerItemRef &
         backgroundImageUrl?: string;
         logoUrl?: string;
         compatibility: ItemCompatibility;
+        // The campaign's bar-campaign-<id>.sdz, when it has one.
+        archivePath?: string;
         // In the order the config lists them.
         missions: SingleplayerMission[];
     };
@@ -82,6 +84,8 @@ export type SingleplayerScenario = SingleplayerItemRef &
     ItemDifficulties & {
         kind: "scenario" | "tutorial";
         compatibility: ItemCompatibility;
+        // The item's bar-<kind>-<id>.sdz, when it has one.
+        archivePath?: string;
     };
 
 export type SingleplayerContent = {

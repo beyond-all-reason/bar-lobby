@@ -1,0 +1,21 @@
+{
+    "$schema": "../../../../../schemas/content/mission-config.schema.json",
+    "alliances": {
+        "players": ["player"],
+        "enemies": ["enemy"]
+    },
+    "playerTeam": ["player"],
+    "startPosType": "fixed",
+    "teamSettings": {
+        "player": {
+            "side": "Armada",
+            "startPosX": 5450,
+            "startPosZ": 5050,
+            "displayNameKey": "missions.outpost-strike.teams.player"
+        },
+        "enemy": {
+            "side": "Cortex",
+            "displayNameKey": "missions.outpost-strike.teams.enemy"
+        }
+    }
+}
