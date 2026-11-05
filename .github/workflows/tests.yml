@@ -39,6 +39,11 @@ jobs:
             - name: Validate committed config
               run: npm run validate-config
 
+            # schemas/content is generated from src/shared/content/schema for content authors to copy, so a
+            # definition changed without regenerating would leave their copies checking the old rules.
+            - name: Content schemas are up to date
+              run: npm run generate-content-schemas:check
+
             - name: Lint check
               run: npm run lint
 
