@@ -1,0 +1,9 @@
+{
+    "missionId": "optionalMissionB",
+    "titleKey": "missions.optionalMissionB.title",
+    "descriptionKey": "missions.optionalMissionB.description",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    }
+}
