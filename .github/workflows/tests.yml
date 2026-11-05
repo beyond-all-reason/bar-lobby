@@ -10,7 +10,9 @@ jobs:
     checks:
         strategy:
             matrix:
-                os: [windows-latest, ubuntu-latest]
+                # Pinned while e2e fails on some ubuntu-latest (26.04) images: the lobby window doesn't load under Xvfb.
+                # Move back to ubuntu-latest once that is fixed. Change the e2e step's matrix.os check with it.
+                os: [windows-latest, ubuntu-24.04]
         runs-on: ${{ matrix.os }}
         steps:
             - name: Check out Git repository
@@ -58,7 +60,7 @@ jobs:
               # TODO: Figure out why e2e tests don't work reliably on Windows.
               # They work on some Windows machines but not on others failing with
               # Error: electronApplication.firstWindow: Target page, context or browser has been closed
-              if: matrix.os == 'ubuntu-latest'
+              if: matrix.os == 'ubuntu-24.04'
               uses: coactions/setup-xvfb@v1
               with:
                   run: npm run test:e2e
