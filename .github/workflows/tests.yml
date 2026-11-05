@@ -64,3 +64,14 @@ jobs:
                   run: npm run test:e2e
               env:
                   CI: true
+
+            # The e2e log only shows Playwright's side. The lobby's own log says what the app was doing.
+            - name: Upload e2e logs
+              if: failure() && matrix.os == 'ubuntu-latest'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: e2e-logs
+                  path: |
+                      ~/.local/state/BeyondAllReason/logs/
+                      test-results/
+                  if-no-files-found: warn
