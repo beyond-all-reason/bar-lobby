@@ -25,7 +25,7 @@ vi.mock("@renderer/api/game", () => ({ gameApi: { onClosed: (handler: () => void
 vi.mock("@renderer/store/tachyon.store", () => ({ tachyonStore: { isConnected: false } }));
 
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
-const { MatchmakingStatus, matchmakingStore, matchmakingUpdates } = await import("@renderer/store/matchmaking.store");
+const { MatchmakingStatus, matchmakingStore, matchmakingActions } = await import("@renderer/store/matchmaking.store");
 const { MatchmakingJoinRefused, matchmakingLogic, initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
 const { provideUi } = await import("@renderer/logic/ui");
 const { onTachyonConnected } = await import("@renderer/utils/connection-signal");
@@ -67,7 +67,7 @@ describe("matchmaking logic", () => {
 
     beforeEach(() => {
         onWentOffline.dispatch();
-        matchmakingUpdates.set({ selectedQueue: "1v1" });
+        matchmakingActions.set({ selectedQueue: "1v1" });
         api.tachyonRequest.mockReset();
         api.missing.mockReset().mockResolvedValue([]);
         Object.values(ui).forEach((fn) => fn.mockClear());
@@ -113,8 +113,8 @@ describe("matchmaking logic", () => {
 
     describe("joining a queue", () => {
         beforeEach(() => {
-            matchmakingUpdates.set({ playlists: [playlist("1v1")], selectedQueue: "1v1" });
-            matchmakingUpdates.setDownloadsRequired("1v1", { engines: [], games: [], maps: [] });
+            matchmakingActions.set({ playlists: [playlist("1v1")], selectedQueue: "1v1" });
+            matchmakingActions.setDownloadsRequired("1v1", { engines: [], games: [], maps: [] });
         });
 
         it("sends the selected playlist and starts searching", async () => {
@@ -127,7 +127,7 @@ describe("matchmaking logic", () => {
         });
 
         it("refuses without asking the server while downloads are still needed", async () => {
-            matchmakingUpdates.setDownloadsRequired("1v1", { engines: [], games: [], maps: ["somemap"] });
+            matchmakingActions.setDownloadsRequired("1v1", { engines: [], games: [], maps: ["somemap"] });
 
             await expect(matchmakingLogic.joinQueue()).rejects.toEqual(new MatchmakingJoinRefused("downloads_required"));
 
@@ -136,7 +136,7 @@ describe("matchmaking logic", () => {
         });
 
         it("refreshes the list and refuses when the selected queue has no download data", async () => {
-            matchmakingUpdates.set({ selectedQueue: "unknown" });
+            matchmakingActions.set({ selectedQueue: "unknown" });
             respondTo({ "matchmaking/list": () => ({ status: "success", data: { playlists: [playlist("1v1")] } }) });
 
             await expect(matchmakingLogic.joinQueue()).rejects.toEqual(new MatchmakingJoinRefused("bad_queue_data"));
@@ -163,8 +163,8 @@ describe("matchmaking logic", () => {
         });
 
         it("lets a missing queue through first, then refreshes the list and goes idle", async () => {
-            matchmakingUpdates.set({ selectedQueue: "2v2" });
-            matchmakingUpdates.setDownloadsRequired("2v2", { engines: [], games: [], maps: [] });
+            matchmakingActions.set({ selectedQueue: "2v2" });
+            matchmakingActions.setDownloadsRequired("2v2", { engines: [], games: [], maps: [] });
             let finishList: (response: unknown) => void = () => {};
             respondTo({ "matchmaking/list": () => new Promise((resolve) => (finishList = resolve)) });
 
@@ -199,7 +199,7 @@ describe("matchmaking logic", () => {
         });
 
         it("goes idle straight away on cancel, before the server answers", async () => {
-            matchmakingUpdates.set({ status: MatchmakingStatus.Searching });
+            matchmakingActions.set({ status: MatchmakingStatus.Searching });
             respondTo({ "matchmaking/cancel": () => new Promise(() => {}) });
 
             void matchmakingLogic.cancel();
@@ -237,7 +237,7 @@ describe("matchmaking logic", () => {
     });
 
     it("goes idle when the game closes", () => {
-        matchmakingUpdates.set({ status: MatchmakingStatus.MatchAccepted });
+        matchmakingActions.set({ status: MatchmakingStatus.MatchAccepted });
 
         api.gameClosed.forEach((handler) => handler());
 

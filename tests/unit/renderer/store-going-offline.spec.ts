@@ -25,9 +25,9 @@ Object.assign(window.tachyon, {
 
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
-const { matchmakingStore, matchmakingUpdates, MatchmakingStatus } = await import("@renderer/store/matchmaking.store");
+const { matchmakingStore, matchmakingActions, MatchmakingStatus } = await import("@renderer/store/matchmaking.store");
 const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
-const { partyStore, partyUpdates, PlayersPartyState } = await import("@renderer/store/party.store");
+const { partyStore, partyActions, PlayersPartyState } = await import("@renderer/store/party.store");
 const { initPartyLogic } = await import("@renderer/logic/party");
 const { lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
@@ -37,15 +37,15 @@ const { onWentOffline } = await import("@renderer/utils/offline-signal");
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
 
 function populateOnlineState() {
-    matchmakingUpdates.set({
+    matchmakingActions.set({
         status: MatchmakingStatus.Searching,
         playlists: [{ id: "1v1", name: "Duel", version: "3" }] as never,
         playersQueued: 12,
         selectedQueue: "2v2",
     });
-    matchmakingUpdates.setDownloadsRequired("2v2", { engines: [], games: [], maps: ["somemap"] });
+    matchmakingActions.setDownloadsRequired("2v2", { engines: [], games: [], maps: ["somemap"] });
 
-    partyUpdates.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
+    partyActions.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
 
     lobbyStore.lobbies = { "lobby-1": { id: "lobby-1" } as never };
     lobbyStore.activeLobby = { id: "lobby-1" } as never;
