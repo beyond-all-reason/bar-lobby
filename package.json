@@ -34,6 +34,7 @@
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
         "typecheck": "concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
         "validate-config": "node --import=tsx tools/validate-config.ts",
+        "validate-content": "node --import=tsx tools/validate-content.ts",
         "generate-content-schemas": "node --import=tsx tools/generate-content-schemas.ts",
         "generate-content-schemas:check": "node --import=tsx tools/generate-content-schemas.ts --check",
         "checks": "concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\" \"npm run validate-config\" \"npm run generate-content-schemas:check\"",
