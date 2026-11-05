@@ -119,6 +119,13 @@ describe("app paths", () => {
             expect(paths.STATE_PATH).toBe(path.join(xdgState, "BeyondAllReason"));
         });
 
+        it("falls back to the Linux XDG paths on an unsupported platform", async () => {
+            const paths = await loadPaths({ edition: "standalone", platform: "darwin" });
+
+            expect(paths.getAssetsPath()).toBe(path.join(xdgData, "BeyondAllReason", "assets"));
+            expect(paths.STATE_PATH).toBe(path.join(xdgState, "BeyondAllReason"));
+        });
+
         it("downloads into the assets dir and may remove maps from every maps dir", async () => {
             const paths = await loadPaths({ edition: "standalone", platform: "win32" });
 

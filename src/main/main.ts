@@ -4,7 +4,7 @@
 
 import "@main/single-instance";
 
-import { app, net, protocol, session } from "electron";
+import { app, dialog, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
 import netFromNode from "node:net";
@@ -41,6 +41,9 @@ netFromNode.setDefaultAutoSelectFamily(true);
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
 log.info("App instance lock acquired successfully.");
+if (process.platform !== "win32" && process.platform !== "linux") {
+    log.warn(`Client is running on unsupported platform: ${process.platform === "darwin" ? "macOS" : process.platform}`);
+}
 
 if (process.env.NODE_ENV !== "production") {
     if (process.platform === "win32") {
@@ -96,6 +99,21 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
+    if (process.platform !== "win32" && process.platform !== "linux") {
+        const choice = dialog.showMessageBoxSync({
+            type: "warning",
+            title: "Unsupported platform",
+            message: "Beyond All Reason is only supported on Windows and Linux.",
+            buttons: ["Quit", "Continue"],
+            defaultId: 0,
+            cancelId: 0,
+            noLink: true,
+        });
+        if (choice === 0) {
+            app.exit(1);
+            return;
+        }
+    }
     installApplicationMenu();
     registerBarFileProtocol();
     if (process.env.NODE_ENV !== "production") {
