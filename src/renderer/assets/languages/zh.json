@@ -3950,7 +3950,8 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": null
+                    "contentBundledWithInstall": null,
+                    "contentUnavailableInEdition": null
                 }
             }
         },
@@ -4078,7 +4079,8 @@
                     "wayTeamFFA": null,
                     "gameIsRunning": null,
                     "launching": null,
-                    "watch": null
+                    "watch": null,
+                    "unavailable": null
                 }
             },
             "index": {
@@ -4314,7 +4316,8 @@
                 "loseCondition": null,
                 "faction": null,
                 "difficulty": null,
-                "launch": null
+                "launch": null,
+                "noScenarios": null
             }
         },
         "navbar": {
@@ -4761,7 +4764,8 @@
                 "downloadContentButton": {
                     "downloading": null,
                     "download": null,
-                    "verifyGameFiles": null
+                    "verifyGameFiles": null,
+                    "mapUnavailable": null
                 },
                 "select": {
                     "search": null

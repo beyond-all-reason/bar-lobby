@@ -94,7 +94,8 @@ export class GameAPI {
         // Playing something is the clearest sign it is still wanted, and it is the one thing every
         // launch path has in common.
         void contentAPI.markUsed([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
-        await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
+        // Also the last word on whether everything is there: content that cannot be acquired is refused here.
+        await this.fetchMissingContent(engineVersion, gameVersion, mapSpringName);
 
         applyDefaultSpringsettings();
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
@@ -169,16 +170,8 @@ export class GameAPI {
         return this.gameProcess !== null;
     }
 
-    //TODO not handling maps, not sure if needed if we always come from the lobby's UI
-    protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {
-        if (!engineVersion || !gameVersion) {
-            throw new Error("Engine Version and Game Version need to be specified");
-        }
-
-        await contentAPI.ensure([
-            { type: "engine", id: engineVersion },
-            { type: "game", id: gameVersion },
-        ]);
+    protected async fetchMissingContent(engineVersion: string, gameVersion: string, mapSpringName?: string) {
+        await contentAPI.ensure([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
     }
 }
 

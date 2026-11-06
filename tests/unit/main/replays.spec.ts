@@ -5,15 +5,16 @@
 import { Replay } from "@main/replays/replay";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { ensure, parsed, copied } = vi.hoisted(() => ({
+const { ensure, canAcquire, parsed, copied } = vi.hoisted(() => ({
     ensure: vi.fn(),
+    canAcquire: vi.fn(),
     parsed: { replay: null as Replay | null },
     copied: [] as string[],
 }));
 
 vi.mock("@main/utils/logger", () => ({ logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 vi.mock("@main/config/app", () => ({ REPLAYS_PATH: "/replays" }));
-vi.mock("@main/content/content-api", () => ({ contentAPI: { ensure } }));
+vi.mock("@main/content/content-api", () => ({ contentAPI: { ensure, canAcquire } }));
 vi.mock("@main/replays/parse-replay", () => ({ asyncParseReplay: async () => parsed.replay }));
 vi.mock("@main/game/game", () => ({ gameAPI: { isGameRunning: () => false } }));
 vi.mock("chokidar", () => ({ default: { watch: () => ({ on: () => ({ on: () => ({}) }) }) } }));
@@ -40,6 +41,7 @@ describe("ReplaysAPI.copyParseReplay", () => {
 
     beforeEach(() => {
         ensure.mockReset().mockResolvedValue(undefined);
+        canAcquire.mockReset().mockReturnValue(true);
         copied.length = 0;
         parsed.replay = replay("Quicksilver 1.2");
 
@@ -64,6 +66,16 @@ describe("ReplaysAPI.copyParseReplay", () => {
         await expect(replays.copyParseReplay("/downloads/2026-08-01_bar.sdfz")).resolves.toBeUndefined();
 
         expect(cached).toHaveLength(1);
+    });
+
+    // Every replay synced at startup would otherwise report the same refusal.
+    it("does not ask for the map where maps cannot be acquired", async () => {
+        canAcquire.mockReturnValue(false);
+
+        await replays.copyParseReplay("/downloads/2026-08-01_bar.sdfz");
+
+        expect(cached).toHaveLength(1);
+        expect(ensure).not.toHaveBeenCalled();
     });
 
     it("reports the replay before waiting on the map", async () => {

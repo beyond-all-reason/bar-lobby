@@ -6,6 +6,8 @@ import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 import { isEditionRefusal } from "@shared/edition";
+import { bundledDefault } from "@shared/bundled-content";
+import { infosStore } from "@renderer/store/infos.store";
 import { computed, reactive } from "vue";
 
 export const enginesStore: {
@@ -31,6 +33,7 @@ function reselectEngineVersion() {
 
     enginesStore.selectedEngineVersion =
         installed(requestedEngineVersion) ??
+        installed(bundledDefault(infosStore.bundledContent, "engine")) ??
         installed(configStore.defaultEngineVersion) ??
         installedEngineVersions.value.at(-1) ??
         enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);

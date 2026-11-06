@@ -1834,7 +1834,8 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam."
+                    "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam.",
+                    "contentUnavailableInEdition": "{content} is not available in this edition. | {content} are not available in this edition."
                 }
             }
         },
@@ -1962,7 +1963,8 @@
                     "wayTeamFFA": "Way Team FFA",
                     "gameIsRunning": "Game is running",
                     "launching": "Launching...",
-                    "watch": "Watch"
+                    "watch": "Watch",
+                    "unavailable": "Not available in this edition: {content}"
                 }
             },
             "index": {
@@ -2198,7 +2200,8 @@
                 "loseCondition": "Lose condition",
                 "faction": "Faction",
                 "difficulty": "Difficulty",
-                "launch": "Launch"
+                "launch": "Launch",
+                "noScenarios": "No scenarios are available."
             }
         },
         "navbar": {
@@ -2645,7 +2648,8 @@
                 "downloadContentButton": {
                     "downloading": "Downloading...",
                     "download": "Download",
-                    "verifyGameFiles": "Game files missing — verify them in Steam"
+                    "verifyGameFiles": "Game files missing — verify them in Steam",
+                    "mapUnavailable": "Map unavailable"
                 },
                 "select": {
                     "search": "Search"

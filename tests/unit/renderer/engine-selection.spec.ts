@@ -5,11 +5,15 @@
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { listAvailableVersions } = vi.hoisted(() => ({ listAvailableVersions: vi.fn() }));
+const { listAvailableVersions, infos } = vi.hoisted(() => ({
+    listAvailableVersions: vi.fn(),
+    infos: { bundledContent: undefined as { engines: string[]; games: string[] } | undefined },
+}));
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
 vi.mock("@renderer/store/contents.store", () => ({ onContentSettled: vi.fn() }));
 vi.mock("@renderer/store/config.store", () => ({ configStore: { defaultEngineVersion: "2026.07.04" } }));
+vi.mock("@renderer/store/infos.store", () => ({ infosStore: infos }));
 vi.stubGlobal("window", Object.assign(window, { engine: { listAvailableVersions } }));
 
 import { defaultEngineInstalled, enginesStore, refreshEnginesStore, selectEngineVersion } from "@renderer/store/engine.store";
@@ -32,6 +36,7 @@ describe("engine version selection", () => {
         listAvailableVersions.mockReset();
         selectEngineVersion(undefined);
         enginesStore.availableEngineVersions = [];
+        infos.bundledContent = undefined;
     });
 
     it("prefers the default version once it is installed", async () => {
@@ -80,6 +85,35 @@ describe("engine version selection", () => {
         selectEngineVersion(engine(OLDER, true));
 
         available(engine(OLDER, false), engine(DEFAULT_ENGINE_VERSION, true));
+        await refreshEnginesStore();
+
+        expect(enginesStore.selectedEngineVersion?.id).toBe(DEFAULT_ENGINE_VERSION);
+    });
+
+    // The remote config can name an engine this install never had, so the one it shipped with comes first.
+    it("prefers the one engine bundled with the install over the default", async () => {
+        infos.bundledContent = { engines: [OLDER], games: [] };
+        available(engine(OLDER, true), engine(DEFAULT_ENGINE_VERSION, true), engine(NEWER, true));
+
+        await refreshEnginesStore();
+
+        expect(enginesStore.selectedEngineVersion?.id).toBe(OLDER);
+    });
+
+    it("keeps an explicit choice ahead of the bundled engine", async () => {
+        infos.bundledContent = { engines: [OLDER], games: [] };
+        available(engine(OLDER, true), engine(NEWER, true));
+        await refreshEnginesStore();
+
+        selectEngineVersion(engine(NEWER, true));
+
+        expect(enginesStore.selectedEngineVersion?.id).toBe(NEWER);
+    });
+
+    it("goes by the default when more than one engine is bundled", async () => {
+        infos.bundledContent = { engines: [OLDER, NEWER], games: [] };
+        available(engine(OLDER, true), engine(DEFAULT_ENGINE_VERSION, true), engine(NEWER, true));
+
         await refreshEnginesStore();
 
         expect(enginesStore.selectedEngineVersion?.id).toBe(DEFAULT_ENGINE_VERSION);

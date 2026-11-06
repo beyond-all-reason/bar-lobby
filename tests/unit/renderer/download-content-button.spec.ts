@@ -9,8 +9,8 @@ import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
-const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
+const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, downloadMaps: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
+const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, downloadMaps: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
 
 const { missing, ensure, edition } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn(), edition: { features: {} as EditionFeatures } }));
 
@@ -153,7 +153,7 @@ describe("DownloadContentButton", () => {
         expect(wrapper.text()).toContain("downloading");
     });
 
-    describe("on an edition that does not download engines or games", () => {
+    describe("on an edition that does not download engines, games or maps", () => {
         beforeEach(() => {
             edition.features = steam;
         });
@@ -173,16 +173,33 @@ describe("DownloadContentButton", () => {
             expect(ensure).not.toHaveBeenCalled();
         });
 
-        it("still offers to download a missing map", async () => {
+        it("says a missing map is unavailable instead of offering a download", async () => {
             missing.mockResolvedValue([{ type: "map", id: "Quicksilver" }]);
 
             const wrapper = mountButton();
             await flushPromises();
 
+            expect(wrapper.text()).toContain("mapUnavailable");
+            expect(wrapper.text()).not.toContain("verifyGameFiles");
+
             await wrapper.get(".quick-download-button").trigger("click");
             await flushPromises();
 
-            expect(ensure).toHaveBeenCalledWith([{ type: "map", id: "Quicksilver" }]);
+            expect(ensure).not.toHaveBeenCalled();
+        });
+
+        // Verifying the files is the only thing that helps a damaged install, so it is what the player is told.
+        it("asks to verify the game files when an engine is missing along with a map", async () => {
+            missing.mockResolvedValue([
+                { type: "engine", id: "2025.01.3" },
+                { type: "map", id: "Quicksilver" },
+            ]);
+
+            const wrapper = mountButton({ maps: ["Quicksilver"], engines: ["2025.01.3"] });
+            await flushPromises();
+
+            expect(wrapper.text()).toContain("verifyGameFiles");
+            expect(wrapper.text()).not.toContain("mapUnavailable");
         });
     });
 });

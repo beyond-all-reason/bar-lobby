@@ -7,8 +7,8 @@ import type { EditionFeatures } from "@shared/edition";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
-const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
+const standalone: EditionFeatures = { selfUpdate: true, downloadEngineAndGame: true, downloadMaps: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false };
+const steam: EditionFeatures = { selfUpdate: false, downloadEngineAndGame: false, downloadMaps: false, changeAssetsPath: false, assetsReadOnly: true, assetsBesideExecutable: true };
 
 const { setup, held } = vi.hoisted(() => {
     // Every label the component asked for, so a test can tell one was never shown even in passing.
@@ -18,6 +18,7 @@ const { setup, held } = vi.hoisted(() => {
         hasEngine: true,
         hasGame: true,
         features: {} as EditionFeatures,
+        bundledContent: undefined as { engines: string[]; games: string[] } | undefined,
     };
     // Lets a test stop a step part way, so the label shown while it runs can be read.
     const held = new Map<string, { promise: Promise<void>; release: () => void }>();
@@ -100,6 +101,9 @@ vi.mock("@renderer/store/infos.store", () => ({
         get features() {
             return setup.features;
         },
+        get bundledContent() {
+            return setup.bundledContent;
+        },
     },
 }));
 
@@ -140,6 +144,7 @@ describe("InitialSetup stage labels", () => {
         setup.installedMaps = 3;
         setup.hasEngine = true;
         setup.hasGame = true;
+        setup.bundledContent = undefined;
         setup.features = steam;
         held.clear();
         downloadMaps.mockClear();
@@ -171,6 +176,7 @@ describe("InitialSetup stage labels", () => {
     });
 
     it("says it is downloading maps once it starts downloading them", async () => {
+        setup.features = standalone;
         setup.installedMaps = 0;
         const release = hold("download");
         const wrapper = mountSetup();
@@ -183,6 +189,16 @@ describe("InitialSetup stage labels", () => {
         await flushPromises();
 
         expect(wrapper.emitted("complete")).toHaveLength(1);
+    });
+
+    it("does not download the default maps where maps cannot be acquired", async () => {
+        setup.installedMaps = 0;
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(wrapper.emitted("complete")).toHaveLength(1);
+        expect(downloadMaps).not.toHaveBeenCalled();
+        expect(setup.requested).not.toContain("lobby.components.misc.initialSetup.downloadingMaps");
     });
 
     it("does not run the update stage where the client cannot update itself", async () => {
@@ -215,6 +231,7 @@ describe("InitialSetup on an edition that does not download engines or games", (
         setup.installedMaps = 3;
         setup.hasEngine = true;
         setup.hasGame = true;
+        setup.bundledContent = undefined;
         setup.features = steam;
         held.clear();
         vi.clearAllMocks();
@@ -242,6 +259,25 @@ describe("InitialSetup on an edition that does not download engines or games", (
         expect(downloadEngine).not.toHaveBeenCalled();
         expect(downloadMaps).not.toHaveBeenCalled();
         expect(wrapper.emitted("complete")).toBeUndefined();
+    });
+
+    // Some other engine being there does not make up for the one the install says it shipped with.
+    it("says the installation is incomplete when a bundled engine is missing", async () => {
+        setup.bundledContent = { engines: ["2099.12.1"], games: [] };
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(status(wrapper)).toBe("lobby.components.misc.initialSetup.installationIncomplete");
+        expect(wrapper.emitted("complete")).toBeUndefined();
+    });
+
+    it("carries on when everything bundled is installed", async () => {
+        setup.bundledContent = { engines: ["2025.01.3"], games: ["byar:test"] };
+        const wrapper = mountSetup();
+        await flushPromises();
+
+        expect(wrapper.emitted("complete")).toHaveLength(1);
     });
 
     // Steam can only verify the game files once the client is closed, so retrying from here goes nowhere.
