@@ -300,6 +300,41 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([{ path: path.join(campaign, "notes"), severity: "warning", message: expect.stringMatching(/not a mission/) }]);
         });
 
+        it("refuses a campaign whose mission ids differ only in case", async () => {
+            const campaign = path.join(root, "campaigns", "sample-campaign");
+            await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
+            const configPath = path.join(campaign, "campaignConfig.json");
+            const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, $schema: undefined, missions: { ...config.missions, MISSION01: {} } }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.campaigns).toEqual([]);
+            expect(content.problems.filter((p) => p.severity === "error")).toEqual([
+                { path: configPath, severity: "error", message: 'Mission "mission01" differs from "MISSION01" only in case' },
+                { path: configPath, severity: "error", message: 'Mission "MISSION01" differs from "mission01" only in case' },
+            ]);
+        });
+
+        it("reports a kind folder that is a file", async () => {
+            await fs.rm(path.join(root, "scenarios"), { recursive: true });
+            await fs.writeFile(path.join(root, "scenarios"), "");
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.problems).toEqual([{ path: path.join(root, "scenarios"), severity: "error", message: "Expected a folder, but this is a file" }]);
+        });
+
+        it("refuses an item whose language folder is a file", async () => {
+            await fs.rm(path.join(root, "scenarios", "alpha", "language"), { recursive: true });
+            await fs.writeFile(path.join(root, "scenarios", "alpha", "language"), "");
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.scenarios.map((s) => s.id)).toEqual(["beta", "gamma"]);
+            expect(content.problems).toContainEqual({ path: path.join(root, "scenarios", "alpha", "language"), severity: "error", message: "Expected a folder, but this is a file" });
+        });
+
         it("warns about missions that can never become available", async () => {
             const campaign = path.join(root, "campaigns", "sample-campaign");
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });

@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import fs from "node:fs/promises";
 import path from "node:path";
 import { toBarUrl } from "../../../shared/bar-url";
 import { FALLBACK_LOCALE, hasFallbackText, type LanguageTables } from "../../../shared/content/content-text";
@@ -11,7 +10,7 @@ import { LanguageFile } from "../../../shared/content/schema/language-file";
 import { MissionConfig } from "../../../shared/content/schema/mission-config";
 import { MissionManifest } from "../../../shared/content/schema/mission-manifest";
 import type { MissionConfigs, SingleplayerMission } from "../../../shared/content/singleplayer";
-import { fileInside, isHidden, readContentJson } from "./files";
+import { fileInside, readContentJson, readFolder } from "./files";
 import type { Problems } from "./problems";
 
 export const MANIFEST_FILE = "manifest.json";
@@ -19,15 +18,10 @@ export const MANIFEST_FILE = "manifest.json";
 // Every language/<locale>.json in a folder, keyed by locale. A folder without language/ has no text of its own.
 export async function readLanguageFolder(folder: string, problems: Problems): Promise<LanguageTables> {
     const languageFolder = path.join(folder, "language");
-    let names: string[];
-    try {
-        names = await fs.readdir(languageFolder);
-    } catch {
-        return {};
-    }
+    const names = (await readFolder(languageFolder, problems)).map((entry) => entry.name);
 
     const tables: LanguageTables = {};
-    for (const name of names.filter((n) => !isHidden(n) && n.endsWith(".json")).sort()) {
+    for (const name of names.filter((n) => n.endsWith(".json")).sort()) {
         const table = await readContentJson(path.join(languageFolder, name), LanguageFile, problems);
         if (table) {
             tables[name.slice(0, -".json".length)] = table;
@@ -178,6 +172,8 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
     checkTextKey(manifest.descriptionKey, "descriptionKey", languageTables, manifestPath, problems);
 
     const defaultConfig = await readMissionConfig(folder, manifest.config.default, languageTables, problems, manifestPath);
+    // Not checked against a campaign's `players`, so a config for a count the campaign doesn't offer is never
+    // used, without a warning. Left as is: multiplayer campaigns aren't guaranteed to be developed.
     const numPlayers: MissionConfigs["numPlayers"] = {};
     for (const [players, file] of Object.entries(manifest.config.numPlayers ?? {})) {
         const config = await readMissionConfig(folder, file, languageTables, problems, manifestPath);

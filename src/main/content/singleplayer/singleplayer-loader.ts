@@ -10,7 +10,7 @@ import path from "node:path";
 import { IndexManifest } from "../../../shared/content/schema/index-manifest";
 import type { ContentProblem, ContentRoot, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "../../../shared/content/singleplayer";
 import { readCampaignFolder } from "./campaign-folder";
-import { isFile, listFolders, readContentJson } from "./files";
+import { caseCollisions, isFile, listFolders, readContentJson } from "./files";
 import { MANIFEST_FILE, readMissionFolder } from "./mission-folder";
 import { Problems } from "./problems";
 
@@ -28,21 +28,14 @@ const byCodePoint = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
  * manifest.json gives, then the rest by id.
  */
 async function orderedFolders(kindFolder: string, problems: Problems): Promise<string[]> {
-    const all = (await listFolders(kindFolder)).sort(byCodePoint);
+    const all = (await listFolders(kindFolder, problems)).sort(byCodePoint);
 
-    // Ids differing only in case are one folder on Windows, so content that relies on them breaks there. All of
-    // them are left out, so which one loads doesn't depend on the platform.
-    const byLowerCase = new Map<string, string[]>();
-    for (const name of all) {
-        byLowerCase.set(name.toLowerCase(), [...(byLowerCase.get(name.toLowerCase()) ?? []), name]);
+    // All of them are left out, so which one loads doesn't depend on the platform.
+    const collisions = caseCollisions(all);
+    for (const [name, others] of collisions) {
+        problems.error(path.join(kindFolder, name), `Id "${name}" differs from ${others.map((other) => `"${other}"`).join(", ")} only in case`);
     }
-    for (const group of byLowerCase.values()) {
-        for (const name of group.length > 1 ? group : []) {
-            const others = group.filter((other) => other !== name).map((other) => `"${other}"`);
-            problems.error(path.join(kindFolder, name), `Id "${name}" differs from ${others.join(", ")} only in case`);
-        }
-    }
-    const names = all.filter((name) => byLowerCase.get(name.toLowerCase())?.length === 1);
+    const names = all.filter((name) => !collisions.has(name));
 
     const manifestPath = path.join(kindFolder, MANIFEST_FILE);
     const order = (await isFile(manifestPath)) ? ((await readContentJson(manifestPath, IndexManifest, problems))?.order ?? []) : [];
@@ -60,12 +53,9 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", d
         const folder = path.join(kindFolder, name);
         const problems = new Problems(all);
         const mission = await readMissionFolder(folder, { partOfCampaign: false, devContent, languageAfter: [], mediaFolder: path.join(folder, "media") }, problems);
-        // readMissionFolder only gives a scenario with compatibility and difficulties back.
+        // readMissionFolder only gives a scenario back without errors, and with compatibility and difficulties.
         const { compatibility, difficulties, defaultDifficulty } = mission?.manifest ?? {};
-        if (!mission || !compatibility || !difficulties || !defaultDifficulty) {
-            continue;
-        }
-        if (!problems.hasErrors) {
+        if (mission && compatibility && difficulties && defaultDifficulty) {
             items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty });
         }
     }

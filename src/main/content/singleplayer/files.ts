@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { Dirent } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { TSchema, Static } from "@sinclair/typebox";
@@ -70,14 +71,48 @@ export function isHidden(name: string) {
     return name.startsWith(".");
 }
 
-export async function listFolders(folder: string): Promise<string[]> {
+/**
+ * The entries of a folder, skipping hidden ones. A folder that doesn't exist has nothing in it. One that exists
+ * but can't be read is reported, so the content in it doesn't go missing without a word.
+ */
+export async function readFolder(folder: string, problems: Problems): Promise<Dirent[]> {
     try {
-        const entries = await fs.readdir(folder, { withFileTypes: true });
-
-        return entries.filter((entry) => entry.isDirectory() && !isHidden(entry.name)).map((entry) => entry.name);
-    } catch {
+        return (await fs.readdir(folder, { withFileTypes: true })).filter((entry) => !isHidden(entry.name));
+    } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === "ENOTDIR") {
+            problems.error(folder, "Expected a folder, but this is a file");
+        } else if (code !== "ENOENT") {
+            problems.error(folder, `Folder cannot be read (${code ?? (err instanceof Error ? err.message : String(err))}), so nothing in it is loaded`);
+        }
         return [];
     }
+}
+
+export async function listFolders(folder: string, problems: Problems): Promise<string[]> {
+    return (await readFolder(folder, problems)).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+}
+
+/**
+ * Each name that differs from another only in case, with the names it collides with. Such names are one folder
+ * on Windows, so content that relies on them breaks there.
+ */
+export function caseCollisions(names: readonly string[]): Map<string, string[]> {
+    const byLowerCase = new Map<string, string[]>();
+    for (const name of names) {
+        byLowerCase.set(name.toLowerCase(), [...(byLowerCase.get(name.toLowerCase()) ?? []), name]);
+    }
+    const collisions = new Map<string, string[]>();
+    for (const group of byLowerCase.values()) {
+        for (const name of group.length > 1 ? group : []) {
+            collisions.set(
+                name,
+                group.filter((other) => other !== name)
+            );
+        }
+    }
+
+    return collisions;
 }
 
 export async function isFile(filePath: string) {

@@ -7,7 +7,7 @@ import { toBarUrl } from "../../../shared/bar-url";
 import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
-import { fileInside, listFolders, readContentJson } from "./files";
+import { caseCollisions, fileInside, listFolders, readContentJson } from "./files";
 import { checkCompatibility, checkDefaultDifficulty, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
@@ -98,8 +98,12 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     checkCompatibility(config.compatibility, configPath, devContent, problems);
     checkDefaultDifficulty(config.difficulties, config.defaultDifficulty, configPath, problems);
     checkMissionGraph(config, configPath, problems);
+    const collisions = caseCollisions(Object.keys(config.missions));
+    for (const [missionId, others] of collisions) {
+        problems.error(configPath, `Mission "${missionId}" differs from ${others.map((other) => `"${other}"`).join(", ")} only in case`);
+    }
 
-    const folders = new Set((await listFolders(folder)).filter((name) => name !== SHARED_FOLDER));
+    const folders = new Set((await listFolders(folder, problems)).filter((name) => name !== SHARED_FOLDER));
     for (const name of [...folders].filter((name) => !Object.hasOwn(config.missions, name))) {
         problems.warning(path.join(folder, name), `Folder "${name}" is not a mission in ${CAMPAIGN_CONFIG_FILE}, so it is ignored`);
     }
@@ -110,7 +114,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     checkTextKey(config.descriptionKey, "descriptionKey", [language], configPath, problems);
 
     const missions: SingleplayerMission[] = [];
-    for (const missionId of Object.keys(config.missions).filter((missionId) => missionId !== SHARED_FOLDER)) {
+    for (const missionId of Object.keys(config.missions).filter((missionId) => missionId !== SHARED_FOLDER && !collisions.has(missionId))) {
         if (!folders.has(missionId)) {
             problems.error(configPath, `Mission "${missionId}" has no folder`);
             continue;
