@@ -62,8 +62,9 @@ They are draft 2020-12 schemas and work with any standard validator. For example
 A JSON Schema sees one file at a time. These checks span files or need more than a schema can express, so only the client's loader makes them:
 
 - A campaign's `campaignId` equals its folder name, and every key in `missions` equals a mission folder name and that mission's `missionId`. A scenario's or tutorial's `missionId` equals its folder name.
-- Every mission named in `startMission`, `finalMission`, unlocks, removes and prerequisites is in `missions`, and every mission is reachable from `startMission`.
-- No mission is called `shared`, and every mission folder is listed in `missions`.
+- Every mission named in `startMission`, `finalMission`, unlocks, removes and prerequisites is in `missions`. Every mission, and at least one `finalMission`, is reachable from `startMission`; this is a warning.
+- No mission is called `shared`. Every mission folder is listed in `missions`; a folder that isn't is ignored, with a warning.
+- No two campaign, scenario or tutorial ids differ only in case. Both are left out, as they would be one folder on Windows.
 - The mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images, including each mission's `image` and `backgroundImage`, are looked up in the campaign's `shared/media/`. A scenario's or tutorial's are looked up in its own `media/`.
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
 - Every language key (`titleKey`, `descriptionKey` and a team's `displayNameKey`) has English text where the client looks it up: a campaign's in `shared/language/en.json`, a campaign mission's in its own `language/en.json` and then the campaign's, a scenario's or tutorial's in its own. Every language falls back to English, so a key without it shows as the key itself. This is a warning.

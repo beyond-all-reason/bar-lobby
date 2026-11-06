@@ -28,17 +28,21 @@ const byCodePoint = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
  * manifest.json gives, then the rest by id.
  */
 async function orderedFolders(kindFolder: string, problems: Problems): Promise<string[]> {
-    const names = await listFolders(kindFolder);
+    const all = (await listFolders(kindFolder)).sort(byCodePoint);
 
-    // Ids differing only in case are one folder on Windows and macOS, so content that relies on them breaks there.
-    const seen = new Map<string, string>();
-    for (const name of names.sort(byCodePoint)) {
-        const other = seen.get(name.toLowerCase());
-        if (other) {
-            problems.error(path.join(kindFolder, name), `Id "${name}" differs from "${other}" only in case`);
-        }
-        seen.set(name.toLowerCase(), name);
+    // Ids differing only in case are one folder on Windows, so content that relies on them breaks there. All of
+    // them are left out, so which one loads doesn't depend on the platform.
+    const byLowerCase = new Map<string, string[]>();
+    for (const name of all) {
+        byLowerCase.set(name.toLowerCase(), [...(byLowerCase.get(name.toLowerCase()) ?? []), name]);
     }
+    for (const group of byLowerCase.values()) {
+        for (const name of group.length > 1 ? group : []) {
+            const others = group.filter((other) => other !== name).map((other) => `"${other}"`);
+            problems.error(path.join(kindFolder, name), `Id "${name}" differs from ${others.join(", ")} only in case`);
+        }
+    }
+    const names = all.filter((name) => byLowerCase.get(name.toLowerCase())?.length === 1);
 
     const manifestPath = path.join(kindFolder, MANIFEST_FILE);
     const order = (await isFile(manifestPath)) ? ((await readContentJson(manifestPath, IndexManifest, problems))?.order ?? []) : [];

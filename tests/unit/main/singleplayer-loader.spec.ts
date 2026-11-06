@@ -155,6 +155,24 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([{ path: path.join(root, "scenarios", "manifest.json"), severity: "warning", message: expect.stringMatching(/"missing"/) }]);
         });
 
+        it("leaves out every folder whose id differs from another only in case", async (context) => {
+            try {
+                await fs.mkdir(path.join(root, "scenarios", "Alpha"));
+            } catch {
+                // A case-insensitive file system can't hold both folders, so there is nothing to test.
+                context.skip();
+            }
+            await fs.cp(path.join(root, "scenarios", "alpha"), path.join(root, "scenarios", "Alpha"), { recursive: true });
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.scenarios.map((s) => s.id)).toEqual(["beta", "gamma"]);
+            expect(content.problems).toEqual([
+                { path: path.join(root, "scenarios", "Alpha"), severity: "error", message: 'Id "Alpha" differs from "alpha" only in case' },
+                { path: path.join(root, "scenarios", "alpha"), severity: "error", message: 'Id "alpha" differs from "Alpha" only in case' },
+            ]);
+        });
+
         it("reports a wrong startPosType once, with every value it takes", async () => {
             const configPath = path.join(root, "scenarios", "alpha", "missionConfig.json");
             const config = JSON.parse(await fs.readFile(configPath, "utf8"));
