@@ -38,10 +38,12 @@ import { reconcileCustomServers } from "@shared/lobby-server";
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
 
+const isUnsupportedPlatform = process.platform !== "win32" && process.platform !== "linux";
+
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
 log.info("App instance lock acquired successfully.");
-if (process.platform !== "win32" && process.platform !== "linux") {
+if (isUnsupportedPlatform) {
     log.warn(`Client is running on unsupported platform: ${process.platform === "darwin" ? "macOS" : process.platform}`);
 }
 
@@ -99,7 +101,7 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
-    if (process.platform !== "win32" && process.platform !== "linux") {
+    if (isUnsupportedPlatform) {
         const choice = dialog.showMessageBoxSync({
             type: "warning",
             title: "Unsupported platform",
