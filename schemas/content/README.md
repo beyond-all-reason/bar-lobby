@@ -62,13 +62,22 @@ They are draft 2020-12 schemas and work with any standard validator. For example
 A JSON Schema sees one file at a time. These checks span files or need more than a schema can express, so only the client's loader makes them:
 
 - A campaign's `campaignId` equals its folder name, and every key in `missions` equals a mission folder name and that mission's `missionId`. A scenario's or tutorial's `missionId` equals its folder name.
-- Every mission named in `startMission`, `finalMission`, unlocks, removes and prerequisites is in `missions`, and every mission is reachable from `startMission`.
-- No mission is called `shared`, and every mission folder is listed in `missions`.
+- Every mission named in `startMission`, `finalMission`, unlocks, removes and prerequisites is in `missions`. Every mission, and at least one `finalMission`, is reachable from `startMission`; this is a warning.
+- No mission is called `shared`. Every mission folder is listed in `missions`; a folder that isn't is ignored, with a warning.
+- No two campaign, scenario or tutorial ids differ only in case, and neither do two mission ids in one campaign, as they would be one folder on Windows. Items whose ids collide are left out, and so is a campaign whose mission ids do.
 - The mission configs, `backgroundImage` and `logo` exist, and stay inside their folder. Campaign images, including each mission's `image` and `backgroundImage`, are looked up in the campaign's `shared/media/`. A scenario's or tutorial's are looked up in its own `media/`.
 - In a mission config, `playerTeam` and `teamSettings` name teams in `alliances`, `allianceSettings` and `alliedWith` name alliances, and no team is in two alliances.
 - Every language key (`titleKey`, `descriptionKey` and a team's `displayNameKey`) has English text where the client looks it up: a campaign's in `shared/language/en.json`, a campaign mission's in its own `language/en.json` and then the campaign's, a scenario's or tutorial's in its own. Every language falls back to English, so a key without it shows as the key itself. This is a warning.
 - `compatibility` is required in a scenario or tutorial manifest, and `"dev"` loads only in dev mode. A campaign mission leaves it out and uses the campaign's. No engine is listed twice.
 - `difficulties` and `defaultDifficulty` are required in a scenario or tutorial manifest, and `defaultDifficulty` is one of `difficulties`. A campaign mission leaves them out and uses the campaign's.
+
+Run all of these over a content folder with the loader itself:
+
+```sh
+npm run validate-content -- <content root>
+```
+
+Add `--allow-dev` to accept content still in development (see [Content still in development](#content-still-in-development)).
 
 ## Compatibility
 
@@ -91,7 +100,7 @@ Content made in the mission editor runs on unreleased game code, so it has no re
 "compatibility": "dev"
 ```
 
-The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. Replace `"dev"` with the tested pairs before release.
+The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. `validate-content` also reports it as an error, so it cannot ship as official content by accident. Pass `--allow-dev` to check content still in development. Replace `"dev"` with the tested pairs before release.
 
 ## Difficulty
 
@@ -107,6 +116,14 @@ The difficulties are the mission API's own set, from its `luarules/mission_api/d
 The player chooses from the ones listed, which are shown easiest first whatever order they are listed in. A campaign's missions leave both out: the player chooses once for the whole campaign, and every mission is played at it. They can change it at any time, and the next mission is played at the new one.
 
 The choice is kept in the player's saved progress. If a release stops offering the difficulty a player chose, they play at `defaultDifficulty` until they choose again. Starting a campaign over goes back to the default.
+
+## Display order
+
+Campaigns, scenarios and tutorials are shown in the order the `order` list in their folder's `manifest.json` gives, such as `scenarios/manifest.json`. Any not in that list come after, sorted by id one character code at a time. That puts uppercase before lowercase, and `Mission10` before `Mission2`.
+
+A campaign's missions are shown in the order `missions` lists them, with one exception from how JavaScript orders an object's keys: a key that is a whole number written without leading zeros, such as `"1"` or `"42"`, comes before every other key, smallest first. `"01"` and `"Mission1"` are not whole numbers and keep their place.
+
+By convention, ids are a name with a zero-padded number, such as `Mission01`, `Mission02` and so on, with enough digits for every mission. Ids like these keep their place in `missions` and also sort in the intended order.
 
 ## Ids are permanent
 
