@@ -117,6 +117,14 @@ The player chooses from the ones listed, which are shown easiest first whatever 
 
 The choice is kept in the player's saved progress. If a release stops offering the difficulty a player chose, they play at `defaultDifficulty` until they choose again. Starting a campaign over goes back to the default.
 
+## Display order
+
+Campaigns, scenarios and tutorials are shown in the order the `order` list in their folder's `manifest.json` gives, such as `scenarios/manifest.json`. Any not in that list come after, sorted by id one character code at a time. That puts uppercase before lowercase, and `Mission10` before `Mission2`.
+
+A campaign's missions are shown in the order `missions` lists them, with one exception from how JavaScript orders an object's keys: a key that is a whole number written without leading zeros, such as `"1"` or `"42"`, comes before every other key, smallest first. `"01"` and `"Mission1"` are not whole numbers and keep their place.
+
+By convention, ids are a name with a zero-padded number, such as `Mission01`, `Mission02` and so on, with enough digits for every mission. Ids like these keep their place in `missions` and also sort in the intended order.
+
 ## Ids are permanent
 
 Saved progress is keyed by campaign id and records mission ids. Once content is released, renaming a campaign or mission id loses players' progress for it.

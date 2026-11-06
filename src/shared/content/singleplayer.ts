@@ -71,7 +71,7 @@ export type SingleplayerCampaign = SingleplayerItemRef &
         backgroundImageUrl?: string;
         logoUrl?: string;
         compatibility: ItemCompatibility;
-        // In the order the config lists them.
+        // In the order of the config's `missions` keys, as the content README's "Display order" describes.
         missions: SingleplayerMission[];
     };
 
