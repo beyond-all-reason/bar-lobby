@@ -1,0 +1,24 @@
+{
+    "alliances": {
+        "good guys": ["heroes", "guards"],
+        "enemies": ["mainBadGuy", "hench;men"],
+        "neutral": ["civilians"]
+    },
+    "playerTeam": ["heroes"],
+    "startPosType": "fixed",
+    "allianceSettings": {
+        "neutral": {
+            "alliedWith": "enemies"
+        }
+    },
+    "restrictions": {
+        "armsilo": 0,
+        "corjugg": 1
+    },
+    "modOptions": {
+        "modOptionKey": "modOptionValue"
+    },
+    "mapOptions": {
+        "mapOptionKey": "mapOptionValue"
+    }
+}

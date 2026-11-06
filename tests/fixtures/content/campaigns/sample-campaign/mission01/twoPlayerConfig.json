@@ -1,0 +1,42 @@
+{
+    "alliances": {
+        "goodGuys": ["heroes", "allies", "guards"],
+        "enemies": ["mainBadGuy", "henchmen"],
+        "neutral": ["civilians"]
+    },
+    "playerTeam": ["heroes", "allies"],
+    "startPosType": "fixed",
+    "allianceSettings": {
+        "goodGuys": {
+            "alliedWith": "neutral",
+            "startRectTop": 0,
+            "startRectLeft": 0,
+            "startRectBottom": 0.5,
+            "startRectRight": 0.5
+        },
+        "neutral": {
+            "alliedWith": "goodGuys"
+        }
+    },
+    "teamSettings": {
+        "heroes": {
+            "side": "Armada",
+            "incomeMultiplier": 1.1,
+            "startPosX": 100,
+            "startPosZ": 200
+        },
+        "mainBadGuy": {
+            "luaAI": "SampleAI"
+        }
+    },
+    "restrictions": {
+        "armsilo": 0,
+        "corjugg": 1
+    },
+    "modOptions": {
+        "modOptionKey": "modOptionValue"
+    },
+    "mapOptions": {
+        "mapOptionKey": "mapOptionValue"
+    }
+}
