@@ -17,4 +17,10 @@ export const appUi: Ui = {
         notificationsApi.alert({ text: "Successfully joined matchmaking queue(s)", severity: "info" });
     },
     queueListFailed: alertQueueListFailed,
+    userSubscribeFailed() {
+        notificationsApi.alert({ text: "Tachyon error with user/subscribeUpdates", severity: "error" });
+    },
+    userUnsubscribeFailed() {
+        notificationsApi.alert({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
+    },
 };

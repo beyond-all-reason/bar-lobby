@@ -29,7 +29,7 @@ const { MatchmakingStatus, matchmakingStore, matchmakingActions } = await import
 const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
 const { provideUi } = await import("@renderer/logic/ui");
 
-const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn() };
+const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn(), userSubscribeFailed: vi.fn(), userUnsubscribeFailed: vi.fn() };
 
 function emitUserSelf(matchmaking: PrivateUser["matchmaking"]) {
     const data = { user: { matchmaking } as PrivateUser } satisfies UserSelfEventData;

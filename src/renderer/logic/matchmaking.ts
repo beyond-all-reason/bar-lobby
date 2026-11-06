@@ -17,7 +17,7 @@ import { gameApi } from "@renderer/api/game";
 import { isTachyonErrorForCommand, onTachyonEvent, tachyonRequest } from "@renderer/api/tachyon";
 import { ui } from "@renderer/logic/ui";
 import { matchmakingStore, matchmakingActions, MatchmakingStatus } from "@renderer/store/matchmaking.store";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { connectionStore } from "@renderer/store/connection.store";
 import { onTachyonConnected } from "@renderer/utils/connection-signal";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
@@ -324,7 +324,7 @@ export async function initMatchmakingLogic() {
     onTachyonEvent("matchmaking/queuesJoined", onQueuesJoinedEvent);
     onTachyonEvent("user/self", onUserSelfEvent);
 
-    if (tachyonStore.isConnected) {
+    if (connectionStore.isConnected) {
         await refreshQueues();
     }
 

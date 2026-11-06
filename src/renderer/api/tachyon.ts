@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { GetCommandData, GetCommandIds, GetCommands, TachyonResponse } from "tachyon-protocol";
+import { ipcCall } from "@renderer/api/ipc-call";
 
 type RequestCommandId = GetCommandIds<"user", "server", "request">;
 type EventCommandId = GetCommandIds<"server", "user", "event">;
@@ -72,3 +73,12 @@ export function isTachyonErrorForCommand<C extends RequestCommandId>(error: unkn
 export function onTachyonEvent<C extends EventCommandId>(commandId: C, handler: (data: EventData<C>) => void): () => void {
     return window.tachyon.onEvent(commandId, handler);
 }
+
+export const tachyonConnectionApi = {
+    isConnected: () => ipcCall("tachyon:isConnected", () => window.tachyon.isConnected()),
+    connect: () => ipcCall("tachyon:connect", () => window.tachyon.connect()),
+    disconnect: () => ipcCall("tachyon:disconnect", () => window.tachyon.disconnect()),
+    dropConnection: () => ipcCall("tachyon:dropConnection", () => window.tachyon.dropConnection()),
+    onConnected: (handler: () => void) => window.tachyon.onConnected(handler),
+    onDisconnected: (handler: () => void) => window.tachyon.onDisconnected(handler),
+};

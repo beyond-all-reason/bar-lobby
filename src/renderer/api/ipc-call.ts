@@ -14,6 +14,10 @@ export class IpcCallError extends Error {
     }
 }
 
+export function withoutIpcCallError(error: unknown) {
+    return error instanceof IpcCallError ? error.cause : error;
+}
+
 export async function ipcCall<T>(call: string, invoke: () => Promise<T>): Promise<T> {
     try {
         return await invoke();
