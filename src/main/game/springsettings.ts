@@ -43,17 +43,13 @@ export function applyDefaultSpringsettings(): void {
     try {
         fs.mkdirSync(path.dirname(SPRINGSETTINGS_PATH), { recursive: true });
         const settings = readSettings(SPRINGSETTINGS_PATH);
-        let changed = false;
+        // spring-headless creates an empty file before the first launch, so check for entries rather than file existence.
+        if (settings.size > 0) return;
         for (const [key, value] of Object.entries(configService.getConfig().springSettings)) {
-            if (!settings.has(key)) {
-                settings.set(key, String(value));
-                changed = true;
-            }
+            settings.set(key, String(value));
         }
-        if (changed) {
-            writeSettings(settings, SPRINGSETTINGS_PATH);
-            log.info("Applied default springsettings");
-        }
+        writeSettings(settings, SPRINGSETTINGS_PATH);
+        log.info("Applied default springsettings");
     } catch (err) {
         log.error(`Failed to apply default springsettings: ${err}`);
     }
