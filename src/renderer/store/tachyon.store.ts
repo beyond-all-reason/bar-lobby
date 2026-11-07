@@ -38,6 +38,7 @@ function clearRejoin() {
 function onUserSelfEventBattle(battle: PrivateUser["currentBattle"]) {
     if (!battle) {
         clearRejoin();
+
         return;
     }
     tachyonStore.springConnectionDetails = battle;

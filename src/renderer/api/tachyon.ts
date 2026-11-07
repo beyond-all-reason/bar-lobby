@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { GetCommandData, GetCommandIds, GetCommands, TachyonResponse } from "tachyon-protocol";
-import { ipcCall } from "@renderer/api/ipc-call";
 
 type RequestCommandId = GetCommandIds<"user", "server", "request">;
 type EventCommandId = GetCommandIds<"server", "user", "event">;
@@ -74,11 +73,12 @@ export function onTachyonEvent<C extends EventCommandId>(commandId: C, handler: 
     return window.tachyon.onEvent(commandId, handler);
 }
 
+// Not through ipcCall: the sign-in screen shows connect failures as main sent them.
 export const tachyonConnectionApi = {
-    isConnected: () => ipcCall("tachyon:isConnected", () => window.tachyon.isConnected()),
-    connect: () => ipcCall("tachyon:connect", () => window.tachyon.connect()),
-    disconnect: () => ipcCall("tachyon:disconnect", () => window.tachyon.disconnect()),
-    dropConnection: () => ipcCall("tachyon:dropConnection", () => window.tachyon.dropConnection()),
+    isConnected: () => window.tachyon.isConnected(),
+    connect: () => window.tachyon.connect(),
+    disconnect: () => window.tachyon.disconnect(),
+    dropConnection: () => window.tachyon.dropConnection(),
     onConnected: (handler: () => void) => window.tachyon.onConnected(handler),
     onDisconnected: (handler: () => void) => window.tachyon.onDisconnected(handler),
 };

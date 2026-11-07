@@ -38,6 +38,7 @@ describe("user update subscriptions", () => {
     });
 
     beforeEach(() => {
+        connectionActions.set({ isConnected: false });
         subsManager.clearAllFromList(list);
         vi.clearAllMocks();
         connectionActions.set({ isConnected: true });

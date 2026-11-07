@@ -73,7 +73,7 @@ const confirmOpen = computed({
     },
 });
 
-// Retrying is only knowable from isReconnecting. Deriving it from "not connected"
+// Deriving retrying from "not connected"
 // reports attempts that aren't happening, and connectionStore.error can't stand in
 // for a state either: it is set by the first failed attempt and by server stats
 // requests alike, so it says nothing about whether we are still trying.

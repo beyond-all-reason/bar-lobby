@@ -5,7 +5,6 @@
 import { watch } from "vue";
 import { UserId } from "tachyon-protocol/types";
 import { authApi } from "@renderer/api/auth";
-import { withoutIpcCallError } from "@renderer/api/ipc-call";
 import { networkApi } from "@renderer/api/network";
 import { tachyonConnectionApi, tachyonRequest } from "@renderer/api/tachyon";
 import { ui } from "@renderer/logic/ui";
@@ -23,24 +22,16 @@ let isInitialized = false;
 let reconnectTimer: ReturnType<typeof setInterval> | undefined;
 let serverStatsTimer: ReturnType<typeof setInterval> | undefined;
 
-async function rejectingWithCause<T>(call: Promise<T>) {
-    try {
-        return await call;
-    } catch (error) {
-        throw withoutIpcCallError(error);
-    }
-}
-
 // The main process owns the session. Nothing here assigns isAuthenticated
 // directly, or the UI can end up claiming a session that no longer exists.
 async function syncAuthState() {
-    const { authenticated } = await rejectingWithCause(authApi.getState());
+    const { authenticated } = await authApi.getState();
     connectionActions.set({ isAuthenticated: authenticated });
 }
 
 async function login(interactive = true) {
     try {
-        await rejectingWithCause(authApi.login(interactive));
+        await authApi.login(interactive);
     } finally {
         // The change event and this reply are separate channels, so read the
         // state back rather than racing them.
@@ -54,11 +45,14 @@ async function connect() {
     try {
         await tachyonConnectionApi.connect();
         connectionActions.set({ error: undefined });
-    } catch (error) {
-        const cause = withoutIpcCallError(error);
+    } catch (err) {
+        console.error("Failed to connect to Tachyon server", err);
         connectionActions.set({ error: "Error" });
-
-        throw new Error(cause instanceof Error ? cause.message : String(cause));
+        if (err instanceof Error) {
+            throw new Error(err.message);
+        } else {
+            throw new Error(String(err));
+        }
     }
 }
 
@@ -126,7 +120,7 @@ function stopFetchingServerStats() {
 async function goOffline() {
     connectionActions.set({ wantsConnection: false });
     stopReconnecting();
-    await rejectingWithCause(tachyonConnectionApi.disconnect());
+    await tachyonConnectionApi.disconnect();
 
     // Closing the socket only starts the handshake, so the close event lands after
     // this resolves and the store would still read as connected. Settling it here
@@ -142,7 +136,7 @@ async function goOffline() {
 async function logout() {
     battleHistoryActions.clearBattleHistory();
     await goOffline();
-    await rejectingWithCause(authApi.logout());
+    await authApi.logout();
     await syncAuthState();
 }
 
@@ -159,7 +153,7 @@ async function serverChanged() {
 async function restorePreviousSession() {
     if (!settingsStore.devMode) return;
     if (!settingsStore.loginAutomatically) return;
-    if (!(await rejectingWithCause(authApi.hasCredentials()))) return;
+    if (!(await authApi.hasCredentials())) return;
 
     try {
         // Non-interactive, because a rejected refresh token must not open a
@@ -209,6 +203,7 @@ function onDisconnected() {
     // retry. Only the first one is a real transition worth reacting to.
     const wasConnected = connectionStore.isConnected;
     connectionActions.set({ isConnected: false });
+
     if (!wasConnected) return;
 
     stopFetchingServerStats();
@@ -230,7 +225,7 @@ function onNetworkOffline() {
     if (!connectionStore.isConnected) return;
 
     console.debug("Network went away, dropping the connection");
-    void rejectingWithCause(tachyonConnectionApi.dropConnection());
+    void tachyonConnectionApi.dropConnection();
 }
 
 function onAuthChanged({ authenticated }: { authenticated: boolean }) {
@@ -296,7 +291,7 @@ export async function initConnectionLogic() {
         return;
     }
 
-    const isConnected = await rejectingWithCause(tachyonConnectionApi.isConnected());
+    const isConnected = await tachyonConnectionApi.isConnected();
     connectionActions.set({ isConnected });
     if (isConnected) {
         fetchServerStats();
