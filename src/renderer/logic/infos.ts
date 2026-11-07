@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { infoApi } from "@renderer/api/info";
-import { infosStore, infosUpdates } from "@renderer/store/infos.store";
+import { infosStore, infosActions } from "@renderer/store/infos.store";
 
 export async function initInfosLogic() {
     if (infosStore.isInitialized) {
@@ -11,5 +11,5 @@ export async function initInfosLogic() {
         return;
     }
 
-    infosUpdates.set(await infoApi.getInfo());
+    infosActions.set(await infoApi.getInfo());
 }

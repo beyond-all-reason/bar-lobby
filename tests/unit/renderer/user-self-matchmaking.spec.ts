@@ -25,11 +25,11 @@ Object.assign(window.tachyon, {
     requestStructured: vi.fn(async () => ({ status: "success", data: {} })),
 });
 
-const { MatchmakingStatus, matchmakingStore, matchmakingUpdates } = await import("@renderer/store/matchmaking.store");
+const { MatchmakingStatus, matchmakingStore, matchmakingActions } = await import("@renderer/store/matchmaking.store");
 const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
 const { provideUi } = await import("@renderer/logic/ui");
 
-const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn() };
+const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn(), userSubscribeFailed: vi.fn(), userUnsubscribeFailed: vi.fn() };
 
 function emitUserSelf(matchmaking: PrivateUser["matchmaking"]) {
     const data = { user: { matchmaking } as PrivateUser } satisfies UserSelfEventData;
@@ -51,7 +51,7 @@ describe("user/self matchmaking state", () => {
     beforeEach(() => {
         vi.useFakeTimers();
         emitUserSelf({ state: "no_matchmaking" });
-        matchmakingUpdates.set({ selectedQueue: "1v1" });
+        matchmakingActions.set({ selectedQueue: "1v1" });
         ui.matchWaiting.mockClear();
     });
 
@@ -92,7 +92,7 @@ describe("user/self matchmaking state", () => {
     });
 
     it("returns to idle and stops the ready countdown when user/self reports no matchmaking", () => {
-        matchmakingUpdates.set({ playersQueued: 5, playersReady: 3 });
+        matchmakingActions.set({ playersQueued: 5, playersReady: 3 });
         emitUserSelf(foundState((Date.now() + 5000) * 1000));
 
         emitUserSelf({ state: "no_matchmaking" });
@@ -105,7 +105,7 @@ describe("user/self matchmaking state", () => {
     });
 
     it("clears readiness but keeps the queue count when matchmaking is lost", () => {
-        matchmakingUpdates.set({ playersQueued: 5, playersReady: 3 });
+        matchmakingActions.set({ playersQueued: 5, playersReady: 3 });
 
         eventHandlers.get("matchmaking/lost")?.(undefined);
 
@@ -115,7 +115,7 @@ describe("user/self matchmaking state", () => {
     });
 
     it("clears matchmaking counters when the match is cancelled", () => {
-        matchmakingUpdates.set({ playersQueued: 5, playersReady: 3 });
+        matchmakingActions.set({ playersQueued: 5, playersReady: 3 });
 
         eventHandlers.get("matchmaking/cancelled")?.({ reason: "user_cancelled" });
 

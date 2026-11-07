@@ -34,4 +34,16 @@ describe("appUi", () => {
 
         expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Tachyon error: matchmaking/list", severity: "error" });
     });
+
+    it("alerts when subscribing to user updates fails", () => {
+        appUi.userSubscribeFailed();
+
+        expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Tachyon error with user/subscribeUpdates", severity: "error" });
+    });
+
+    it("alerts when unsubscribing from user updates fails", () => {
+        appUi.userUnsubscribeFailed();
+
+        expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
+    });
 });

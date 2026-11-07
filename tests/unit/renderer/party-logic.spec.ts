@@ -24,7 +24,7 @@ vi.mock("@renderer/store/users.store", () => ({ subsManager: { setList: vi.fn(),
 
 const { me } = await import("@renderer/store/me.store");
 const { subsManager } = await import("@renderer/store/users.store");
-const { partyStore, partyUpdates, PlayersPartyState } = await import("@renderer/store/party.store");
+const { partyStore, partyActions, PlayersPartyState } = await import("@renderer/store/party.store");
 const { partyLogic, initPartyLogic } = await import("@renderer/logic/party");
 const { onWentOffline } = await import("@renderer/utils/offline-signal");
 
@@ -52,7 +52,7 @@ describe("party logic", () => {
 
     beforeEach(() => {
         me.userId = "me";
-        partyUpdates.clear();
+        partyActions.clear();
         api.tachyonRequest.mockReset();
         vi.mocked(subsManager.setList).mockClear();
         vi.mocked(subsManager.clearAllFromList).mockClear();

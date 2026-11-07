@@ -6,14 +6,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { computed, nextTick } from "vue";
 import devTranslation from "@renderer/assets/languages/dev.json";
 import { i18n, resolveLocale, t } from "@renderer/i18n";
-import { settingsUpdates } from "@renderer/store/settings.store";
+import { settingsActions } from "@renderer/store/settings.store";
 
 const key = "lobby.navbar.settings.language";
 const english = "Language";
 const scrambled = devTranslation.lobby.navbar.settings.language;
 
 async function setLanguage(language: string | null) {
-    settingsUpdates.changed({ language });
+    settingsActions.changed({ language });
     await nextTick();
 }
 

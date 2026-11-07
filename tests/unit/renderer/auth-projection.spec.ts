@@ -16,12 +16,14 @@ vi.mock("@renderer/store/users.store", () => ({
         attach: vi.fn(),
         detach: vi.fn(),
         clearAllFromList: vi.fn(),
+        onNewUsersAttached: { add: vi.fn() },
+        onOldUsersDetached: { add: vi.fn() },
     },
 }));
 
 let onAuthChanged: ((state: { authenticated: boolean; reason?: string }) => void) | undefined;
 
-const authApi = {
+const windowAuth = {
     login: vi.fn(),
     logout: vi.fn(),
     hasCredentials: vi.fn(),
@@ -40,13 +42,14 @@ beforeEach(() => {
     settings.devMode = true;
     settings.loginAutomatically = true;
 
-    authApi.getState.mockResolvedValue({ authenticated: false });
-    authApi.hasCredentials.mockResolvedValue(false);
-    authApi.logout.mockResolvedValue(undefined);
-    authApi.getIdentity.mockResolvedValue(undefined);
+    windowAuth.getState.mockResolvedValue({ authenticated: false });
+    windowAuth.hasCredentials.mockResolvedValue(false);
+    windowAuth.logout.mockResolvedValue(undefined);
+    windowAuth.getIdentity.mockResolvedValue(undefined);
 
-    Object.defineProperty(window, "auth", { value: authApi, writable: true, configurable: true });
+    Object.defineProperty(window, "auth", { value: windowAuth, writable: true, configurable: true });
     Object.assign(window.tachyon as any, {
+        isConnected: vi.fn().mockResolvedValue(false),
         connect: vi.fn().mockResolvedValue(undefined),
         disconnect: vi.fn().mockResolvedValue(undefined),
         requestStructured: vi.fn().mockResolvedValue(emptyFriendList),
@@ -55,147 +58,183 @@ beforeEach(() => {
     });
 });
 
-async function loadStore() {
+async function loadStores() {
     vi.resetModules();
 
-    return import("@renderer/store/me.store");
+    const { me, initMeStore } = await import("@renderer/store/me.store");
+    const { connectionStore } = await import("@renderer/store/connection.store");
+    const { connectionLogic, initConnectionLogic } = await import("@renderer/logic/connection");
+
+    async function start() {
+        await initConnectionLogic();
+        await initMeStore();
+        await connectionLogic.restoreSession();
+    }
+
+    return { me, connectionStore, connectionLogic, start };
 }
 
 describe("renderer auth projection", () => {
     it("seeds from the main process rather than assuming signed out", async () => {
-        authApi.getState.mockResolvedValue({ authenticated: true });
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { connectionStore, start } = await loadStores();
+        await start();
 
-        expect(me.isAuthenticated).toBe(true);
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     // Identity comes off the durable side, so it is there before any socket is.
     it("shows who the stored credentials belong to while offline", async () => {
-        authApi.getIdentity.mockResolvedValue({ userId: "42", username: "Cached", displayName: "Cached", countryCode: "" });
-        authApi.getState.mockResolvedValue({ authenticated: false });
+        windowAuth.getIdentity.mockResolvedValue({ userId: "42", username: "Cached", displayName: "Cached", countryCode: "" });
+        windowAuth.getState.mockResolvedValue({ authenticated: false });
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { me, connectionStore, start } = await loadStores();
+        await start();
 
         expect(me.username).toBe("Cached");
         expect(me.userId).toBe("42");
-        expect(me.isAuthenticated).toBe(false);
+        expect(connectionStore.isAuthenticated).toBe(false);
     });
 
     it("falls back to the defaults when nothing is stored yet", async () => {
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { me, start } = await loadStores();
+        await start();
 
         expect(me.username).toBe("Player");
         expect(me.userId).toBe("0");
     });
 
     it("follows a session loss the renderer did not ask for", async () => {
-        authApi.getState.mockResolvedValue({ authenticated: true });
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { connectionStore, start } = await loadStores();
+        await start();
 
         onAuthChanged?.({ authenticated: false, reason: "expired" });
 
-        expect(me.isAuthenticated).toBe(false);
+        expect(connectionStore.isAuthenticated).toBe(false);
     });
 
     it("restores without a browser and opens the socket", async () => {
         // A cold start has no session yet, so signing in has to happen before
         // the socket, and without a browser.
         const session = { authenticated: false };
-        authApi.hasCredentials.mockResolvedValue(true);
-        authApi.getState.mockImplementation(async () => ({ authenticated: session.authenticated }));
-        authApi.login.mockImplementation(async () => void (session.authenticated = true));
+        windowAuth.hasCredentials.mockResolvedValue(true);
+        windowAuth.getState.mockImplementation(async () => ({ authenticated: session.authenticated }));
+        windowAuth.login.mockImplementation(async () => void (session.authenticated = true));
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { connectionStore, start } = await loadStores();
+        await start();
 
-        expect(authApi.login).toHaveBeenCalledWith(false);
+        expect(windowAuth.login).toHaveBeenCalledWith(false);
         expect(window.tachyon.connect).toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(true);
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     it("does not touch the session outside dev mode", async () => {
         settings.devMode = false;
-        authApi.hasCredentials.mockResolvedValue(true);
+        windowAuth.hasCredentials.mockResolvedValue(true);
 
-        const { initMeStore } = await loadStore();
-        await initMeStore();
+        const { start } = await loadStores();
+        await start();
 
-        expect(authApi.login).not.toHaveBeenCalled();
+        expect(windowAuth.login).not.toHaveBeenCalled();
         expect(window.tachyon.connect).not.toHaveBeenCalled();
     });
 
     it("honours the automatic login setting", async () => {
         settings.loginAutomatically = false;
-        authApi.hasCredentials.mockResolvedValue(true);
+        windowAuth.hasCredentials.mockResolvedValue(true);
 
-        const { initMeStore } = await loadStore();
-        await initMeStore();
+        const { start } = await loadStores();
+        await start();
 
-        expect(authApi.login).not.toHaveBeenCalled();
+        expect(windowAuth.login).not.toHaveBeenCalled();
     });
 
     // Only main can tell a rejected refresh token from an unreachable server, and
     // it already destroys the account in the first case. Signing out from here too
     // threw away working credentials whenever the network was slower than the app.
     it("keeps the credentials when the socket refuses the connection", async () => {
-        authApi.hasCredentials.mockResolvedValue(true);
-        authApi.getState.mockResolvedValue({ authenticated: true });
+        windowAuth.hasCredentials.mockResolvedValue(true);
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
         (window.tachyon.connect as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("unauthorized_client"));
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { connectionStore, start } = await loadStores();
+        await expect(start()).resolves.toBeUndefined();
 
-        expect(authApi.logout).not.toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(true);
-        expect(me.isInitialized).toBe(true);
+        expect(windowAuth.logout).not.toHaveBeenCalled();
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     // A laptop that woke up before its wifi did. Main keeps the session for a
     // transient failure, so nothing here may throw it away either.
     it("keeps the credentials when the network is not up yet", async () => {
-        authApi.hasCredentials.mockResolvedValue(true);
-        authApi.getState.mockResolvedValue({ authenticated: true });
-        authApi.login.mockRejectedValue(new Error("network"));
+        windowAuth.hasCredentials.mockResolvedValue(true);
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
+        windowAuth.login.mockRejectedValue(new Error("network"));
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { start } = await loadStores();
+        await expect(start()).resolves.toBeUndefined();
 
-        expect(authApi.logout).not.toHaveBeenCalled();
-        expect(me.isInitialized).toBe(true);
+        expect(windowAuth.logout).not.toHaveBeenCalled();
     });
 
-    // Going online has to run through the tachyon store rather than reach past it
-    // to the socket, because that store is the only thing that records a failed
-    // attempt, and its record is what the server status shows.
+    // Going online has to run through connect(), the only thing that records a
+    // failed attempt, which is what the server status shows.
     it("records a refused connection where the status can show it", async () => {
-        authApi.hasCredentials.mockResolvedValue(false);
-        authApi.getState.mockResolvedValue({ authenticated: true });
+        windowAuth.hasCredentials.mockResolvedValue(false);
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
 
-        const { auth, initMeStore } = await loadStore();
-        const { tachyonStore } = await import("@renderer/store/tachyon.store");
-        await initMeStore();
+        const { connectionStore, connectionLogic, start } = await loadStores();
+        await start();
 
         (window.tachyon.connect as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("unauthorized_client"));
-        await expect(auth.goOnline()).rejects.toThrow();
+        await expect(connectionLogic.goOnline()).rejects.toThrow();
 
-        expect(tachyonStore.error).toBeDefined();
+        expect(connectionStore.error).toBeDefined();
     });
 
     it("stays offline when the stored credentials are refused", async () => {
-        authApi.hasCredentials.mockResolvedValue(true);
-        authApi.login.mockRejectedValue(new Error("invalid_grant"));
+        windowAuth.hasCredentials.mockResolvedValue(true);
+        windowAuth.login.mockRejectedValue(new Error("invalid_grant"));
 
-        const { me, initMeStore } = await loadStore();
-        await initMeStore();
+        const { connectionStore, start } = await loadStores();
+        await expect(start()).resolves.toBeUndefined();
 
-        expect(me.isAuthenticated).toBe(false);
+        expect(connectionStore.isAuthenticated).toBe(false);
         expect(window.tachyon.connect).not.toHaveBeenCalled();
-        expect(me.isInitialized).toBe(true);
+    });
+});
+
+// The sign-in screen shows the message of whatever login() or connect() throws.
+describe("failure text the sign-in screen shows", () => {
+    it("is the login error main sent back", async () => {
+        const fromMain = new Error("Error invoking remote method 'auth:login': Error: invalid_grant");
+        windowAuth.login.mockRejectedValue(fromMain);
+        const { connectionLogic, start } = await loadStores();
+        await start();
+
+        await expect(connectionLogic.login()).rejects.toBe(fromMain);
+    });
+
+    it("is the connect error main sent back", async () => {
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
+        const { connectionLogic, start } = await loadStores();
+        await start();
+        (window.tachyon.connect as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Error invoking remote method 'tachyon:connect': Error: refused"));
+
+        await expect(connectionLogic.connect()).rejects.toThrow(/^Error invoking remote method 'tachyon:connect': Error: refused$/);
+    });
+
+    // Nothing shows this one but the fatal error screen, which prints the stack.
+    it("is the logout error main sent back", async () => {
+        const fromMain = new Error("Error invoking remote method 'auth:logout': Error: wipe failed");
+        windowAuth.logout.mockRejectedValue(fromMain);
+        const { connectionLogic, start } = await loadStores();
+        await start();
+
+        await expect(connectionLogic.logout()).rejects.toBe(fromMain);
     });
 });

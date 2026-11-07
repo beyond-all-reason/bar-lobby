@@ -6,6 +6,7 @@ import { initContentsStore } from "@renderer/store/contents.store";
 import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";
+import { connectionLogic, initConnectionLogic } from "@renderer/logic/connection";
 import { initInfosLogic } from "@renderer/logic/infos";
 import { initMatchmakingLogic } from "@renderer/logic/matchmaking";
 import { initMeStore } from "@renderer/store/me.store";
@@ -27,6 +28,16 @@ export async function initPreMountStores() {
         initContentsStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        initTachyonStore().then(() => Promise.all([initMatchmakingLogic(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyLogic()])),
+        Promise.all([initConnectionLogic(), initTachyonStore()]).then(() =>
+            Promise.all([
+                initMatchmakingLogic(),
+                initUsersStore(),
+                // The stored identity goes in first, so the user/self a restored socket sends replaces it rather than the other way round.
+                initMeStore().then(() => connectionLogic.restoreSession()),
+                initLobbyStore(),
+                initChatStore(),
+                initPartyLogic(),
+            ])
+        ),
     ]);
 }

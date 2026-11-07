@@ -51,8 +51,8 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import Button from "@renderer/components/controls/Button.vue";
 import Modal from "@renderer/components/common/Modal.vue";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
-import { auth, me } from "@renderer/store/me.store";
+import { connectionLogic } from "@renderer/logic/connection";
+import { connectionStore } from "@renderer/store/connection.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 
@@ -73,22 +73,22 @@ const confirmOpen = computed({
     },
 });
 
-// Retrying is only knowable from the timer. Deriving it from "not connected"
-// reports attempts that aren't happening, and tachyonStore.error can't stand in
+// Deriving retrying from "not connected"
+// reports attempts that aren't happening, and connectionStore.error can't stand in
 // for a state either: it is set by the first failed attempt and by server stats
 // requests alike, so it says nothing about whether we are still trying.
-const isReconnecting = computed(() => tachyonStore.reconnectInterval !== undefined);
+const isReconnecting = computed(() => connectionStore.isReconnecting);
 
 const statusClass = computed(() => {
-    if (!me.isAuthenticated) return "";
-    return tachyonStore.isConnected ? "online" : "offline";
+    if (!connectionStore.isAuthenticated) return "";
+    return connectionStore.isConnected ? "online" : "offline";
 });
 
 const statusText = computed(() => {
-    if (!me.isAuthenticated) return t("lobby.navbar.serverStatus.offline");
+    if (!connectionStore.isAuthenticated) return t("lobby.navbar.serverStatus.offline");
 
-    if (tachyonStore.isConnected) {
-        const userCount = tachyonStore.serverStats?.userCount || 0;
+    if (connectionStore.isConnected) {
+        const userCount = connectionStore.serverStats?.userCount || 0;
         return `${userCount} ${t("lobby.navbar.serverStatus.playersOnline")}`;
     }
 
@@ -98,8 +98,8 @@ const statusText = computed(() => {
 });
 
 const pendingAction = computed<ServerAction | undefined>(() => {
-    if (!me.isAuthenticated) return undefined;
-    if (tachyonStore.isConnected) return "disconnect";
+    if (!connectionStore.isAuthenticated) return undefined;
+    if (connectionStore.isConnected) return "disconnect";
 
     return isReconnecting.value ? "stopReconnecting" : "connect";
 });
@@ -110,12 +110,12 @@ const menuOpen = ref(false);
 // the user asked for rather than whether the socket happens to be up, so a drop
 // they did not choose keeps them on Online while we retry. Busy is never it,
 // since the server has no way to represent it.
-const currentStatus = computed(() => (tachyonStore.wantsConnection ? "online" : "offline"));
+const currentStatus = computed(() => (connectionStore.wantsConnection ? "online" : "offline"));
 
-const buttonTitle = computed(() => tachyonStore.error ?? t("lobby.navbar.serverStatus.changeStatus"));
+const buttonTitle = computed(() => connectionStore.error ?? t("lobby.navbar.serverStatus.changeStatus"));
 
 function handleClick() {
-    if (!me.isAuthenticated) {
+    if (!connectionStore.isAuthenticated) {
         openLogInConfirmation(router.currentRoute.value);
         return;
     }
@@ -125,7 +125,7 @@ function handleClick() {
 
 function chooseOnline() {
     menuOpen.value = false;
-    if (tachyonStore.isConnected) return;
+    if (connectionStore.isConnected) return;
 
     // Reconnecting already leads here, so there is nothing to confirm.
     void runAction("connect");
@@ -147,8 +147,8 @@ function confirmAction() {
 
 async function runAction(action: ServerAction | undefined) {
     try {
-        if (action === "connect") await auth.goOnline();
-        if (action === "disconnect" || action === "stopReconnecting") await tachyon.goOffline();
+        if (action === "connect") await connectionLogic.goOnline();
+        if (action === "disconnect" || action === "stopReconnecting") await connectionLogic.goOffline();
     } catch (error) {
         // Surfaced through the status itself; there is nowhere better to put it.
         console.error(`Could not ${action}`, error);

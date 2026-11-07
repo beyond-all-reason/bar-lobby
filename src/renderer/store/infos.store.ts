@@ -13,7 +13,7 @@ const state = reactive({
 
 export const infosStore = readonly(state);
 
-export const infosUpdates = {
+export const infosActions = {
     set(info: Info) {
         Object.assign(state, info);
         state.isInitialized = true;
