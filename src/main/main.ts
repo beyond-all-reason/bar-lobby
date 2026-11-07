@@ -4,7 +4,7 @@
 
 import "@main/single-instance";
 
-import { app, net, protocol, session } from "electron";
+import { app, dialog, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
 import netFromNode from "node:net";
@@ -38,9 +38,14 @@ import { reconcileCustomServers } from "@shared/lobby-server";
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
 
+const isUnsupportedPlatform = process.platform !== "win32" && process.platform !== "linux";
+
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
 log.info("App instance lock acquired successfully.");
+if (isUnsupportedPlatform) {
+    log.warn(`Client is running on unsupported platform: ${process.platform === "darwin" ? "macOS" : process.platform}`);
+}
 
 if (process.env.NODE_ENV !== "production") {
     if (process.platform === "win32") {
@@ -96,6 +101,24 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
+    if (isUnsupportedPlatform) {
+        const choice = dialog.showMessageBoxSync({
+            type: "warning",
+            title: "Unsupported platform",
+            message: "Beyond All Reason is only supported on Windows and Linux.",
+            detail: "Continuing will use Linux paths and binaries; downloads and launching games will likely fail.",
+            buttons: ["Quit", "Continue"],
+            defaultId: 0,
+            cancelId: 0,
+            noLink: true,
+        });
+        if (choice === 0) {
+            log.info("Quitting on unsupported platform at user request");
+            app.exit(1);
+            return;
+        }
+        log.warn("Continuing on unsupported platform at user request");
+    }
     installApplicationMenu();
     registerBarFileProtocol();
     if (process.env.NODE_ENV !== "production") {

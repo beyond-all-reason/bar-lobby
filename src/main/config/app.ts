@@ -78,19 +78,14 @@ function getDefaultLocations(): { state: string; assets: string } {
             state: path.join(appData, APP_NAME),
         };
     }
-    if (process.platform === "linux") {
-        const xdgStateHome = process.env.XDG_STATE_HOME || path.join(homedir(), ".local/state");
-        const xdgDataHome = process.env.XDG_DATA_HOME || path.join(homedir(), ".local/share");
-        return {
-            // The `assets` prefix isn't really needed under Linux, but we add
-            // it for consistency.
-            assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(xdgDataHome, APP_NAME, "assets"),
-            state: path.join(xdgStateHome, APP_NAME),
-        };
-    }
-
-    console.error("Unsupported platform");
-    process.exit(1);
+    const xdgStateHome = process.env.XDG_STATE_HOME || path.join(homedir(), ".local/state");
+    const xdgDataHome = process.env.XDG_DATA_HOME || path.join(homedir(), ".local/share");
+    return {
+        // The `assets` prefix isn't really needed under Linux, but we add
+        // it for consistency.
+        assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(xdgDataHome, APP_NAME, "assets"),
+        state: path.join(xdgStateHome, APP_NAME),
+    };
 }
 
 export function setAssetsPath(p: string) {
