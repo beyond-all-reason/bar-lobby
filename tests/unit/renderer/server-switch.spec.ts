@@ -29,7 +29,7 @@ const onConnected = vi.fn(async () => {});
 const session = { authenticated: true };
 const logout = vi.fn(async () => void (session.authenticated = false));
 
-Object.assign(window.tachyon, { disconnect, onConnected });
+Object.assign(window.tachyon, { disconnect, onConnected, onDisconnected: vi.fn(), isConnected: vi.fn(async () => false) });
 Object.defineProperty(window, "auth", {
     value: {
         logout,
@@ -42,9 +42,9 @@ Object.defineProperty(window, "auth", {
     writable: true,
 });
 
-const { me, initMeStore } = await import("@renderer/store/me.store");
+const { connectionStore, connectionActions } = await import("@renderer/store/connection.store");
+const { initConnectionLogic } = await import("@renderer/logic/connection");
 const settingsStore = (await import("@renderer/store/settings.store")).settingsStore as { isInitialized: boolean; useDefaultServer: boolean; lobbyServerOverride: string };
-const { tachyonStore } = await import("@renderer/store/tachyon.store");
 const configStore = (await import("@renderer/store/config.store")).configStore as { isInitialized: boolean; defaultServers: readonly string[] };
 
 // The watcher does not await the switch, and the session state it ends with is
@@ -63,7 +63,7 @@ describe("switching the active server", () => {
     // Registers the watcher, and there is no guard against doing it twice, so
     // calling it per test would stack one watcher per case.
     beforeAll(async () => {
-        await initMeStore();
+        await initConnectionLogic();
     });
 
     beforeEach(async () => {
@@ -84,29 +84,29 @@ describe("switching the active server", () => {
     // default server, every launch. Each store sets its data and isInitialized in
     // the same tick, and so do these.
     it("ignores the stored override arriving while settings are still loading", async () => {
-        me.isAuthenticated = true;
+        connectionActions.set({ isAuthenticated: true });
         configStore.isInitialized = true;
 
         await changeServerTo(OTHER_SERVER);
 
         expect(logout).not.toHaveBeenCalled();
         expect(disconnect).not.toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(true);
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     it("ignores the default arriving while config is still loading", async () => {
-        me.isAuthenticated = true;
+        connectionActions.set({ isAuthenticated: true });
         settingsStore.isInitialized = true;
 
         configStore.defaultServers = [DEFAULT_SERVER];
         await settle();
 
         expect(logout).not.toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(true);
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     it("ignores settings arriving last with an override", async () => {
-        me.isAuthenticated = true;
+        connectionActions.set({ isAuthenticated: true });
         configStore.defaultServers = [DEFAULT_SERVER];
         configStore.isInitialized = true;
         await settle();
@@ -116,11 +116,11 @@ describe("switching the active server", () => {
         await settle();
 
         expect(logout).not.toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(true);
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     it("ignores config arriving last with the default", async () => {
-        me.isAuthenticated = true;
+        connectionActions.set({ isAuthenticated: true });
         settingsStore.useDefaultServer = true;
         settingsStore.isInitialized = true;
         await settle();
@@ -130,7 +130,7 @@ describe("switching the active server", () => {
         await settle();
 
         expect(logout).not.toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(true);
+        expect(connectionStore.isAuthenticated).toBe(true);
     });
 
     describe("once settings and config are loaded", () => {
@@ -139,8 +139,7 @@ describe("switching the active server", () => {
             await nextTick();
             settingsStore.isInitialized = true;
             configStore.isInitialized = true;
-            me.isAuthenticated = true;
-            tachyonStore.wantsConnection = true;
+            connectionActions.set({ isAuthenticated: true, wantsConnection: true });
         });
 
         // The same setting picks the authorization server, so the tokens we hold
@@ -149,7 +148,7 @@ describe("switching the active server", () => {
             await changeServerTo("wss://lobby-server-dev.beyondallreason.dev");
 
             expect(logout).toHaveBeenCalledOnce();
-            expect(me.isAuthenticated).toBe(false);
+            expect(connectionStore.isAuthenticated).toBe(false);
         });
 
         it("closes the connection to the server being left", async () => {
@@ -163,7 +162,7 @@ describe("switching the active server", () => {
         it("has given up wanting a connection before the socket closes", async () => {
             let wantedWhenClosing: boolean | undefined;
             disconnect.mockImplementationOnce(async () => {
-                wantedWhenClosing = tachyonStore.wantsConnection;
+                wantedWhenClosing = connectionStore.wantsConnection;
             });
 
             await changeServerTo("wss://lobby-server-dev.beyondallreason.dev");
@@ -190,7 +189,7 @@ describe("switching the active server", () => {
             await changeServerTo(OTHER_SERVER);
             logout.mockClear();
             session.authenticated = true;
-            me.isAuthenticated = true;
+            connectionActions.set({ isAuthenticated: true });
 
             await changeServerTo("");
 
@@ -201,7 +200,7 @@ describe("switching the active server", () => {
             await changeServerTo(OTHER_SERVER);
             logout.mockClear();
             session.authenticated = true;
-            me.isAuthenticated = true;
+            connectionActions.set({ isAuthenticated: true });
 
             settingsStore.useDefaultServer = true;
             await settle();

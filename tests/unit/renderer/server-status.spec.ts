@@ -7,14 +7,14 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const stubs = vi.hoisted(() => ({
-    tachyonStore: {} as {
+    connectionStore: {} as {
+        isAuthenticated: boolean;
         isConnected: boolean;
         wantsConnection: boolean;
         error?: string;
-        reconnectInterval?: NodeJS.Timeout;
+        isReconnecting: boolean;
         serverStats?: { userCount: number };
     },
-    me: { isAuthenticated: true },
     goOnline: vi.fn(async () => {}),
     disconnect: vi.fn(async () => {}),
     openLogInConfirmation: vi.fn(),
@@ -26,16 +26,10 @@ vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 vi.mock("@renderer/composables/useLogInConfirmation", () => ({
     useLogInConfirmation: () => ({ openLogInConfirmation: stubs.openLogInConfirmation }),
 }));
-vi.mock("@renderer/store/tachyon.store", () => ({
-    tachyonStore: stubs.tachyonStore,
-    tachyon: { goOffline: stubs.disconnect },
+vi.mock("@renderer/store/connection.store", () => ({ connectionStore: stubs.connectionStore }));
+vi.mock("@renderer/logic/connection", () => ({
+    connectionLogic: { goOnline: stubs.goOnline, goOffline: stubs.disconnect },
 }));
-vi.mock("@renderer/store/me.store", () => ({
-    me: stubs.me,
-    auth: { goOnline: stubs.goOnline },
-}));
-
-const RETRYING = 1 as unknown as NodeJS.Timeout;
 
 // Modal teleports to #wrapper, which does not exist here, and the confirmation
 // body is the thing under test.
@@ -45,17 +39,16 @@ const ModalStub = {
     template: `<div class="modal"><div class="modal-title">{{ title }}</div><slot /></div>`,
 };
 
-function render(state: Partial<typeof stubs.tachyonStore> & { authenticated?: boolean } = {}) {
-    const { authenticated = true, ...store } = state;
-    Object.assign(stubs.tachyonStore, {
+function render(state: Partial<typeof stubs.connectionStore> = {}) {
+    Object.assign(stubs.connectionStore, {
+        isAuthenticated: true,
         isConnected: false,
         wantsConnection: false,
         error: undefined,
-        reconnectInterval: undefined,
+        isReconnecting: false,
         serverStats: undefined,
-        ...store,
+        ...state,
     });
-    stubs.me.isAuthenticated = authenticated;
 
     return mount(ServerStatus, {
         global: {
@@ -86,7 +79,7 @@ beforeEach(() => {
 
 describe("ServerStatus label", () => {
     it("reports offline when signed out", () => {
-        expect(label(render({ authenticated: false }))).toContain("lobby.navbar.serverStatus.offline");
+        expect(label(render({ isAuthenticated: false }))).toContain("lobby.navbar.serverStatus.offline");
     });
 
     it("reports the player count while connected", () => {
@@ -99,7 +92,7 @@ describe("ServerStatus label", () => {
     // Every failed attempt sets an error, so reading the error first reported a
     // fault for the whole of a retry loop that was working as intended.
     it("reports reconnecting while retries are running, even with an error set", () => {
-        const wrapper = render({ wantsConnection: true, reconnectInterval: RETRYING, error: "Error" });
+        const wrapper = render({ wantsConnection: true, isReconnecting: true, error: "Error" });
 
         expect(label(wrapper)).toContain("lobby.navbar.serverStatus.reconnecting");
     });
@@ -111,7 +104,7 @@ describe("ServerStatus label", () => {
 
 describe("ServerStatus menu", () => {
     it("prompts for sign in instead of opening when signed out", async () => {
-        const wrapper = render({ authenticated: false });
+        const wrapper = render({ isAuthenticated: false });
 
         await wrapper.find("button").trigger("click");
 
@@ -130,7 +123,7 @@ describe("ServerStatus menu", () => {
     // Deriving this from the socket put them on Offline while the button above
     // the menu said Reconnecting.
     it("keeps Online as current while retrying", async () => {
-        const entries = await openMenu(render({ wantsConnection: true, reconnectInterval: RETRYING }));
+        const entries = await openMenu(render({ wantsConnection: true, isReconnecting: true }));
 
         expect(entries[0].classes()).toContain("current");
         expect(entries[2].classes()).not.toContain("current");
@@ -191,7 +184,7 @@ describe("ServerStatus actions", () => {
     });
 
     it("offers to stop retrying rather than to disconnect while reconnecting", async () => {
-        const wrapper = render({ wantsConnection: true, reconnectInterval: RETRYING });
+        const wrapper = render({ wantsConnection: true, isReconnecting: true });
         const entries = await openMenu(wrapper);
 
         await choose(entries[2]);
@@ -206,8 +199,8 @@ describe("ServerStatus actions", () => {
         const entries = await openMenu(wrapper);
         await choose(entries[2]);
 
-        stubs.tachyonStore.isConnected = false;
-        stubs.tachyonStore.wantsConnection = false;
+        stubs.connectionStore.isConnected = false;
+        stubs.connectionStore.wantsConnection = false;
         await wrapper.vm.$nextTick();
         await wrapper.findAll(".modal button").at(1)!.trigger("click");
 

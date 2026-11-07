@@ -4,8 +4,7 @@
 
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
-import { reactive, toRaw, watch } from "vue";
-import { tachyon } from "@renderer/store/tachyon.store";
+import { reactive, toRaw } from "vue";
 import {
     PrivateUser,
     UserSelfEventData,
@@ -15,19 +14,16 @@ import {
     FriendRequestCancelledEventData,
     FriendRemovedEventData,
 } from "tachyon-protocol/types";
-import { settingsStore } from "@renderer/store/settings.store";
-import { configStore } from "@renderer/store/config.store";
-import { resolveLobbyServer } from "@shared/lobby-server";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
 import { battleHistoryActions } from "@renderer/store/battleHistory.store";
+import { connectionStore } from "@renderer/store/connection.store";
 
 export const me = reactive<
     Me & {
         isInitialized: boolean;
-        isAuthenticated: boolean;
     }
 >({
     isInitialized: false,
@@ -37,7 +33,6 @@ export const me = reactive<
     countryCode: "",
     displayName: "",
     status: "offline",
-    isAuthenticated: false,
     username: "Player",
     battleRoomState: {},
     outgoingFriendRequestUserIds: new Set<string>(),
@@ -57,49 +52,6 @@ async function subscribeToUsers(userIds: string[]) {
 async function unsubscribeFromUsers(userIds: string[]) {
     if (userIds.length === 0) return;
     subsManager.detach(userIds, friendsSymbol);
-}
-
-// The main process owns the session. Nothing here assigns isAuthenticated
-// directly, or the UI can end up claiming a session that no longer exists.
-async function syncAuthState() {
-    const { authenticated } = await window.auth.getState();
-    me.isAuthenticated = authenticated;
-}
-
-async function login(interactive = true) {
-    try {
-        await window.auth.login(interactive);
-    } finally {
-        // The change event and this reply are separate channels, so read the
-        // state back rather than racing them.
-        await syncAuthState();
-    }
-}
-
-// Signing in and opening the socket are separate steps, and starting offline
-// leaves the first one undone, so going online has to cover both.
-async function goOnline() {
-    if (!me.isAuthenticated) {
-        await login(false);
-    }
-
-    await tachyon.connect();
-}
-
-async function logout() {
-    battleHistoryActions.clearBattleHistory();
-    await tachyon.goOffline();
-    await window.auth.logout();
-    await syncAuthState();
-}
-
-// The same setting picks the websocket and the authorization server, so the
-// credentials we are holding were issued by the server being left and are worth
-// nothing to the one being joined. Switching ends the session rather than moving
-// the socket over, and logout is already that: it gives up wanting a connection
-// before closing one, so the drop is not taken for a fault worth retrying.
-async function serverChanged() {
-    await logout();
 }
 
 // Main persists the identity off this same event and that is what gets read back
@@ -169,9 +121,6 @@ async function onFriendRemovedEvent(data: FriendRemovedEventData) {
 function clearOnlineState() {
     subsManager.clearAllFromList(friendsSymbol);
 }
-
-// export const me = readonly(_me);
-export const auth = { login, goOnline, logout, clearOnlineState };
 
 // Friend methods
 export const friends = {
@@ -270,34 +219,11 @@ export async function initMeStore() {
         console.warn("Me store is already initialized. Skipping initialization.");
         return;
     }
-    // Settings and config load in parallel with this, and either arriving counts
-    // as a change. Reacting to that would sign out everyone who does not use the
-    // default server, every launch. Each store sets its data and isInitialized in
-    // the same tick, so checking the flags when the watcher fires is too late; the
-    // server only counts as known once both are in, and becoming known isn't a
-    // switch. Watching the resolved server rather than the override means clearing
-    // an override that names the default changes nothing.
-    watch(
-        () =>
-            settingsStore.isInitialized && configStore.isInitialized
-                ? resolveLobbyServer(settingsStore.useDefaultServer, settingsStore.lobbyServerOverride, configStore.defaultServers ?? [])
-                : undefined,
-        (server, previous) => {
-            if (server === undefined || previous === undefined) return;
-
-            void serverChanged();
-        }
-    );
-
-    window.auth.onChanged(({ authenticated }) => {
-        me.isAuthenticated = authenticated;
-    });
-
     onWentOffline.add(clearOnlineState);
     window.tachyon.onConnected(() => {
         // Subscriptions don't survive the socket, so rebuild them from the server's friend list
         // rather than trusting what subsManager held before the drop.
-        if (me.isAuthenticated) {
+        if (connectionStore.isAuthenticated) {
             friends.fetchFriendList();
         }
     });
@@ -317,37 +243,5 @@ export async function initMeStore() {
         Object.assign(me, identity);
     }
 
-    await syncAuthState();
-    await restorePreviousSession();
-
     me.isInitialized = true;
-}
-
-// Multiplayer is behind devMode, so outside it there is no session to restore.
-async function restorePreviousSession() {
-    if (!settingsStore.devMode) return;
-    if (!settingsStore.loginAutomatically) return;
-    if (!(await window.auth.hasCredentials())) return;
-
-    try {
-        // Non-interactive, because a rejected refresh token must not open a
-        // browser window while the user is still looking at the loading screen.
-        await goOnline();
-    } catch (error) {
-        // Deliberately keeps the credentials. Whatever went wrong here, only main
-        // can tell a rejected refresh token from a server that was unreachable,
-        // and it already destroys the account in the first case. Signing out from
-        // here as well threw away working credentials over a laptop that woke up
-        // before its wifi did. Signed in and not connected is a state the status
-        // menu can get you out of.
-        console.warn("Could not restore the previous session, continuing offline", error);
-
-        return;
-    }
-
-    try {
-        await friends.fetchFriendList();
-    } catch (error) {
-        console.warn("Could not fetch the friend list", error);
-    }
 }

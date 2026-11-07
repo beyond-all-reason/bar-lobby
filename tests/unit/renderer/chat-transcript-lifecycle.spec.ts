@@ -19,7 +19,7 @@ Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable:
 
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
-const { partyUpdates } = await import("@renderer/store/party.store");
+const { partyActions } = await import("@renderer/store/party.store");
 const { initPartyLogic } = await import("@renderer/logic/party");
 const { me } = await import("@renderer/store/me.store");
 
@@ -44,7 +44,7 @@ describe("chat transcript lifecycle", () => {
         chatStore.partyChats.clear();
         chatStore.partyChats.set("party-1", [{ message: "said in the last party" } as never]);
         lobbyStore.activeLobby = undefined;
-        partyUpdates.clear();
+        partyActions.clear();
         vi.mocked(window.tachyon.requestStructured).mockReset();
     });
 

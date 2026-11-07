@@ -58,7 +58,7 @@ export function getPlaylistName(id: string): string {
     return playlist?.name || id;
 }
 
-export const matchmakingUpdates = {
+export const matchmakingActions = {
     set(changes: Partial<Omit<MatchmakingState, "downloadsRequired">>) {
         Object.assign(state, changes);
     },

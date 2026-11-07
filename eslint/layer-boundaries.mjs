@@ -29,7 +29,7 @@ export const preloadNamespaces = [
 
 const storeUpdateImports = {
     group: ["@renderer/store/*"],
-    importNamePattern: "(Updates|Actions)$",
+    importNamePattern: "Actions$",
     message: "Only logic changes a store. Call the matching action in @renderer/logic instead.",
 };
 

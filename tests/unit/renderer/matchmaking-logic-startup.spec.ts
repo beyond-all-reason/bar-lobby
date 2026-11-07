@@ -13,7 +13,7 @@ vi.mock("@renderer/api/tachyon", async (importOriginal) => ({
 }));
 vi.mock("@renderer/api/content", () => ({ contentApi: { missing: vi.fn(async () => []) } }));
 vi.mock("@renderer/api/game", () => ({ gameApi: { onClosed: vi.fn() } }));
-vi.mock("@renderer/store/tachyon.store", () => ({ tachyonStore: { isConnected: true } }));
+vi.mock("@renderer/store/connection.store", () => ({ connectionStore: { isConnected: true } }));
 
 const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
 const { onTachyonConnected } = await import("@renderer/utils/connection-signal");

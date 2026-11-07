@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
                         <Icon :icon="filterIcon" height="20" />{{ t("lobby.multiplayer.custom.filtersButton") }}
                     </Button>
                     <Button
-                        :disabled="!tachyonStore.isConnected"
+                        :disabled="!connectionStore.isConnected"
                         v-tooltip.bottom="{
                             value: t('lobby.multiplayer.custom.newLobbies', source.pendingCount.value),
                             disabled: !source.pendingCount.value,
@@ -65,7 +65,7 @@ SPDX-License-Identifier: MIT
                     <Panel class="flex-col fullheight" :no-padding="true">
                         <div class="list-body flex-col flex-grow margin-md gap-md">
                             <HostBattle v-model="createLobbyModalIsOpen" :mode="'create'" />
-                            <p v-if="!tachyonStore.isConnected" class="disconnected">
+                            <p v-if="!connectionStore.isConnected" class="disconnected">
                                 {{ t("lobby.multiplayer.custom.disconnected") }}
                             </p>
                             <div
@@ -200,7 +200,7 @@ import type { LobbyListEntry, LobbyListRow } from "@renderer/model/lobby-list";
 import { customLobbiesStore } from "@renderer/store/custom-lobbies.store";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { settingsStore } from "@renderer/store/settings.store";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { connectionStore } from "@renderer/store/connection.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 import { cloneLobbyListQuery, type LobbyListQuery, type LobbySortKey } from "@shared/lobby-list-query";
@@ -341,7 +341,7 @@ function onRowDoubleClick(event: DataTableRowClickEvent) {
     sendLobbyJoinRequest(row.lobby.id);
 }
 
-const canJoinSelected = computed(() => !!selectedLobby.value && lobbyStore.activeLobby == undefined && tachyonStore.isConnected);
+const canJoinSelected = computed(() => !!selectedLobby.value && lobbyStore.activeLobby == undefined && connectionStore.isConnected);
 
 const joinTooltip = computed(() => {
     if (lobbyStore.activeLobby) return t("lobby.multiplayer.custom.leaveLobbyFirst");
