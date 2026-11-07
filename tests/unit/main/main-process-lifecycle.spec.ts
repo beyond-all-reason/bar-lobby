@@ -344,6 +344,7 @@ describe("Main Process Lifecycle", () => {
         await import("@main/main");
 
         expect(mockWarn).toHaveBeenCalledWith("Client is running on unsupported platform: macOS");
+        expect(mockWarn).toHaveBeenCalledWith("Continuing on unsupported platform at user request");
         expect(mockDialog.showMessageBoxSync).toHaveBeenCalledOnce();
         expect(mockApp.exit).not.toHaveBeenCalled();
         expect(mockServices.configService.init).toHaveBeenCalled();

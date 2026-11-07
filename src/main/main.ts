@@ -106,15 +106,18 @@ app.whenReady().then(async () => {
             type: "warning",
             title: "Unsupported platform",
             message: "Beyond All Reason is only supported on Windows and Linux.",
+            detail: "Continuing will use Linux paths and binaries; downloads and launching games will likely fail.",
             buttons: ["Quit", "Continue"],
             defaultId: 0,
             cancelId: 0,
             noLink: true,
         });
         if (choice === 0) {
+            log.info("Quitting on unsupported platform at user request");
             app.exit(1);
             return;
         }
+        log.warn("Continuing on unsupported platform at user request");
     }
     installApplicationMenu();
     registerBarFileProtocol();
