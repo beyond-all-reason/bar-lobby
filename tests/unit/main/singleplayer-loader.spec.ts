@@ -466,12 +466,17 @@ describe("loadSingleplayerContent", () => {
             await fs.rm(root.path, { recursive: true, force: true });
         });
 
-        it("loads the example scenario with its archive and start-script name", async () => {
+        it("loads the example scenario with its archive, start-script name and depend", async () => {
             const content = await loadSingleplayerContent([sdz]);
 
             expect(content.problems).toEqual([]);
-            expect(content.scenarios.map((s) => [s.id, s.archivePath, s.archiveName])).toEqual([
-                ["outpost-strike", path.join(sdz.path, "scenarios", "outpost-strike", "games", "bar-scenario-outpost-strike.sdz"), "bar-scenario-outpost-strike 1.0"],
+            expect(content.scenarios.map((s) => [s.id, s.archivePath, s.archiveName, s.archiveDepend])).toEqual([
+                [
+                    "outpost-strike",
+                    path.join(sdz.path, "scenarios", "outpost-strike", "games", "bar-scenario-outpost-strike.sdz"),
+                    "bar-scenario-outpost-strike 1.0",
+                    ["Beyond All Reason test-31820-45ea098"],
+                ],
             ]);
         });
 
@@ -565,7 +570,9 @@ describe("loadSingleplayerContent", () => {
             };
 
             await writeArchive(campaignArchive, files);
-            expect((await loadSingleplayerContent([root])).campaigns.map((c) => [c.archivePath, c.archiveName])).toEqual([[campaignArchive, "bar-campaign-sample-campaign 3"]]);
+            expect((await loadSingleplayerContent([root])).campaigns.map((c) => [c.archivePath, c.archiveName, c.archiveDepend])).toEqual([
+                [campaignArchive, "bar-campaign-sample-campaign 3", ["Beyond All Reason test-28000-aaaaaaa"]],
+            ]);
 
             await writeArchive(campaignArchive, Object.fromEntries(Object.entries(files).filter(([name]) => !name.includes("/mission02/"))));
             const content = await loadSingleplayerContent([root]);

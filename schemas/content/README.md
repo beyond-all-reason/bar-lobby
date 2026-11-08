@@ -79,6 +79,8 @@ npm run validate-content -- <content root>
 
 Add `--allow-dev` to accept content still in development (see [Content still in development](#content-still-in-development)).
 
+Add `--bundle <assets folder>` to also check content against what an install ships. The folder's `engine/default.txt` and `games/default.txt` name the install's one engine and game, each holding only the version, as the Steam bundling writes them. Every item's `compatibility` must accept that pair, and its archive's `modinfo.lua` must name that game in `depend`. A missing or empty file is an error.
+
 ## Compatibility
 
 Every campaign, scenario and tutorial lists the engine and game pairs it has been tested with. Each entry pairs one engine with the games that work on it, and only those pairs count:
@@ -102,7 +104,7 @@ Content made in the mission editor runs on unreleased game code, so it has no re
 "compatibility": "dev"
 ```
 
-The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. `validate-content` also reports it as an error, so it cannot ship as official content by accident. Pass `--allow-dev` to check content still in development. Replace `"dev"` with the tested pairs before release.
+The client loads it only in dev mode, with a warning. Outside dev mode it is reported as an error and left out. `validate-content` also reports it as an error, so it cannot ship as official content by accident. Pass `--allow-dev` to check content still in development, and `--bundle` then passes over it. Replace `"dev"` with the tested pairs before release.
 
 ## Mission archive
 

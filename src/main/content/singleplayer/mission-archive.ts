@@ -104,6 +104,8 @@ export type MissionArchive = {
     archivePath: string;
     // The game name a start script gives the archive: modinfo's name and version.
     archiveName: string;
+    // The games modinfo.lua depends on.
+    archiveDepend: string[];
 };
 
 /**
@@ -158,5 +160,5 @@ export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, c
         }
     }
 
-    return failed || !modInfo ? undefined : { archivePath, archiveName: archiveGameName(modInfo) };
+    return failed || !modInfo ? undefined : { archivePath, archiveName: archiveGameName(modInfo), archiveDepend: modInfo.depend };
 }

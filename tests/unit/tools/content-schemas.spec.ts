@@ -3,9 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { loadSingleplayerContent } from "../../../src/main/content/singleplayer/singleplayer-loader";
+import { readBundle, unbundledItems } from "../../../tools/validate-content";
 
 const repo = path.resolve(__dirname, "../../..");
 const fixtures = path.join(repo, "tests", "fixtures");
@@ -141,5 +144,104 @@ describe("exported content schemas", () => {
         for (const name of ["rapid-tag", "empty-compatibility", "engine-without-games"]) {
             expect(validate(readJson(fixtures, "content-broken", "scenarios", name, "manifest.json")), name).toBe(false);
         }
+    });
+});
+
+describe("validate-content --bundle", () => {
+    const loadSample = () => loadSingleplayerContent([{ source: "official", rootId: "official", path: sample }]);
+    const BUNDLED = { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28000-aaaaaaa" };
+
+    describe("reading the assets folder", () => {
+        let assets: string;
+        const write = (folder: string, text: string) => {
+            fs.mkdirSync(path.join(assets, folder), { recursive: true });
+            fs.writeFileSync(path.join(assets, folder, "default.txt"), text);
+        };
+
+        beforeEach(() => {
+            assets = fs.mkdtempSync(path.join(os.tmpdir(), "bundle-"));
+        });
+        afterEach(() => fs.rmSync(assets, { recursive: true, force: true }));
+
+        it("reads the pair the two default.txt files name", async () => {
+            write("engine", "2025.04.10\n");
+            write("games", "Beyond All Reason test-28000-aaaaaaa\n");
+
+            expect(await readBundle(assets)).toEqual({ pair: BUNDLED });
+        });
+
+        // The client treats these as naming nothing; CI would then check against nothing.
+        it("fails on a missing or empty file, naming each", async () => {
+            write("games", "  \n");
+
+            expect(await readBundle(assets)).toEqual({
+                errors: [
+                    expect.stringMatching(/engine[\\/]default\.txt is missing, so the bundle names no engine$/),
+                    expect.stringMatching(/games[\\/]default\.txt is empty, so the bundle names no game$/),
+                ],
+            });
+        });
+    });
+
+    it("passes when every item accepts the bundled pair", async () => {
+        const content = await loadSample();
+
+        expect(unbundledItems(content, BUNDLED)).toEqual([]);
+    });
+
+    // The sample accepts this engine and this game, but only ever with other partners.
+    it("fails an item whose engine and game are each accepted but never together", async () => {
+        const content = await loadSample();
+        const failures = unbundledItems(content, { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28200-ccccccc" });
+
+        expect(failures).toHaveLength(10);
+        expect(failures[0]).toMatch(/^campaign sample-campaign .* It accepts: engine 2025\.04\.10 with games .*; engine 2025\.06\.01 with games /);
+        expect(failures[1]).toMatch(/^campaign second-campaign /);
+        expect(failures[2]).toMatch(/^scenario sample-scenario /);
+        expect(failures[3]).toMatch(/^scenario river-crossing /);
+        expect(failures[4]).toMatch(/^scenario night-raid /);
+        expect(failures[5]).toMatch(/^tutorial sample-tutorial /);
+        expect(failures[6]).toMatch(/^tutorial movement /);
+        expect(failures[7]).toMatch(/^tutorial economy /);
+        expect(failures[8]).toMatch(/^tutorial combat /);
+        expect(failures[9]).toMatch(/^tutorial final-exam /);
+    });
+
+    it("fails every item when the engine is not bundled", async () => {
+        const content = await loadSample();
+
+        expect(unbundledItems(content, { ...BUNDLED, engineVersion: "2099.01.01" })).toHaveLength(10);
+    });
+
+    it("fails an item whose archive depends on another game", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+        const only = (item: typeof scenario) => ({ ...content, campaigns: [], tutorials: [], scenarios: [item] });
+
+        expect(unbundledItems(only({ ...scenario, archiveDepend: [BUNDLED.gameVersion] }), BUNDLED)).toEqual([]);
+        expect(unbundledItems(only({ ...scenario, archiveDepend: ["Beyond All Reason test-28100-bbbbbbb"] }), BUNDLED)).toEqual([
+            expect.stringMatching(/^scenario sample-scenario .* has an archive whose modinfo\.lua depend doesn't name the bundled game Beyond All Reason test-28000-aaaaaaa$/),
+        ]);
+    });
+
+    it("fails a campaign whose archive depends on another game", async () => {
+        const content = await loadSample();
+        const [campaign] = content.campaigns;
+        const only = (item: typeof campaign) => ({ ...content, campaigns: [item], tutorials: [], scenarios: [] });
+
+        expect(unbundledItems(only({ ...campaign, archiveDepend: [BUNDLED.gameVersion] }), BUNDLED)).toEqual([]);
+        expect(unbundledItems(only({ ...campaign, archiveDepend: ["Beyond All Reason test-28100-bbbbbbb"] }), BUNDLED)).toEqual([
+            expect.stringMatching(/^campaign sample-campaign .* has an archive whose modinfo\.lua depend doesn't name the bundled game Beyond All Reason test-28000-aaaaaaa$/),
+        ]);
+    });
+
+    // Dev content only loads when the tool is told to allow it, and names no pair to check.
+    it("passes over dev content", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+
+        expect(
+            unbundledItems({ ...content, campaigns: [], tutorials: [], scenarios: [{ ...scenario, compatibility: "dev", archiveDepend: ["x"] }] }, { engineVersion: "2099.01.01", gameVersion: "x" })
+        ).toEqual([]);
     });
 });

@@ -165,9 +165,9 @@ async function overIpc<T>(action: () => Promise<T>, reasonOf: (err: unknown) => 
 const saveFailureOf = (err: unknown): SaveFailure => (err instanceof SaveFailureError ? err.reason : "save_failed");
 const loadFailureOf = (): SingleplayerLoadFailure => "load_failed";
 
-// The start-script game name is for launching, which main does, so the renderer doesn't get it.
+// The start-script game name and depend are for launching and validating, which main does, so the renderer doesn't get them.
 function forRenderer(content: SingleplayerContent): SingleplayerContent {
-    const strip = <T extends { archiveName?: string }>(item: T): T => ({ ...item, archiveName: undefined });
+    const strip = <T extends { archiveName?: string; archiveDepend?: string[] }>(item: T): T => ({ ...item, archiveName: undefined, archiveDepend: undefined });
 
     return { ...content, campaigns: content.campaigns.map(strip), scenarios: content.scenarios.map(strip), tutorials: content.tutorials.map(strip) };
 }
