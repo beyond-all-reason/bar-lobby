@@ -136,7 +136,8 @@ export type MissionFolderOptions = {
  * Reads one mission, scenario or tutorial folder. Gives undefined when it has an error, after reporting
  * every problem it can find rather than stopping at the first.
  */
-export async function readMissionFolder(folder: string, options: MissionFolderOptions, problems: Problems): Promise<SingleplayerMission | undefined> {
+// Everything but its maps, which the caller reads with the rest of the item's maps.
+export async function readMissionFolder(folder: string, options: MissionFolderOptions, problems: Problems): Promise<Omit<SingleplayerMission, "maps"> | undefined> {
     const id = path.basename(folder);
     const manifestPath = path.join(folder, MANIFEST_FILE);
     const manifest = await readContentJson(manifestPath, MissionManifest, problems);

@@ -83,7 +83,7 @@ Add `--bundle <assets folder>` to also check content against what an install shi
 
 `--bundle` also checks that every scenario's, tutorial's and campaign mission's `mapName` is either in the folder's `maps/` or shipped with the content (see [Maps](#maps)).
 
-With or without `--bundle`, `validate-content` reads the maps content ships. It warns about a campaign map kept in more than one place, a `.sdz` map, and a map whose name can't be read. The last two are ignored.
+The client's loader reads the maps content ships, so `validate-content`, with or without `--bundle`, and the client's content problems both warn about a campaign map kept in more than one place, a `.sdz` map, and a map whose name can't be read. The last two are ignored.
 
 ## Compatibility
 

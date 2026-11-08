@@ -2249,6 +2249,11 @@
                 "startOver": "Delete save and start over",
                 "back": "Back",
                 "notInEdition": "Official campaigns are not part of this edition.",
+                "unplayable": {
+                    "map": "Unavailable: needs map \"{map}\", which is not installed.",
+                    "compatibility": "Unavailable: needs {compatibility}, which this install does not have.",
+                    "startMissions": "Unavailable: none of its start missions can be played."
+                },
                 "empty": "No content found.",
                 "notFound": "This content could not be found.",
                 "problems": "Content problems: {count}"

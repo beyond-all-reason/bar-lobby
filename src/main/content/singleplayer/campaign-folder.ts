@@ -8,6 +8,7 @@ import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
 import { caseCollisions, fileInside, listFolders, readContentJson } from "./files";
+import { readContentMaps, warnDuplicateCampaignMaps } from "./content-maps";
 import { ARCHIVE_FOLDER, checkMissionArchive } from "./mission-archive";
 import { checkCompatibility, checkDefaultDifficulty, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
@@ -120,6 +121,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     checkTextKey(config.descriptionKey, "descriptionKey", [language], configPath, problems);
 
     const missions: SingleplayerMission[] = [];
+    const missionMaps: Map<string, string>[] = [];
     for (const missionId of Object.keys(config.missions).filter((missionId) => !RESERVED_FOLDERS.includes(missionId) && !collisions.has(missionId))) {
         if (!folders.has(missionId)) {
             problems.error(configPath, `Mission "${missionId}" has no folder`);
@@ -136,9 +138,14 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
             problems.child()
         );
         if (mission) {
-            missions.push(mission);
+            const maps = await readContentMaps(mission.path, problems);
+            missionMaps.push(maps);
+            missions.push({ ...mission, maps: [...maps.keys()] });
         }
     }
+
+    const sharedMaps = await readContentMaps(sharedFolder, problems);
+    warnDuplicateCampaignMaps(folder, sharedMaps, missionMaps, problems);
 
     const backgroundImageUrl = await mediaUrl(sharedFolder, config.backgroundImage, problems, configPath, "backgroundImage");
     const logoUrl = await mediaUrl(sharedFolder, config.logo, problems, configPath, "logo");
@@ -163,6 +170,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         backgroundImageUrl,
         logoUrl,
         compatibility: config.compatibility,
+        sharedMaps: [...sharedMaps.keys()],
         difficulties: config.difficulties,
         defaultDifficulty: config.defaultDifficulty,
         ...archive,

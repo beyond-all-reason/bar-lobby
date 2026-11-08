@@ -12,13 +12,14 @@ while its data is being worked on.
 <template>
     <Panel
         class="mission-card"
-        :class="{ disabled: !status.available }"
+        :class="{ disabled: !status.available, unplayable }"
         :style="backgroundImageUrl ? { backgroundImage: `url('${backgroundImageUrl}')` } : {}"
     >
         <div class="flex-col gap-md fullheight">
             <img v-if="imageUrl" :src="imageUrl" class="mission-image" alt="" />
             <h3>{{ title }}</h3>
             <p v-if="description">{{ description }}</p>
+            <UnplayableNote v-if="unplayable" :reason="unplayable" />
             <code v-if="settingsStore.devMode" class="dev-status">{{ devStatus }}</code>
             <!-- Settings for playing it, such as its difficulty. -->
             <slot />
@@ -37,7 +38,9 @@ while its data is being worked on.
 import { computed } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
+import UnplayableNote from "@renderer/components/singleplayer/UnplayableNote.vue";
 import { useTypedI18n } from "@renderer/i18n";
+import type { UnplayableReason } from "@renderer/logic/singleplayer";
 import { settingsStore } from "@renderer/store/settings.store";
 import type { MissionStatus } from "@shared/content/campaign-progress";
 
@@ -50,6 +53,8 @@ const props = defineProps<{
     // Fills the whole card, behind its content.
     backgroundImageUrl?: string;
     status: MissionStatus;
+    // Why this install can't play it, if it can't. Pass and fail still work, for testing.
+    unplayable?: UnplayableReason;
 }>();
 
 const emit = defineEmits<{
@@ -81,6 +86,9 @@ const devStatus = computed(() => {
     overflow-wrap: anywhere;
     &.disabled {
         opacity: 0.4;
+    }
+    &.unplayable {
+        filter: grayscale(1);
     }
 }
 

@@ -48,6 +48,7 @@ SPDX-License-Identifier: MIT
                         :image-url="tutorial.imageUrl"
                         :background-image-url="tutorial.backgroundImageUrl"
                         :status="tutorialStatus(tutorial)"
+                        :unplayable="singleplayerLogic.itemUnplayable(tutorial)"
                         @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
                         @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
                     >
