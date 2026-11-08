@@ -8,14 +8,14 @@ import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
 import { t } from "@renderer/i18n";
 import { editionLogic } from "@renderer/logic/edition";
-import { infosUpdates } from "@renderer/store/infos.store";
+import { infosActions } from "@renderer/store/infos.store";
 import { mapsStore } from "@renderer/store/maps.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { Edition, editionFeatures } from "@shared/edition";
 
 function asEdition(edition: Edition) {
-    infosUpdates.set({ edition, features: editionFeatures(edition) } as Info);
+    infosActions.set({ edition, features: editionFeatures(edition) } as Info);
 }
 
 describe("editionLogic.refusalMessageKey", () => {
