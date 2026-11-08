@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { DefaultDifficulty, Difficulties, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
+import { DefaultDifficulty, Difficulties, FormatVersion, ItemCompatibility, SchemaReference, scriptValue } from "./common";
 
 const missionIds = (title: string, description: string) =>
     Type.Array(Type.String({ minLength: 1, title: "Mission id", description: "A key of `missions`." }), {
@@ -52,7 +52,7 @@ export const CampaignConfig = Type.Object(
                     "Version of the campaign's progress rules. Leave it out for version 1. Raise it only for a change that breaks players' saved progress: every player of an earlier version then has to start the campaign over. See the content schema README for which changes need it.",
             })
         ),
-        campaignId: Type.String({ minLength: 1, title: "Campaign id", description: "Id of the campaign. Must equal the campaign's folder name, and stays the same once released." }),
+        campaignId: scriptValue({ title: "Campaign id", description: "Id of the campaign. Must equal the campaign's folder name, and stays the same once released." }),
         titleKey: Type.String({ minLength: 1, title: "Title key", description: "Language key of the campaign's title, looked up in shared/language/." }),
         descriptionKey: Type.String({ minLength: 1, title: "Description key", description: "Language key of the campaign's description, looked up in shared/language/." }),
         backgroundImage: Type.Optional(Type.String({ minLength: 1, title: "Background image", description: "Image file in the campaign's shared/media/ folder." })),

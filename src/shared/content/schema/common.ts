@@ -5,7 +5,29 @@
 // Pieces more than one content file shares. Everything in this folder imports only TypeBox and its
 // siblings, so the folder can be lifted out as it is.
 
-import { Type, Static } from "@sinclair/typebox";
+import { Type, Static, type StringOptions } from "@sinclair/typebox";
+
+// The client writes these strings into a mission's start script, plain `key=value;` text that the engine reads
+// with parse_tdf.lua: a value ends at the first `;` and can't cross a line break, leading spaces are dropped,
+// and a value wrapped in double quotes loses them. A script the engine can't read is taken as empty, and the
+// game just doesn't start, so these rules keep any content that validates safe to launch.
+export const SCRIPT_VALUE_PATTERN = '^[^;"\\r\\n\\s](?:[^;"\\r\\n]*[^;"\\r\\n\\s])?$';
+export const SCRIPT_VALUE_RULE = "No semicolons, double quotes or line breaks, and no spaces at either end.";
+
+// The engine lowercases start script keys, so keys differing only in case would silently replace each other.
+const SCRIPT_KEY_PATTERN = "^[a-z0-9_]+$";
+const SCRIPT_KEY_RULE = "Lowercase letters, digits and underscores only.";
+
+// The modoption the client passes the mission API's options in. Content can't set it.
+export const MISSION_OPTIONS_KEY = "missionoptions";
+
+export const scriptValue = (options: StringOptions & { description: string }) =>
+    Type.String({ minLength: 1, ...options, pattern: SCRIPT_VALUE_PATTERN, description: `${options.description} ${SCRIPT_VALUE_RULE}` });
+
+// A key the client writes into the start script, optionally with keys the client writes itself left out.
+export const scriptKey = (reserved: readonly string[] = []) => Type.String({ pattern: reserved.length > 0 ? `^(?!(?:${reserved.join("|")})$)[a-z0-9_]+$` : SCRIPT_KEY_PATTERN });
+
+export const scriptKeyRule = (reserved: readonly string[] = []) => `${SCRIPT_KEY_RULE}${reserved.length > 0 ? ` ${reserved.map((key) => `\`${key}\``).join(", ")} is set by the client.` : ""}`;
 
 /**
  * The newest content format this client reads. Content that declares a higher `formatVersion` was written

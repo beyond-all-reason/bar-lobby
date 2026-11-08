@@ -15,12 +15,19 @@
         "missionId": {
             "minLength": 1,
             "title": "Mission id",
-            "description": "Id of the mission, scenario or tutorial. Must equal its folder name, and for a campaign mission its key in `missions`. Stays the same once released.",
+            "description": "Id of the mission, scenario or tutorial. Must equal its folder name, and for a campaign mission its key in `missions`. Stays the same once released. No semicolons, double quotes or line breaks, and no spaces at either end.",
+            "pattern": "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$",
             "type": "string"
         },
         "titleKey": { "minLength": 1, "title": "Title key", "description": "Language key of the title.", "type": "string" },
         "descriptionKey": { "minLength": 1, "title": "Description key", "description": "Language key of the description.", "type": "string" },
-        "mapName": { "minLength": 1, "title": "Map", "description": "Name of the map the mission is played on, as the engine names it.", "type": "string" },
+        "mapName": {
+            "minLength": 1,
+            "title": "Map",
+            "description": "Name of the map the mission is played on, as the engine names it. No semicolons, double quotes or line breaks, and no spaces at either end.",
+            "pattern": "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$",
+            "type": "string"
+        },
         "image": {
             "minLength": 1,
             "title": "Image",

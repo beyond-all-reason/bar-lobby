@@ -32,8 +32,20 @@ describe("readModInfo", () => {
     });
 
     it("decodes escapes and UTF-8 in strings", () => {
-        expect(read(`return { name = "bar-scenario-café", version = "1.0 \\"b\\"\\065" }`)).toEqual({
-            modInfo: { name: "bar-scenario-café", version: '1.0 "b"A', depend: [] },
+        expect(read(`return { name = "bar-scenario-café", version = "1.0 \\'b\\'\\065" }`)).toEqual({
+            modInfo: { name: "bar-scenario-café", version: "1.0 'b'A", depend: [] },
+        });
+    });
+
+    // The version is half of the archive's name in the start script, which a ; or line break would cut short.
+    it.each([
+        ["a semicolon", '"1.0;x"'],
+        ["a double quote", '"1.0 \\"b\\""'],
+        ["a line break", '"1.0\\n"'],
+        ["a space at the end", '"1.0 "'],
+    ])("refuses a version with %s", (_, version) => {
+        expect(read(`return { name = "bar-scenario-x", version = ${version} }`)).toEqual({
+            error: "modinfo.lua's version can't go in a start script. No semicolons, double quotes or line breaks, and no spaces at either end.",
         });
     });
 

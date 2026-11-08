@@ -115,6 +115,10 @@ describe("loadSingleplayerContent", () => {
             ["scenarios/engine-without-games/manifest.json", /\/compatibility\/0\/gameVersions must NOT have fewer than 1 items/],
             ["scenarios/duplicate-engine/manifest.json", /lists engine 2025.04.10 more than once/],
             ["scenarios/rapid-tag/manifest.json", /gameVersions\/0 must match pattern .*"byar:test".*Rapid tags/],
+            // The start script would end the map's name at the ;.
+            ["scenarios/unsafe-map-name/manifest.json", /\/mapName must match pattern .*"Quicksilver;Remake 1\.24".*No semicolons/],
+            // The engine lowercases keys, so only lowercase ones are accepted.
+            ["scenarios/uppercase-option-key/missionConfig.json", /\/modOptions must NOT have additional properties \(got "DeathMode"\)\..*Lowercase letters/],
             ["campaigns/dangling-unlock/campaignConfig.json", /missions.mission01.victoryUnlocks names mission "nowhere"/],
             ["campaigns/shared-mission/campaignConfig.json", /A mission may not be named "shared"/],
         ];

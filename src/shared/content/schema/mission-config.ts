@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static, type TSchema } from "@sinclair/typebox";
-import { SchemaReference } from "./common";
+import { MISSION_OPTIONS_KEY, SCRIPT_VALUE_PATTERN, SCRIPT_VALUE_RULE, SchemaReference, scriptKey, scriptKeyRule, scriptValue } from "./common";
 
 // Team and alliance names become the startscript team and allyteam `name`, which is how the mission API finds them.
 const NAME_PATTERN = "^[A-Za-z0-9_]+$";
@@ -23,7 +23,14 @@ export type StartPosType = (typeof START_POS_TYPES)[number];
 
 const startRectEdge = (title: string) => Type.Number({ minimum: 0, maximum: 1, title, description: "Edge of the start box, as a fraction of the map size from 0 to 1." });
 
-const optionValue = Type.Union([Type.String(), Type.Number(), Type.Boolean()], { title: "Value", description: "Value of the option." });
+const optionValue = Type.Union([scriptValue({ title: "Text", description: "Text value of the option." }), Type.Number(), Type.Boolean()], {
+    title: "Value",
+    description: "Value of the option.",
+});
+
+// Options keyed by the option's key, which the start script writes as it is.
+const options = (options: { title: string; description: string }, reserved: readonly string[] = []) =>
+    Type.Record(scriptKey(reserved), optionValue, { ...options, additionalProperties: false, description: `${options.description} ${scriptKeyRule(reserved)}` });
 
 export const AllianceSettings = Type.Object(
     {
@@ -38,17 +45,11 @@ export const AllianceSettings = Type.Object(
 
 export const TeamSettings = Type.Object(
     {
-        side: Type.Optional(Type.String({ minLength: 1, title: "Side", description: "Faction the team plays, such as Armada." })),
+        side: Type.Optional(scriptValue({ title: "Side", description: "Faction the team plays, such as Armada." })),
         incomeMultiplier: Type.Optional(Type.Number({ exclusiveMinimum: 0, title: "Income multiplier", description: "Multiplier on the team's resource income." })),
         startPosX: Type.Optional(Type.Number({ minimum: 0, title: "Start X", description: "Start position on the map's X axis, in elmos." })),
         startPosZ: Type.Optional(Type.Number({ minimum: 0, title: "Start Z", description: "Start position on the map's Z axis, in elmos." })),
-        luaAI: Type.Optional(
-            Type.String({
-                minLength: 1,
-                title: "Lua AI",
-                description: "Lua AI that controls the team. Leave it out for a team with no AI.",
-            })
-        ),
+        luaAI: Type.Optional(scriptValue({ title: "Lua AI", description: "Lua AI that controls the team. Leave it out for a team with no AI." })),
         // The startscript's RgbColor, three floats from 0 to 1, as the engine and the mission editor have it.
         rgbColor: Type.Optional(
             Type.Array(Type.Number({ minimum: 0, maximum: 1 }), {
@@ -95,13 +96,14 @@ export const MissionConfig = Type.Object(
         allianceSettings: Type.Optional(byName(AllianceSettings, { title: "Alliance settings", description: "Settings per alliance, keyed by a name in `alliances`." })),
         teamSettings: Type.Optional(byName(TeamSettings, { title: "Team settings", description: "Settings per team, keyed by a team in `alliances`." })),
         restrictions: Type.Optional(
-            Type.Record(Type.String({ minLength: 1 }), Type.Integer({ minimum: 0, title: "Limit", description: "The most of this unit a team may build. 0 disables it." }), {
+            Type.Record(Type.String({ pattern: SCRIPT_VALUE_PATTERN }), Type.Integer({ minimum: 0, title: "Limit", description: "The most of this unit a team may build. 0 disables it." }), {
+                additionalProperties: false,
                 title: "Unit restrictions",
-                description: "Build limits keyed by unit name.",
+                description: `Build limits keyed by unit name. Unit names: ${SCRIPT_VALUE_RULE}`,
             })
         ),
-        modOptions: Type.Optional(Type.Record(Type.String({ minLength: 1 }), optionValue, { title: "Game options", description: "Game mod options keyed by option key." })),
-        mapOptions: Type.Optional(Type.Record(Type.String({ minLength: 1 }), optionValue, { title: "Map options", description: "Map options keyed by option key." })),
+        modOptions: Type.Optional(options({ title: "Game options", description: "Game mod options keyed by option key." }, [MISSION_OPTIONS_KEY])),
+        mapOptions: Type.Optional(options({ title: "Map options", description: "Map options keyed by option key." })),
     },
     {
         title: "Mission config",
