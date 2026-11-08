@@ -8,12 +8,15 @@ import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
 import { caseCollisions, fileInside, listFolders, readContentJson } from "./files";
+import { ARCHIVE_FOLDER, checkMissionArchive } from "./mission-archive";
 import { checkCompatibility, checkDefaultDifficulty, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
 export const CAMPAIGN_CONFIG_FILE = "campaignConfig.json";
 export const CREDITS_FILE = "credits.json";
 export const SHARED_FOLDER = "shared";
+// Folders in a campaign folder that aren't missions.
+const RESERVED_FOLDERS = [SHARED_FOLDER, ARCHIVE_FOLDER];
 
 // Every mission id the config names outside `missions` itself, with where it was named.
 function missionReferences(config: CampaignConfig): { id: string; where: string }[] {
@@ -95,6 +98,9 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     if (Object.hasOwn(config.missions, SHARED_FOLDER)) {
         problems.error(configPath, `A mission may not be named "${SHARED_FOLDER}", which is the campaign's shared folder`);
     }
+    if (Object.hasOwn(config.missions, ARCHIVE_FOLDER)) {
+        problems.error(configPath, `A mission may not be named "${ARCHIVE_FOLDER}", which holds the campaign's mission archive`);
+    }
     checkCompatibility(config.compatibility, configPath, devContent, problems);
     checkDefaultDifficulty(config.difficulties, config.defaultDifficulty, configPath, problems);
     checkMissionGraph(config, configPath, problems);
@@ -103,7 +109,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         problems.error(configPath, `Mission "${missionId}" differs from ${others.map((other) => `"${other}"`).join(", ")} only in case`);
     }
 
-    const folders = new Set((await listFolders(folder, problems)).filter((name) => name !== SHARED_FOLDER));
+    const folders = new Set((await listFolders(folder, problems)).filter((name) => !RESERVED_FOLDERS.includes(name)));
     for (const name of [...folders].filter((name) => !Object.hasOwn(config.missions, name))) {
         problems.warning(path.join(folder, name), `Folder "${name}" is not a mission in ${CAMPAIGN_CONFIG_FILE}, so it is ignored`);
     }
@@ -114,7 +120,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     checkTextKey(config.descriptionKey, "descriptionKey", [language], configPath, problems);
 
     const missions: SingleplayerMission[] = [];
-    for (const missionId of Object.keys(config.missions).filter((missionId) => missionId !== SHARED_FOLDER && !collisions.has(missionId))) {
+    for (const missionId of Object.keys(config.missions).filter((missionId) => !RESERVED_FOLDERS.includes(missionId) && !collisions.has(missionId))) {
         if (!folders.has(missionId)) {
             problems.error(configPath, `Mission "${missionId}" has no folder`);
             continue;
@@ -136,6 +142,10 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
 
     const backgroundImageUrl = await mediaUrl(sharedFolder, config.backgroundImage, problems, configPath, "backgroundImage");
     const logoUrl = await mediaUrl(sharedFolder, config.logo, problems, configPath, "logo");
+    const archive = await checkMissionArchive(
+        { folder, kind: "campaign", id, missionLuaPaths: missions.map((mission) => `campaigns/${id}/${mission.id}/mission.lua`), compatibility: config.compatibility },
+        problems
+    );
 
     if (problems.hasErrors || !credits) {
         return undefined;
@@ -155,6 +165,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         compatibility: config.compatibility,
         difficulties: config.difficulties,
         defaultDifficulty: config.defaultDifficulty,
+        ...archive,
         missions,
     };
 }

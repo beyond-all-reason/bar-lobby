@@ -165,8 +165,15 @@ async function overIpc<T>(action: () => Promise<T>, reasonOf: (err: unknown) => 
 const saveFailureOf = (err: unknown): SaveFailure => (err instanceof SaveFailureError ? err.reason : "save_failed");
 const loadFailureOf = (): SingleplayerLoadFailure => "load_failed";
 
+// The start-script game name is for launching, which main does, so the renderer doesn't get it.
+function forRenderer(content: SingleplayerContent): SingleplayerContent {
+    const strip = <T extends { archiveName?: string }>(item: T): T => ({ ...item, archiveName: undefined });
+
+    return { ...content, campaigns: content.campaigns.map(strip), scenarios: content.scenarios.map(strip), tutorials: content.tutorials.map(strip) };
+}
+
 function registerIpcHandlers(webContents: WebContents) {
-    ipcMain.handle("singleplayer:list", () => overIpc(scan, loadFailureOf));
+    ipcMain.handle("singleplayer:list", () => overIpc(() => scan().then(forRenderer), loadFailureOf));
     ipcMain.handle("singleplayer:getSaves", () => overIpc(getSaves, loadFailureOf));
     ipcMain.handle("singleplayer:recordResult", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) =>
         overIpc(() => recordResult(kind, { source, rootId, id }, result), saveFailureOf)
