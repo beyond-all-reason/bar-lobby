@@ -399,10 +399,11 @@ function unplayableLog(reason: UnplayableReason): string {
 const english = (key: string, tables: readonly LanguageTables[]) => resolveContentText(key, FALLBACK_LOCALE, tables);
 
 // One line for each item that can't be played. A campaign that can't be played for its engine and game is
-// one line, rather than one for each of its missions.
+// one line, rather than one for each of its missions. Nothing can be judged before the edition is known: the
+// watcher starts alongside the info's own load.
 const unplayableLines = computed(() => {
     const content = singleplayerStore.content;
-    if (!content) {
+    if (!content || !infosStore.isInitialized) {
         return [];
     }
     const lines: string[] = [];
