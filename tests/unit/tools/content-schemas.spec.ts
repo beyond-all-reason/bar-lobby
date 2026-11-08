@@ -146,6 +146,49 @@ describe("exported content schemas", () => {
             expect(validate(readJson(fixtures, "content-broken", "scenarios", name, "manifest.json")), name).toBe(false);
         }
     });
+
+    // The start script is `key=value;` text: a value ends at a ; or line break, loses spaces before it and the
+    // quotes around it, and the engine lowercases keys.
+    describe("strings the start script carries", () => {
+        const manifest = readJson(sample, "scenarios", "sample-scenario", "manifest.json");
+        const config = readJson(sample, "scenarios", "sample-scenario", manifest.config.default);
+        const validManifest = validatorFor("mission-manifest");
+        const validConfig = validatorFor("mission-config");
+        const validCampaign = validatorFor("campaign-config");
+        const campaign = readJson(sample, "campaigns", "sample-campaign", "campaignConfig.json");
+
+        it.each(["Quicksilver Remake 1.24", "[ABC] Map v2", "a=b {c} //d", "x"])("accept the value %o", (value) => {
+            expect(validManifest({ ...manifest, mapName: value })).toBe(true);
+            expect(validConfig({ ...config, teamSettings: { player: { side: value, luaAI: value } }, restrictions: { [value]: 0 }, modOptions: { option: value } })).toBe(true);
+        });
+
+        it.each(["Quick;silver", 'Quick"silver', "Quick\nsilver", "Quick\rsilver", " Quicksilver", "Quicksilver ", "\tQuicksilver", ""])("reject the value %o", (value) => {
+            expect(validManifest({ ...manifest, mapName: value })).toBe(false);
+            expect(validManifest({ ...manifest, missionId: value })).toBe(false);
+            expect(validCampaign({ ...campaign, campaignId: value })).toBe(false);
+            expect(validConfig({ ...config, teamSettings: { player: { side: value } } })).toBe(false);
+            expect(validConfig({ ...config, teamSettings: { player: { luaAI: value } } })).toBe(false);
+            expect(validConfig({ ...config, restrictions: { [value]: 0 } })).toBe(false);
+            expect(validConfig({ ...config, modOptions: { option: value } })).toBe(false);
+            expect(validConfig({ ...config, mapOptions: { option: value } })).toBe(false);
+        });
+
+        it("accept lowercase option keys, and numbers and booleans as values", () => {
+            expect(validConfig({ ...config, modOptions: { deathmode: "neverend", start_metal_2: 1000, fog: true }, mapOptions: { water_level: -10 } })).toBe(true);
+        });
+
+        it.each(["DeathMode", "death mode", "death-mode", "death=mode", ""])("reject the option key %o", (key) => {
+            expect(validConfig({ ...config, modOptions: { [key]: 1 } })).toBe(false);
+            expect(validConfig({ ...config, mapOptions: { [key]: 1 } })).toBe(false);
+        });
+
+        // The client passes the mission API its options under this key.
+        it("reserve missionoptions for the client, in modOptions only", () => {
+            expect(validConfig({ ...config, modOptions: { missionoptions: "x" } })).toBe(false);
+            expect(validConfig({ ...config, modOptions: { missionoptions_extra: "x" } })).toBe(true);
+            expect(validConfig({ ...config, mapOptions: { missionoptions: "x" } })).toBe(true);
+        });
+    });
 });
 
 describe("validate-content --bundle", () => {

@@ -4,6 +4,7 @@
 
 import type { AllyTeam, Bot, Game, ModOptions, Player, Team } from "@main/model/start-script";
 import { startScriptConverter } from "@main/utils/start-script-converter";
+import { MISSION_OPTIONS_KEY } from "@shared/content/schema/common";
 import type { MissionConfig, StartPosType } from "@shared/content/schema/mission-config";
 import { encodeModoptionValue } from "@shared/startbox-modoptions";
 
@@ -87,7 +88,7 @@ export async function missionStartScript({ archiveName, mapName, config, entryPo
         ishost: 1,
         startpostype: config.startPosType === undefined ? undefined : START_POS_TYPES[config.startPosType],
         // The model lists only the engine's own keys; a game's modoptions are its own.
-        modoptions: { ...modOptions, missionoptions: await encodeModoptionValue({ entryPoint }) } as ModOptions,
+        modoptions: { ...modOptions, [MISSION_OPTIONS_KEY]: await encodeModoptionValue({ entryPoint }) } as ModOptions,
         mapoptions: config.mapOptions,
         numrestrictions: restrictions.length || undefined,
         allyTeams,

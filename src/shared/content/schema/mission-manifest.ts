@@ -3,21 +3,20 @@
 // SPDX-License-Identifier: MIT
 
 import { Type, Static } from "@sinclair/typebox";
-import { ContentFileName, DefaultDifficulty, Difficulties, Difficulty, FormatVersion, ItemCompatibility, SchemaReference } from "./common";
+import { ContentFileName, DefaultDifficulty, Difficulties, Difficulty, FormatVersion, ItemCompatibility, SchemaReference, scriptValue } from "./common";
 
 // manifest.json in a campaign mission, scenario or tutorial folder.
 export const MissionManifest = Type.Object(
     {
         $schema: Type.Optional(SchemaReference),
         formatVersion: Type.Optional(FormatVersion),
-        missionId: Type.String({
-            minLength: 1,
+        missionId: scriptValue({
             title: "Mission id",
             description: "Id of the mission, scenario or tutorial. Must equal its folder name, and for a campaign mission its key in `missions`. Stays the same once released.",
         }),
         titleKey: Type.String({ minLength: 1, title: "Title key", description: "Language key of the title." }),
         descriptionKey: Type.String({ minLength: 1, title: "Description key", description: "Language key of the description." }),
-        mapName: Type.String({ minLength: 1, title: "Map", description: "Name of the map the mission is played on, as the engine names it." }),
+        mapName: scriptValue({ title: "Map", description: "Name of the map the mission is played on, as the engine names it." }),
         image: Type.Optional(
             Type.String({
                 minLength: 1,

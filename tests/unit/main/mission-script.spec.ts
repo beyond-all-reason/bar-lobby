@@ -88,7 +88,7 @@ describe("missionStartScript", () => {
         expect(text).toContain("[allyteam2] {\n        name=neutral;\n        numallies=1;\n        ally0=0;\n    }");
         expect(text).toContain("[team4] {\n        name=civilians;\n        allyteam=2;\n        teamleader=0;\n    }");
         expect(text).toContain("numrestrictions=2;\n    [restrict] {\n        unit0=armsilo;\n        limit0=0;\n        unit1=corjugg;\n        limit1=1;\n    }");
-        expect(text).toContain("[mapoptions] {\n        mapOptionKey=mapOptionValue;\n    }");
+        expect(text).toContain("[mapoptions] {\n        map_option_key=mapOptionValue;\n    }");
         expect(text).toContain("[player0] {\n        name=Commander;\n        team=0;\n    }");
         expect(text).toContain("[ai0] {\n        team=2;\n        shortname=SampleAI;\n        host=0;\n        name=mainBadGuy;\n    }");
     });

@@ -8,6 +8,7 @@
 
 import luaparse from "luaparse";
 import type { Expression, TableConstructorExpression } from "luaparse";
+import { SCRIPT_VALUE_PATTERN, SCRIPT_VALUE_RULE } from "../../../shared/content/schema/common";
 
 export type ModInfo = { name: string; version: string; depend: string[] };
 
@@ -60,6 +61,10 @@ function readTable(table: TableConstructorExpression): ModInfoResult {
     const version = versionField && stringOf(versionField);
     if (!version) {
         return { error: "modinfo.lua must set version to a non-empty string, and raise it with every release" };
+    }
+    // The version is half of the archive's name in the start script, under the same rule as content's strings there.
+    if (!new RegExp(SCRIPT_VALUE_PATTERN).test(version)) {
+        return { error: `modinfo.lua's version can't go in a start script. ${SCRIPT_VALUE_RULE}` };
     }
 
     const dependField = fields.get("depend");

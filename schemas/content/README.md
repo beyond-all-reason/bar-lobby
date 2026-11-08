@@ -85,6 +85,16 @@ Add `--bundle <assets folder>` to also check content against what an install shi
 
 The client's loader reads the maps content ships, so `validate-content`, with or without `--bundle`, and the client's content problems both warn about a campaign map kept in more than one place, a `.sdz` map, and a map whose name can't be read. The last two are ignored.
 
+## Text that goes into the start script
+
+When a mission is launched, the client writes its start script from the content, as `key=value;` lines. The engine reads a value up to the first `;` and only to the end of the line, drops spaces before it and quotes around it, and lowercases every key. A start script it can't read stops the game from starting, without an error. So the schemas hold these strings to the rules the start script needs:
+
+- `missionId`, `campaignId`, `mapName`, a team's `side` and `luaAI`, the unit names in `restrictions`, and text values in `modOptions` and `mapOptions`: no semicolons, double quotes or line breaks, and no spaces at either end. Brackets, braces, `=` and `/` are fine, as in `[ABC] Map v2`.
+- Keys in `modOptions` and `mapOptions`: lowercase letters, digits and underscores only, so no two keys can become the same once lowercased. `missionoptions` is reserved in `modOptions`: the client passes the mission its options there.
+- The archive's `modinfo.lua` `version`, which is part of the archive's name in the start script, follows the same rule as the values above (see [Mission archive](#mission-archive)).
+
+Team and alliance names already use letters, digits and underscores only.
+
 ## Compatibility
 
 Every campaign, scenario and tutorial lists the engine and game pairs it has been tested with. Each entry pairs one engine with the games that work on it, and only those pairs count:

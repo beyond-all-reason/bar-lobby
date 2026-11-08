@@ -90,11 +90,23 @@
                     "description": "Settings for one team. Other startscript team settings may be added too.",
                     "type": "object",
                     "properties": {
-                        "side": { "minLength": 1, "title": "Side", "description": "Faction the team plays, such as Armada.", "type": "string" },
+                        "side": {
+                            "minLength": 1,
+                            "title": "Side",
+                            "description": "Faction the team plays, such as Armada. No semicolons, double quotes or line breaks, and no spaces at either end.",
+                            "pattern": "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$",
+                            "type": "string"
+                        },
                         "incomeMultiplier": { "exclusiveMinimum": 0, "title": "Income multiplier", "description": "Multiplier on the team's resource income.", "type": "number" },
                         "startPosX": { "minimum": 0, "title": "Start X", "description": "Start position on the map's X axis, in elmos.", "type": "number" },
                         "startPosZ": { "minimum": 0, "title": "Start Z", "description": "Start position on the map's Z axis, in elmos.", "type": "number" },
-                        "luaAI": { "minLength": 1, "title": "Lua AI", "description": "Lua AI that controls the team. Leave it out for a team with no AI.", "type": "string" },
+                        "luaAI": {
+                            "minLength": 1,
+                            "title": "Lua AI",
+                            "description": "Lua AI that controls the team. Leave it out for a team with no AI. No semicolons, double quotes or line breaks, and no spaces at either end.",
+                            "pattern": "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$",
+                            "type": "string"
+                        },
                         "rgbColor": {
                             "minItems": 3,
                             "maxItems": 3,
@@ -114,22 +126,59 @@
             }
         },
         "restrictions": {
+            "additionalProperties": false,
             "title": "Unit restrictions",
-            "description": "Build limits keyed by unit name.",
+            "description": "Build limits keyed by unit name. Unit names: No semicolons, double quotes or line breaks, and no spaces at either end.",
             "type": "object",
-            "patternProperties": { "^(.*)$": { "minimum": 0, "title": "Limit", "description": "The most of this unit a team may build. 0 disables it.", "type": "integer" } }
+            "patternProperties": {
+                "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$": { "minimum": 0, "title": "Limit", "description": "The most of this unit a team may build. 0 disables it.", "type": "integer" }
+            }
         },
         "modOptions": {
             "title": "Game options",
-            "description": "Game mod options keyed by option key.",
+            "description": "Game mod options keyed by option key. Lowercase letters, digits and underscores only. `missionoptions` is set by the client.",
+            "additionalProperties": false,
             "type": "object",
-            "patternProperties": { "^(.*)$": { "title": "Value", "description": "Value of the option.", "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] } }
+            "patternProperties": {
+                "^(?!(?:missionoptions)$)[a-z0-9_]+$": {
+                    "title": "Value",
+                    "description": "Value of the option.",
+                    "anyOf": [
+                        {
+                            "minLength": 1,
+                            "title": "Text",
+                            "description": "Text value of the option. No semicolons, double quotes or line breaks, and no spaces at either end.",
+                            "pattern": "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$",
+                            "type": "string"
+                        },
+                        { "type": "number" },
+                        { "type": "boolean" }
+                    ]
+                }
+            }
         },
         "mapOptions": {
             "title": "Map options",
-            "description": "Map options keyed by option key.",
+            "description": "Map options keyed by option key. Lowercase letters, digits and underscores only.",
+            "additionalProperties": false,
             "type": "object",
-            "patternProperties": { "^(.*)$": { "title": "Value", "description": "Value of the option.", "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] } }
+            "patternProperties": {
+                "^[a-z0-9_]+$": {
+                    "title": "Value",
+                    "description": "Value of the option.",
+                    "anyOf": [
+                        {
+                            "minLength": 1,
+                            "title": "Text",
+                            "description": "Text value of the option. No semicolons, double quotes or line breaks, and no spaces at either end.",
+                            "pattern": "^[^;\"\\r\\n\\s](?:[^;\"\\r\\n]*[^;\"\\r\\n\\s])?$",
+                            "type": "string"
+                        },
+                        { "type": "number" },
+                        { "type": "boolean" }
+                    ]
+                }
+            }
         }
     },
     "required": ["alliances", "playerTeam"]

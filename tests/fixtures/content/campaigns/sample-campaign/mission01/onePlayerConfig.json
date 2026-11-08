@@ -34,9 +34,9 @@
         "corjugg": 1
     },
     "modOptions": {
-        "modOptionKey": "modOptionValue"
+        "mod_option_key": "modOptionValue"
     },
     "mapOptions": {
-        "mapOptionKey": "mapOptionValue"
+        "map_option_key": "mapOptionValue"
     }
 }
