@@ -24,6 +24,7 @@ export const preloadNamespaces = [
     "replays",
     "settings",
     "shell",
+    "singleplayer",
     "tachyon",
 ];
 

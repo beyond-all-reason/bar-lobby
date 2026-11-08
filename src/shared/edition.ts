@@ -48,6 +48,8 @@ export function editionFeatures(edition: Edition) {
         assetsReadOnly: edition === "steam",
         // The assets root sits beside the executable on every platform, not only on Windows.
         assetsBesideExecutable: edition === "steam",
+        // Singleplayer content a player puts in their own folder, on every edition.
+        customContent: true,
     } as const;
 }
 

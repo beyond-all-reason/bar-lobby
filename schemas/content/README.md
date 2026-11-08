@@ -200,3 +200,13 @@ A result that breaks any of these limits is refused and not saved.
 ## Format versions
 
 `campaignConfig.json` and mission manifests may set `formatVersion`, which defaults to 1. A breaking change to the content format raises the version and changes these schemas with it. A client that only supports an older version reports the content as needing a newer client, instead of misreading it.
+
+## Trying content in the client
+
+Point the client at a content folder from `npm start`. The variable has no effect in a packaged build, which reads custom content from `data/content` in its state folder.
+
+```sh
+BAR_CUSTOM_CONTENT_PATH=tests/fixtures/content-custom npm start
+```
+
+Then run `await window.singleplayer.list()` in DevTools to see what loaded and any problems.

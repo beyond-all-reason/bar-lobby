@@ -63,6 +63,7 @@ describe("editionFeatures", () => {
             changeAssetsPath: true,
             assetsReadOnly: false,
             assetsBesideExecutable: false,
+            customContent: true,
         });
     });
 
@@ -73,6 +74,7 @@ describe("editionFeatures", () => {
             changeAssetsPath: false,
             assetsReadOnly: true,
             assetsBesideExecutable: true,
+            customContent: true,
         });
     });
 });

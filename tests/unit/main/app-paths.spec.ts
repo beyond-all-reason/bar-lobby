@@ -14,7 +14,7 @@ const appData = path.join(root, "AppData", "Roaming");
 const xdgState = path.join(root, "xdg-state");
 const xdgData = path.join(root, "xdg-data");
 
-const touchedEnv = ["BAR_ASSETS_PATH", "BAR_STATE_PATH", "APPDATA", "XDG_STATE_HOME", "XDG_DATA_HOME"] as const;
+const touchedEnv = ["BAR_ASSETS_PATH", "BAR_STATE_PATH", "BAR_CUSTOM_CONTENT_PATH", "APPDATA", "XDG_STATE_HOME", "XDG_DATA_HOME"] as const;
 const savedEnv: Partial<Record<(typeof touchedEnv)[number], string | undefined>> = {};
 const savedPlatform = process.platform;
 
@@ -131,6 +131,30 @@ describe("app paths", () => {
 
             expect(paths.getContentWriteRoot()).toBe(paths.getAssetsPath());
             expect(paths.getRemovableMapsPaths()).toEqual(paths.getMapsPaths());
+        });
+    });
+
+    describe("singleplayer content roots", () => {
+        it.each(["steam", "standalone"] as const)("reads only custom content, from the state data dir, on %s", async (edition) => {
+            const paths = await loadPaths({ edition, platform: "win32" });
+
+            expect(paths.getContentRoots()).toEqual([{ source: "custom", rootId: "custom", path: path.join(paths.WRITE_DATA_PATH, "content") }]);
+        });
+
+        it("lets BAR_CUSTOM_CONTENT_PATH move the custom root when unpackaged", async () => {
+            process.env.BAR_CUSTOM_CONTENT_PATH = path.join(root, "custom-content");
+
+            const paths = await loadPaths({ edition: "standalone", platform: "linux", isPackaged: false });
+
+            expect(paths.getContentRoots().map((contentRoot) => contentRoot.path)).toEqual([path.join(root, "custom-content")]);
+        });
+
+        it("ignores the custom content path override when packaged", async () => {
+            process.env.BAR_CUSTOM_CONTENT_PATH = path.join(root, "custom-content");
+
+            const paths = await loadPaths({ edition: "standalone", platform: "linux" });
+
+            expect(paths.getContentRoots().map((contentRoot) => contentRoot.path)).toEqual([path.join(paths.WRITE_DATA_PATH, "content")]);
         });
     });
 });
