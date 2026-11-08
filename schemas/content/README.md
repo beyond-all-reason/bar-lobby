@@ -81,6 +81,10 @@ Add `--allow-dev` to accept content still in development (see [Content still in 
 
 Add `--bundle <assets folder>` to also check content against what an install ships. The folder's `engine/default.txt` and `games/default.txt` name the install's one engine and game, each holding only the version, as the Steam bundling writes them. Every item's `compatibility` must accept that pair, and its archive's `modinfo.lua` must name that game in `depend`. A missing or empty file is an error.
 
+`--bundle` also checks that every scenario's, tutorial's and campaign mission's `mapName` is either in the folder's `maps/` or shipped with the content (see [Maps](#maps)).
+
+With or without `--bundle`, `validate-content` reads the maps content ships. It warns about a campaign map kept in more than one place, a `.sdz` map, and a map whose name can't be read. The last two are ignored.
+
 ## Compatibility
 
 Every campaign, scenario and tutorial lists the engine and game pairs it has been tested with. Each entry pairs one engine with the games that work on it, and only those pairs count:
@@ -135,6 +139,21 @@ The client reads `modinfo.lua` without running it, so it must be a plain table o
 Anything else is an error, and the item is left out.
 
 Until missions can be launched from the client, the archive is optional: an item without one loads as before. Once they can, an item without an archive will load with a warning that it cannot be launched.
+
+## Maps
+
+A mission is played on the map its manifest names in `mapName`, by the name the engine knows it by. That map either comes with the install, or ships with the content in a `maps/` folder:
+
+| Content          | Where its own maps go                                                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scenario         | `maps/` in its own folder, such as `scenarios/river-crossing/maps/`                                                                                             |
+| Tutorial         | `maps/` in its own folder, such as `tutorials/movement/maps/`                                                                                                   |
+| Campaign mission | the campaign's `shared/maps/` for a map several missions use; the mission's own `maps/`, such as `campaigns/<campaign>/mission01/maps/`, for a map only it uses |
+
+- Maps are `.sd7` archives. The client reads only `.sd7`, and names each by its `mapinfo.lua`, not by its file name.
+- A campaign keeps each map in one place. `validate-content` warns when the same map is in `shared/maps/` and a mission's `maps/`, or in more than one mission's `maps/`.
+- Scenarios and tutorials have no shared folder, so a map several of them use ships once in each. A shared folder to avoid those copies would need a change to the content structure: a reserved folder beside the scenarios or tutorials, which the client would also add at launch.
+- Once missions launch, the client finds these maps by adding the item's folder, and a campaign's `shared/`, as engine data directories. Until then, only `validate-content` reads them.
 
 ## Difficulty
 

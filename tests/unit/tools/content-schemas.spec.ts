@@ -2,13 +2,16 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { execFile } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
+import { path7za } from "7zip-bin";
 import Ajv2020 from "ajv/dist/2020";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { loadSingleplayerContent } from "../../../src/main/content/singleplayer/singleplayer-loader";
-import { readBundle, unbundledItems } from "../../../tools/validate-content";
+import { contentMapFolders, duplicateCampaignMaps, missingMaps, readBundle, readMaps, unbundledItems } from "../../../tools/validate-content";
 
 const repo = path.resolve(__dirname, "../../..");
 const fixtures = path.join(repo, "tests", "fixtures");
@@ -243,5 +246,198 @@ describe("validate-content --bundle", () => {
         expect(
             unbundledItems({ ...content, campaigns: [], tutorials: [], scenarios: [{ ...scenario, compatibility: "dev", archiveDepend: ["x"] }] }, { engineVersion: "2099.01.01", gameVersion: "x" })
         ).toEqual([]);
+    });
+});
+
+describe("validate-content maps", () => {
+    const loadSample = () => loadSingleplayerContent([{ source: "official", rootId: "official", path: sample }]);
+    const QUICKSILVER = "Quicksilver Remake 1.24";
+    const ISTHMUS = "Supreme Isthmus v1.6.4";
+    // A maps/ folder's contents, as readMaps gives them.
+    const mapsOf = (folder: string, ...names: string[]) => new Map(names.map((name) => [name, path.join(folder, "maps", `${name}.sd7`)]));
+
+    describe("reading a maps folder", () => {
+        let maps: string;
+        let staging: string;
+        // An archive holding the given files, as a map's .sd7 is.
+        const writeMap = async (fileName: string, files: Record<string, string>) => {
+            fs.rmSync(staging, { recursive: true, force: true });
+            fs.mkdirSync(staging, { recursive: true });
+            for (const [name, text] of Object.entries(files)) {
+                fs.writeFileSync(path.join(staging, name), text);
+            }
+            await promisify(execFile)(path7za, ["a", "-t7z", path.join(maps, fileName), "."], { cwd: staging });
+        };
+
+        beforeEach(() => {
+            maps = fs.mkdtempSync(path.join(os.tmpdir(), "maps-"));
+            staging = fs.mkdtempSync(path.join(os.tmpdir(), "map-staging-"));
+        });
+        afterEach(() => {
+            fs.rmSync(maps, { recursive: true, force: true });
+            fs.rmSync(staging, { recursive: true, force: true });
+        });
+
+        it("names each .sd7 by its mapinfo.lua, as the client does", async () => {
+            await writeMap("quicksilver.sd7", { "mapinfo.lua": 'local mapinfo = { name = "Quicksilver Remake", version = "1.24" }\nreturn mapinfo\n' });
+            await writeMap("isthmus.sd7", { "mapinfo.lua": 'local mapinfo = { name = "Supreme Isthmus v1.6.4", version = "v1.6.4" }\nreturn mapinfo\n' });
+            fs.writeFileSync(path.join(maps, "quicksilver.sd7.md5.gz"), "");
+
+            expect(await readMaps(maps)).toEqual({
+                maps: new Map([
+                    [ISTHMUS, path.join(maps, "isthmus.sd7")],
+                    [QUICKSILVER, path.join(maps, "quicksilver.sd7")],
+                ]),
+                problems: [],
+            });
+        });
+
+        it("warns about a .sdz, which the client doesn't read, and a map without mapinfo.lua", async () => {
+            await writeMap("other.sdz", { "mapinfo.lua": 'local mapinfo = { name = "Other" }\nreturn mapinfo\n' });
+            await writeMap("broken.sd7", { "readme.txt": "no mapinfo" });
+
+            expect(await readMaps(maps)).toEqual({
+                maps: new Map(),
+                problems: [
+                    { path: path.join(maps, "broken.sd7"), severity: "warning", message: "Map name could not be read: it has no mapinfo.lua" },
+                    { path: path.join(maps, "other.sdz"), severity: "warning", message: "Only .sd7 maps are read, as the client reads them, so this map is ignored" },
+                ],
+            });
+        });
+
+        it("finds no maps in a missing folder", async () => {
+            expect(await readMaps(path.join(maps, "absent"))).toEqual({ maps: new Map(), problems: [] });
+        });
+    });
+
+    it("looks in each scenario's and tutorial's folder, each campaign's shared/ and each campaign mission's folder", async () => {
+        const content = await loadSample();
+        const folders = contentMapFolders(content);
+
+        expect(folders).toContain(path.join(content.campaigns[0].path, "shared"));
+        expect(folders).toContain(content.campaigns[0].missions[0].path);
+        expect(folders).toContain(content.scenarios[0].path);
+        expect(folders).toContain(content.tutorials[0].path);
+        expect(folders).toHaveLength(content.campaigns.length + content.campaigns.flatMap((campaign) => campaign.missions).length + content.scenarios.length + content.tutorials.length);
+    });
+
+    describe("missing maps", () => {
+        it("passes when every map is bundled", async () => {
+            expect(missingMaps(await loadSample(), new Set([QUICKSILVER, ISTHMUS]), new Map())).toEqual([]);
+        });
+
+        it("fails a scenario whose map is neither bundled nor in its own maps", async () => {
+            expect(missingMaps(await loadSample(), new Set([QUICKSILVER]), new Map())).toEqual([
+                expect.stringMatching(/^scenario river-crossing .* needs map "Supreme Isthmus v1\.6\.4", which is in neither the bundle's maps nor its own maps$/),
+            ]);
+        });
+
+        it("accepts a scenario's or tutorial's map from its own maps only", async () => {
+            const content = await loadSample();
+            const riverCrossing = content.scenarios.find((scenario) => scenario.id === "river-crossing")!;
+            const nightRaid = content.scenarios.find((scenario) => scenario.id === "night-raid")!;
+
+            expect(missingMaps(content, new Set([QUICKSILVER]), new Map([[riverCrossing.path, mapsOf(riverCrossing.path, ISTHMUS)]]))).toEqual([]);
+            expect(missingMaps(content, new Set([QUICKSILVER]), new Map([[nightRaid.path, mapsOf(nightRaid.path, ISTHMUS)]]))).toEqual([expect.stringMatching(/^scenario river-crossing /)]);
+        });
+
+        // Official campaigns ship their own maps; custom ones may use bundled maps.
+        it("accepts a campaign mission's map from its campaign's shared/maps or its own maps", async () => {
+            const content = await loadSample();
+            const [sampleCampaign, secondCampaign] = content.campaigns;
+            const [landing, ...otherSecondMissions] = secondCampaign.missions;
+            const contentMaps = new Map([
+                [path.join(sampleCampaign.path, "shared"), mapsOf(path.join(sampleCampaign.path, "shared"), QUICKSILVER)],
+                [landing.path, mapsOf(landing.path, QUICKSILVER)],
+            ]);
+            const failures = missingMaps(content, new Set([ISTHMUS]), contentMaps);
+
+            expect(failures.filter((failure) => failure.startsWith("campaign "))).toEqual(
+                otherSecondMissions.map(({ id }) =>
+                    expect.stringMatching(
+                        new RegExp(
+                            `^campaign second-campaign mission ${id} .* needs map "Quicksilver Remake 1\\.24", which is in none of the bundle's maps, the campaign's shared/maps or the mission's own maps$`
+                        )
+                    )
+                )
+            );
+        });
+
+        it("passes over dev content", async () => {
+            const content = await loadSample();
+            const dev = <T extends object>(item: T) => ({ ...item, compatibility: "dev" as const });
+
+            expect(missingMaps({ ...content, campaigns: content.campaigns.map(dev), scenarios: content.scenarios.map(dev), tutorials: content.tutorials.map(dev) }, new Set(), new Map())).toEqual([]);
+        });
+    });
+
+    describe("a campaign map in more than one place", () => {
+        it("warns about a mission's copy of a map in shared/maps", async () => {
+            const content = await loadSample();
+            const [campaign] = content.campaigns;
+            const shared = path.join(campaign.path, "shared");
+            const mission = campaign.missions[1];
+
+            expect(
+                duplicateCampaignMaps(
+                    content,
+                    new Map([
+                        [shared, mapsOf(shared, QUICKSILVER)],
+                        [mission.path, mapsOf(mission.path, QUICKSILVER, ISTHMUS)],
+                    ])
+                )
+            ).toEqual([
+                {
+                    path: path.join(mission.path, "maps", `${QUICKSILVER}.sd7`),
+                    severity: "warning",
+                    message: `Map "${QUICKSILVER}" is also in ${path.join("shared", "maps", `${QUICKSILVER}.sd7`)}. A map used by several missions belongs only in shared/maps, one used by a single mission only in that mission's maps`,
+                },
+            ]);
+        });
+
+        it("warns about each copy of a map in several missions' maps", async () => {
+            const content = await loadSample();
+            const [campaign] = content.campaigns;
+            const [first, second] = campaign.missions;
+            const file = (mission: typeof first) => path.join(mission.path, "maps", `${ISTHMUS}.sd7`);
+
+            expect(
+                duplicateCampaignMaps(
+                    content,
+                    new Map([
+                        [first.path, mapsOf(first.path, ISTHMUS)],
+                        [second.path, mapsOf(second.path, ISTHMUS)],
+                    ])
+                )
+            ).toEqual([
+                {
+                    path: file(first),
+                    severity: "warning",
+                    message: `Map "${ISTHMUS}" is also in ${path.relative(campaign.path, file(second))}. A map used by several missions belongs only in shared/maps`,
+                },
+                {
+                    path: file(second),
+                    severity: "warning",
+                    message: `Map "${ISTHMUS}" is also in ${path.relative(campaign.path, file(first))}. A map used by several missions belongs only in shared/maps`,
+                },
+            ]);
+        });
+
+        it("accepts each map in one place, and the same map in two campaigns", async () => {
+            const content = await loadSample();
+            const [sampleCampaign, secondCampaign] = content.campaigns;
+            const shared = (campaign: typeof sampleCampaign) => path.join(campaign.path, "shared");
+
+            expect(
+                duplicateCampaignMaps(
+                    content,
+                    new Map([
+                        [shared(sampleCampaign), mapsOf(shared(sampleCampaign), QUICKSILVER)],
+                        [sampleCampaign.missions[0].path, mapsOf(sampleCampaign.missions[0].path, ISTHMUS)],
+                        [shared(secondCampaign), mapsOf(shared(secondCampaign), QUICKSILVER)],
+                    ])
+                )
+            ).toEqual([]);
+        });
     });
 });
