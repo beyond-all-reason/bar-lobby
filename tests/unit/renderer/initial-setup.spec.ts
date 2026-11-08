@@ -14,6 +14,7 @@ const standalone: EditionFeatures = {
     changeAssetsPath: true,
     assetsReadOnly: false,
     assetsBesideExecutable: false,
+    officialContent: false,
     customContent: true,
 };
 const steam: EditionFeatures = {
@@ -23,6 +24,7 @@ const steam: EditionFeatures = {
     changeAssetsPath: false,
     assetsReadOnly: true,
     assetsBesideExecutable: true,
+    officialContent: true,
     customContent: true,
 };
 

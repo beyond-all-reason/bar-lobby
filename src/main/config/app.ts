@@ -135,19 +135,22 @@ export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH,
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 
 /**
- * Where singleplayer content is read from, one root per source the edition reads. Custom content is the
- * player's own.
+ * Where singleplayer content is read from, one root per source the edition reads. Official content is the
+ * content depot a Steam install ships in its assets. Custom content is the player's own.
  *
  * Saved progress is keyed by each root's `rootId`, so a root keeps its id for good once it has shipped
- * content.
+ * content. A further official root, such as a DLC depot, gets a fixed id of its own.
  *
- * As with BAR_EDITION, the override only works from `npm start`.
+ * As with BAR_EDITION, the overrides only work from `npm start`.
  */
 export function getContentRoots(): ContentRoot[] {
+    const override = (name: "BAR_CONTENT_PATH" | "BAR_CUSTOM_CONTENT_PATH") => (app.isPackaged ? undefined : process.env[name]);
     const roots: ContentRoot[] = [];
+    if (EDITION_FEATURES.officialContent) {
+        roots.push({ source: "official", rootId: "official", path: path.resolve(override("BAR_CONTENT_PATH") || path.join(ASSETS_PATH, "content")) });
+    }
     if (EDITION_FEATURES.customContent) {
-        const override = app.isPackaged ? undefined : process.env.BAR_CUSTOM_CONTENT_PATH;
-        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override || path.join(STATE_PATH, "content")) });
+        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override("BAR_CUSTOM_CONTENT_PATH") || path.join(STATE_PATH, "content")) });
     }
 
     return roots;
