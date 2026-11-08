@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-import type { Compatibility } from "./schema/common";
+// Compatibility as read, so read-only content can be checked too.
+type AnyCompatibility = readonly { readonly engineVersion: string; readonly gameVersions: readonly string[] }[];
 
 export type EngineGamePair = { engineVersion: string; gameVersion: string };
 
@@ -12,7 +13,7 @@ export type EngineGamePair = { engineVersion: string; gameVersion: string };
  *
  * `available` takes the same shape as `compatibility`, so a build can declare what it bundles as it is.
  */
-export function matchingPairs(accepted: Compatibility, available: Compatibility): EngineGamePair[] {
+export function matchingPairs(accepted: AnyCompatibility, available: AnyCompatibility): EngineGamePair[] {
     const availableGames = new Map<string, Set<string>>();
     for (const { engineVersion, gameVersions } of available) {
         const games = availableGames.get(engineVersion) ?? new Set<string>();
@@ -27,10 +28,10 @@ export function matchingPairs(accepted: Compatibility, available: Compatibility)
     });
 }
 
-export function isCompatible(accepted: Compatibility, available: Compatibility): boolean {
+export function isCompatible(accepted: AnyCompatibility, available: AnyCompatibility): boolean {
     return matchingPairs(accepted, available).length > 0;
 }
 
-export function describeCompatibility(compatibility: Compatibility): string {
+export function describeCompatibility(compatibility: AnyCompatibility): string {
     return compatibility.map(({ engineVersion, gameVersions }) => `engine ${engineVersion} with game${gameVersions.length > 1 ? "s" : ""} ${gameVersions.join(", ")}`).join("; ");
 }

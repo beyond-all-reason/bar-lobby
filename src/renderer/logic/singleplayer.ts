@@ -2,14 +2,30 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { computed, type DeepReadonly, watch } from "vue";
 import type { IpcResult } from "@main/typed-ipc";
 import { singleplayerApi } from "@renderer/api/singleplayer";
 import type { TranslationKey } from "@renderer/i18n";
+import { editionLogic } from "@renderer/logic/edition";
+import { installedEngineVersions } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
+import { infosStore } from "@renderer/store/infos.store";
 import { singleplayerStore, singleplayerActions } from "@renderer/store/singleplayer.store";
 import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
 import { chosenDifficulty, ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
-import { DIFFICULTIES, type Difficulty } from "@shared/content/schema/common";
-import type { ContentSource, ItemDifficulties, SingleplayerCampaign, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
+import { describeCompatibility, isCompatible } from "@shared/content/compatibility";
+import { FALLBACK_LOCALE, type LanguageTables, resolveContentText } from "@shared/content/content-text";
+import { type Compatibility, DEV_COMPATIBILITY, DIFFICULTIES, type Difficulty, type ItemCompatibility } from "@shared/content/schema/common";
+import type {
+    ContentSource,
+    ItemDifficulties,
+    SingleplayerCampaign,
+    SingleplayerItemRef,
+    SingleplayerKind,
+    SingleplayerLoadFailure,
+    SingleplayerMission,
+    SingleplayerScenario,
+} from "@shared/content/singleplayer";
 
 let isInitialized = false;
 
@@ -31,6 +47,7 @@ export function initSingleplayerLogic() {
     }
 
     singleplayerApi.onSaveChanged(({ item, save }) => inOrder(() => singleplayerActions.saveChanged(saveKey(item.kind, item), save)));
+    logUnplayable();
     isInitialized = true;
 }
 
@@ -304,6 +321,140 @@ async function deleteAllSaves(): Promise<TranslationKey | undefined> {
     return undefined;
 }
 
+// Why an item can't be played on this install: a map that is neither installed nor shipped with it, an engine
+// and game pair the install lacks, or, for a campaign, no start mission that can be played. These views are
+// dev-only, so such an item is dimmed with the reason rather than hidden.
+export type UnplayableReason = { map: string } | { compatibility: string } | { startMissions: true };
+
+// The engine and game pairs this install can play, or undefined where it can download any engine and game.
+function availablePairs(): Compatibility | undefined {
+    if (editionLogic.canAcquire("engine") && editionLogic.canAcquire("game")) {
+        return undefined;
+    }
+    const { engine, game } = infosStore.installDefaults ?? {};
+    if (engine && game) {
+        return [{ engineVersion: engine, gameVersions: [game] }];
+    }
+    const games = [...gameStore.availableGameVersions.keys()];
+
+    return installedEngineVersions.value.map((installed) => ({ engineVersion: installed.id, gameVersions: games }));
+}
+
+function pairReason(compatibility: DeepReadonly<ItemCompatibility>): UnplayableReason | undefined {
+    const available = availablePairs();
+    if (!available || compatibility === DEV_COMPATIBILITY || isCompatible(compatibility, available)) {
+        return undefined;
+    }
+
+    return { compatibility: describeCompatibility(compatibility) };
+}
+
+// The maps an item ships are its own: they never join the installed maps, and only it can use them.
+function mapReason(mapName: string, shipped: readonly string[]): UnplayableReason | undefined {
+    return !shipped.includes(mapName) && editionLogic.isUnavailable({ type: "map", id: mapName }) ? { map: mapName } : undefined;
+}
+
+function itemUnplayable(item: DeepReadonly<SingleplayerScenario>): UnplayableReason | undefined {
+    return pairReason(item.compatibility) ?? mapReason(item.manifest.mapName, item.maps);
+}
+
+function missionUnplayable(campaign: DeepReadonly<SingleplayerCampaign>, mission: DeepReadonly<SingleplayerMission>): UnplayableReason | undefined {
+    return pairReason(campaign.compatibility) ?? mapReason(mission.manifest.mapName, [...mission.maps, ...campaign.sharedMaps]);
+}
+
+function campaignUnplayable(campaign: DeepReadonly<SingleplayerCampaign>): UnplayableReason | undefined {
+    const pair = pairReason(campaign.compatibility);
+    if (pair) {
+        return pair;
+    }
+    const starts = campaign.missions.filter((mission) => campaign.config.startMission.includes(mission.id));
+
+    return starts.every((mission) => missionUnplayable(campaign, mission)) ? { startMissions: true } : undefined;
+}
+
+// The reason as the message to show.
+function unplayableText(reason: UnplayableReason): { key: TranslationKey; params: Record<string, string> } {
+    if ("map" in reason) {
+        return { key: "lobby.singleplayer.content.unplayable.map", params: { map: reason.map } };
+    }
+    if ("compatibility" in reason) {
+        return { key: "lobby.singleplayer.content.unplayable.compatibility", params: { compatibility: reason.compatibility } };
+    }
+
+    return { key: "lobby.singleplayer.content.unplayable.startMissions", params: {} };
+}
+
+// For the log, in English, so a missing map or engine and game can be found from a player's log.
+function unplayableLog(reason: UnplayableReason): string {
+    if ("map" in reason) {
+        return `needs map "${reason.map}", which is not installed`;
+    }
+    if ("compatibility" in reason) {
+        return `needs ${reason.compatibility}, which this install does not have`;
+    }
+
+    return "has no start mission that can be played";
+}
+
+const english = (key: string, tables: readonly LanguageTables[]) => resolveContentText(key, FALLBACK_LOCALE, tables);
+
+// One line for each item that can't be played. A campaign that can't be played for its engine and game is
+// one line, rather than one for each of its missions. Nothing can be judged before the edition is known: the
+// watcher starts alongside the info's own load.
+const unplayableLines = computed(() => {
+    const content = singleplayerStore.content;
+    if (!content || !infosStore.isInitialized) {
+        return [];
+    }
+    const lines: string[] = [];
+    for (const campaign of content.campaigns) {
+        const title = english(campaign.config.titleKey, [campaign.language]);
+        const reason = campaignUnplayable(campaign);
+        if (reason) {
+            lines.push(`Campaign unavailable: ${campaign.id} "${title}" ${unplayableLog(reason)}`);
+        }
+        if (reason && "compatibility" in reason) {
+            continue;
+        }
+        for (const mission of campaign.missions) {
+            const missionReason = missionUnplayable(campaign, mission);
+            if (missionReason) {
+                const missionTitle = english(mission.manifest.titleKey, [mission.language, campaign.language]);
+                lines.push(`Campaign mission unavailable: ${campaign.id}/${mission.id} "${missionTitle}" ${unplayableLog(missionReason)}`);
+            }
+        }
+    }
+    for (const item of [...content.scenarios, ...content.tutorials]) {
+        const reason = itemUnplayable(item);
+        if (reason) {
+            const kind = item.kind === "scenario" ? "Scenario" : "Tutorial";
+            lines.push(`${kind} unavailable: ${item.id} "${english(item.manifest.titleKey, [item.language])}" ${unplayableLog(reason)}`);
+        }
+    }
+
+    return lines;
+});
+
+// Each line once per content load. The installed maps, engines and games can arrive after the content, so a
+// line is logged when it first applies rather than only when the content arrives.
+function logUnplayable() {
+    const logged = new Set<string>();
+    watch(
+        () => singleplayerStore.content,
+        () => logged.clear()
+    );
+    watch(
+        unplayableLines,
+        (lines) => {
+            for (const line of lines.filter((line) => !logged.has(line))) {
+                logged.add(line);
+                console.warn(line);
+            }
+        },
+        { immediate: true }
+    );
+}
+
 export const singleplayerLogic = {
     loadContent,
     loadErrorOf,
@@ -330,4 +481,8 @@ export const singleplayerLogic = {
     deleteUnusableTutorialSaves,
     deleteNewerTutorialSaves,
     deleteAllSaves,
+    itemUnplayable,
+    missionUnplayable,
+    campaignUnplayable,
+    unplayableText,
 };

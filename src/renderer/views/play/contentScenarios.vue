@@ -33,6 +33,7 @@ archive.
                                     :image-url="scenario.imageUrl"
                                     :background-image-url="scenario.backgroundImageUrl"
                                     :completed="singleplayerLogic.itemCompleted(scenario)"
+                                    :unplayable="singleplayerLogic.itemUnplayable(scenario)"
                                     :selected="selected !== undefined && isSameItem(selected, scenario)"
                                     @select="selected = scenario"
                                 />
@@ -70,6 +71,7 @@ archive.
                             :image-url="selected.imageUrl"
                             :background-image-url="selected.backgroundImageUrl"
                             :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
+                            :unplayable="singleplayerLogic.itemUnplayable(selected)"
                             @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
                             @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
                         >

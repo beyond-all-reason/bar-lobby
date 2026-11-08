@@ -67,6 +67,7 @@ function makeCampaign(source: "official" | "custom"): SingleplayerCampaign {
         credits: [],
         language: {},
         compatibility: config.compatibility,
+        sharedMaps: [],
         difficulties: config.difficulties,
         defaultDifficulty: config.defaultDifficulty,
         missions: [],

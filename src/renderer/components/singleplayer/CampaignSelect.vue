@@ -34,6 +34,7 @@ grouped by source, so a new kind of source shows up here without changes.
                     :image-url="campaign.logoUrl"
                     :background-image-url="campaign.backgroundImageUrl"
                     :completed="singleplayerLogic.campaignCompleted(campaign)"
+                    :unplayable="singleplayerLogic.campaignUnplayable(campaign)"
                     @select="router.push(`/play/campaigns/${campaign.source}/${campaign.rootId}/${campaign.id}`)"
                 />
             </div>

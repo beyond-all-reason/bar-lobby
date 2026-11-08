@@ -418,6 +418,11 @@
                 "startOver": "Deetle save and strat oevr",
                 "back": "Back",
                 "notInEdition": "Oiafficl cgamianps are not part of tihs etidoin.",
+                "unplayable": {
+                    "map": "Uvlnaiabale: ndees map \"{map}\", wchih is not inaellstd.",
+                    "compatibility": "Uvlnaiabale: ndees {compatibility}, wchih tihs ilantsl does not hvae.",
+                    "startMissions": "Uvlnaiabale: nnoe of its strat msnioiss can be pleyad."
+                },
                 "empty": "No ctnnoet fnuod.",
                 "notFound": "Tihs ctnnoet culod not be fnuod.",
                 "problems": "Cnteont plmobers: {count}"

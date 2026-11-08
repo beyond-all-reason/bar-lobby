@@ -12,6 +12,7 @@ import type { ContentProblem, ContentRoot, SingleplayerCampaign, SingleplayerCon
 import { readCampaignFolder } from "./campaign-folder";
 import { caseCollisions, isFile, listFolders, readContentJson } from "./files";
 import { checkMissionArchive } from "./mission-archive";
+import { readContentMaps } from "./content-maps";
 import { MANIFEST_FILE, readMissionFolder } from "./mission-folder";
 import { Problems } from "./problems";
 
@@ -60,8 +61,9 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", d
             continue;
         }
         const archive = await checkMissionArchive({ folder, kind, id: name, missionLuaPaths: [`${KIND_FOLDERS[kind]}/${name}/mission.lua`], compatibility }, problems);
+        const maps = await readContentMaps(folder, problems);
         if (!problems.hasErrors) {
-            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty, ...archive });
+            items.push({ ...mission, maps: [...maps.keys()], kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty, ...archive });
         }
     }
 

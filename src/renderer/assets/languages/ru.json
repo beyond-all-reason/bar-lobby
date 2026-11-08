@@ -4223,6 +4223,11 @@
                 "startOver": null,
                 "back": null,
                 "notInEdition": null,
+                "unplayable": {
+                    "map": null,
+                    "compatibility": null,
+                    "startMissions": null
+                },
                 "empty": null,
                 "notFound": null,
                 "problems": null

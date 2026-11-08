@@ -52,6 +52,8 @@ export type SingleplayerMission = {
     // The manifest's image and backgroundImage as bar:// URLs.
     imageUrl?: string;
     backgroundImageUrl?: string;
+    // Names of the maps it ships in its own maps/. Only it can use them.
+    maps: string[];
 };
 
 // The difficulties a campaign, scenario or tutorial offers. A campaign mission is played at its campaign's.
@@ -71,6 +73,8 @@ export type SingleplayerCampaign = SingleplayerItemRef &
         backgroundImageUrl?: string;
         logoUrl?: string;
         compatibility: ItemCompatibility;
+        // Names of the maps in shared/maps/, which any of its missions can use.
+        sharedMaps: string[];
         // games/bar-campaign-<id>.sdz, its start-script game name and its modinfo depend, when the campaign has one.
         archivePath?: string;
         archiveName?: string;
