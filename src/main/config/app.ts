@@ -147,7 +147,7 @@ export function getContentRoots(): ContentRoot[] {
     const roots: ContentRoot[] = [];
     if (EDITION_FEATURES.customContent) {
         const override = app.isPackaged ? undefined : process.env.BAR_CUSTOM_CONTENT_PATH;
-        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override || path.join(WRITE_DATA_PATH, "content")) });
+        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override || path.join(STATE_PATH, "content")) });
     }
 
     return roots;

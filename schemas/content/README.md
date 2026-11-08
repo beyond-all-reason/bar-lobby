@@ -203,7 +203,7 @@ A result that breaks any of these limits is refused and not saved.
 
 ## Trying content in the client
 
-Point the client at a content folder from `npm start`. The variable has no effect in a packaged build, which reads custom content from `data/content` in its state folder.
+Point the client at a content folder from `npm start`. The variable has no effect in a packaged build, which reads custom content from the `content` folder in its state folder.
 
 ```sh
 BAR_CUSTOM_CONTENT_PATH=tests/fixtures/content-custom npm start
