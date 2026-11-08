@@ -186,6 +186,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/config.service", () => ({ configService: mockServices.configService }));
         vi.doMock("@main/services/content.service", () => ({ default: mockServices.contentService }));
         vi.doMock("@main/content/content-api", () => ({ contentAPI: mockServices.contentAPI }));
+        vi.doMock("@main/game/game", () => ({ gameAPI: {} }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/custom-lobbies.service", () => ({ customLobbiesService: mockServices.customLobbiesService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));

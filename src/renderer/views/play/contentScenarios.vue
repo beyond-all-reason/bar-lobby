@@ -72,6 +72,7 @@ archive.
                             :background-image-url="selected.backgroundImageUrl"
                             :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
                             :unplayable="singleplayerLogic.itemUnplayable(selected)"
+                            :launch="() => singleplayerLogic.launch('scenario', selected!)"
                             @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
                             @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
                         >

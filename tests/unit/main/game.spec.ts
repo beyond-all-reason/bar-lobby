@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import path from "node:path";
 import type { Replay } from "@main/replays/replay";
 import { EditionRefusalError } from "@shared/edition";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -63,5 +64,24 @@ describe("GameAPI launch", () => {
             { type: "engine", id: "2025.01.3" },
             { type: "game", id: "Beyond All Reason test-1-abc" },
         ]);
+    });
+
+    // The mission archive and a map the mission ships are on the engine's path, but aren't content to fetch.
+    it("launches a mission with its own data directories, asking only for the engine and base game", async () => {
+        const dataDirs = ["/content/campaigns/sample", "/content/campaigns/sample/shared", "/content/campaigns/sample/mission01"];
+
+        await expect(game.launchMission({ engineVersion: "2026.07.04", gameVersion: "Beyond All Reason test-31820-45ea098", script: "[game] {}", dataDirs })).rejects.toThrow("spawned");
+
+        expect(ensure).toHaveBeenCalledWith([
+            { type: "engine", id: "2026.07.04" },
+            { type: "game", id: "Beyond All Reason test-31820-45ea098" },
+        ]);
+        expect(spawn.mock.calls[0][2].env.SPRING_DATADIR).toBe(["/assets", ...dataDirs].join(path.delimiter));
+    });
+
+    it("gives other launches the assets alone", async () => {
+        await expect(game.launchScript({ engineVersion: "2025.01.3", gameVersion: "byar:test", script })).rejects.toThrow("spawned");
+
+        expect(spawn.mock.calls[0][2].env.SPRING_DATADIR).toBe("/assets");
     });
 });

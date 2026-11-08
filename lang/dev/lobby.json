@@ -20,6 +20,13 @@
                 "contentLoadFailures": {
                     "loadFailed": "Sieeyglnplar ctnnoet coludn't be lodaed. The log has the daleits."
                 },
+                "launchFailures": {
+                    "unknownItem": "Tihs ctnnoet culod not be fnuod, so it wasn't luhcaend.",
+                    "noArchive": "Tihs ctnnoet has no mosiisn avchire, so it can't be luhcaend.",
+                    "noEngineAndGame": "Tihs ilantsl has no egnnie and gmae tihs ctnnoet can run on.",
+                    "mapUnavailable": "Tihs ctnnoet's map is not inaellstd.",
+                    "launchFailed": "The mosiisn coludn't be luhcaend. The log has the daleits."
+                },
                 "savesLoadFailures": {
                     "loadFailed": "Your seavd prsgeros coludn't be lodaed. The log has the daleits."
                 }
@@ -396,6 +403,8 @@
                 "tutorials": "Ttlruaios",
                 "credits": "Crdeits",
                 "completed": "Cltmeeopd",
+                "play": "Paly",
+                "launching": "Lnauinhcg...",
                 "pass": "Pass",
                 "fail": "Fial",
                 "showCredits": "Show cterids",
@@ -421,6 +430,7 @@
                 "unplayable": {
                     "map": "Uvlnaiabale: ndees map \"{map}\", wchih is not inaellstd.",
                     "compatibility": "Uvlnaiabale: ndees {compatibility}, wchih tihs ilantsl does not hvae.",
+                    "noArchive": "Uvlnaiabale: has no mosiisn avchire.",
                     "startMissions": "Uvlnaiabale: nnoe of its strat msnioiss can be pleyad."
                 },
                 "empty": "No ctnnoet fnuod.",

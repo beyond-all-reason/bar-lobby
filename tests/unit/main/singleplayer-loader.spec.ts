@@ -160,6 +160,26 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([{ path: path.join(root, "scenarios", "manifest.json"), severity: "warning", message: expect.stringMatching(/"missing"/) }]);
         });
 
+        // The start script puts each player on the next team in playerTeam.
+        it("refuses a config for more players than its playerTeam has teams", async () => {
+            const manifestPath = path.join(root, "scenarios", "alpha", "manifest.json");
+            const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+            const defaultConfig = JSON.parse(await fs.readFile(path.join(root, "scenarios", "alpha", manifest.config.default), "utf8"));
+            const players = String(defaultConfig.playerTeam.length + 1);
+            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, config: { ...manifest.config, numPlayers: { [players]: manifest.config.default } } }));
+
+            const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
+
+            expect(content.scenarios.map((s) => s.id)).toEqual(["beta", "gamma"]);
+            expect(content.problems).toEqual([
+                {
+                    path: manifestPath,
+                    severity: "error",
+                    message: `config.numPlayers "${players}" names ${manifest.config.default}, whose playerTeam has only ${defaultConfig.playerTeam.length} of the ${players} teams it needs`,
+                },
+            ]);
+        });
+
         it("leaves out every folder whose id differs from another only in case", async (context) => {
             try {
                 await fs.mkdir(path.join(root, "scenarios", "Alpha"));
@@ -546,17 +566,22 @@ describe("loadSingleplayerContent", () => {
             expect(content.scenarios.map((s) => s.archiveName)).toEqual(["bar-scenario-outpost-strike 2.0"]);
         });
 
-        it("refuses a campaign mission named for the archive folder", async () => {
+        // The campaign's folder is a data directory at launch, so the engine reads these folders as its own.
+        it.each([
+            ["games", "which holds the campaign's mission archive"],
+            ["maps", "which the engine reads maps from"],
+            ["packages", "which the engine reads packages from"],
+        ])("refuses a campaign mission named %s", async (name, why) => {
             const campaignFolder = path.join(root.path, "campaigns", "sample-campaign");
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaignFolder, { recursive: true });
             const configPath = path.join(campaignFolder, "campaignConfig.json");
             const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-            await fs.writeFile(configPath, JSON.stringify({ ...config, $schema: undefined, missions: { ...config.missions, games: {} } }));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, $schema: undefined, missions: { ...config.missions, [name]: {} } }));
 
             const content = await loadSingleplayerContent([root]);
 
             expect(content.campaigns).toEqual([]);
-            expect(content.problems).toContainEqual({ path: configPath, severity: "error", message: 'A mission may not be named "games", which holds the campaign\'s mission archive' });
+            expect(content.problems).toContainEqual({ path: configPath, severity: "error", message: `A mission may not be named "${name}", ${why}` });
         });
 
         it("checks a campaign's archive for each mission's Lua", async () => {

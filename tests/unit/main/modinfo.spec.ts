@@ -65,3 +65,28 @@ describe("readModInfo", () => {
         expect("error" in result && result.error).toMatch(message);
     });
 });
+
+// RecoilEngine's ArchiveData constructor leaves the version off when the name contains it anywhere.
+describe("archiveGameName", () => {
+    const named = (name: string, version: string) => archiveGameName({ name, version, depend: [] });
+
+    it("appends the version, after a space", () => {
+        expect(named("bar-scenario-outpost-strike", "1.0")).toBe("bar-scenario-outpost-strike 1.0");
+    });
+
+    it.each([
+        ["at the end", "bar-campaign-act1", "1"],
+        ["at the start", "2-bar-scenario-raid", "2"],
+        ["in the middle", "bar-scenario-v3-raid", "v3"],
+    ])("leaves the name alone when the version occurs %s of it", (_, name, version) => {
+        expect(named(name, version)).toBe(name);
+    });
+
+    it("matches case, as the engine does", () => {
+        expect(named("bar-campaign-act-v1", "V1")).toBe("bar-campaign-act-v1 V1");
+    });
+
+    it("leaves the name alone without a version", () => {
+        expect(named("bar-scenario-outpost-strike", "")).toBe("bar-scenario-outpost-strike");
+    });
+});

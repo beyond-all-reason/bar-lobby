@@ -79,7 +79,7 @@ npm run validate-content -- <content root>
 
 Add `--allow-dev` to accept content still in development (see [Content still in development](#content-still-in-development)).
 
-Add `--bundle <assets folder>` to also check content against what an install ships. The folder's `engine/default.txt` and `games/default.txt` name the install's one engine and game, each holding only the version, as the Steam bundling writes them. Every item's `compatibility` must accept that pair, and its archive's `modinfo.lua` must name that game in `depend`. A missing or empty file is an error.
+Add `--bundle <assets folder>` to also check content against what an install ships. The folder's `engine/default.txt` and `games/default.txt` name the install's one engine and game, each holding only the version, as the Steam bundling writes them. Every item's `compatibility` must accept that pair, it must have a [mission archive](#mission-archive), and the archive's `modinfo.lua` must name that game in `depend`. A missing or empty file is an error.
 
 `--bundle` also checks that every scenario's, tutorial's and campaign mission's `mapName` is either in the folder's `maps/` or shipped with the content (see [Maps](#maps)).
 
@@ -133,12 +133,12 @@ Case matters in these paths, as it does to the engine on Linux.
 The client reads `modinfo.lua` without running it, so it must be a plain table of literal values: a single `return { ... }`, every field written as `key = value`, and every value a string, number, boolean or a table of those. Comments are fine. The client reads three fields:
 
 - `name` must be the archive's file name without `.sdz`, such as `bar-scenario-outpost-strike`;
-- `version` must be a non-empty string. Raise it with every release: the start script names the archive by `name` and `version`, such as `bar-scenario-outpost-strike 1.0`, so a replay of an older release isn't played with newer Lua. The client can't check that it went up, as it has no earlier release to compare with;
+- `version` must be a non-empty string. Raise it with every release: the start script names the archive by `name` and `version`, such as `bar-scenario-outpost-strike 1.0`, so a replay of an older release isn't played with newer Lua. As the engine does, the version is left off when `name` already contains it anywhere, so `bar-campaign-act1` with version `1` is just `bar-campaign-act1`; pick a version that doesn't occur in the name, such as `1.0`. The client can't check that the version went up, as it has no earlier release to compare with;
 - `depend` must name at least one of the games in `compatibility`. This isn't checked for `"compatibility": "dev"`.
 
 Anything else is an error, and the item is left out.
 
-Until missions can be launched from the client, the archive is optional: an item without one loads as before. Once they can, an item without an archive will load with a warning that it cannot be launched.
+An item without an archive still loads, but can't be played: the client shows it as unavailable and refuses to launch it, and `validate-content --bundle` reports it as an error, so it can't ship.
 
 ## Maps
 

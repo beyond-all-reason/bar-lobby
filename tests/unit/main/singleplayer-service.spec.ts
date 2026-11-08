@@ -7,18 +7,33 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-const paths = vi.hoisted(() => ({ saves: "" }));
+const paths = vi.hoisted(() => ({ saves: "", roots: [] as { source: "custom"; rootId: string; path: string }[] }));
+// What a Steam install with the outpost-strike example's engine, game and map would offer.
+const launching = vi.hoisted(() => ({
+    launchMission: vi.fn(async () => undefined),
+    installed: { engine: ["2026.07.04"], game: ["Beyond All Reason test-31820-45ea098"], map: ["Quicksilver Remake 1.24"] } as Record<string, string[]>,
+}));
 
 vi.mock("electron", () => ({}));
 const ipc = vi.hoisted(() => ({ handlers: new Map<string, (...args: unknown[]) => unknown>() }));
 vi.mock("@main/typed-ipc", () => ({ ipcMain: { handle: (channel: string, handler: (...args: unknown[]) => unknown) => ipc.handlers.set(channel, handler) } }));
 // app.ts calls app.setPath at module scope, so it can't be imported in a test.
 vi.mock("@main/config/app", () => ({
-    getContentRoots: () => [{ source: "custom", rootId: "custom", path: path.resolve("tests/fixtures/content") }],
+    getContentRoots: () => [{ source: "custom", rootId: "custom", path: path.resolve("tests/fixtures/content") }, ...paths.roots],
     get SAVES_PATH() {
         return paths.saves;
     },
 }));
+
+vi.mock("@main/game/game", () => ({ gameAPI: { launchMission: launching.launchMission } }));
+vi.mock("@main/content/content-api", () => ({
+    contentAPI: {
+        isPresent: ({ type, id }: { type: string; id: string }) => launching.installed[type].includes(id),
+        canAcquire: () => false,
+        installed: (type: string) => launching.installed[type].map((id) => ({ type, id })),
+    },
+}));
+vi.mock("@main/config/install-defaults", () => ({ getInstallDefaults: () => ({}), getDefaultEngineVersion: () => "2026.07.04" }));
 
 // The real settings service reads its file from the mocked config paths.
 vi.mock("@main/services/settings.service", () => ({ settingsService: { getSettings: () => ({ devMode: false }) } }));
@@ -115,5 +130,55 @@ describe("singleplayer IPC handlers", () => {
             details: expect.stringMatching(/does not offer difficulty "story"/),
         });
         expect(await singleplayerService.readSave("tutorial", custom("combat"))).toBeUndefined();
+    });
+
+    describe("launching", () => {
+        const sdz = path.resolve("tests/fixtures/content-sdz");
+        const launchOverIpc = (kind: string, rootId: string, id: string, missionId?: string) => ipc.handlers.get("singleplayer:launch")!({}, kind, "custom", rootId, id, missionId, "Commander");
+
+        beforeAll(async () => {
+            paths.roots = [{ source: "custom", rootId: "sdz", path: sdz }];
+            await ipc.handlers.get("singleplayer:list")!({});
+        });
+
+        afterAll(() => {
+            paths.roots = [];
+        });
+
+        it("launches the outpost-strike example from its folder, as its mutator, on the engine and game it depends on", async () => {
+            launching.launchMission.mockClear();
+
+            expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toEqual({ status: "success", data: undefined });
+            expect(launching.launchMission).toHaveBeenCalledWith({
+                engineVersion: "2026.07.04",
+                gameVersion: "Beyond All Reason test-31820-45ea098",
+                mapSpringName: "Quicksilver Remake 1.24",
+                script: expect.stringContaining("gametype=bar-scenario-outpost-strike 1.0;"),
+                dataDirs: [path.join(sdz, "scenarios", "outpost-strike")],
+            });
+        });
+
+        it("gives the reason a launch was refused as a code", async () => {
+            expect(await launchOverIpc("scenario", "custom", "sample-scenario")).toEqual({
+                status: "failed",
+                reason: "no_archive",
+                details: expect.stringMatching(/scenario sample-scenario has no mission archive/),
+            });
+            expect(await launchOverIpc("campaign", "custom", "sample-campaign", "no-such-mission")).toEqual({
+                status: "failed",
+                reason: "unknown_item",
+                details: expect.stringMatching(/mission no-such-mission/),
+            });
+        });
+
+        it("refuses when the install lacks the game the archive depends on", async () => {
+            const games = launching.installed.game;
+            launching.installed.game = ["Beyond All Reason test-1-abc"];
+            try {
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toMatchObject({ status: "failed", reason: "no_engine_and_game" });
+            } finally {
+                launching.installed.game = games;
+            }
+        });
     });
 });

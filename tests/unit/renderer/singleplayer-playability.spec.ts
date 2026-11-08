@@ -38,7 +38,7 @@ function asEdition(edition: Edition, installDefaults: InstallDefaults = {}) {
 const mission = (id: string, mapName: string, maps: string[] = []) =>
     ({ id, path: id, manifest: { titleKey: `${id}.title`, mapName }, language: { en: { [`${id}.title`]: `Mission ${id}` } }, maps }) as unknown as SingleplayerMission;
 
-function scenario(mapName: string, { compatibility = PLAYS_HERE, maps = [] as string[], kind = "scenario" as "scenario" | "tutorial" } = {}) {
+function scenario(mapName: string, { compatibility = PLAYS_HERE, maps = [] as string[], kind = "scenario" as "scenario" | "tutorial", withoutArchive = false } = {}) {
     return {
         ...mission("river-crossing", mapName, maps),
         kind,
@@ -47,10 +47,11 @@ function scenario(mapName: string, { compatibility = PLAYS_HERE, maps = [] as st
         compatibility,
         difficulties: ["story"],
         defaultDifficulty: "story",
+        archivePath: withoutArchive ? undefined : "games/bar-scenario-river-crossing.sdz",
     } as unknown as SingleplayerScenario;
 }
 
-function campaign(missions: SingleplayerMission[], { compatibility = PLAYS_HERE, sharedMaps = [] as string[], startMission = ["first"] } = {}) {
+function campaign(missions: SingleplayerMission[], { compatibility = PLAYS_HERE, sharedMaps = [] as string[], startMission = ["first"], withoutArchive = false } = {}) {
     return {
         kind: "campaign",
         source: "official",
@@ -62,6 +63,7 @@ function campaign(missions: SingleplayerMission[], { compatibility = PLAYS_HERE,
         compatibility,
         sharedMaps,
         missions,
+        archivePath: withoutArchive ? undefined : "games/bar-campaign-sample.sdz",
     } as unknown as SingleplayerCampaign;
 }
 
@@ -154,10 +156,27 @@ describe("a campaign", () => {
     });
 });
 
+describe("a mission archive", () => {
+    it("is needed to play a scenario or tutorial, after its engine and game", () => {
+        expect(singleplayerLogic.itemUnplayable(scenario(MISSING_MAP, { withoutArchive: true }))).toEqual({ noArchive: true });
+        expect(singleplayerLogic.itemUnplayable(scenario(INSTALLED_MAP, { withoutArchive: true, compatibility: PLAYS_ELSEWHERE }))).toEqual({ compatibility: expect.any(String) });
+    });
+
+    // A campaign's one archive holds every mission's Lua.
+    it("is needed to play a campaign and every mission in it", () => {
+        const first = mission("first", INSTALLED_MAP);
+        const sample = campaign([first], { withoutArchive: true });
+
+        expect(singleplayerLogic.campaignUnplayable(sample)).toEqual({ noArchive: true });
+        expect(singleplayerLogic.missionUnplayable(sample, first)).toEqual({ noArchive: true });
+    });
+});
+
 describe("the reason's wording", () => {
     it.each([
         [{ map: MISSING_MAP }, `Unavailable: needs map "${MISSING_MAP}", which is not installed.`],
         [{ compatibility: `engine ${ENGINE} with game ${OTHER_GAME}` }, `Unavailable: needs engine ${ENGINE} with game ${OTHER_GAME}, which this install does not have.`],
+        [{ noArchive: true } as const, "Unavailable: has no mission archive."],
         [{ startMissions: true } as const, "Unavailable: none of its start missions can be played."],
     ])("words %o", (reason, text) => {
         const { key, params } = singleplayerLogic.unplayableText(reason);
@@ -208,6 +227,13 @@ describe("the log", () => {
         mapsStore.availableMapNames = new Set();
         await nextTick();
         expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it("logs one line for a campaign without its archive, rather than one per mission", async () => {
+        load([], [campaign([mission("first", MISSING_MAP)], { withoutArchive: true })]);
+        await nextTick();
+
+        expect(warn.mock.calls.map(([line]) => line)).toEqual([`Campaign unavailable: sample "Sample" has no mission archive`]);
     });
 
     it("logs one line for a campaign without its engine and game, rather than one per mission", async () => {
