@@ -135,10 +135,10 @@ describe("app paths", () => {
     });
 
     describe("singleplayer content roots", () => {
-        it.each(["steam", "standalone"] as const)("reads only custom content, from the state data dir, on %s", async (edition) => {
+        it.each(["steam", "standalone"] as const)("reads only custom content, from the state dir, on %s", async (edition) => {
             const paths = await loadPaths({ edition, platform: "win32" });
 
-            expect(paths.getContentRoots()).toEqual([{ source: "custom", rootId: "custom", path: path.join(paths.WRITE_DATA_PATH, "content") }]);
+            expect(paths.getContentRoots()).toEqual([{ source: "custom", rootId: "custom", path: path.join(paths.STATE_PATH, "content") }]);
         });
 
         it("lets BAR_CUSTOM_CONTENT_PATH move the custom root when unpackaged", async () => {
@@ -154,7 +154,7 @@ describe("app paths", () => {
 
             const paths = await loadPaths({ edition: "standalone", platform: "linux" });
 
-            expect(paths.getContentRoots().map((contentRoot) => contentRoot.path)).toEqual([path.join(paths.WRITE_DATA_PATH, "content")]);
+            expect(paths.getContentRoots().map((contentRoot) => contentRoot.path)).toEqual([path.join(paths.STATE_PATH, "content")]);
         });
     });
 });
