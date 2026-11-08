@@ -159,8 +159,6 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
         const aisPath = path.join(this.engineDirs, engineVersion, "AI", "Skirmish");
         const aiDirs = await fs.promises.readdir(aisPath);
         for (const aiDir of aiDirs) {
-            // Recoil bundles CircuitAI (for Zero-K) and NullAI (a C interface test stub), neither of which is a BAR bot.
-            if (aiDir === "CircuitAI" || aiDir === "NullAI") continue;
             try {
                 const ai = await this.parseAi(path.join(aisPath, aiDir));
                 ais.push(ai);
