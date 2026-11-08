@@ -41,7 +41,7 @@ type Read = { entries: Set<string>; modInfo?: ModInfoResult } | { error: string 
 // singleplayer:list rescans on every call, and each read starts 7-Zip processes.
 const reads = new Map<string, { mtimeMs: number; size: number; read: Read }>();
 
-function run7za(args: string[]): Promise<{ stdout: Buffer } | { error: string }> {
+export function run7za(args: string[]): Promise<{ stdout: Buffer } | { error: string }> {
     return sevenZipPath().then(
         (sevenZip) =>
             new Promise((resolve) => {
