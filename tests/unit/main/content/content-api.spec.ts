@@ -38,7 +38,7 @@ const { installed, unresolvable, bundled, edition, acquired, removed, progress, 
     // Maps with a copy in the read-only assets root, which the map provider will not call removable.
     const bundled = new Set<string>();
     // Swapped wholesale by the edition tests; everything else runs as standalone.
-    const edition = { features: { selfUpdate: true, downloadEngineAndGame: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false } };
+    const edition = { features: { selfUpdate: true, downloadEngineAndGame: true, downloadMaps: true, changeAssetsPath: true, assetsReadOnly: false, assetsBesideExecutable: false } };
     const acquired: string[] = [];
     const removed: string[] = [];
     const progress = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
@@ -182,6 +182,7 @@ vi.mock("@main/content/content-usage", () => ({ contentUsage: usage }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
+vi.mock("@main/config/install-defaults", () => ({ getDefaultEngineVersion: () => "2026.07.04" }));
 vi.mock("@main/services/config.service", () => ({
     configService: {
         getConfig: () => ({
@@ -687,8 +688,9 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
             binding.destroy();
         }
 
-        const expected = { refusal: "content_bundled_with_install", refs: [{ type: "engine", id: "2099.12.1" }] };
-        expect(refusals).toEqual([expected, expected]);
+        const engine = { refusal: "content_bundled_with_install", refs: [{ type: "engine", id: "2099.12.1" }] };
+        const map = { refusal: "content_unavailable_in_edition", refs: [{ type: "map", id: "Not Bundled 1.0" }] };
+        expect(refusals).toEqual([engine, map, engine, map]);
     });
 
     it("refuses to acquire a missing game", async () => {
@@ -706,13 +708,23 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
         ).resolves.toBeUndefined();
     });
 
-    it("acquires maps", async () => {
-        await contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }]);
+    it("refuses to acquire a missing map as unavailable in the edition", async () => {
+        await expect(contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }])).rejects.toThrow("content_unavailable_in_edition");
 
-        expect(acquired).toEqual(["map:Not Bundled 1.0"]);
+        expect(acquired).toEqual([]);
+        expect(contentAPI.state()).toEqual(expect.arrayContaining([expect.objectContaining({ type: "map", id: "Not Bundled 1.0", status: "failed" })]));
     });
 
-    it("acquires the maps in a request whose engine it refuses", async () => {
+    it("still resolves a map that is installed", async () => {
+        installed.add("map:Bundled 1.0");
+
+        await expect(contentAPI.ensure([{ type: "map", id: "Bundled 1.0" }])).resolves.toBeUndefined();
+    });
+
+    // Maps have their own switch, so turning map downloads back on is all it takes to acquire them again.
+    it("acquires maps when map downloads are turned back on", async () => {
+        edition.features.downloadMaps = true;
+
         await expect(
             contentAPI.ensure([
                 { type: "engine", id: "2099.12.1" },
@@ -730,6 +742,8 @@ describe("contentAPI on an edition with read-only bundled assets", () => {
 
     it("does not fetch an engine to get pr-downloader when none is installed", async () => {
         installed.delete("engine:2025.01.3");
+
+        edition.features.downloadMaps = true;
 
         await expect(contentAPI.ensure([{ type: "map", id: "Not Bundled 1.0" }])).rejects.toThrow("content_bundled_with_install");
 

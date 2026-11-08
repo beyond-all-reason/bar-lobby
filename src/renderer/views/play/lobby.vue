@@ -21,7 +21,11 @@ SPDX-License-Identifier: MIT
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
             <Button @click="updateReadiness(true)" class="green">Ready</Button>
             <Button @click="updateReadiness(false)" class="red">Not Ready</Button>
-            <Button @click="fetchMap()" class="red flex-right" :disabled="!isMapNeeded || contentsStore.isPathChanging"
+            <Button
+                v-if="editionLogic.canAcquire('map')"
+                @click="fetchMap()"
+                class="red flex-right"
+                :disabled="!isMapNeeded || contentsStore.isPathChanging"
                 >Download Map</Button
             >
             <Button @click="switchLobbyTemplate()" class="flex-right">Switch Template</Button>
@@ -142,6 +146,7 @@ import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { contentsStore } from "@renderer/store/contents.store";
 import { router } from "@renderer/router";
 import { mapsStore, downloadMap } from "@renderer/store/maps.store";
+import { editionLogic } from "@renderer/logic/edition";
 import StandardLobby from "@renderer/components/lobbies/standard.vue";
 import FFALobby from "@renderer/components/lobbies/ffa.vue";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
@@ -212,7 +217,9 @@ const isMapNeeded = computed(() => {
 
 const { t } = useTypedI18n();
 
-const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+const mapListOptions = useDexieLiveQuery(() =>
+    editionLogic.canAcquire("map") ? db.maps.toArray() : db.maps.filter((map) => !!map.isInstalled).toArray()
+);
 
 const gameListOptions = computed(() => {
     return Array.from(gameStore.availableGameVersions.values());

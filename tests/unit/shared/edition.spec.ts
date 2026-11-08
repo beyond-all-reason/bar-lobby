@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { EditionRefusalError, editionFeatures, isEditionRefusal, parseEditionMetadata, resolveEdition } from "@shared/edition";
+import { canAcquireInEdition, EditionRefusalError, editionFeatures, isEditionRefusal, parseEditionMetadata, refusalFor, resolveEdition } from "@shared/edition";
 
 describe("parseEditionMetadata", () => {
     it("reads the steam edition from the packaged metadata", () => {
@@ -60,6 +60,7 @@ describe("editionFeatures", () => {
         expect(editionFeatures("standalone")).toEqual({
             selfUpdate: true,
             downloadEngineAndGame: true,
+            downloadMaps: true,
             changeAssetsPath: true,
             assetsReadOnly: false,
             assetsBesideExecutable: false,
@@ -67,15 +68,47 @@ describe("editionFeatures", () => {
         });
     });
 
-    it("turns off updating, engine and game downloads and moving the assets on steam", () => {
+    it("turns off updating, engine, game and map downloads and moving the assets on steam", () => {
         expect(editionFeatures("steam")).toEqual({
             selfUpdate: false,
             downloadEngineAndGame: false,
+            downloadMaps: false,
             changeAssetsPath: false,
             assetsReadOnly: true,
             assetsBesideExecutable: true,
             customContent: true,
         });
+    });
+});
+
+describe("canAcquireInEdition", () => {
+    it("acquires everything on standalone", () => {
+        const features = editionFeatures("standalone");
+
+        expect(["engine", "game", "map"].map((type) => canAcquireInEdition(features, type as "engine" | "game" | "map"))).toEqual([true, true, true]);
+    });
+
+    it("acquires nothing on steam", () => {
+        const features = editionFeatures("steam");
+
+        expect(["engine", "game", "map"].map((type) => canAcquireInEdition(features, type as "engine" | "game" | "map"))).toEqual([false, false, false]);
+    });
+
+    // Maps have their own switch, so turning map downloads back on does not depend on engines and games.
+    it("follows downloadMaps for maps alone", () => {
+        const features = { ...editionFeatures("steam"), downloadMaps: true };
+
+        expect(canAcquireInEdition(features, "map")).toBe(true);
+        expect(canAcquireInEdition(features, "engine")).toBe(false);
+        expect(canAcquireInEdition(features, "game")).toBe(false);
+    });
+});
+
+describe("refusalFor", () => {
+    it("refuses an engine or game as bundled with the install and a map as unavailable", () => {
+        expect(refusalFor("engine")).toBe("content_bundled_with_install");
+        expect(refusalFor("game")).toBe("content_bundled_with_install");
+        expect(refusalFor("map")).toBe("content_unavailable_in_edition");
     });
 });
 
@@ -87,6 +120,12 @@ describe("isEditionRefusal", () => {
     // Electron rejects an invoke with a plain Error carrying the thrown error's name and message.
     it("recognises a refusal that has crossed IPC as a message", () => {
         const refusal = new EditionRefusalError("content_bundled_with_install", "engine:2099.12.1");
+
+        expect(isEditionRefusal(new Error(`Error invoking remote method 'content:ensure': ${refusal}`))).toBe(true);
+    });
+
+    it("recognises a refused map", () => {
+        const refusal = new EditionRefusalError("content_unavailable_in_edition", "map:Quicksilver 1.2");
 
         expect(isEditionRefusal(new Error(`Error invoking remote method 'content:ensure': ${refusal}`))).toBe(true);
     });

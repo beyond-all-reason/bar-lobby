@@ -8,10 +8,13 @@ import os from "os";
 import { STATE_PATH, getAssetsPath } from "@main/config/app";
 import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import { Edition, EditionFeatures } from "@shared/edition";
+import { getInstallDefaults } from "@main/config/install-defaults";
+import { InstallDefaults } from "@shared/install-defaults";
 
 export type Info = {
     edition: Edition;
     features: EditionFeatures;
+    installDefaults: InstallDefaults;
     statePath: string;
     assetsPath: string;
     lobby: {
@@ -37,6 +40,7 @@ function getInfo() {
     const info: Info = {
         edition: EDITION,
         features: EDITION_FEATURES,
+        installDefaults: getInstallDefaults(),
         statePath: STATE_PATH,
         assetsPath: getAssetsPath(),
         lobby: {

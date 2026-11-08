@@ -8,6 +8,8 @@ import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
+import { canAcquireInEdition, isEditionRefusal } from "@shared/edition";
+import { infosStore } from "@renderer/store/infos.store";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -18,10 +20,11 @@ export const mapsStore: {
 });
 
 export async function getRandomMap() {
-    const mapCount = await db.maps.count();
+    const maps = canAcquireInEdition(infosStore.features, "map") ? db.maps.toCollection() : db.maps.filter((map) => !!map.isInstalled);
+    const mapCount = await maps.clone().count();
     if (mapCount === 0) throw new Error("No maps available");
     const randomIndex = Math.floor(Math.random() * mapCount);
-    const map = await db.maps.offset(randomIndex).first();
+    const map = await maps.offset(randomIndex).first();
     return map;
 }
 
@@ -178,7 +181,9 @@ export async function downloadMap(springName: string) {
         })
         .catch((error) => {
             console.error("Failed to download map:", springName, error);
-            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            if (!isEditionRefusal(error)) {
+                notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            }
             dbDelegate.update(springName, { isDownloading: false });
         });
 }

@@ -35,6 +35,14 @@ SPDX-License-Identifier: MIT
             >{{ t("lobby.components.controls.downloadContentButton.verifyGameFiles") }}</Button
         >
         <Button
+            v-else-if="mapUnavailable"
+            class="red quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            disabled
+            style="min-height: unset"
+            >{{ t("lobby.components.controls.downloadContentButton.mapUnavailable") }}</Button
+        >
+        <Button
             v-else
             class="red quick-download-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
@@ -97,7 +105,15 @@ watch(
 
 const ready = computed(() => missing.value?.length === 0);
 
-const needsGameFilesVerified = computed(() => !!missing.value?.some((ref) => !editionLogic.canAcquire(ref.type)));
+const unacquirable = computed(() => missing.value?.filter((ref) => !editionLogic.canAcquire(ref.type)) ?? []);
+
+// A missing engine or game means a damaged install. Checked first, since verifying the files is the
+// only thing that helps then.
+const needsGameFilesVerified = computed(() => unacquirable.value.some((ref) => ref.type !== "map"));
+
+// A map that was never part of the install cannot be had at all. Anything else missing alongside it
+// still is not offered for download, since playing would need the map regardless.
+const mapUnavailable = computed(() => unacquirable.value.length > 0);
 
 const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
 

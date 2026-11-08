@@ -191,6 +191,7 @@ import { MapData } from "@main/content/maps/map-data";
 import { Lobby } from "@renderer/model/lobby";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { db } from "@renderer/store/db";
+import { editionLogic } from "@renderer/logic/edition";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import { Icon } from "@iconify/vue";
@@ -221,7 +222,9 @@ const selectedRegion = ref(regions.value[0].code);
 const selectedRegionName = computed(() => regions.value.find((region) => region.code === selectedRegion.value)?.name);
 const hostLobbyModal = useTemplateRef("hostLobbyModal");
 const hostedBattleData: Ref<{ name: string; password: string } | undefined> = ref();
-const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+const mapListOptions = useDexieLiveQuery(() =>
+    editionLogic.canAcquire("map") ? db.maps.toArray() : db.maps.filter((map) => !!map.isInstalled).toArray()
+);
 const waitingForBattleCreation = ref(false);
 const isMapListOpen = ref(false);
 const canSendHostRequest = ref(false);

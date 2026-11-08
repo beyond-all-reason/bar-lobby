@@ -5,11 +5,15 @@
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { listAvailableVersions } = vi.hoisted(() => ({ listAvailableVersions: vi.fn() }));
+const { listAvailableVersions, infos } = vi.hoisted(() => ({
+    listAvailableVersions: vi.fn(),
+    infos: { installDefaults: undefined as { engine?: string; game?: string } | undefined },
+}));
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
 vi.mock("@renderer/store/contents.store", () => ({ onContentSettled: vi.fn() }));
 vi.mock("@renderer/store/config.store", () => ({ configStore: { defaultEngineVersion: "2026.07.04" } }));
+vi.mock("@renderer/store/infos.store", () => ({ infosStore: infos }));
 vi.stubGlobal("window", Object.assign(window, { engine: { listAvailableVersions } }));
 
 import { defaultEngineInstalled, enginesStore, refreshEnginesStore, selectEngineVersion } from "@renderer/store/engine.store";
@@ -32,6 +36,7 @@ describe("engine version selection", () => {
         listAvailableVersions.mockReset();
         selectEngineVersion(undefined);
         enginesStore.availableEngineVersions = [];
+        infos.installDefaults = undefined;
     });
 
     it("prefers the default version once it is installed", async () => {
@@ -83,6 +88,35 @@ describe("engine version selection", () => {
         await refreshEnginesStore();
 
         expect(enginesStore.selectedEngineVersion?.id).toBe(DEFAULT_ENGINE_VERSION);
+    });
+
+    // The remote config can name an engine this install never had, so the install's own default comes first.
+    it("prefers the install's default engine over the remote config's", async () => {
+        infos.installDefaults = { engine: OLDER };
+        available(engine(OLDER, true), engine(DEFAULT_ENGINE_VERSION, true), engine(NEWER, true));
+
+        await refreshEnginesStore();
+
+        expect(enginesStore.selectedEngineVersion?.id).toBe(OLDER);
+    });
+
+    it("counts the install's default engine as the default one installed", async () => {
+        infos.installDefaults = { engine: OLDER };
+        available(engine(OLDER, true), engine(DEFAULT_ENGINE_VERSION, false));
+
+        await refreshEnginesStore();
+
+        expect(defaultEngineInstalled.value).toBe(true);
+    });
+
+    it("keeps an explicit choice ahead of the install's default engine", async () => {
+        infos.installDefaults = { engine: OLDER };
+        available(engine(OLDER, true), engine(NEWER, true));
+        await refreshEnginesStore();
+
+        selectEngineVersion(engine(NEWER, true));
+
+        expect(enginesStore.selectedEngineVersion?.id).toBe(NEWER);
     });
 
     it("reports the default version even when nothing is installed", async () => {

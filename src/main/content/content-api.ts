@@ -16,18 +16,17 @@ import { mapProvider } from "@main/content/maps/map-provider";
 import { contentUsage } from "@main/content/content-usage";
 import { findPrdBinary } from "@main/content/pr-downloader";
 import { CONTENT_RETENTION_DAYS, MIN_FREE_BYTES_TO_ACQUIRE } from "@main/config/content-policy";
-import { configService } from "@main/services/config.service";
+import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { getContentWriteRoot } from "@main/config/app";
 import { EDITION_FEATURES } from "@main/config/edition";
-import { canAcquireInEdition, EditionRefusalError, isEditionRefusal } from "@shared/edition";
+import { canAcquireInEdition, EditionRefusal, EditionRefusalError, isEditionRefusal, refusalFor } from "@shared/edition";
 import { formatBytes, freeBytes } from "@main/utils/disk-space";
 import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
 
-// Only the store that installed the client can put back an engine or game it bundled.
 function notAcquirable(ref: ContentRef) {
-    return new EditionRefusalError("content_bundled_with_install", contentRefKey(ref));
+    return new EditionRefusalError(refusalFor(ref.type), contentRefKey(ref));
 }
 
 // A provider dispatches progress for everything it is downloading on one signal, so acquisitions that
@@ -290,12 +289,16 @@ class ContentAPI {
 
         if (this.missing(acquirable).some((ref) => ref.type !== "engine") && !findPrdBinary()) {
             log.info("No pr-downloader available, acquiring the default engine first");
-            await this.ensure([{ type: "engine", id: configService.getConfig().defaultEngineVersion }]);
+            await this.ensure([{ type: "engine", id: getDefaultEngineVersion() }]);
         }
 
-        const refused = this.missing(refs).filter((ref) => !this.canAcquire(ref));
-        if (refused.length > 0) {
-            this.onRefused.dispatch({ refusal: "content_bundled_with_install", refs: refused });
+        // One report per code, since each is worded differently.
+        const refused = Map.groupBy(
+            this.missing(refs).filter((ref) => !this.canAcquire(ref)),
+            (ref): EditionRefusal => refusalFor(ref.type)
+        );
+        for (const [refusal, refusedRefs] of refused) {
+            this.onRefused.dispatch({ refusal, refs: refusedRefs });
         }
 
         // Refused through track like any other failure, so the content shows as failed, and whatever in
@@ -314,7 +317,7 @@ class ContentAPI {
         }
     }
 
-    private canAcquire(ref: ContentRef) {
+    public canAcquire(ref: ContentRef) {
         return canAcquireInEdition(EDITION_FEATURES, ref.type);
     }
 
