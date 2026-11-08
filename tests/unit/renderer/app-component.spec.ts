@@ -36,12 +36,15 @@ vi.mock("@renderer/store/battle.store", () => ({
 }));
 
 vi.mock("@renderer/store/me.store", () => ({
-    me: { isAuthenticated: true },
-    auth: { playOffline: vi.fn() },
+    me: {},
+}));
+
+vi.mock("@renderer/store/connection.store", () => ({
+    connectionStore: { isAuthenticated: true, isConnected: true, isReconnecting: false },
 }));
 
 vi.mock("@renderer/store/tachyon.store", () => ({
-    tachyonStore: { isConnected: true },
+    tachyonStore: {},
 }));
 
 vi.mock("@renderer/utils/play-random-music", () => ({

@@ -7,13 +7,14 @@ import { mount } from "@vue/test-utils";
 import PrimeVue from "primevue/config";
 
 const requestSend = vi.hoisted(() => vi.fn());
+const connection = vi.hoisted(() => ({ isConnected: false }));
 
 vi.mock("@renderer/store/chat.store", () => ({
     chat: { requestSend, clearUserChat: vi.fn() },
     chatStore: { partyChats: new Map(), lobbyChats: new Map(), userChats: new Map() },
 }));
 
-vi.mock("@renderer/store/tachyon.store", () => ({ tachyonStore: { isConnected: false } }));
+vi.mock("@renderer/store/connection.store", () => ({ connectionStore: connection }));
 vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
 vi.mock("@renderer/composables/useDexieLiveQuery", () => ({
@@ -22,7 +23,6 @@ vi.mock("@renderer/composables/useDexieLiveQuery", () => ({
 
 vi.mock("@renderer/store/db", () => ({ db: { users: { each: vi.fn(), filter: () => ({ each: vi.fn() }) } } }));
 
-const { tachyonStore } = await import("@renderer/store/tachyon.store");
 const ChatPanel = (await import("@renderer/components/common/ChatPanel.vue")).default;
 
 const mountChat = () =>
@@ -43,7 +43,7 @@ describe("chat input while disconnected", () => {
     });
 
     it("disables the input", () => {
-        tachyonStore.isConnected = false;
+        connection.isConnected = false;
 
         const wrapper = mountChat();
 
@@ -53,7 +53,7 @@ describe("chat input while disconnected", () => {
     // Button's disabled prop only adds a class, so the click still lands and the
     // handler is the only thing standing between it and a doomed request.
     it("ignores the send button while the socket is down", async () => {
-        tachyonStore.isConnected = false;
+        connection.isConnected = false;
 
         await mountChat().find("button").trigger("click");
 
@@ -61,7 +61,7 @@ describe("chat input while disconnected", () => {
     });
 
     it("sends once connected", async () => {
-        tachyonStore.isConnected = true;
+        connection.isConnected = true;
 
         const wrapper = mountChat();
         await wrapper.find("input").setValue("hello");

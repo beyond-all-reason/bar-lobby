@@ -25,27 +25,29 @@ Object.assign(window.tachyon, {
 
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
-const { matchmakingStore, matchmakingUpdates, MatchmakingStatus } = await import("@renderer/store/matchmaking.store");
+const { matchmakingStore, matchmakingActions, MatchmakingStatus } = await import("@renderer/store/matchmaking.store");
 const { initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
-const { partyStore, partyUpdates, PlayersPartyState } = await import("@renderer/store/party.store");
+const { partyStore, partyActions, PlayersPartyState } = await import("@renderer/store/party.store");
 const { initPartyLogic } = await import("@renderer/logic/party");
 const { lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
-const { tachyon, tachyonStore, initTachyonStore } = await import("@renderer/store/tachyon.store");
+const { tachyonStore, initTachyonStore } = await import("@renderer/store/tachyon.store");
+const { connectionStore, connectionActions } = await import("@renderer/store/connection.store");
+const { connectionLogic, initConnectionLogic } = await import("@renderer/logic/connection");
 const { onWentOffline } = await import("@renderer/utils/offline-signal");
 
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
 
 function populateOnlineState() {
-    matchmakingUpdates.set({
+    matchmakingActions.set({
         status: MatchmakingStatus.Searching,
         playlists: [{ id: "1v1", name: "Duel", version: "3" }] as never,
         playersQueued: 12,
         selectedQueue: "2v2",
     });
-    matchmakingUpdates.setDownloadsRequired("2v2", { engines: [], games: [], maps: ["somemap"] });
+    matchmakingActions.setDownloadsRequired("2v2", { engines: [], games: [], maps: ["somemap"] });
 
-    partyUpdates.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
+    partyActions.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
 
     lobbyStore.lobbies = { "lobby-1": { id: "lobby-1" } as never };
     lobbyStore.activeLobby = { id: "lobby-1" } as never;
@@ -58,13 +60,12 @@ function populateOnlineState() {
 
 describe("going offline", () => {
     beforeAll(async () => {
-        await Promise.all([initPartyLogic(), initLobbyStore(), initMatchmakingLogic(), initChatStore(), initTachyonStore()]);
+        await Promise.all([initPartyLogic(), initLobbyStore(), initMatchmakingLogic(), initChatStore(), initConnectionLogic(), initTachyonStore()]);
     });
 
     beforeEach(() => {
         populateOnlineState();
-        tachyonStore.isConnected = true;
-        tachyonStore.wantsConnection = true;
+        connectionActions.set({ isConnected: true, wantsConnection: true });
         vi.mocked(window.tachyon.dropConnection).mockClear();
     });
 
@@ -78,7 +79,7 @@ describe("going offline", () => {
         });
 
         it("leaves a connection that is already down alone", () => {
-            tachyonStore.isConnected = false;
+            connectionActions.set({ isConnected: false });
 
             window.dispatchEvent(new Event("offline"));
 
@@ -123,7 +124,7 @@ describe("going offline", () => {
 
     describe("when the user chooses to go offline", () => {
         it("drops the state the server owns", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
             expect(partyStore.activeParty).toBeUndefined();
             expect(partyStore.parties.size).toBe(0);
@@ -139,7 +140,7 @@ describe("going offline", () => {
         // messages, so clearing them here would destroy history nothing can send
         // again. Entering the next lobby or party is what clears them.
         it("keeps the chat transcript the server can no longer send us", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
             expect(chatStore.lobbyChats.get("lobby-1")).toHaveLength(1);
             expect(chatStore.partyChats.get("party-1")).toHaveLength(1);
@@ -148,13 +149,13 @@ describe("going offline", () => {
         it("drops the marker, which the ended session leaves pointing at nothing", async () => {
             chatStore.lastMarker = "-576460745805023";
 
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
             expect(chatStore.lastMarker).toBeNull();
         });
 
         it("keeps what the user picked rather than what the server said", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
             expect(matchmakingStore.selectedQueue).toBe("2v2");
             expect(lobbyStore.wantsListSubscription).toBe(true);
@@ -163,47 +164,59 @@ describe("going offline", () => {
 
         // Views index downloadsRequired by queue id, so emptying it crashed the matchmaking page.
         it("keeps the derived download requirements the views index into", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
             expect(matchmakingStore.downloadsRequired["2v2"]).toEqual({ engines: [], games: [], maps: ["somemap"] });
         });
 
         it("does not ask the dead socket to leave the party", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
             expect(window.tachyon.requestStructured).not.toHaveBeenCalledWith("party/leave");
         });
 
         it("stops wanting a connection so the close is not treated as a fault", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
-            expect(tachyonStore.wantsConnection).toBe(false);
+            expect(connectionStore.wantsConnection).toBe(false);
         });
 
         // Cleanup runs before the socket's close event gets back to us, so anything
         // that checks isConnected first would otherwise send on a dying socket.
         it("counts as disconnected before the cleanup runs", async () => {
             let connectedWhenCleanupRan: boolean | undefined;
-            const probe = onWentOffline.add(() => (connectedWhenCleanupRan = tachyonStore.isConnected));
+            const probe = onWentOffline.add(() => (connectedWhenCleanupRan = connectionStore.isConnected));
 
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
             probe.destroy();
 
             expect(connectedWhenCleanupRan).toBe(false);
         });
 
+        it("clears the rejoin prompt during the cleanup", async () => {
+            tachyonStore.springConnectionDetails = { battleId: "battle-1" } as never;
+            tachyonStore.rejoinModalOpen = true;
+            let rejoinWhenCleanupRan: unknown;
+            const probe = onWentOffline.add(() => (rejoinWhenCleanupRan = { details: tachyonStore.springConnectionDetails, modalOpen: tachyonStore.rejoinModalOpen }));
+
+            await connectionLogic.goOffline();
+            probe.destroy();
+
+            expect(rejoinWhenCleanupRan).toEqual({ details: undefined, modalOpen: false });
+        });
+
         it("drops a stale error so the status does not read as faulted", async () => {
-            tachyonStore.error = "Error fetching server stats";
+            connectionActions.set({ error: "Error fetching server stats" });
 
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
-            expect(tachyonStore.error).toBeUndefined();
+            expect(connectionStore.error).toBeUndefined();
         });
 
         it("survives being asked twice with nothing left to clear", async () => {
-            await tachyon.goOffline();
+            await connectionLogic.goOffline();
 
-            await expect(tachyon.goOffline()).resolves.not.toThrow();
+            await expect(connectionLogic.goOffline()).resolves.not.toThrow();
         });
     });
 });

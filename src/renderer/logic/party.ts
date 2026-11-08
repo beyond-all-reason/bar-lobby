@@ -18,7 +18,7 @@ import {
 } from "tachyon-protocol/types";
 import { onTachyonEvent, tachyonRequest } from "@renderer/api/tachyon";
 import { me } from "@renderer/store/me.store";
-import { partyStore, partyUpdates } from "@renderer/store/party.store";
+import { partyStore, partyActions } from "@renderer/store/party.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
@@ -36,18 +36,18 @@ function watchPartyUsers(myUserId: UserId) {
 }
 
 function setParty(party: PartyState) {
-    partyUpdates.set(party, me.userId);
+    partyActions.set(party, me.userId);
     watchPartyUsers(me.userId);
 }
 
 function removeParty(partyId: PartyId) {
-    partyUpdates.remove(partyId, me.userId);
+    partyActions.remove(partyId, me.userId);
     watchPartyUsers(me.userId);
 }
 
 function clearParty() {
     subsManager.clearAllFromList(partySymbol);
-    partyUpdates.clear();
+    partyActions.clear();
 }
 
 /**
@@ -137,7 +137,7 @@ async function leave() {
 }
 
 function markSeen(partyId: PartyId) {
-    partyUpdates.markSeen(partyId);
+    partyActions.markSeen(partyId);
 }
 
 function onLogout() {
@@ -170,7 +170,7 @@ function onUpdatedEvent(data: PartyUpdatedEventData) {
 
 // me.store only updates me.userId after an await, so this goes by the id in the event.
 function onUserSelfEvent({ user }: UserSelfEventData) {
-    partyUpdates.replaceAll([...(user.party ? [user.party] : []), ...(user.invitedToParties || [])], user.userId);
+    partyActions.replaceAll([...(user.party ? [user.party] : []), ...(user.invitedToParties || [])], user.userId);
 
     // Restored teiserver sessions start with no subscriptions; clearing first makes setList resend them.
     subsManager.clearAllFromList(partySymbol);

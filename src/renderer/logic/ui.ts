@@ -7,6 +7,8 @@ export interface Ui {
     matchWaiting(): void;
     queuesJoined(): void;
     queueListFailed(): void;
+    userSubscribeFailed(): void;
+    userUnsubscribeFailed(): void;
 }
 
 let implementation: Ui | undefined;
@@ -27,4 +29,6 @@ export const ui: Ui = {
     matchWaiting: () => provided()?.matchWaiting(),
     queuesJoined: () => provided()?.queuesJoined(),
     queueListFailed: () => provided()?.queueListFailed(),
+    userSubscribeFailed: () => provided()?.userSubscribeFailed(),
+    userUnsubscribeFailed: () => provided()?.userUnsubscribeFailed(),
 };

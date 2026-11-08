@@ -44,7 +44,8 @@ Object.defineProperty(window, "auth", {
 Object.defineProperty(window, "game", { value: { launchMultiplayer }, writable: true });
 
 const { tachyonStore, tachyon, initTachyonStore } = await import("@renderer/store/tachyon.store");
-const { me } = await import("@renderer/store/me.store");
+const { connectionStore, connectionActions } = await import("@renderer/store/connection.store");
+const { connectionLogic, initConnectionLogic } = await import("@renderer/logic/connection");
 
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
@@ -54,36 +55,34 @@ const simulateBattleEnded = () =>
 
 describe("connection intent", () => {
     beforeAll(async () => {
-        await initTachyonStore();
+        await Promise.all([initConnectionLogic(), initTachyonStore()]);
     });
 
     beforeEach(() => {
         vi.useFakeTimers();
         connect.mockClear();
-        me.isAuthenticated = true;
-        tachyonStore.isConnected = false;
-        tachyonStore.wantsConnection = false;
+        connectionActions.set({ isAuthenticated: true, isConnected: false, wantsConnection: false });
         tachyonStore.rejoinModalOpen = false;
         tachyonStore.springConnectionDetails = undefined;
         launchMultiplayer.mockClear();
     });
 
     afterEach(() => {
-        tachyon.goOffline();
+        connectionLogic.goOffline();
         vi.useRealTimers();
     });
 
     it("takes an open connection as wanting to be online", () => {
         simulateConnect();
 
-        expect(tachyonStore.wantsConnection).toBe(true);
+        expect(connectionStore.wantsConnection).toBe(true);
     });
 
     it("retries when a wanted connection drops", () => {
         simulateConnect();
         simulateClose();
 
-        expect(tachyonStore.reconnectInterval).toBeDefined();
+        expect(connectionStore.isReconnecting).toBe(true);
 
         vi.advanceTimersByTime(10000);
         expect(connect).toHaveBeenCalled();
@@ -91,10 +90,10 @@ describe("connection intent", () => {
 
     it("stays quiet when the user asked to go offline", async () => {
         simulateConnect();
-        await tachyon.goOffline();
+        await connectionLogic.goOffline();
         simulateClose();
 
-        expect(tachyonStore.reconnectInterval).toBeUndefined();
+        expect(connectionStore.isReconnecting).toBe(false);
     });
 
     // Logout drops the socket without going through disconnect(), so the intent
@@ -105,18 +104,18 @@ describe("connection intent", () => {
         simulateSessionEnd();
         simulateClose();
 
-        expect(tachyonStore.wantsConnection).toBe(false);
-        expect(tachyonStore.reconnectInterval).toBeUndefined();
+        expect(connectionStore.wantsConnection).toBe(false);
+        expect(connectionStore.isReconnecting).toBe(false);
     });
 
     it("gives up on a retry in progress when the session ends", () => {
         simulateConnect();
         simulateClose();
-        expect(tachyonStore.reconnectInterval).toBeDefined();
+        expect(connectionStore.isReconnecting).toBe(true);
 
         simulateSessionEnd();
 
-        expect(tachyonStore.reconnectInterval).toBeUndefined();
+        expect(connectionStore.isReconnecting).toBe(false);
 
         vi.advanceTimersByTime(30000);
         expect(connect).not.toHaveBeenCalled();

@@ -1,0 +1,13 @@
+{
+    "missions.outpost-strike.title": "Outpost Strike",
+    "missions.outpost-strike.description": "Hold the outpost against two minutes of raids, then destroy the enemy factory.",
+    "missions.outpost-strike.teams.player": "Outpost",
+    "missions.outpost-strike.teams.enemy": "Raiders",
+    "missions.outpost-strike.objectives.holdOut": "Hold the outpost for two minutes",
+    "missions.outpost-strike.objectives.destroyFactory": "Destroy the enemy factory",
+    "missions.outpost-strike.messages.briefing": "Raiders are on their way from the north-west. Hold the outpost and keep your commander alive.",
+    "missions.outpost-strike.messages.raid": "Raiders incoming.",
+    "missions.outpost-strike.messages.strike": "The raids have stopped. Take the fight to their factory in the north-west.",
+    "missions.outpost-strike.messages.victory": "The enemy factory is down. Mission complete.",
+    "missions.outpost-strike.messages.defeat": "The commander is lost. Mission failed."
+}

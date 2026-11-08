@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe("Main Process Lifecycle", () => {
     let mockApp: any;
+    let mockDialog: any;
     let mockProcess: any;
     let mockProtocol: any;
     let mockSession: any;
@@ -48,6 +49,7 @@ describe("Main Process Lifecycle", () => {
         pathsService: { registerIpcHandlers: vi.fn() },
     };
     const mockSetAssetsPath = vi.fn();
+    const mockWarn = vi.fn();
 
     beforeEach(async () => {
         vi.clearAllMocks();
@@ -87,6 +89,10 @@ describe("Main Process Lifecycle", () => {
             fetch: vi.fn(),
         };
 
+        mockDialog = {
+            showMessageBoxSync: vi.fn().mockReturnValue(1),
+        };
+
         mockProcess = {
             env: { NODE_ENV: "development" },
             platform: "linux",
@@ -96,6 +102,7 @@ describe("Main Process Lifecycle", () => {
 
         vi.doMock("electron", () => ({
             app: mockApp,
+            dialog: mockDialog,
             protocol: mockProtocol,
             session: mockSession,
             net: mockNet,
@@ -154,6 +161,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/utils/logger", () => ({
             logger: vi.fn().mockReturnValue({
                 info: vi.fn(),
+                warn: mockWarn,
                 error: vi.fn(),
             }),
         }));
@@ -266,6 +274,7 @@ describe("Main Process Lifecycle", () => {
     it("should initialize services when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockDialog.showMessageBoxSync).not.toHaveBeenCalled();
         expect(mockServices.configService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
         expect(mockServices.customLobbiesService.init).toHaveBeenCalled();
@@ -326,5 +335,30 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();
+    });
+
+    it("should warn and continue when the user chooses to continue on an unsupported platform", async () => {
+        mockProcess.platform = "darwin";
+        mockDialog.showMessageBoxSync.mockReturnValue(1);
+
+        await import("@main/main");
+
+        expect(mockWarn).toHaveBeenCalledWith("Client is running on unsupported platform: macOS");
+        expect(mockWarn).toHaveBeenCalledWith("Continuing on unsupported platform at user request");
+        expect(mockDialog.showMessageBoxSync).toHaveBeenCalledOnce();
+        expect(mockApp.exit).not.toHaveBeenCalled();
+        expect(mockServices.configService.init).toHaveBeenCalled();
+    });
+
+    it("should warn and exit when the user chooses to quit on an unsupported platform", async () => {
+        mockProcess.platform = "darwin";
+        mockDialog.showMessageBoxSync.mockReturnValue(0);
+
+        await import("@main/main");
+
+        expect(mockWarn).toHaveBeenCalledWith("Client is running on unsupported platform: macOS");
+        expect(mockDialog.showMessageBoxSync).toHaveBeenCalledOnce();
+        expect(mockApp.exit).toHaveBeenCalledWith(1);
+        expect(mockServices.configService.init).not.toHaveBeenCalled();
     });
 });

@@ -52,7 +52,7 @@ function putParty(party: PartyState) {
     state.parties.set(party.id, { ...party, seen: false });
 }
 
-export const partyUpdates = {
+export const partyActions = {
     set(party: PartyState, myUserId: UserId) {
         putParty(party);
         settle(myUserId);

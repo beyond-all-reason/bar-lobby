@@ -30,7 +30,7 @@ export const configSchema = Type.Object({
     // The first entry is the server used by anyone who has not chosen one, so there must always be one.
     defaultServers: Type.Array(Type.String(), {
         minItems: 1,
-        default: ["wss://server4.beyondallreason.info", "wss://server5.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev", "ws://localhost:4000"],
+        default: ["wss://server5.beyondallreason.info", "wss://server4.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev", "ws://localhost:4000"],
     }),
     // Default engine settings for BAR, sourced from:
     // https://github.com/beyond-all-reason/BYAR-Chobby/blob/master/dist_cfg/config.json

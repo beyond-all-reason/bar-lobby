@@ -72,3 +72,13 @@ export function isTachyonErrorForCommand<C extends RequestCommandId>(error: unkn
 export function onTachyonEvent<C extends EventCommandId>(commandId: C, handler: (data: EventData<C>) => void): () => void {
     return window.tachyon.onEvent(commandId, handler);
 }
+
+// Not through ipcCall: the sign-in screen shows connect failures as main sent them.
+export const tachyonConnectionApi = {
+    isConnected: () => window.tachyon.isConnected(),
+    connect: () => window.tachyon.connect(),
+    disconnect: () => window.tachyon.disconnect(),
+    dropConnection: () => window.tachyon.dropConnection(),
+    onConnected: (handler: () => void) => window.tachyon.onConnected(handler),
+    onDisconnected: (handler: () => void) => window.tachyon.onDisconnected(handler),
+};

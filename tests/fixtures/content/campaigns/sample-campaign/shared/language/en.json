@@ -1,0 +1,12 @@
+{
+    "campaign": {
+        "title": "Sample Campaign",
+        "description": "Every unlock rule the campaign format has, on placeholder missions."
+    },
+    "missions": {
+        "tutorial": {
+            "title": "Campaign-wide tutorial title",
+            "description": "Start mission, always replayable. Removed by winning mission01; losing mission02 brings it back."
+        }
+    }
+}

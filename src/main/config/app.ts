@@ -10,6 +10,7 @@ import { homedir } from "os";
 import { Type, Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import type { ContentRoot } from "@shared/content/singleplayer";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -78,19 +79,14 @@ function getDefaultLocations(): { state: string; assets: string } {
             state: path.join(appData, APP_NAME),
         };
     }
-    if (process.platform === "linux") {
-        const xdgStateHome = process.env.XDG_STATE_HOME || path.join(homedir(), ".local/state");
-        const xdgDataHome = process.env.XDG_DATA_HOME || path.join(homedir(), ".local/share");
-        return {
-            // The `assets` prefix isn't really needed under Linux, but we add
-            // it for consistency.
-            assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(xdgDataHome, APP_NAME, "assets"),
-            state: path.join(xdgStateHome, APP_NAME),
-        };
-    }
-
-    console.error("Unsupported platform");
-    process.exit(1);
+    const xdgStateHome = process.env.XDG_STATE_HOME || path.join(homedir(), ".local/state");
+    const xdgDataHome = process.env.XDG_DATA_HOME || path.join(homedir(), ".local/share");
+    return {
+        // The `assets` prefix isn't really needed under Linux, but we add
+        // it for consistency.
+        assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(xdgDataHome, APP_NAME, "assets"),
+        state: path.join(xdgStateHome, APP_NAME),
+    };
 }
 
 export function setAssetsPath(p: string) {
@@ -139,6 +135,25 @@ export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH,
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 
 /**
+ * Where singleplayer content is read from, one root per source the edition reads. Custom content is the
+ * player's own.
+ *
+ * Saved progress is keyed by each root's `rootId`, so a root keeps its id for good once it has shipped
+ * content.
+ *
+ * As with BAR_EDITION, the override only works from `npm start`.
+ */
+export function getContentRoots(): ContentRoot[] {
+    const roots: ContentRoot[] = [];
+    if (EDITION_FEATURES.customContent) {
+        const override = app.isPackaged ? undefined : process.env.BAR_CUSTOM_CONTENT_PATH;
+        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override || path.join(STATE_PATH, "content")) });
+    }
+
+    return roots;
+}
+
+/**
  * Where content this client acquires itself lands. pr-downloader lays it out under the root the same way
  * either way, and the engine already searches both roots.
  */
@@ -146,6 +161,15 @@ export const getContentWriteRoot = () => (EDITION_FEATURES.assetsReadOnly ? WRIT
 
 // Map directories whose files are ours to delete.
 export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.assetsReadOnly ? [path.join(WRITE_DATA_PATH, "maps")] : getMapsPaths());
+
+/**
+ * Saved singleplayer progress, one small JSON file per item played. The folder holds nothing else and its
+ * files hold no paths or machine-specific values, so Steam Cloud can sync it as it is: with Auto-Cloud, the
+ * pattern `*.json` in `WinAppDataRoaming` + `BeyondAllReason/saves/singleplayer`. On Linux STATE_PATH is under
+ * XDG_STATE_HOME, which Steam has no root for, so that either assumes the default `LinuxHome` +
+ * `.local/state/...` or goes through the ISteamRemoteStorage API, which only needs the file names and contents.
+ */
+export const SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");

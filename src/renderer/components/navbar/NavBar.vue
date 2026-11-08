@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
                 <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
-                        v-if="me.isAuthenticated && settingsStore.devMode"
+                        v-if="connectionStore.isAuthenticated && settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -77,7 +77,7 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="secondary-right flex-row flex-right">
                     <ServerStatus v-if="settingsStore.devMode" />
-                    <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
+                    <Button v-if="connectionStore.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
@@ -132,6 +132,7 @@ import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 import { chatStore } from "@renderer/store/chat.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { connectionStore } from "@renderer/store/connection.store";
 import ActiveBattleVideo from "@renderer/components/misc/ActiveBattleVideo.vue";
 
 defineProps<{
@@ -164,7 +165,7 @@ const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 
 const { openLogInConfirmation } = useLogInConfirmation();
 function handleFriendsClick() {
-    if (!me.isAuthenticated) {
+    if (!connectionStore.isAuthenticated) {
         openLogInConfirmation(router.currentRoute.value);
         return;
     }
