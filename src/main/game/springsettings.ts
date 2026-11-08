@@ -18,8 +18,10 @@ function readSettings(filePath: string): Map<string, string> {
     let fileContent = "";
     try {
         fileContent = fs.readFileSync(filePath, "utf-8");
-    } catch {
-        return settings;
+    } catch (err) {
+        // Any other error must not read as empty, or the caller would overwrite the user's settings with defaults.
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") return settings;
+        throw err;
     }
     for (const line of fileContent.split(/\r?\n/)) {
         const trimmed = line.trim();
