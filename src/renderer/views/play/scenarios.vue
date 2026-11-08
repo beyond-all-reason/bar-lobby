@@ -144,9 +144,11 @@ watch(gameVersion, async (selectedVersion) => {
     scenarios.value = await loadScenarios(selectedVersion);
 });
 
+// Another game version's list has its own objects, so the same scenario is taken from the new list.
 watch(playableScenarios, (playable) => {
-    if (!playable.some((scenario) => scenario.scenarioid === selectedScenario.value?.scenarioid)) {
-        selectedScenario.value = playable[0];
+    const same = playable.find((scenario) => scenario.scenarioid === selectedScenario.value?.scenarioid) ?? playable[0];
+    if (same !== selectedScenario.value) {
+        selectedScenario.value = same;
     }
 });
 

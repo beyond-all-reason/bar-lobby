@@ -26,20 +26,20 @@ function canAcquire(type: ContentType) {
 
 // An engine or game is missing and nothing in the client can supply it, so offering retries or a
 // download would only send the player round in circles. Only the store that installed it can put it back.
-// One the install says it shipped with counts as well, even when some other version is present.
+// The install's own default engine or game counts as well, even when some other version is present.
 function isInstallationIncomplete(installed: { engine: boolean; game: boolean }) {
-    const missingBundled = bundledRefs().filter(isUnavailable);
-    for (const ref of missingBundled) {
-        console.warn(`${ref.type} ${ref.id} is listed as bundled with the install but is not installed`);
+    const missingDefaults = installDefaultRefs().filter(isUnavailable);
+    for (const ref of missingDefaults) {
+        console.warn(`${ref.type} ${ref.id} is the install's default but is not installed`);
     }
 
-    return (!installed.engine && !canAcquire("engine")) || (!installed.game && !canAcquire("game")) || missingBundled.length > 0;
+    return (!installed.engine && !canAcquire("engine")) || (!installed.game && !canAcquire("game")) || missingDefaults.length > 0;
 }
 
-function bundledRefs(): ContentRef[] {
-    const content = infosStore.bundledContent;
+function installDefaultRefs(): ContentRef[] {
+    const { engine, game } = infosStore.installDefaults ?? {};
 
-    return [...(content?.engines ?? []).map((id) => ({ type: "engine" as const, id })), ...(content?.games ?? []).map((id) => ({ type: "game" as const, id }))];
+    return [...(engine ? [{ type: "engine" as const, id: engine }] : []), ...(game ? [{ type: "game" as const, id: game }] : [])];
 }
 
 function isInstalled(ref: ContentRef) {

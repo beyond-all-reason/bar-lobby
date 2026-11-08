@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getInstalledVersions, infos } = vi.hoisted(() => ({
     getInstalledVersions: vi.fn(),
-    infos: { bundledContent: undefined as { engines: string[]; games: string[] } | undefined },
+    infos: { installDefaults: undefined as { engine?: string; game?: string } | undefined },
 }));
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
@@ -26,10 +26,10 @@ function installed(...versions: string[]) {
 
 describe("game version selection", () => {
     beforeEach(() => {
-        infos.bundledContent = undefined;
+        infos.installDefaults = undefined;
     });
 
-    it("selects the last installed version when nothing is bundled", async () => {
+    it("selects the last installed version when the install names no default", async () => {
         installed(FIRST, LAST);
 
         await refreshGameStore();
@@ -37,8 +37,8 @@ describe("game version selection", () => {
         expect(gameStore.selectedGameVersion?.gameVersion).toBe(LAST);
     });
 
-    it("selects the one game bundled with the install", async () => {
-        infos.bundledContent = { engines: [], games: [FIRST] };
+    it("selects the install's default game", async () => {
+        infos.installDefaults = { game: FIRST };
         installed(FIRST, LAST);
 
         await refreshGameStore();
@@ -46,8 +46,8 @@ describe("game version selection", () => {
         expect(gameStore.selectedGameVersion?.gameVersion).toBe(FIRST);
     });
 
-    it("falls back to the last installed version when the bundled game is not installed", async () => {
-        infos.bundledContent = { engines: [], games: ["Beyond All Reason test-3-ghi"] };
+    it("falls back to the last installed version when the install's default game is not installed", async () => {
+        infos.installDefaults = { game: "Beyond All Reason test-3-ghi" };
         installed(FIRST, LAST);
 
         await refreshGameStore();

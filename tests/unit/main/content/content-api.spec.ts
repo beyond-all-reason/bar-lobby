@@ -182,6 +182,7 @@ vi.mock("@main/content/content-usage", () => ({ contentUsage: usage }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
+vi.mock("@main/config/install-defaults", () => ({ getDefaultEngineVersion: () => "2026.07.04" }));
 vi.mock("@main/services/config.service", () => ({
     configService: {
         getConfig: () => ({

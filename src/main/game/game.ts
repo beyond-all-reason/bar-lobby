@@ -9,6 +9,7 @@ import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
 import { contentAPI } from "@main/content/content-api";
+import type { ContentRef } from "@main/content/content-ref";
 import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
@@ -93,9 +94,10 @@ export class GameAPI {
 
         // Playing something is the clearest sign it is still wanted, and it is the one thing every
         // launch path has in common.
-        void contentAPI.markUsed([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
+        const content: ContentRef[] = [{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])];
+        void contentAPI.markUsed(content);
         // Also the last word on whether everything is there: content that cannot be acquired is refused here.
-        await this.fetchMissingContent(engineVersion, gameVersion, mapSpringName);
+        await this.fetchMissingContent(content);
 
         applyDefaultSpringsettings();
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
@@ -170,8 +172,8 @@ export class GameAPI {
         return this.gameProcess !== null;
     }
 
-    protected async fetchMissingContent(engineVersion: string, gameVersion: string, mapSpringName?: string) {
-        await contentAPI.ensure([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
+    protected async fetchMissingContent(content: ContentRef[]) {
+        await contentAPI.ensure(content);
     }
 }
 

@@ -45,15 +45,12 @@ describe("GameAPI launch", () => {
         ]);
     });
 
-    it.each([
-        ["map", "content_unavailable_in_edition"],
-        ["engine", "content_bundled_with_install"],
-        ["game", "content_bundled_with_install"],
-    ] as const)("does not start the game when the %s cannot be had", async (_, refusal) => {
-        ensure.mockRejectedValue(new EditionRefusalError(refusal, "missing"));
+    // Which content is refused is up to ensure, which is mocked here, so one refusal stands for all of them.
+    it("does not start the game when content cannot be had", async () => {
+        ensure.mockRejectedValue(new EditionRefusalError("content_unavailable_in_edition", "missing"));
 
         await expect(game.launchReplay({ engineVersion: "2025.01.3", gameVersion: "Beyond All Reason test-1-abc", mapSpringName: "Quicksilver 1.2", fileName: "a.sdfz" } as Replay)).rejects.toThrow(
-            refusal
+            "content_unavailable_in_edition"
         );
 
         expect(spawn).not.toHaveBeenCalled();

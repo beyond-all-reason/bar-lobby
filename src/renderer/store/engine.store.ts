@@ -6,7 +6,6 @@ import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 import { isEditionRefusal } from "@shared/edition";
-import { bundledDefault } from "@shared/bundled-content";
 import { infosStore } from "@renderer/store/infos.store";
 import { computed, reactive } from "vue";
 
@@ -24,7 +23,10 @@ export const installedEngineVersions = computed(() => enginesStore.availableEngi
 
 // The default is a version picked to work with the default game version rather than the newest one
 // published, so it stays the preferred choice whenever it is installed.
-export const defaultEngineInstalled = computed(() => enginesStore.availableEngineVersions.some((e) => e.id === configStore.defaultEngineVersion && e.installed));
+// The install's own default wins over the remote config's, which may name an engine the install doesn't have.
+export const defaultEngineVersion = computed(() => infosStore.installDefaults?.engine ?? configStore.defaultEngineVersion);
+
+export const defaultEngineInstalled = computed(() => enginesStore.availableEngineVersions.some((e) => e.id === defaultEngineVersion.value && e.installed));
 
 let requestedEngineVersion: string | undefined;
 
@@ -33,10 +35,9 @@ function reselectEngineVersion() {
 
     enginesStore.selectedEngineVersion =
         installed(requestedEngineVersion) ??
-        installed(bundledDefault(infosStore.bundledContent, "engine")) ??
-        installed(configStore.defaultEngineVersion) ??
+        installed(defaultEngineVersion.value) ??
         installedEngineVersions.value.at(-1) ??
-        enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
+        enginesStore.availableEngineVersions.find((e) => e.id === defaultEngineVersion.value);
 }
 
 export function selectEngineVersion(version?: EngineVersion) {
@@ -74,7 +75,7 @@ export async function initEnginesStore() {
 
     await refreshEnginesStore();
     if (!defaultEngineInstalled.value) {
-        console.warn(`Default engine version ${configStore.defaultEngineVersion} is not installed — engine download required.`);
+        console.warn(`Default engine version ${defaultEngineVersion.value} is not installed — engine download required.`);
     }
 
     enginesStore.isInitialized = true;

@@ -9,7 +9,6 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 import { isEditionRefusal } from "@shared/edition";
-import { bundledDefault } from "@shared/bundled-content";
 import { infosStore } from "@renderer/store/infos.store";
 import { reactive, watch } from "vue";
 
@@ -39,9 +38,10 @@ async function refreshStore() {
         gameStore.selectedGameVersion = version;
     }
 
-    const bundled = bundledDefault(infosStore.bundledContent, "game");
-    if (bundled && gameStore.availableGameVersions.has(bundled)) {
-        gameStore.selectedGameVersion = gameStore.availableGameVersions.get(bundled);
+    // The install's own default game wins over the last one listed.
+    const installDefault = infosStore.installDefaults?.game;
+    if (installDefault && gameStore.availableGameVersions.has(installDefault)) {
+        gameStore.selectedGameVersion = gameStore.availableGameVersions.get(installDefault);
     }
 }
 
