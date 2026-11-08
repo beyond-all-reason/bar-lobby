@@ -8,6 +8,7 @@ import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { loadSingleplayerContent } from "../../../src/main/content/singleplayer/singleplayer-loader";
+import type { SingleplayerContent } from "../../../src/shared/content/singleplayer";
 import { missingMaps, readBundle, unbundledItems } from "../../../tools/validate-content";
 
 const repo = path.resolve(__dirname, "../../..");
@@ -148,8 +149,25 @@ describe("exported content schemas", () => {
 });
 
 describe("validate-content --bundle", () => {
-    const loadSample = () => loadSingleplayerContent([{ source: "official", rootId: "official", path: sample }]);
+    // The sample has no mission archives, so each item is given one, as shipped content has.
+    const withArchives = (content: SingleplayerContent): SingleplayerContent => {
+        const archived = <T extends { kind: string; id: string; path: string }>(item: T) => ({ ...item, archivePath: path.join(item.path, "games", `bar-${item.kind}-${item.id}.sdz`) });
+
+        return { ...content, campaigns: content.campaigns.map(archived), scenarios: content.scenarios.map(archived), tutorials: content.tutorials.map(archived) };
+    };
+    const loadSample = async () => withArchives(await loadSingleplayerContent([{ source: "official", rootId: "official", path: sample }]));
     const BUNDLED = { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28000-aaaaaaa" };
+
+    it("fails an item without a mission archive, naming the archive it expects", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+        const [campaign] = content.campaigns;
+
+        expect(unbundledItems({ ...content, campaigns: [{ ...campaign, archivePath: undefined }], scenarios: [{ ...scenario, archivePath: undefined }], tutorials: [] }, BUNDLED)).toEqual([
+            `campaign sample-campaign (${campaign.path}) has no mission archive, so it can't be launched. Expected games/bar-campaign-sample-campaign.sdz`,
+            `scenario sample-scenario (${scenario.path}) has no mission archive, so it can't be launched. Expected games/bar-scenario-sample-scenario.sdz`,
+        ]);
+    });
 
     describe("reading the assets folder", () => {
         let assets: string;

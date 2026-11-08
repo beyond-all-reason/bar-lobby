@@ -10,7 +10,8 @@
 //
 // --bundle names an install's assets folder. Its engine/default.txt and games/default.txt name the one engine
 // and game the install ships, read as the client reads them. Each item's compatibility must accept that pair,
-// and its archive's modinfo.lua must depend on that game. Unlike the client, a missing or empty file is an
+// it must have a mission archive, and the archive's modinfo.lua must depend on that game. Unlike the client, a
+// missing or empty file is an
 // error here, so CI cannot pass by checking against nothing. Each scenario's, tutorial's and campaign mission's
 // map must be in the folder's maps/ or in the item's own maps/, and for a campaign mission may also be in its
 // campaign's shared/maps/.
@@ -26,6 +27,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { readContentMaps } from "../src/main/content/singleplayer/content-maps";
+import { ARCHIVE_FOLDER, archiveName } from "../src/main/content/singleplayer/mission-archive";
 import { Problems } from "../src/main/content/singleplayer/problems";
 import { loadSingleplayerContent } from "../src/main/content/singleplayer/singleplayer-loader";
 import { describeCompatibility, EngineGamePair, isCompatible } from "../src/shared/content/compatibility";
@@ -51,7 +53,7 @@ export async function readBundle(assetsPath: string): Promise<{ pair: EngineGame
     return { errors: [engine, game].flatMap((result) => ("error" in result ? [result.error] : [])) };
 }
 
-// Every item that can't run on the bundled pair, with the reason.
+// Every item that can't run on the bundled pair, or can't be launched at all for want of its archive, with the reason.
 export function unbundledItems(content: SingleplayerContent, { engineVersion, gameVersion }: EngineGamePair): string[] {
     const items = [...content.campaigns, ...content.scenarios, ...content.tutorials];
 
@@ -63,6 +65,9 @@ export function unbundledItems(content: SingleplayerContent, { engineVersion, ga
         const failures: string[] = [];
         if (!isCompatible(item.compatibility, [{ engineVersion, gameVersions: [gameVersion] }])) {
             failures.push(`${name} doesn't run on the bundled engine ${engineVersion} with game ${gameVersion}. It accepts: ${describeCompatibility(item.compatibility)}`);
+        }
+        if (!item.archivePath) {
+            failures.push(`${name} has no mission archive, so it can't be launched. Expected ${ARCHIVE_FOLDER}/${archiveName(item.kind, item.id)}.sdz`);
         }
         if (item.archiveDepend && !item.archiveDepend.includes(gameVersion)) {
             failures.push(`${name} has an archive whose modinfo.lua depend doesn't name the bundled game ${gameVersion}`);

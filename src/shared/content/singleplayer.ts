@@ -36,6 +36,9 @@ export type ContentProblem = { path: string; severity: "error" | "warning"; mess
 // behind it goes to main's log. Nothing it reads can refuse a load, so the only code is for anything unexpected.
 export type SingleplayerLoadFailure = "load_failed";
 
+// Why main didn't launch a mission, as a code the renderer words.
+export type SingleplayerLaunchFailure = "unknown_item" | "no_archive" | "no_engine_and_game" | "map_unavailable" | "launch_failed";
+
 export type MissionConfigs = {
     default: MissionConfig;
     // Keyed by number of human players, as in the manifest.

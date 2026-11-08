@@ -178,6 +178,10 @@ export async function readMissionFolder(folder: string, options: MissionFolderOp
     const numPlayers: MissionConfigs["numPlayers"] = {};
     for (const [players, file] of Object.entries(manifest.config.numPlayers ?? {})) {
         const config = await readMissionConfig(folder, file, languageTables, problems, manifestPath);
+        // The start script puts each player on the next team in playerTeam.
+        if (config && config.playerTeam.length < Number(players)) {
+            problems.error(manifestPath, `config.numPlayers "${players}" names ${file}, whose playerTeam has only ${config.playerTeam.length} of the ${players} teams it needs`);
+        }
         if (config) {
             numPlayers[players] = config;
         }

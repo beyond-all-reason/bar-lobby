@@ -18,6 +18,9 @@ export const singleplayerApi = {
     setDifficulty: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, difficulty: Difficulty) =>
         ipcCall("singleplayer:setDifficulty", () => window.singleplayer.setDifficulty(kind, source, rootId, id, difficulty)),
     deleteAllSaves: () => ipcCall("singleplayer:deleteAllSaves", () => window.singleplayer.deleteAllSaves()),
+    // A campaign mission names its mission; a scenario or tutorial is one mission.
+    launch: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, missionId: string | undefined, playerName: string) =>
+        ipcCall("singleplayer:launch", () => window.singleplayer.launch(kind, source, rootId, id, missionId, playerName)),
     // Every change to a save, including ones main made itself. Gives the function that unsubscribes.
     onSaveChanged: (handler: (change: SaveChange) => void) => window.singleplayer.onSaveChanged(handler),
     deleteSave: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ipcCall("singleplayer:deleteSave", () => window.singleplayer.deleteSave(kind, source, rootId, id)),

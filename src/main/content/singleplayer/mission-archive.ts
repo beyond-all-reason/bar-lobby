@@ -32,6 +32,13 @@ export function archiveName(kind: SingleplayerKind, id: string) {
     return `bar-${kind}-${id}`;
 }
 
+export const KIND_FOLDERS = { campaign: "campaigns", scenario: "scenarios", tutorial: "tutorials" } as const;
+
+// Where a mission's Lua is inside its archive, mirroring the content folder. The Mission API is given it as entryPoint.
+export function missionLuaPath(kind: SingleplayerKind, id: string, missionId?: string) {
+    return kind === "campaign" ? `${KIND_FOLDERS.campaign}/${id}/${missionId}/mission.lua` : `${KIND_FOLDERS[kind]}/${id}/mission.lua`;
+}
+
 export function archivePathOf(folder: string, kind: SingleplayerKind, id: string) {
     return path.join(folder, ARCHIVE_FOLDER, `${archiveName(kind, id)}.sdz`);
 }
@@ -120,10 +127,9 @@ export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, c
     } catch {
         stats = undefined;
     }
+    // An item without one still loads, but can't be launched: the client marks it unplayable and
+    // validate-content --bundle refuses it.
     if (!stats?.isFile()) {
-        // TODO(mission launch): once missions launch, a missing archive must become a warning, such as
-        // `${kind} "${id}" has no ${ARCHIVE_FOLDER}/${archiveName(kind, id)}.sdz, so it cannot be launched`. Give the
-        // test fixtures archives at the same time. It is optional only while nothing launches.
         return undefined;
     }
 

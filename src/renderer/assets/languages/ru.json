@@ -3825,6 +3825,13 @@
                 "contentLoadFailures": {
                     "loadFailed": null
                 },
+                "launchFailures": {
+                    "unknownItem": null,
+                    "noArchive": null,
+                    "noEngineAndGame": null,
+                    "mapUnavailable": null,
+                    "launchFailed": null
+                },
                 "savesLoadFailures": {
                     "loadFailed": null
                 }
@@ -4201,6 +4208,8 @@
                 "tutorials": null,
                 "credits": null,
                 "completed": null,
+                "play": null,
+                "launching": null,
                 "pass": null,
                 "fail": null,
                 "showCredits": null,
@@ -4226,6 +4235,7 @@
                 "unplayable": {
                     "map": null,
                     "compatibility": null,
+                    "noArchive": null,
                     "startMissions": null
                 },
                 "empty": null,

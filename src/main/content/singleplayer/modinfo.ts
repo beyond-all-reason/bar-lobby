@@ -96,7 +96,9 @@ export function readModInfo(lua: Buffer): ModInfoResult {
     return readTable(statement.arguments[0]);
 }
 
-// The game name the engine gives the archive, and so the one a start script names it by.
+// The game name the engine gives the archive, and so the one a start script names it by. As RecoilEngine's
+// ArchiveData constructor (ArchiveScanner.cpp) builds it: the version is left off when the name already
+// contains it anywhere, and a start script's gametype must match the result exactly.
 export function archiveGameName({ name, version }: ModInfo) {
-    return `${name} ${version}`;
+    return version && !name.includes(version) ? `${name} ${version}` : name;
 }

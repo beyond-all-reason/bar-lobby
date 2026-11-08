@@ -11,12 +11,10 @@ import { IndexManifest } from "../../../shared/content/schema/index-manifest";
 import type { ContentProblem, ContentRoot, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "../../../shared/content/singleplayer";
 import { readCampaignFolder } from "./campaign-folder";
 import { caseCollisions, isFile, listFolders, readContentJson } from "./files";
-import { checkMissionArchive } from "./mission-archive";
+import { checkMissionArchive, KIND_FOLDERS, missionLuaPath } from "./mission-archive";
 import { readContentMaps } from "./content-maps";
 import { MANIFEST_FILE, readMissionFolder } from "./mission-folder";
 import { Problems } from "./problems";
-
-export const KIND_FOLDERS = { campaign: "campaigns", scenario: "scenarios", tutorial: "tutorials" } as const;
 
 export type LoadOptions = {
     // Load content whose compatibility is "dev", as the client does in dev mode. Otherwise it is an error.
@@ -60,7 +58,7 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", d
         if (!mission || !compatibility || !difficulties || !defaultDifficulty) {
             continue;
         }
-        const archive = await checkMissionArchive({ folder, kind, id: name, missionLuaPaths: [`${KIND_FOLDERS[kind]}/${name}/mission.lua`], compatibility }, problems);
+        const archive = await checkMissionArchive({ folder, kind, id: name, missionLuaPaths: [missionLuaPath(kind, name)], compatibility }, problems);
         const maps = await readContentMaps(folder, problems);
         if (!problems.hasErrors) {
             items.push({ ...mission, maps: [...maps.keys()], kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty, ...archive });

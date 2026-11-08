@@ -70,6 +70,7 @@ graph: content does not say which missions are alternatives to each other.
                         :background-image-url="mission.backgroundImageUrl"
                         :status="missionStatus(campaign.config, state, mission.id)"
                         :unplayable="singleplayerLogic.missionUnplayable(campaign, mission)"
+                        :launch="() => singleplayerLogic.launch('campaign', campaign!, mission.id)"
                         @pass="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'victory')"
                         @fail="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'failure')"
                     />

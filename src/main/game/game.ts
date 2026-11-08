@@ -26,6 +26,17 @@ export interface ScriptLaunchSettings {
     script: string;
 }
 
+export interface MissionLaunchSettings {
+    engineVersion: string;
+    // The base game under the mission's archive, which the start script names as its gametype.
+    gameVersion: string;
+    // Left out when the mission ships its map, which isn't content to check or fetch.
+    mapSpringName?: string;
+    script: string;
+    // Read by the engine after the assets: the mission archive's folder and the folders with the maps it ships.
+    dataDirs: string[];
+}
+
 export interface MultiplayerLaunchSettings {
     engineVersion: string;
     gameVersion: string;
@@ -77,6 +88,12 @@ export class GameAPI {
         });
     }
 
+    public async launchMission({ engineVersion, gameVersion, mapSpringName, script, dataDirs }: MissionLaunchSettings) {
+        const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
+        await fs.promises.writeFile(scriptPath, script);
+        await this.launch({ engineVersion, gameVersion, mapSpringName, launchArg: scriptPath, dataDirs });
+    }
+
     public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
         return this.launch({
             engineVersion,
@@ -85,7 +102,19 @@ export class GameAPI {
         });
     }
 
-    public async launch({ engineVersion, gameVersion, mapSpringName, launchArg }: { engineVersion?: string; gameVersion?: string; mapSpringName?: string; launchArg?: string }): Promise<void> {
+    public async launch({
+        engineVersion,
+        gameVersion,
+        mapSpringName,
+        launchArg,
+        dataDirs = [],
+    }: {
+        engineVersion?: string;
+        gameVersion?: string;
+        mapSpringName?: string;
+        launchArg?: string;
+        dataDirs?: string[];
+    }): Promise<void> {
         if (!engineVersion || !gameVersion || !launchArg) {
             throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
         }
@@ -115,7 +144,8 @@ export class GameAPI {
                     detached: true,
                     env: {
                         ...process.env,
-                        SPRING_DATADIR: getAssetsPath(), // Engine will read from both the assets and write dir
+                        // The engine reads the assets, these, and the write dir, which --write-dir names.
+                        SPRING_DATADIR: [getAssetsPath(), ...dataDirs].join(path.delimiter),
                     },
                 });
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");

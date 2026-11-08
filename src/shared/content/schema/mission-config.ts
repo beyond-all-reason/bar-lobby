@@ -19,7 +19,7 @@ const byName = <T extends TSchema>(value: T, options: { title: string; descripti
 
 // An enum rather than a union of literals, so a wrong value is one error naming them all instead of one per value.
 const START_POS_TYPES = ["fixed", "random", "in-game", "in-client"] as const;
-type StartPosType = (typeof START_POS_TYPES)[number];
+export type StartPosType = (typeof START_POS_TYPES)[number];
 
 const startRectEdge = (title: string) => Type.Number({ minimum: 0, maximum: 1, title, description: "Edge of the start box, as a fraction of the map size from 0 to 1." });
 

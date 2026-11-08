@@ -10,6 +10,7 @@ import { editionLogic } from "@renderer/logic/edition";
 import { installedEngineVersions } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { infosStore } from "@renderer/store/infos.store";
+import { me } from "@renderer/store/me.store";
 import { singleplayerStore, singleplayerActions } from "@renderer/store/singleplayer.store";
 import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
 import { chosenDifficulty, ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
@@ -22,6 +23,7 @@ import type {
     SingleplayerCampaign,
     SingleplayerItemRef,
     SingleplayerKind,
+    SingleplayerLaunchFailure,
     SingleplayerLoadFailure,
     SingleplayerMission,
     SingleplayerScenario,
@@ -72,6 +74,15 @@ const saveFailureKeys: Record<SaveFailure, TranslationKey> = {
     invalid_difficulty: "lobby.logic.singleplayer.saveFailures.invalidDifficulty",
     unknown_item: "lobby.logic.singleplayer.saveFailures.unknownItem",
     save_failed: "lobby.logic.singleplayer.saveFailures.saveFailed",
+};
+
+// Keyed on every reason main can give for not launching, so a new one does not compile until it has wording.
+const launchFailureKeys: Record<SingleplayerLaunchFailure, TranslationKey> = {
+    unknown_item: "lobby.logic.singleplayer.launchFailures.unknownItem",
+    no_archive: "lobby.logic.singleplayer.launchFailures.noArchive",
+    no_engine_and_game: "lobby.logic.singleplayer.launchFailures.noEngineAndGame",
+    map_unavailable: "lobby.logic.singleplayer.launchFailures.mapUnavailable",
+    launch_failed: "lobby.logic.singleplayer.launchFailures.launchFailed",
 };
 
 // The data main gave, or the reason it gave for failing if it is one of `reasons`. Any other reason, or a call
@@ -322,9 +333,9 @@ async function deleteAllSaves(): Promise<TranslationKey | undefined> {
 }
 
 // Why an item can't be played on this install: a map that is neither installed nor shipped with it, an engine
-// and game pair the install lacks, or, for a campaign, no start mission that can be played. These views are
-// dev-only, so such an item is dimmed with the reason rather than hidden.
-export type UnplayableReason = { map: string } | { compatibility: string } | { startMissions: true };
+// and game pair the install lacks, no mission archive to launch, or, for a campaign, no start mission that can be
+// played. These views are dev-only, so such an item is dimmed with the reason rather than hidden.
+export type UnplayableReason = { map: string } | { compatibility: string } | { noArchive: true } | { startMissions: true };
 
 // The engine and game pairs this install can play, or undefined where it can download any engine and game.
 function availablePairs(): Compatibility | undefined {
@@ -349,23 +360,29 @@ function pairReason(compatibility: DeepReadonly<ItemCompatibility>): UnplayableR
     return { compatibility: describeCompatibility(compatibility) };
 }
 
+// The archive holds the mission's Lua, so there is nothing to launch without it. A campaign has one for all
+// its missions.
+function archiveReason(item: DeepReadonly<{ archivePath?: string }>): UnplayableReason | undefined {
+    return item.archivePath ? undefined : { noArchive: true };
+}
+
 // The maps an item ships are its own: they never join the installed maps, and only it can use them.
 function mapReason(mapName: string, shipped: readonly string[]): UnplayableReason | undefined {
     return !shipped.includes(mapName) && editionLogic.isUnavailable({ type: "map", id: mapName }) ? { map: mapName } : undefined;
 }
 
 function itemUnplayable(item: DeepReadonly<SingleplayerScenario>): UnplayableReason | undefined {
-    return pairReason(item.compatibility) ?? mapReason(item.manifest.mapName, item.maps);
+    return pairReason(item.compatibility) ?? archiveReason(item) ?? mapReason(item.manifest.mapName, item.maps);
 }
 
 function missionUnplayable(campaign: DeepReadonly<SingleplayerCampaign>, mission: DeepReadonly<SingleplayerMission>): UnplayableReason | undefined {
-    return pairReason(campaign.compatibility) ?? mapReason(mission.manifest.mapName, [...mission.maps, ...campaign.sharedMaps]);
+    return pairReason(campaign.compatibility) ?? archiveReason(campaign) ?? mapReason(mission.manifest.mapName, [...mission.maps, ...campaign.sharedMaps]);
 }
 
 function campaignUnplayable(campaign: DeepReadonly<SingleplayerCampaign>): UnplayableReason | undefined {
-    const pair = pairReason(campaign.compatibility);
-    if (pair) {
-        return pair;
+    const whole = pairReason(campaign.compatibility) ?? archiveReason(campaign);
+    if (whole) {
+        return whole;
     }
     const starts = campaign.missions.filter((mission) => campaign.config.startMission.includes(mission.id));
 
@@ -380,6 +397,9 @@ function unplayableText(reason: UnplayableReason): { key: TranslationKey; params
     if ("compatibility" in reason) {
         return { key: "lobby.singleplayer.content.unplayable.compatibility", params: { compatibility: reason.compatibility } };
     }
+    if ("noArchive" in reason) {
+        return { key: "lobby.singleplayer.content.unplayable.noArchive", params: {} };
+    }
 
     return { key: "lobby.singleplayer.content.unplayable.startMissions", params: {} };
 }
@@ -392,14 +412,17 @@ function unplayableLog(reason: UnplayableReason): string {
     if ("compatibility" in reason) {
         return `needs ${reason.compatibility}, which this install does not have`;
     }
+    if ("noArchive" in reason) {
+        return "has no mission archive";
+    }
 
     return "has no start mission that can be played";
 }
 
 const english = (key: string, tables: readonly LanguageTables[]) => resolveContentText(key, FALLBACK_LOCALE, tables);
 
-// One line for each item that can't be played. A campaign that can't be played for its engine and game is
-// one line, rather than one for each of its missions. Nothing can be judged before the edition is known: the
+// One line for each item that can't be played. A campaign that can't be played for its engine and game, or for
+// want of its archive, is one line, rather than one for each of its missions. Nothing can be judged before the edition is known: the
 // watcher starts alongside the info's own load.
 const unplayableLines = computed(() => {
     const content = singleplayerStore.content;
@@ -413,7 +436,7 @@ const unplayableLines = computed(() => {
         if (reason) {
             lines.push(`Campaign unavailable: ${campaign.id} "${title}" ${unplayableLog(reason)}`);
         }
-        if (reason && "compatibility" in reason) {
+        if (reason && ("compatibility" in reason || "noArchive" in reason)) {
             continue;
         }
         for (const mission of campaign.missions) {
@@ -455,6 +478,14 @@ function logUnplayable() {
     );
 }
 
+// Starts a mission, or says why main didn't. Main checks again what the views only showed. No result is read
+// back after the game yet, so Pass and Fail still record one.
+async function launch(kind: SingleplayerKind, item: SingleplayerItemRef, missionId?: string): Promise<TranslationKey | undefined> {
+    const launched = await fromMain(() => singleplayerApi.launch(kind, item, missionId, me.username), launchFailureKeys, "launch_failed");
+
+    return "reason" in launched ? launchFailureKeys[launched.reason] : undefined;
+}
+
 export const singleplayerLogic = {
     loadContent,
     loadErrorOf,
@@ -485,4 +516,5 @@ export const singleplayerLogic = {
     missionUnplayable,
     campaignUnplayable,
     unplayableText,
+    launch,
 };

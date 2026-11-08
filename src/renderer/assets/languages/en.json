@@ -1851,6 +1851,13 @@
                 "contentLoadFailures": {
                     "loadFailed": "Singleplayer content couldn't be loaded. The log has the details."
                 },
+                "launchFailures": {
+                    "unknownItem": "This content could not be found, so it wasn't launched.",
+                    "noArchive": "This content has no mission archive, so it can't be launched.",
+                    "noEngineAndGame": "This install has no engine and game this content can run on.",
+                    "mapUnavailable": "This content's map is not installed.",
+                    "launchFailed": "The mission couldn't be launched. The log has the details."
+                },
                 "savesLoadFailures": {
                     "loadFailed": "Your saved progress couldn't be loaded. The log has the details."
                 }
@@ -2227,6 +2234,8 @@
                 "tutorials": "Tutorials",
                 "credits": "Credits",
                 "completed": "Completed",
+                "play": "Play",
+                "launching": "Launching...",
                 "pass": "Pass",
                 "fail": "Fail",
                 "showCredits": "Show credits",
@@ -2252,6 +2261,7 @@
                 "unplayable": {
                     "map": "Unavailable: needs map \"{map}\", which is not installed.",
                     "compatibility": "Unavailable: needs {compatibility}, which this install does not have.",
+                    "noArchive": "Unavailable: has no mission archive.",
                     "startMissions": "Unavailable: none of its start missions can be played."
                 },
                 "empty": "No content found.",

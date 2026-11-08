@@ -4,6 +4,11 @@
 
 import path from "node:path";
 import { getContentRoots, SAVES_PATH } from "@main/config/app";
+import { getDefaultEngineVersion, getInstallDefaults } from "@main/config/install-defaults";
+import { contentAPI } from "@main/content/content-api";
+import { InstallState, LaunchFailureError, LaunchTarget, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
+import { missionStartScript } from "@main/content/singleplayer/mission-script";
+import { gameAPI } from "@main/game/game";
 import * as saves from "@main/content/singleplayer/saves";
 import { SaveFailureError } from "@main/content/singleplayer/saves";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
@@ -14,7 +19,17 @@ import { applyResult } from "@shared/content/campaign-progress";
 import type { ReportedResult, SaveChange, SaveFailure, SingleplayerSaves } from "@shared/content/save";
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { WebContents } from "electron";
-import { ContentProblem, ContentRoot, ContentSource, isSameItem, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerLoadFailure } from "@shared/content/singleplayer";
+import {
+    ContentProblem,
+    ContentRoot,
+    ContentSource,
+    isSameItem,
+    SingleplayerContent,
+    SingleplayerItemRef,
+    SingleplayerKind,
+    SingleplayerLaunchFailure,
+    SingleplayerLoadFailure,
+} from "@shared/content/singleplayer";
 
 const log = logger("singleplayer.service.ts");
 
@@ -148,6 +163,43 @@ async function deleteAllSaves() {
     await saves.deleteAllSaves(SAVES_PATH, (item) => onSaveChanged.dispatch({ item, save: undefined }));
 }
 
+function installState(): InstallState {
+    return {
+        isPresent: (ref) => contentAPI.isPresent(ref),
+        canAcquire: (ref) => contentAPI.canAcquire(ref),
+        installedEngines: contentAPI.installed("engine").map((ref) => ref.id),
+        installedGames: contentAPI.installed("game").map((ref) => ref.id),
+        installDefaults: getInstallDefaults(),
+        defaultEngine: getDefaultEngineVersion(),
+    };
+}
+
+// Launches the item as main last scanned it, checking again what the renderer only showed: no result is read back
+// yet, so Pass and Fail still record one.
+async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionId: string | undefined, playerName: string) {
+    if (!(KINDS as readonly string[]).includes(kind)) {
+        throw new LaunchFailureError("unknown_item", `Unknown singleplayer kind ${JSON.stringify(kind)}`);
+    }
+    const item = await get(`${kind}s`, ref);
+    let target: LaunchTarget | undefined;
+    if (item?.kind === "campaign") {
+        const mission = item.missions.find((mission) => mission.id === missionId);
+        target = mission && { item: mission, campaign: item };
+    } else if (item) {
+        target = { item };
+    }
+    if (!target) {
+        throw new LaunchFailureError("unknown_item", `No ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} in ${ref.source}/${ref.rootId}`);
+    }
+
+    const plan = planMissionLaunch(target, installState());
+    const script = await missionStartScript({ archiveName: plan.archiveName, mapName: plan.mapName, config: plan.config, entryPoint: plan.entryPoint, playerName });
+    log.info(
+        `Launching ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} as ${plan.archiveName} on engine ${plan.engineVersion} with ${plan.gameVersion}, data directories ${plan.dataDirs.join(", ")}`
+    );
+    await gameAPI.launchMission({ engineVersion: plan.engineVersion, gameVersion: plan.gameVersion, mapSpringName: plan.mapToEnsure, script, dataDirs: plan.dataDirs });
+}
+
 // A call over IPC gives the renderer the reason it failed as a code to word, since a thrown error would reach
 // it as its message alone. What is behind the code goes to the log.
 async function overIpc<T>(action: () => Promise<T>, reasonOf: (err: unknown) => string): Promise<IpcResult<T>> {
@@ -164,6 +216,7 @@ async function overIpc<T>(action: () => Promise<T>, reasonOf: (err: unknown) => 
 
 const saveFailureOf = (err: unknown): SaveFailure => (err instanceof SaveFailureError ? err.reason : "save_failed");
 const loadFailureOf = (): SingleplayerLoadFailure => "load_failed";
+const launchFailureOf = (err: unknown): SingleplayerLaunchFailure => (err instanceof LaunchFailureError ? err.reason : "launch_failed");
 
 // The start-script game name and depend are for launching and validating, which main does, so the renderer doesn't get them.
 function forRenderer(content: SingleplayerContent): SingleplayerContent {
@@ -183,6 +236,9 @@ function registerIpcHandlers(webContents: WebContents) {
     );
     ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => overIpc(() => deleteSave(kind, { source, rootId, id }), saveFailureOf));
     ipcMain.handle("singleplayer:deleteAllSaves", () => overIpc(deleteAllSaves, saveFailureOf));
+    ipcMain.handle("singleplayer:launch", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string) =>
+        overIpc(() => launch(kind, { source, rootId, id }, missionId, playerName), launchFailureOf)
+    );
 
     onSaveChanged.add((change) => webContents.send("singleplayer:saveChanged", change));
 }

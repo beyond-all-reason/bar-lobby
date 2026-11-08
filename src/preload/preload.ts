@@ -216,6 +216,8 @@ const singleplayerApi = {
         ipcRenderer.invoke("singleplayer:setDifficulty", kind, source, rootId, id, difficulty),
     deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
     deleteAllSaves: (): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
+    launch: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string): Promise<IpcResult> =>
+        ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName),
     // Every change to a save, including ones main made itself.
     onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
 };

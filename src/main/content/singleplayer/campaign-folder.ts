@@ -8,16 +8,25 @@ import { CampaignConfig } from "../../../shared/content/schema/campaign-config";
 import { Credits } from "../../../shared/content/schema/credits";
 import type { ContentRoot, SingleplayerCampaign, SingleplayerMission } from "../../../shared/content/singleplayer";
 import { caseCollisions, fileInside, listFolders, readContentJson } from "./files";
-import { readContentMaps, warnDuplicateCampaignMaps } from "./content-maps";
-import { ARCHIVE_FOLDER, checkMissionArchive } from "./mission-archive";
+import { MAPS_FOLDER, readContentMaps, warnDuplicateCampaignMaps } from "./content-maps";
+import { ARCHIVE_FOLDER, checkMissionArchive, missionLuaPath } from "./mission-archive";
 import { checkCompatibility, checkDefaultDifficulty, checkTextKey, readLanguageFolder, readMissionFolder } from "./mission-folder";
 import type { Problems } from "./problems";
 
 export const CAMPAIGN_CONFIG_FILE = "campaignConfig.json";
 export const CREDITS_FILE = "credits.json";
 export const SHARED_FOLDER = "shared";
-// Folders in a campaign folder that aren't missions.
-const RESERVED_FOLDERS = [SHARED_FOLDER, ARCHIVE_FOLDER];
+// The engine reads archives from packages/ in each data directory, as it does games/ and maps/.
+const PACKAGES_FOLDER = "packages";
+// Folders in a campaign folder that aren't missions, with why.
+const RESERVED_FOLDERS: Record<string, string> = {
+    [SHARED_FOLDER]: "which is the campaign's shared folder",
+    [ARCHIVE_FOLDER]: "which holds the campaign's mission archive",
+    // The campaign's folder is a data directory at launch, so the engine would read these as its own.
+    [MAPS_FOLDER]: "which the engine reads maps from",
+    [PACKAGES_FOLDER]: "which the engine reads packages from",
+};
+const isReserved = (name: string) => Object.hasOwn(RESERVED_FOLDERS, name);
 
 // Every mission id the config names outside `missions` itself, with where it was named.
 function missionReferences(config: CampaignConfig): { id: string; where: string }[] {
@@ -96,11 +105,8 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     if (config.campaignId !== id) {
         problems.error(configPath, `campaignId "${config.campaignId}" does not match its folder name "${id}"`);
     }
-    if (Object.hasOwn(config.missions, SHARED_FOLDER)) {
-        problems.error(configPath, `A mission may not be named "${SHARED_FOLDER}", which is the campaign's shared folder`);
-    }
-    if (Object.hasOwn(config.missions, ARCHIVE_FOLDER)) {
-        problems.error(configPath, `A mission may not be named "${ARCHIVE_FOLDER}", which holds the campaign's mission archive`);
+    for (const [name, why] of Object.entries(RESERVED_FOLDERS).filter(([name]) => Object.hasOwn(config.missions, name))) {
+        problems.error(configPath, `A mission may not be named "${name}", ${why}`);
     }
     checkCompatibility(config.compatibility, configPath, devContent, problems);
     checkDefaultDifficulty(config.difficulties, config.defaultDifficulty, configPath, problems);
@@ -110,7 +116,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
         problems.error(configPath, `Mission "${missionId}" differs from ${others.map((other) => `"${other}"`).join(", ")} only in case`);
     }
 
-    const folders = new Set((await listFolders(folder, problems)).filter((name) => !RESERVED_FOLDERS.includes(name)));
+    const folders = new Set((await listFolders(folder, problems)).filter((name) => !isReserved(name)));
     for (const name of [...folders].filter((name) => !Object.hasOwn(config.missions, name))) {
         problems.warning(path.join(folder, name), `Folder "${name}" is not a mission in ${CAMPAIGN_CONFIG_FILE}, so it is ignored`);
     }
@@ -122,7 +128,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
 
     const missions: SingleplayerMission[] = [];
     const missionMaps: Map<string, string>[] = [];
-    for (const missionId of Object.keys(config.missions).filter((missionId) => !RESERVED_FOLDERS.includes(missionId) && !collisions.has(missionId))) {
+    for (const missionId of Object.keys(config.missions).filter((missionId) => !isReserved(missionId) && !collisions.has(missionId))) {
         if (!folders.has(missionId)) {
             problems.error(configPath, `Mission "${missionId}" has no folder`);
             continue;
@@ -150,7 +156,7 @@ export async function readCampaignFolder(root: ContentRoot, folder: string, devC
     const backgroundImageUrl = await mediaUrl(sharedFolder, config.backgroundImage, problems, configPath, "backgroundImage");
     const logoUrl = await mediaUrl(sharedFolder, config.logo, problems, configPath, "logo");
     const archive = await checkMissionArchive(
-        { folder, kind: "campaign", id, missionLuaPaths: missions.map((mission) => `campaigns/${id}/${mission.id}/mission.lua`), compatibility: config.compatibility },
+        { folder, kind: "campaign", id, missionLuaPaths: missions.map((mission) => missionLuaPath("campaign", id, mission.id)), compatibility: config.compatibility },
         problems
     );
 
