@@ -1,0 +1,27 @@
+{
+    "alliances": {
+        "players": ["player"],
+        "enemies": ["enemy"]
+    },
+    "playerTeam": ["player"],
+    "startPosType": "in-client",
+    "teamSettings": {
+        "player": {
+            "side": "Armada",
+            "startPosX": 5648,
+            "startPosZ": 5175,
+            "rgbColor": [0.1, 0.45, 0.9],
+            "displayNameKey": "missions.outpost-strike.teams.player"
+        },
+        "enemy": {
+            "side": "Cortex",
+            "startPosX": 2107,
+            "startPosZ": 2466,
+            "rgbColor": [0.85, 0.15, 0.1],
+            "displayNameKey": "missions.outpost-strike.teams.enemy"
+        }
+    },
+    "modOptions": {
+        "deathmode": "neverend"
+    }
+}

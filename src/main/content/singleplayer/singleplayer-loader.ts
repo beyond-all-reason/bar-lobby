@@ -11,6 +11,7 @@ import { IndexManifest } from "../../../shared/content/schema/index-manifest";
 import type { ContentProblem, ContentRoot, SingleplayerCampaign, SingleplayerContent, SingleplayerScenario } from "../../../shared/content/singleplayer";
 import { readCampaignFolder } from "./campaign-folder";
 import { caseCollisions, isFile, listFolders, readContentJson } from "./files";
+import { checkMissionArchive } from "./mission-archive";
 import { MANIFEST_FILE, readMissionFolder } from "./mission-folder";
 import { Problems } from "./problems";
 
@@ -55,8 +56,12 @@ async function readScenarios(root: ContentRoot, kind: "scenario" | "tutorial", d
         const mission = await readMissionFolder(folder, { partOfCampaign: false, devContent, languageAfter: [], mediaFolder: path.join(folder, "media") }, problems);
         // readMissionFolder only gives a scenario back without errors, and with compatibility and difficulties.
         const { compatibility, difficulties, defaultDifficulty } = mission?.manifest ?? {};
-        if (mission && compatibility && difficulties && defaultDifficulty) {
-            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty });
+        if (!mission || !compatibility || !difficulties || !defaultDifficulty) {
+            continue;
+        }
+        const archive = await checkMissionArchive({ folder, kind, id: name, missionLuaPaths: [`${KIND_FOLDERS[kind]}/${name}/mission.lua`], compatibility }, problems);
+        if (!problems.hasErrors) {
+            items.push({ ...mission, kind, source: root.source, rootId: root.rootId, compatibility, difficulties, defaultDifficulty, ...archive });
         }
     }
 

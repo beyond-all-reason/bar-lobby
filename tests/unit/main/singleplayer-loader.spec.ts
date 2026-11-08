@@ -2,9 +2,12 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
+import { path7za } from "7zip-bin";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
 import type { ContentRoot } from "@shared/content/singleplayer";
@@ -13,6 +16,8 @@ const fixtures = path.resolve(__dirname, "../../fixtures");
 const official: ContentRoot = { source: "official", rootId: "official", path: path.join(fixtures, "content") };
 const custom: ContentRoot = { source: "custom", rootId: "custom", path: path.join(fixtures, "content-custom") };
 const broken: ContentRoot = { source: "custom", rootId: "custom", path: path.join(fixtures, "content-broken") };
+// The mission API team's example scenario, with its mission archive.
+const sdz: ContentRoot = { source: "custom", rootId: "custom", path: path.join(fixtures, "content-sdz") };
 
 describe("loadSingleplayerContent", () => {
     describe("sample content", () => {
@@ -416,6 +421,156 @@ describe("loadSingleplayerContent", () => {
             const content = await loadSingleplayerContent([official], { devContent: true });
 
             expect(content.problems).toEqual([]);
+        });
+    });
+
+    describe("mission archives", () => {
+        const GAME = "Beyond All Reason test-31820-45ea098";
+        let root: ContentRoot;
+        let archive: string;
+
+        const modinfo = (fields: Record<string, string>) =>
+            `return {\n${Object.entries(fields)
+                .map(([key, value]) => `    ${key} = ${value},`)
+                .join("\n")}\n}\n`;
+        const scenarioModinfo = modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"', depend: `{ "${GAME}" }` });
+
+        // Builds an archive holding exactly these files, replacing any already there.
+        async function writeArchive(archivePath: string, files: Record<string, string>) {
+            const staging = await fs.mkdtemp(path.join(os.tmpdir(), "bar-archive-"));
+            try {
+                for (const [name, text] of Object.entries(files)) {
+                    await fs.mkdir(path.dirname(path.join(staging, name)), { recursive: true });
+                    await fs.writeFile(path.join(staging, name), text);
+                }
+                await fs.mkdir(path.dirname(archivePath), { recursive: true });
+                await fs.rm(archivePath, { force: true });
+                await promisify(execFile)(path7za, ["a", "-tzip", archivePath, "."], { cwd: staging });
+            } finally {
+                await fs.rm(staging, { recursive: true, force: true });
+            }
+        }
+
+        async function setManifest(change: Record<string, unknown>) {
+            const manifestPath = path.join(root.path, "scenarios", "outpost-strike", "manifest.json");
+            await fs.writeFile(manifestPath, JSON.stringify({ ...JSON.parse(await fs.readFile(manifestPath, "utf8")), ...change }));
+        }
+
+        beforeEach(async () => {
+            root = { source: "custom", rootId: "custom", path: await fs.mkdtemp(path.join(os.tmpdir(), "bar-content-")) };
+            await fs.cp(sdz.path, root.path, { recursive: true });
+            archive = path.join(root.path, "scenarios", "outpost-strike", "games", "bar-scenario-outpost-strike.sdz");
+        });
+
+        afterEach(async () => {
+            await fs.rm(root.path, { recursive: true, force: true });
+        });
+
+        it("loads the example scenario with its archive and start-script name", async () => {
+            const content = await loadSingleplayerContent([sdz]);
+
+            expect(content.problems).toEqual([]);
+            expect(content.scenarios.map((s) => [s.id, s.archivePath, s.archiveName])).toEqual([
+                ["outpost-strike", path.join(sdz.path, "scenarios", "outpost-strike", "games", "bar-scenario-outpost-strike.sdz"), "bar-scenario-outpost-strike 1.0"],
+            ]);
+        });
+
+        // Until missions launch, an item without an archive loads; see the TODO in mission-archive.ts.
+        it("doesn't look for the archive outside games/", async () => {
+            await fs.rename(archive, path.join(root.path, "scenarios", "outpost-strike", "bar-scenario-outpost-strike.sdz"));
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.problems).toEqual([]);
+            expect(content.scenarios.map((s) => [s.id, s.archivePath])).toEqual([["outpost-strike", undefined]]);
+        });
+
+        it("leaves out an item whose archive cannot be opened", async () => {
+            await fs.writeFile(archive, "not an archive");
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.scenarios).toEqual([]);
+            expect(content.problems).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(/^Archive could not be opened/) }]);
+        });
+
+        it.each([
+            ["modinfo.lua", { "scenarios/outpost-strike/mission.lua": "return {}" }, /no modinfo\.lua at its root/],
+            ["the mission's Lua", { "modinfo.lua": scenarioModinfo }, /no scenarios\/outpost-strike\/mission\.lua/],
+            // The engine's file system tells case apart on Linux.
+            ["the mission's Lua in the right case", { "modinfo.lua": scenarioModinfo, "scenarios/Outpost-Strike/mission.lua": "return {}" }, /no scenarios\/outpost-strike\/mission\.lua/],
+        ])("leaves out an item whose archive lacks %s", async (_, files, message) => {
+            await writeArchive(archive, files);
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.scenarios).toEqual([]);
+            expect(content.problems).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(message) }]);
+        });
+
+        it.each([
+            ["isn't a plain table", "local name = 'x'\nreturn { name = name, version = '1.0' }", /plain table of literal values/],
+            ["has no version", modinfo({ name: '"bar-scenario-outpost-strike"', depend: `{ "${GAME}" }` }), /must set version/],
+            [
+                "names another archive",
+                modinfo({ name: '"bar-scenario-other"', version: '"1.0"', depend: `{ "${GAME}" }` }),
+                /names the archive "bar-scenario-other", but its file is named for "bar-scenario-outpost-strike"/,
+            ],
+            [
+                "depends on a game not in compatibility",
+                modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"', depend: '{ "Beyond All Reason test-1-abc" }' }),
+                /depend names "Beyond All Reason test-1-abc", but none of the games in compatibility/,
+            ],
+            ["depends on nothing", modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"' }), /depend names no game/],
+        ])("leaves out an item whose modinfo.lua %s", async (_, lua, message) => {
+            await writeArchive(archive, { "modinfo.lua": lua, "scenarios/outpost-strike/mission.lua": "return {}" });
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.scenarios).toEqual([]);
+            expect(content.problems).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(message) }]);
+        });
+
+        it("doesn't check depend for content still in development", async () => {
+            await setManifest({ compatibility: "dev" });
+            await writeArchive(archive, { "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"' }), "scenarios/outpost-strike/mission.lua": "return {}" });
+
+            const content = await loadSingleplayerContent([root], { devContent: true });
+
+            expect(content.problems.filter((problem) => problem.severity === "error")).toEqual([]);
+            expect(content.scenarios.map((s) => s.archiveName)).toEqual(["bar-scenario-outpost-strike 2.0"]);
+        });
+
+        it("refuses a campaign mission named for the archive folder", async () => {
+            const campaignFolder = path.join(root.path, "campaigns", "sample-campaign");
+            await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaignFolder, { recursive: true });
+            const configPath = path.join(campaignFolder, "campaignConfig.json");
+            const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, $schema: undefined, missions: { ...config.missions, games: {} } }));
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.campaigns).toEqual([]);
+            expect(content.problems).toContainEqual({ path: configPath, severity: "error", message: 'A mission may not be named "games", which holds the campaign\'s mission archive' });
+        });
+
+        it("checks a campaign's archive for each mission's Lua", async () => {
+            const campaignFolder = path.join(root.path, "campaigns", "sample-campaign");
+            await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaignFolder, { recursive: true });
+            const campaignArchive = path.join(campaignFolder, "games", "bar-campaign-sample-campaign.sdz");
+            const missionIds = ["tutorial", "mission01", "mission02", "missionA", "missionB", "optionalMissionA", "optionalMissionB", "finalMission"];
+            const files = {
+                "modinfo.lua": modinfo({ name: '"bar-campaign-sample-campaign"', version: '"3"', depend: '{ "Beyond All Reason test-28000-aaaaaaa" }' }),
+                ...Object.fromEntries(missionIds.map((missionId) => [`campaigns/sample-campaign/${missionId}/mission.lua`, "return {}"])),
+            };
+
+            await writeArchive(campaignArchive, files);
+            expect((await loadSingleplayerContent([root])).campaigns.map((c) => [c.archivePath, c.archiveName])).toEqual([[campaignArchive, "bar-campaign-sample-campaign 3"]]);
+
+            await writeArchive(campaignArchive, Object.fromEntries(Object.entries(files).filter(([name]) => !name.includes("/mission02/"))));
+            const content = await loadSingleplayerContent([root]);
+            expect(content.campaigns).toEqual([]);
+            expect(content.problems).toEqual([{ path: campaignArchive, severity: "error", message: expect.stringMatching(/no campaigns\/sample-campaign\/mission02\/mission\.lua/) }]);
         });
     });
 });

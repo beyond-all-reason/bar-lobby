@@ -71,6 +71,9 @@ export type SingleplayerCampaign = SingleplayerItemRef &
         backgroundImageUrl?: string;
         logoUrl?: string;
         compatibility: ItemCompatibility;
+        // games/bar-campaign-<id>.sdz and its start-script game name, when the campaign has one.
+        archivePath?: string;
+        archiveName?: string;
         // In the order of the config's `missions` keys, as the content README's "Display order" describes.
         missions: SingleplayerMission[];
     };
@@ -80,6 +83,9 @@ export type SingleplayerScenario = SingleplayerItemRef &
     ItemDifficulties & {
         kind: "scenario" | "tutorial";
         compatibility: ItemCompatibility;
+        // games/bar-<kind>-<id>.sdz and its start-script game name, when the item has one.
+        archivePath?: string;
+        archiveName?: string;
     };
 
 export type SingleplayerContent = {

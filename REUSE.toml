@@ -49,3 +49,11 @@ path = ["tests/fixtures/**", "schemas/content/*.schema.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The BAR Lobby Authors"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+# The mission API team's example scenario, kept under the game's license rather than the fixtures' MIT. Only
+# the scenario manifest was changed from their files, to the current content format.
+path = ["tests/fixtures/content-sdz/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Beyond All Reason contributors"
+SPDX-License-Identifier = "GPL-2.0-or-later"
