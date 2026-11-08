@@ -2248,6 +2248,7 @@
                 "deleteUnusableSaves": "Delete unreadable saves",
                 "startOver": "Delete save and start over",
                 "back": "Back",
+                "notInEdition": "Official campaigns are not part of this edition.",
                 "empty": "No content found.",
                 "notFound": "This content could not be found.",
                 "problems": "Content problems: {count}"

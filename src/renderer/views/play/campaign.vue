@@ -9,16 +9,22 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div>
-        <h1>{{ route.meta.title }}</h1>
+    <div class="flex-col fullheight">
+        <div class="view-title">
+            <h1>{{ t("lobby.singleplayer.content.campaigns") }}</h1>
+        </div>
+        <Panel class="flex-grow">
+            <div class="scroll-container">
+                <CampaignSelect :official="true" />
+            </div>
+        </Panel>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from "vue-router";
+import Panel from "@renderer/components/common/Panel.vue";
+import CampaignSelect from "@renderer/components/singleplayer/CampaignSelect.vue";
+import { useTypedI18n } from "@renderer/i18n";
 
-const router = useRouter();
-const route = router.currentRoute.value;
+const { t } = useTypedI18n();
 </script>
-
-<style lang="scss" scoped></style>

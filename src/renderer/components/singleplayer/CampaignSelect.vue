@@ -12,6 +12,7 @@ grouped by source, so a new kind of source shows up here without changes.
 <template>
     <div class="flex-col gap-lg">
         <p v-if="loadError">{{ t(loadError) }}</p>
+        <p v-else-if="official && !infosStore.features.officialContent">{{ t("lobby.singleplayer.content.notInEdition") }}</p>
         <p v-else-if="singleplayerStore.content && groups.length === 0">{{ t("lobby.singleplayer.content.empty") }}</p>
         <div v-for="group in groups" :key="group.source" class="flex-col gap-md">
             <h2 v-if="!official">{{ group.source }}</h2>
@@ -49,6 +50,7 @@ import ContentTile from "@renderer/components/singleplayer/ContentTile.vue";
 import { useContentText } from "@renderer/composables/useContentText";
 import { useTypedI18n } from "@renderer/i18n";
 import { singleplayerLogic } from "@renderer/logic/singleplayer";
+import { infosStore } from "@renderer/store/infos.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { singleplayerStore } from "@renderer/store/singleplayer.store";
 import type { ContentSource, SingleplayerCampaign } from "@shared/content/singleplayer";

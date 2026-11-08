@@ -256,10 +256,15 @@ A result that breaks any of these limits is refused and not saved.
 
 ## Trying content in the client
 
-Point the client at a content folder from `npm start`. The variable has no effect in a packaged build, which reads custom content from the `content` folder in its state folder.
+Point the client at a content folder from `npm start`. These variables have no effect in a packaged build. There, a Steam build reads official content from the `content` folder in its assets folder, and every build reads custom content from the `content` folder in its state folder.
 
 ```sh
+# Official content needs a Steam build as well as the folder.
+BAR_EDITION=steam BAR_CONTENT_PATH=tests/fixtures/content npm start
+# Custom content works in every edition.
 BAR_CUSTOM_CONTENT_PATH=tests/fixtures/content-custom npm start
+# The mission API team's example scenario, with its mission archive.
+BAR_EDITION=steam BAR_CONTENT_PATH=tests/fixtures/content-sdz npm start
 ```
 
 Then run `await window.singleplayer.list()` in DevTools to see what loaded and any problems.
