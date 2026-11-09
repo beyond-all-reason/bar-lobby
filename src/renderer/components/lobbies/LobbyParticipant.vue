@@ -36,7 +36,7 @@ import { computedAsync } from "@vueuse/core";
 import { User } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { lobby } from "@renderer/store/lobby.store";
-import { friends } from "@renderer/store/me.store";
+import { friendsLogic } from "@renderer/logic/me";
 import hammerIcon from "@iconify-icons/mdi/hammer";
 
 const { t } = useTypedI18n();
@@ -117,7 +117,7 @@ async function makeBoss() {
 }
 
 async function addFriend() {
-    friends.sendRequest(props.player.id);
+    friendsLogic.sendRequest(props.player.id);
 }
 </script>
 

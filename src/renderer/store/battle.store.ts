@@ -9,7 +9,7 @@ import { Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
-import { me } from "@renderer/store/me.store";
+import { me, meActions } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { eastVsWestStartBoxes, getCurrentStartBoxes as getCurrentStartBoxesFromOptions } from "@renderer/utils/battle-map-options";
 import { notificationsApi } from "@renderer/api/notifications";
@@ -386,11 +386,10 @@ watch(
     battleWithMetadataStore,
     (battle) => {
         if (battle.spectators.find((spectator) => spectator.user.userId === me.userId)) {
-            me.battleRoomState.isSpectator = true;
-            me.battleRoomState.isReady = true;
-            delete me.battleRoomState.teamId;
+            meActions.setBattleRoomState({ isSpectator: true, isReady: true });
+            meActions.clearBattleTeam();
         } else {
-            me.battleRoomState.isSpectator = false;
+            meActions.setBattleRoomState({ isSpectator: false });
             // iterate over the map id, team to find the user's team
             battle.teams.forEach((team, teamId) => {
                 if (
@@ -398,7 +397,7 @@ watch(
                         return participant && "user" in participant && participant.user.userId === me.userId;
                     })
                 ) {
-                    me.battleRoomState.teamId = teamId;
+                    meActions.setBattleRoomState({ teamId });
                 }
             });
         }

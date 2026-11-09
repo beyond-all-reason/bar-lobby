@@ -23,7 +23,7 @@ const { lobby, lobbyStore } = await import("@renderer/store/lobby.store");
 const { mapsStore } = await import("@renderer/store/maps.store");
 const { gameStore } = await import("@renderer/store/game.store");
 const { enginesStore } = await import("@renderer/store/engine.store");
-const { me } = await import("@renderer/store/me.store");
+const { meActions } = await import("@renderer/store/me.store");
 const { useLobbyContentReadiness } = await import("@renderer/composables/useLobbyContentReadiness");
 
 const ME = "user-me";
@@ -53,7 +53,7 @@ describe("useLobbyContentReadiness", () => {
     beforeEach(() => {
         requestStatus = vi.spyOn(lobby, "requestUpdateClientStatus").mockResolvedValue(undefined);
         scope = effectScope();
-        me.userId = ME;
+        meActions.assign({ userId: ME });
         lobbyStore.activeLobby = undefined;
         mapsStore.availableMapNames = new Set();
         gameStore.availableGameVersions = new Map();
