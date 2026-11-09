@@ -511,8 +511,18 @@ describe("loadSingleplayerContent", () => {
 
             const content = await loadSingleplayerContent([root]);
 
-            expect(content.problems).toEqual([{ path: atRoot, severity: "warning", message: expect.stringContaining(`Move it to ${archive}`) }]);
+            expect(content.problems).toEqual([{ path: atRoot, severity: "warning", message: expect.stringContaining(`belongs at ${archive}`) }]);
             expect(content.scenarios.map((s) => [s.id, s.archivePath])).toEqual([["outpost-strike", undefined]]);
+        });
+
+        it("warns about any archive at the item's root, even beside the one in games/", async () => {
+            const stray = path.join(root.path, "scenarios", "outpost-strike", "old-build.SDZ");
+            await fs.copyFile(archive, stray);
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.problems).toEqual([{ path: stray, severity: "warning", message: expect.stringContaining(`belongs at ${archive}`) }]);
+            expect(content.scenarios.map((s) => [s.id, s.archivePath])).toEqual([["outpost-strike", archive]]);
         });
 
         it("leaves out an item whose archive cannot be opened", async () => {

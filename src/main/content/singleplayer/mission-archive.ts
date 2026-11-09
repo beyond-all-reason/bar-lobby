@@ -87,11 +87,13 @@ async function readArchive(archivePath: string): Promise<Read> {
     return { entries, modInfo: "error" in extracted ? { error: `${MODINFO_FILE} could not be read: ${extracted.error}` } : readModInfo(extracted.stdout) };
 }
 
-async function isFile(file: string) {
+async function archivesAtRoot(folder: string) {
     try {
-        return (await fs.stat(file)).isFile();
+        const entries = await fs.readdir(folder, { withFileTypes: true });
+
+        return entries.filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".sdz")).map((entry) => path.join(folder, entry.name));
     } catch {
-        return false;
+        return [];
     }
 }
 
@@ -125,11 +127,15 @@ export type MissionArchive = {
 
 /**
  * Checks the item's archive, if it has one. An archive that cannot be read, lacks a file the engine needs, or
- * whose modinfo.lua doesn't match the item or names no game to depend on is an error. One left at the item's
- * root instead of in games/ is a warning.
+ * whose modinfo.lua doesn't match the item or names no game to depend on is an error. Any .sdz at the
+ * item's root, where the engine never reads one, is a warning.
  */
 export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, compatibility }: MissionArchiveOptions, problems: Problems): Promise<MissionArchive | undefined> {
     const archivePath = archivePathOf(folder, kind, id);
+    for (const stray of await archivesAtRoot(folder)) {
+        problems.warning(stray, `The engine reads mission archives only from ${ARCHIVE_FOLDER}/, so this one is not used. The item's archive belongs at ${archivePath}`);
+    }
+
     let stats;
     try {
         stats = await fs.stat(archivePath);
@@ -139,11 +145,6 @@ export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, c
     // An item without one still loads, but can't be launched: the client marks it unplayable and
     // validate-content --bundle refuses it.
     if (!stats?.isFile()) {
-        const atRoot = path.join(folder, path.basename(archivePath));
-        if (await isFile(atRoot)) {
-            problems.warning(atRoot, `The engine looks for the mission archive only in ${ARCHIVE_FOLDER}/, so this one is not used. Move it to ${archivePath}`);
-        }
-
         return undefined;
     }
 
