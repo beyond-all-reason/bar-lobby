@@ -20,7 +20,7 @@ Object.assign(window.tachyon, {
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { chatStore, chat, initChatStore } = await import("@renderer/store/chat.store");
-const { me } = await import("@renderer/store/me.store");
+const { meActions } = await import("@renderer/store/me.store");
 
 const receive = (data: Partial<MessagingReceivedEventData>) =>
     receivedHandlers.forEach((handler) =>
@@ -75,7 +75,7 @@ describe("chat history marker", () => {
     // must not become the point we ask to resume from.
     it("ignores the messages this client sent itself", async () => {
         receive({ marker: "-576460745805023" });
-        me.userId = "1";
+        meActions.assign({ userId: "1" });
 
         await chat.requestSend({ target: { type: "player", userId: "42" }, message: "mine" });
 

@@ -19,8 +19,8 @@ vi.mock("@renderer/i18n", () => ({ useTypedI18n: () => ({ t: (key: string) => ke
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: stubs.alert } }));
 vi.mock("@renderer/store/me.store", () => ({
     me: { userId: 1, friendUserIds: new Set(), outgoingFriendRequestUserIds: new Set(), incomingFriendRequestUserIds: new Set() },
-    friends: { sendRequest: stubs.sendRequest },
 }));
+vi.mock("@renderer/logic/me", () => ({ friendsLogic: { sendRequest: stubs.sendRequest } }));
 
 const SlotStub = { template: "<div><slot /></div>" };
 const NumberStub = { name: "Number", template: "<input />" };

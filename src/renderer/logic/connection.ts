@@ -11,7 +11,7 @@ import { ui } from "@renderer/logic/ui";
 import { battleHistoryActions } from "@renderer/store/battleHistory.store";
 import { configStore } from "@renderer/store/config.store";
 import { connectionActions, connectionStore } from "@renderer/store/connection.store";
-import { friends } from "@renderer/store/me.store";
+import { friendsLogic } from "@renderer/logic/me";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onTachyonConnected } from "@renderer/utils/connection-signal";
@@ -175,7 +175,7 @@ async function restoreSession() {
     // A socket main still has open, as after a renderer reload, sends no connected
     // event, so the friend list that event would fetch has to be fetched here.
     if (connectionStore.isConnected && connectionStore.isAuthenticated) {
-        await friends.fetchFriendList();
+        await friendsLogic.fetchFriendList();
     }
 
     await restorePreviousSession();

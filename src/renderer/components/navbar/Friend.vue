@@ -98,7 +98,7 @@ import Flag from "@renderer/components/misc/Flag.vue";
 import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
-import { friends } from "@renderer/store/me.store";
+import { friendsLogic } from "@renderer/logic/me";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError } from "@renderer/api/tachyon";
 import { db } from "@renderer/store/db";
@@ -141,7 +141,7 @@ const { maxMembersReached, userInParty, userInvited, inviteToParty } = usePartyI
 
 async function cancelRequest() {
     try {
-        await friends.cancelRequest(props.userId.toString());
+        await friendsLogic.cancelRequest(props.userId.toString());
     } catch (error) {
         if (!isTachyonError(error)) {
             console.error("Failed to cancel friend request:", error);
@@ -156,7 +156,7 @@ async function cancelRequest() {
 
 async function acceptRequest() {
     try {
-        await friends.acceptRequest(props.userId.toString());
+        await friendsLogic.acceptRequest(props.userId.toString());
     } catch (error) {
         if (!isTachyonError(error)) {
             console.error("Failed to accept friend request:", error);
@@ -171,7 +171,7 @@ async function acceptRequest() {
 
 async function rejectRequest() {
     try {
-        await friends.rejectRequest(props.userId.toString());
+        await friendsLogic.rejectRequest(props.userId.toString());
     } catch (error) {
         if (!isTachyonError(error)) {
             console.error("Failed to reject friend request:", error);
@@ -208,13 +208,13 @@ function reportUser() {
 
 async function removeFriend() {
     try {
-        await friends.remove(props.userId.toString());
+        await friendsLogic.remove(props.userId.toString());
     } catch (error) {
-        console.error("Failed to remove friend:", error);
-        notificationsApi.alert({
-            text: t("lobby.navbar.friends.notifications.errors.failedToRemove"),
-            severity: "error",
-        });
+        if (!isTachyonError(error)) {
+            console.error(`Failed to remove friend with userId: ${props.userId}`, error);
+        }
+
+        notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
     }
 }
 </script>

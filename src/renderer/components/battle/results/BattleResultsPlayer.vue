@@ -24,7 +24,8 @@ import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { db } from "@renderer/store/db";
-import { friends, me } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
+import { friendsLogic } from "@renderer/logic/me";
 import { chat } from "@renderer/store/chat.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError } from "@renderer/api/tachyon";
@@ -117,7 +118,7 @@ async function messagePlayer() {
 
 async function addFriend() {
     try {
-        await friends.sendRequest(props.userId);
+        await friendsLogic.sendRequest(props.userId);
     } catch (error) {
         if (!isTachyonError(error)) {
             console.error("Failed to send friend request:", error);
@@ -129,7 +130,7 @@ async function addFriend() {
 
 async function acceptFriendRequest() {
     try {
-        await friends.acceptRequest(props.userId);
+        await friendsLogic.acceptRequest(props.userId);
     } catch (error) {
         if (!isTachyonError(error)) {
             console.error("Failed to accept friend request:", error);

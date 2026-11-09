@@ -21,7 +21,7 @@ const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
 const { partyActions } = await import("@renderer/store/party.store");
 const { initPartyLogic } = await import("@renderer/logic/party");
-const { me } = await import("@renderer/store/me.store");
+const { me, meActions } = await import("@renderer/store/me.store");
 
 const emit = (command: string, data: unknown) => handlers.get(command)?.(data);
 
@@ -34,7 +34,7 @@ const partyPayload = (id: string) => ({ id, members: [{ userId: me.userId }], in
 // come back to it, and untouched while we're elsewhere.
 describe("chat transcript lifecycle", () => {
     beforeAll(async () => {
-        me.userId = "1";
+        meActions.assign({ userId: "1" });
         await Promise.all([initChatStore(), initLobbyStore(), initPartyLogic()]);
     });
 
