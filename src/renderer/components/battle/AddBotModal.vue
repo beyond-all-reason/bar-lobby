@@ -42,7 +42,7 @@ import { gameStore } from "@renderer/store/game.store";
 const { t } = useTypedI18n();
 
 // TODO: either game or engine should have a block or allow list that bar-lobby reads and limits the list to those items
-const blockedAis = ["CircuitAI", "NullAI", "RaptorsAI", "ScavengersAI"];
+const blockedAis = ["CircuitAI", "RaptorsAI", "ScavengersAI"];
 
 const props = defineProps<{
     engineVersion: string;
