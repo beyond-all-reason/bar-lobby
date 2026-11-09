@@ -505,12 +505,13 @@ describe("loadSingleplayerContent", () => {
         });
 
         // Until missions launch, an item without an archive loads; see the TODO in mission-archive.ts.
-        it("doesn't look for the archive outside games/", async () => {
-            await fs.rename(archive, path.join(root.path, "scenarios", "outpost-strike", "bar-scenario-outpost-strike.sdz"));
+        it("doesn't use an archive outside games/, and warns about one at the item's root", async () => {
+            const atRoot = path.join(root.path, "scenarios", "outpost-strike", "bar-scenario-outpost-strike.sdz");
+            await fs.rename(archive, atRoot);
 
             const content = await loadSingleplayerContent([root]);
 
-            expect(content.problems).toEqual([]);
+            expect(content.problems).toEqual([{ path: atRoot, severity: "warning", message: expect.stringContaining(`Move it to ${archive}`) }]);
             expect(content.scenarios.map((s) => [s.id, s.archivePath])).toEqual([["outpost-strike", undefined]]);
         });
 
@@ -550,7 +551,7 @@ describe("loadSingleplayerContent", () => {
                 modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"', depend: '{ "Beyond All Reason test-1-abc" }' }),
                 /depend names "Beyond All Reason test-1-abc", but none of the games in compatibility/,
             ],
-            ["depends on nothing", modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"' }), /depend names no game/],
+            ["depends on nothing", modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"' }), /has no depend/],
         ])("leaves out an item whose modinfo.lua %s", async (_, lua, message) => {
             await writeArchive(archive, { "modinfo.lua": lua, "scenarios/outpost-strike/mission.lua": "return {}" });
 
@@ -560,14 +561,27 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(message) }]);
         });
 
-        it("doesn't check depend for content still in development", async () => {
+        it("doesn't check depend against compatibility for content still in development", async () => {
             await setManifest({ compatibility: "dev" });
-            await writeArchive(archive, { "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"' }), "scenarios/outpost-strike/mission.lua": "return {}" });
+            await writeArchive(archive, {
+                "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"', depend: '{ "Beyond All Reason test-1-abc" }' }),
+                "scenarios/outpost-strike/mission.lua": "return {}",
+            });
 
             const content = await loadSingleplayerContent([root], { devContent: true });
 
             expect(content.problems.filter((problem) => problem.severity === "error")).toEqual([]);
             expect(content.scenarios.map((s) => s.archiveName)).toEqual(["bar-scenario-outpost-strike 2.0"]);
+        });
+
+        it("leaves out content still in development whose modinfo.lua depends on nothing", async () => {
+            await setManifest({ compatibility: "dev" });
+            await writeArchive(archive, { "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"' }), "scenarios/outpost-strike/mission.lua": "return {}" });
+
+            const content = await loadSingleplayerContent([root], { devContent: true });
+
+            expect(content.scenarios).toEqual([]);
+            expect(content.problems.filter((problem) => problem.severity === "error")).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(/has no depend/) }]);
         });
 
         // The campaign's folder is a data directory at launch, so the engine reads these folders as its own.

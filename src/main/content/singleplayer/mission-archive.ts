@@ -87,6 +87,14 @@ async function readArchive(archivePath: string): Promise<Read> {
     return { entries, modInfo: "error" in extracted ? { error: `${MODINFO_FILE} could not be read: ${extracted.error}` } : readModInfo(extracted.stdout) };
 }
 
+async function isFile(file: string) {
+    try {
+        return (await fs.stat(file)).isFile();
+    } catch {
+        return false;
+    }
+}
+
 async function cachedRead(archivePath: string, mtimeMs: number, size: number): Promise<Read> {
     const cached = reads.get(archivePath);
     if (cached && cached.mtimeMs === mtimeMs && cached.size === size) {
@@ -117,7 +125,8 @@ export type MissionArchive = {
 
 /**
  * Checks the item's archive, if it has one. An archive that cannot be read, lacks a file the engine needs, or
- * whose modinfo.lua doesn't match the item is an error.
+ * whose modinfo.lua doesn't match the item or names no game to depend on is an error. One left at the item's
+ * root instead of in games/ is a warning.
  */
 export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, compatibility }: MissionArchiveOptions, problems: Problems): Promise<MissionArchive | undefined> {
     const archivePath = archivePathOf(folder, kind, id);
@@ -130,6 +139,11 @@ export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, c
     // An item without one still loads, but can't be launched: the client marks it unplayable and
     // validate-content --bundle refuses it.
     if (!stats?.isFile()) {
+        const atRoot = path.join(folder, path.basename(archivePath));
+        if (await isFile(atRoot)) {
+            problems.warning(atRoot, `The engine looks for the mission archive only in ${ARCHIVE_FOLDER}/, so this one is not used. Move it to ${archivePath}`);
+        }
+
         return undefined;
     }
 
@@ -158,10 +172,13 @@ export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, c
         if (modInfo.name !== archiveName(kind, id)) {
             fail(`${MODINFO_FILE} names the archive "${modInfo.name}", but its file is named for "${archiveName(kind, id)}"`);
         }
-        if (compatibility !== DEV_COMPATIBILITY) {
+        // Content still in development is launched with the first game in depend that this install has or can download.
+        if (modInfo.depend.length === 0) {
+            fail(`${MODINFO_FILE} has no depend, so the archive has no game to load with. Name the base game, as in depend = { "Beyond All Reason <version>" }`);
+        } else if (compatibility !== DEV_COMPATIBILITY) {
             const games = new Set(compatibility.flatMap((entry) => entry.gameVersions));
             if (!modInfo.depend.some((game) => games.has(game))) {
-                fail(`${MODINFO_FILE}'s depend names ${modInfo.depend.length ? modInfo.depend.map((game) => `"${game}"`).join(", ") : "no game"}, but none of the games in compatibility`);
+                fail(`${MODINFO_FILE}'s depend names ${modInfo.depend.map((game) => `"${game}"`).join(", ")}, but none of the games in compatibility`);
             }
         }
     }
