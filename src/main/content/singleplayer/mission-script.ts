@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { MissionInputs } from "@main/content/singleplayer/mission-launch";
 import type { AllyTeam, Bot, Game, ModOptions, Player, Team } from "@main/model/start-script";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { MISSION_OPTIONS_KEY } from "@shared/content/schema/common";
@@ -22,6 +23,7 @@ export type MissionScriptOptions = {
     config: MissionConfig;
     // The mission's Lua inside the archive (missionLuaPath).
     entryPoint: string;
+    inputs: MissionInputs;
     playerName: string;
 };
 
@@ -29,7 +31,7 @@ export type MissionScriptOptions = {
  * The start script for one player playing a mission. Every team is led by that player, including the ones the
  * mission drives itself with no player or AI on them.
  */
-export async function missionStartScript({ archiveName, mapName, config, entryPoint, playerName }: MissionScriptOptions): Promise<string> {
+export async function missionStartScript({ archiveName, mapName, config, entryPoint, inputs, playerName }: MissionScriptOptions): Promise<string> {
     const allianceNames = Object.keys(config.alliances);
     const allyTeams: NamedAllyTeam[] = allianceNames.map((alliance, index) => {
         const settings = config.allianceSettings?.[alliance];
@@ -88,7 +90,7 @@ export async function missionStartScript({ archiveName, mapName, config, entryPo
         ishost: 1,
         startpostype: config.startPosType === undefined ? undefined : START_POS_TYPES[config.startPosType],
         // The model lists only the engine's own keys; a game's modoptions are its own.
-        modoptions: { ...modOptions, [MISSION_OPTIONS_KEY]: await encodeModoptionValue({ entryPoint }) } as ModOptions,
+        modoptions: { ...modOptions, [MISSION_OPTIONS_KEY]: await encodeModoptionValue({ entryPoint, ...inputs }) } as ModOptions,
         mapoptions: config.mapOptions,
         numrestrictions: restrictions.length || undefined,
         allyTeams,

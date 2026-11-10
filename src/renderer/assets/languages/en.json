@@ -1856,6 +1856,9 @@
                     "noArchive": "This content has no mission archive, so it can't be launched.",
                     "noEngineAndGame": "This install has no engine and game this content can run on.",
                     "mapUnavailable": "This content's map is not installed.",
+                    "saveUnusable": "Your saved progress can't be read, so this mission wasn't launched. Delete the save to start over.",
+                    "saveVersionOlder": "This mission wasn't launched: your saved progress is from an older version of this content. Start over to play it.",
+                    "saveVersionNewer": "This mission wasn't launched: your saved progress is from a newer version of this content. Update it to continue, or delete your save to play the installed version.",
                     "launchFailed": "The mission couldn't be launched. The log has the details."
                 },
                 "savesLoadFailures": {

@@ -4,8 +4,10 @@
 
 import path from "node:path";
 import type { ContentRef } from "@main/content/content-ref";
+import { campaignVariables } from "@shared/content/campaign-progress";
 import { matchingPairs } from "@shared/content/compatibility";
-import { type Compatibility, DEV_COMPATIBILITY } from "@shared/content/schema/common";
+import { chosenDifficulty, type SaveVariableValue, type SingleplayerSave } from "@shared/content/save";
+import { type Compatibility, DEV_COMPATIBILITY, type Difficulty } from "@shared/content/schema/common";
 import type { MissionConfig } from "@shared/content/schema/mission-config";
 import type { SingleplayerCampaign, SingleplayerLaunchFailure, SingleplayerMission, SingleplayerScenario } from "@shared/content/singleplayer";
 import type { InstallDefaults } from "@shared/install-defaults";
@@ -104,4 +106,23 @@ export function planMissionLaunch({ item, campaign }: LaunchTarget, install: Ins
         entryPoint: campaign ? missionLuaPath("campaign", campaign.id, item.id) : missionLuaPath(item.kind, item.id),
         config,
     };
+}
+
+// What the Mission API is given besides the entry point.
+export type MissionInputs = {
+    difficulty: Difficulty;
+    // Left out when there are none.
+    variables?: Record<string, SaveVariableValue>;
+};
+
+/**
+ * The difficulty the player chose, or the content's default, and for a campaign mission the variables its
+ * missions have reported so far. A campaign mission is played at the campaign's difficulty. `save` is the
+ * owner's, already checked to be one a result can be recorded in.
+ */
+export function missionInputs({ item, campaign }: LaunchTarget, save: SingleplayerSave | undefined): MissionInputs {
+    const difficulty = chosenDifficulty(save, campaign ?? item);
+    const variables = campaign && save ? campaignVariables(save) : {};
+
+    return Object.keys(variables).length > 0 ? { difficulty, variables } : { difficulty };
 }

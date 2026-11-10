@@ -9,7 +9,16 @@ import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 
-const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), setDifficulty: vi.fn(), deleteSave: vi.fn(), deleteAllSaves: vi.fn(), onSaveChanged: vi.fn() }));
+const api = vi.hoisted(() => ({
+    list: vi.fn(),
+    getSaves: vi.fn(),
+    recordResult: vi.fn(),
+    setDifficulty: vi.fn(),
+    deleteSave: vi.fn(),
+    deleteAllSaves: vi.fn(),
+    onSaveChanged: vi.fn(),
+    launch: vi.fn(),
+}));
 vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { singleplayerStore, singleplayerActions } = await import("@renderer/store/singleplayer.store");
@@ -374,6 +383,20 @@ describe("singleplayer logic", () => {
 
             expect(singleplayerLogic.campaignSaveStatus(official)).toBe("unusable");
             expect(singleplayerLogic.saveErrorOf("campaign", official)).toBeUndefined();
+        });
+
+        it("marks a save main refused a launch for as unusable, and says why it didn't launch", async () => {
+            api.launch.mockResolvedValueOnce({ status: "failed", reason: "save_unusable", details: "Not valid JSON" });
+
+            expect(await singleplayerLogic.launch("campaign", official, "mission01")).toBe("lobby.logic.singleplayer.launchFailures.saveUnusable");
+            expect(singleplayerLogic.campaignSaveStatus(official)).toBe("unusable");
+        });
+
+        it("only says why it didn't launch for a save from another version, which can still be read", async () => {
+            api.launch.mockResolvedValueOnce({ status: "failed", reason: "save_version_newer", details: "Started under save version 2" });
+
+            expect(await singleplayerLogic.launch("scenario", makeTutorial("combat"))).toBe("lobby.logic.singleplayer.launchFailures.saveVersionNewer");
+            expect(singleplayerLogic.saveUnusable("scenario", makeTutorial("combat"))).toBe(false);
         });
 
         it("clears the mark when main writes the save anew", async () => {

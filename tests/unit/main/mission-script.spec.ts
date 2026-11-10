@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { missionLuaPath } from "@main/content/singleplayer/mission-archive";
+import type { MissionInputs } from "@main/content/singleplayer/mission-launch";
 import { missionStartScript } from "@main/content/singleplayer/mission-script";
 import type { MissionConfig } from "@shared/content/schema/mission-config";
 import { decodeModoptionValue } from "@shared/startbox-modoptions";
@@ -15,8 +16,8 @@ const readConfig = (...parts: string[]): MissionConfig => JSON.parse(fs.readFile
 const OUTPOST_STRIKE = readConfig("content-sdz", "scenarios", "outpost-strike", "missionConfig.json");
 const MISSION01 = readConfig("content", "campaigns", "sample-campaign", "mission01", "missionConfig.json");
 
-const script = (config: MissionConfig, entryPoint = "scenarios/outpost-strike/mission.lua") =>
-    missionStartScript({ archiveName: "bar-scenario-outpost-strike 1.0", mapName: "Quicksilver Remake 1.24", config, entryPoint, playerName: "Commander" });
+const script = (config: MissionConfig, entryPoint = "scenarios/outpost-strike/mission.lua", inputs: MissionInputs = { difficulty: "Story" }) =>
+    missionStartScript({ archiveName: "bar-scenario-outpost-strike 1.0", mapName: "Quicksilver Remake 1.24", config, entryPoint, inputs, playerName: "Commander" });
 const missionOptionsOf = (text: string) => decodeModoptionValue(/missionoptions=([^;]*);/.exec(text)?.[1]);
 
 describe("missionLuaPath", () => {
@@ -75,9 +76,20 @@ describe("missionStartScript", () => {
     });
 
     // The game decodes it with ModoptionPayload: base64url of zlib-compressed JSON.
-    it("passes the Mission API only the entry point, as the game decodes it", async () => {
-        expect(await missionOptionsOf(await script(OUTPOST_STRIKE, "campaigns/sample-campaign/mission01/mission.lua"))).toEqual({
+    it("passes the Mission API the entry point and difficulty, as the game decodes it", async () => {
+        expect(await missionOptionsOf(await script(OUTPOST_STRIKE, "scenarios/outpost-strike/mission.lua", { difficulty: "Hard" }))).toEqual({
+            entryPoint: "scenarios/outpost-strike/mission.lua",
+            difficulty: "Hard",
+        });
+    });
+
+    it("passes a campaign mission the campaign's variables", async () => {
+        const variables = { mission01_choice: "left", mission01_score: 1200, mission01_spared: true };
+
+        expect(await missionOptionsOf(await script(MISSION01, "campaigns/sample-campaign/mission01/mission.lua", { difficulty: "Easy", variables }))).toEqual({
             entryPoint: "campaigns/sample-campaign/mission01/mission.lua",
+            difficulty: "Easy",
+            variables,
         });
     });
 

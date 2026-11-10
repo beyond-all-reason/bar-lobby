@@ -82,6 +82,9 @@ const launchFailureKeys: Record<SingleplayerLaunchFailure, TranslationKey> = {
     no_archive: "lobby.logic.singleplayer.launchFailures.noArchive",
     no_engine_and_game: "lobby.logic.singleplayer.launchFailures.noEngineAndGame",
     map_unavailable: "lobby.logic.singleplayer.launchFailures.mapUnavailable",
+    save_unusable: "lobby.logic.singleplayer.launchFailures.saveUnusable",
+    save_version_older: "lobby.logic.singleplayer.launchFailures.saveVersionOlder",
+    save_version_newer: "lobby.logic.singleplayer.launchFailures.saveVersionNewer",
     launch_failed: "lobby.logic.singleplayer.launchFailures.launchFailed",
 };
 
@@ -155,10 +158,8 @@ function saveUnusable(kind: SingleplayerKind, ref: SingleplayerItemRef) {
 }
 
 // Whether main refused the last result for the item because its save is from a newer version of the content.
-// Deleting the save is how the player gets to play the installed version.
-// TODO: This only works while pass and fail stand in for playing. Once missions launch the game, a result is
-// refused only after the player has finished the mission, too late to ask what they want to do with the save.
-// Whether a save can take a result will have to be checked, and settled with the player, before launching.
+// Deleting the save is how the player gets to play the installed version. Launching checks the save first, so a
+// mission isn't played only for its result to be refused.
 function refusedAsNewer(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return singleplayerStore.saveErrors.get(saveKey(kind, ref)) === "save_version_newer";
 }
@@ -479,10 +480,14 @@ function logUnplayable() {
     );
 }
 
-// Starts a mission, or says why main didn't. Main checks again what the views only showed. No result is read
-// back after the game yet, so Pass and Fail still record one.
+// Starts a mission, or says why main didn't. Main checks again what the views only showed. A save main found it
+// can't use is marked as such, as when it refuses a result. No result is read back after the game yet, so Pass
+// and Fail still record one.
 async function launch(kind: SingleplayerKind, item: SingleplayerItemRef, missionId?: string): Promise<TranslationKey | undefined> {
-    const launched = await fromMain(() => singleplayerApi.launch(kind, item, missionId, me.username), launchFailureKeys, "launch_failed");
+    const launched = await fromMain<void, SingleplayerLaunchFailure>(() => singleplayerApi.launch(kind, item, missionId, me.username), launchFailureKeys, "launch_failed");
+    if ("reason" in launched && launched.reason === "save_unusable") {
+        singleplayerActions.saveUnusable(saveKey(kind, item));
+    }
 
     return "reason" in launched ? launchFailureKeys[launched.reason] : undefined;
 }
