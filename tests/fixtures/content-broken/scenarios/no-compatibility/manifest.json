@@ -6,6 +6,6 @@
     "config": {
         "default": "missionConfig.json"
     },
-    "difficulties": ["easy", "medium", "hard"],
-    "defaultDifficulty": "medium"
+    "difficulties": ["Easy", "Medium", "Hard"],
+    "defaultDifficulty": "Medium"
 }

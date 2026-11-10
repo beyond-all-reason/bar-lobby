@@ -119,15 +119,15 @@ describe("singleplayer IPC handlers", () => {
     const setDifficultyOverIpc = (kind: string, id: string, difficulty: string) => ipc.handlers.get("singleplayer:setDifficulty")!({}, kind, "custom", "custom", id, difficulty);
 
     it("saves a difficulty the item offers", async () => {
-        expect(await setDifficultyOverIpc("campaign", "sample-campaign", "story")).toMatchObject({ status: "success", data: { difficulty: "story" } });
+        expect(await setDifficultyOverIpc("campaign", "sample-campaign", "Story")).toMatchObject({ status: "success", data: { difficulty: "Story" } });
     });
 
-    // The combat tutorial offers easy, medium and hard only.
+    // The combat tutorial offers Easy, Medium and Hard only.
     it("refuses a difficulty the item doesn't offer, and saves nothing", async () => {
-        expect(await setDifficultyOverIpc("tutorial", "combat", "story")).toEqual({
+        expect(await setDifficultyOverIpc("tutorial", "combat", "Story")).toEqual({
             status: "failed",
             reason: "invalid_difficulty",
-            details: expect.stringMatching(/does not offer difficulty "story"/),
+            details: expect.stringMatching(/does not offer difficulty "Story"/),
         });
         expect(await singleplayerService.readSave("tutorial", custom("combat"))).toBeUndefined();
     });

@@ -193,11 +193,12 @@ function variablesOf(campaign: SingleplayerCampaign): Record<string, SaveVariabl
 }
 
 // Keyed on every difficulty, so a new one does not compile until it has a name.
+// Difficulties from Mission API are keyed with initial capitals
 const difficultyKeys: Record<Difficulty, TranslationKey> = {
-    story: "lobby.singleplayer.content.difficulties.story",
-    easy: "lobby.singleplayer.content.difficulties.easy",
-    medium: "lobby.singleplayer.content.difficulties.medium",
-    hard: "lobby.singleplayer.content.difficulties.hard",
+    Story: "lobby.singleplayer.content.difficulties.story",
+    Easy: "lobby.singleplayer.content.difficulties.easy",
+    Medium: "lobby.singleplayer.content.difficulties.medium",
+    Hard: "lobby.singleplayer.content.difficulties.hard",
 };
 
 function difficultyName(difficulty: Difficulty): TranslationKey {

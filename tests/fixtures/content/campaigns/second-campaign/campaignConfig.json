@@ -43,6 +43,6 @@
             "gameVersions": ["Beyond All Reason test-28100-bbbbbbb", "Beyond All Reason test-28200-ccccccc"]
         }
     ],
-    "difficulties": ["story", "easy", "medium", "hard"],
-    "defaultDifficulty": "medium"
+    "difficulties": ["Story", "Easy", "Medium", "Hard"],
+    "defaultDifficulty": "Medium"
 }

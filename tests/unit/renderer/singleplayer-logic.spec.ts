@@ -290,41 +290,41 @@ describe("singleplayer logic", () => {
 
     describe("difficulty", () => {
         it("gives the campaign's default until one is chosen, then the one chosen", async () => {
-            expect(singleplayerLogic.campaignDifficulty(official)).toBe("medium");
+            expect(singleplayerLogic.campaignDifficulty(official)).toBe("Medium");
 
-            await singleplayerLogic.setDifficulty("campaign", official, "hard");
+            await singleplayerLogic.setDifficulty("campaign", official, "Hard");
 
-            expect(singleplayerLogic.campaignDifficulty(official)).toBe("hard");
-            expect(api.setDifficulty).toHaveBeenCalledWith("campaign", official, "hard");
-            expect(singleplayerLogic.campaignDifficulty(custom)).toBe("medium");
+            expect(singleplayerLogic.campaignDifficulty(official)).toBe("Hard");
+            expect(api.setDifficulty).toHaveBeenCalledWith("campaign", official, "Hard");
+            expect(singleplayerLogic.campaignDifficulty(custom)).toBe("Medium");
         });
 
         it("keeps the choice when it can't be saved, with the message for main's reason", async () => {
             api.setDifficulty.mockResolvedValueOnce({ status: "failed", reason: "invalid_difficulty" });
 
-            await singleplayerLogic.setDifficulty("campaign", official, "story");
+            await singleplayerLogic.setDifficulty("campaign", official, "Story");
 
-            expect(singleplayerLogic.campaignDifficulty(official)).toBe("medium");
+            expect(singleplayerLogic.campaignDifficulty(official)).toBe("Medium");
             expect(singleplayerLogic.saveErrorOf("campaign", official)).toBe("lobby.logic.singleplayer.saveFailures.invalidDifficulty");
         });
 
         it("counts the choice in a save from another version as none, like its progress", async () => {
-            await singleplayerLogic.setDifficulty("campaign", official, "hard");
+            await singleplayerLogic.setDifficulty("campaign", official, "Hard");
 
-            expect(singleplayerLogic.campaignDifficulty({ ...official, config: { ...official.config, saveVersion: 2 } })).toBe("medium");
+            expect(singleplayerLogic.campaignDifficulty({ ...official, config: { ...official.config, saveVersion: 2 } })).toBe("Medium");
         });
 
         it("keeps a tutorial's choice to that tutorial", async () => {
-            const [combat, economy] = ["combat", "economy"].map((id): SingleplayerScenario => ({ ...makeTutorial(id), difficulties: ["easy", "hard"], defaultDifficulty: "easy" }));
+            const [combat, economy] = ["combat", "economy"].map((id): SingleplayerScenario => ({ ...makeTutorial(id), difficulties: ["Easy", "Hard"], defaultDifficulty: "Easy" }));
 
-            await singleplayerLogic.setDifficulty("tutorial", combat, "hard");
+            await singleplayerLogic.setDifficulty("tutorial", combat, "Hard");
 
-            expect(singleplayerLogic.itemDifficulty(combat)).toBe("hard");
-            expect(singleplayerLogic.itemDifficulty(economy)).toBe("easy");
+            expect(singleplayerLogic.itemDifficulty(combat)).toBe("Hard");
+            expect(singleplayerLogic.itemDifficulty(economy)).toBe("Easy");
         });
 
         it("offers the item's difficulties easiest first, whatever order it lists them in", () => {
-            expect(singleplayerLogic.offeredDifficulties({ difficulties: ["hard", "story", "medium"], defaultDifficulty: "medium" })).toEqual(["story", "medium", "hard"]);
+            expect(singleplayerLogic.offeredDifficulties({ difficulties: ["Hard", "Story", "Medium"], defaultDifficulty: "Medium" })).toEqual(["Story", "Medium", "Hard"]);
         });
     });
 

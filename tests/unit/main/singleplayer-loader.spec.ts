@@ -40,7 +40,7 @@ describe("loadSingleplayerContent", () => {
             expect(campaign.backgroundImageUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "background.png"))}`);
             expect(campaign.logoUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "sample-logo.png"))}`);
             expect(campaign.compatibility).toEqual(campaign.config.compatibility);
-            expect(campaign).toMatchObject({ difficulties: ["story", "easy", "medium", "hard"], defaultDifficulty: "medium" });
+            expect(campaign).toMatchObject({ difficulties: ["Story", "Easy", "Medium", "Hard"], defaultDifficulty: "Medium" });
             expect(campaign.missions.map((m) => m.id)).toEqual(["tutorial", "mission01", "mission02", "missionA", "missionB", "optionalMissionA", "optionalMissionB", "finalMission"]);
 
             const mission01 = campaign.missions[1];
@@ -60,7 +60,7 @@ describe("loadSingleplayerContent", () => {
 
             expect(scenario).toMatchObject({ kind: "scenario", source: "official", rootId: "official" });
             expect(scenario.compatibility).toHaveLength(2);
-            expect(scenario).toMatchObject({ difficulties: ["easy", "medium", "hard"], defaultDifficulty: "medium" });
+            expect(scenario).toMatchObject({ difficulties: ["Easy", "Medium", "Hard"], defaultDifficulty: "Medium" });
             expect(tutorial).toMatchObject({ kind: "tutorial", id: "sample-tutorial" });
         });
 
@@ -110,7 +110,7 @@ describe("loadSingleplayerContent", () => {
             ["scenarios/newer-format/manifest.json", /Requires a newer client: format version 99/],
             ["scenarios/no-compatibility/manifest.json", /compatibility is required/],
             ["scenarios/no-difficulties/manifest.json", /difficulties and defaultDifficulty are required/],
-            ["scenarios/bad-default-difficulty/manifest.json", /defaultDifficulty "story" is not one of difficulties \(easy, medium, hard\)/],
+            ["scenarios/bad-default-difficulty/manifest.json", /defaultDifficulty "Story" is not one of difficulties \(Easy, Medium, Hard\)/],
             ["scenarios/empty-compatibility/manifest.json", /\/compatibility must NOT have fewer than 1 items/],
             ["scenarios/engine-without-games/manifest.json", /\/compatibility\/0\/gameVersions must NOT have fewer than 1 items/],
             ["scenarios/duplicate-engine/manifest.json", /lists engine 2025.04.10 more than once/],
@@ -256,12 +256,12 @@ describe("loadSingleplayerContent", () => {
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
             const configPath = path.join(campaign, "campaignConfig.json");
             const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-            await fs.writeFile(configPath, JSON.stringify({ ...config, difficulties: ["easy", "medium"], defaultDifficulty: "hard" }));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, difficulties: ["Easy", "Medium"], defaultDifficulty: "Hard" }));
 
             const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
 
             expect(content.campaigns).toEqual([]);
-            expect(content.problems).toEqual([{ path: configPath, severity: "error", message: 'defaultDifficulty "hard" is not one of difficulties (easy, medium)' }]);
+            expect(content.problems).toEqual([{ path: configPath, severity: "error", message: 'defaultDifficulty "Hard" is not one of difficulties (Easy, Medium)' }]);
         });
 
         it("warns that a campaign mission's own difficulties are ignored", async () => {
@@ -269,7 +269,7 @@ describe("loadSingleplayerContent", () => {
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
             const manifestPath = path.join(campaign, "mission01", "manifest.json");
             const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, difficulties: ["hard"], defaultDifficulty: "hard" }));
+            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, difficulties: ["Hard"], defaultDifficulty: "Hard" }));
 
             const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
 

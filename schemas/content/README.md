@@ -167,13 +167,13 @@ A mission is played on the map its manifest names in `mapName`, by the name the 
 
 ## Difficulty
 
-The difficulties are the mission API's own set, from its `luarules/mission_api/difficulties.json`: `story`, `easy`, `medium` and `hard`. The client names them in the player's language and passes the chosen one to the mission by id. The mission decides what each one means.
+The difficulties are the mission API's own set, from its `luarules/mission_api/difficulties.json`: `Story`, `Easy`, `Medium` and `Hard`. The client names them in the player's language and passes the chosen one to the mission by id. The mission decides what each one means.
 
 `campaignConfig.json` and each scenario's or tutorial's manifest list the difficulties they offer, at least one, and the one chosen until the player picks another:
 
 ```json
-"difficulties": ["easy", "medium", "hard"],
-"defaultDifficulty": "medium"
+"difficulties": ["Easy", "Medium", "Hard"],
+"defaultDifficulty": "Medium"
 ```
 
 The player chooses from the ones listed, which are shown easiest first whatever order they are listed in. A campaign's missions leave both out: the player chooses once for the whole campaign, and every mission is played at it. They can change it at any time, and the next mission is played at the new one.
