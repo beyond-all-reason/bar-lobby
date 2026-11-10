@@ -17,6 +17,6 @@
         }
     ],
     "formatVersion": 99,
-    "difficulties": ["easy", "medium", "hard"],
-    "defaultDifficulty": "medium"
+    "difficulties": ["Easy", "Medium", "Hard"],
+    "defaultDifficulty": "Medium"
 }

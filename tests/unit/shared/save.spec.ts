@@ -7,21 +7,21 @@ import { chosenDifficulty, saveCompatibility } from "@shared/content/save";
 import type { ItemDifficulties } from "@shared/content/singleplayer";
 
 describe("chosenDifficulty", () => {
-    const item: ItemDifficulties = { difficulties: ["easy", "medium", "hard"], defaultDifficulty: "medium" };
+    const item: ItemDifficulties = { difficulties: ["Easy", "Medium", "Hard"], defaultDifficulty: "Medium" };
 
     it("gives the saved difficulty", () => {
-        expect(chosenDifficulty({ difficulty: "hard" }, item)).toBe("hard");
+        expect(chosenDifficulty({ difficulty: "Hard" }, item)).toBe("Hard");
     });
 
     it("gives the default without a save or a choice", () => {
-        expect(chosenDifficulty(undefined, item)).toBe("medium");
-        expect(chosenDifficulty({}, item)).toBe("medium");
+        expect(chosenDifficulty(undefined, item)).toBe("Medium");
+        expect(chosenDifficulty({}, item)).toBe("Medium");
     });
 
     // Content can stop offering one after it was chosen, and a newer client may know ones this one doesn't.
     it("gives the default for a saved difficulty the item no longer offers", () => {
-        expect(chosenDifficulty({ difficulty: "story" }, item)).toBe("medium");
-        expect(chosenDifficulty({ difficulty: "nightmare" }, item)).toBe("medium");
+        expect(chosenDifficulty({ difficulty: "Story" }, item)).toBe("Medium");
+        expect(chosenDifficulty({ difficulty: "nightmare" }, item)).toBe("Medium");
     });
 });
 

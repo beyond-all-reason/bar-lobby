@@ -40,7 +40,7 @@ describe("loadSingleplayerContent", () => {
             expect(campaign.backgroundImageUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "background.png"))}`);
             expect(campaign.logoUrl).toBe(`bar://${encodeURIComponent(path.join(folder, "shared", "media", "sample-logo.png"))}`);
             expect(campaign.compatibility).toEqual(campaign.config.compatibility);
-            expect(campaign).toMatchObject({ difficulties: ["story", "easy", "medium", "hard"], defaultDifficulty: "medium" });
+            expect(campaign).toMatchObject({ difficulties: ["Story", "Easy", "Medium", "Hard"], defaultDifficulty: "Medium" });
             expect(campaign.missions.map((m) => m.id)).toEqual(["tutorial", "mission01", "mission02", "missionA", "missionB", "optionalMissionA", "optionalMissionB", "finalMission"]);
 
             const mission01 = campaign.missions[1];
@@ -60,7 +60,7 @@ describe("loadSingleplayerContent", () => {
 
             expect(scenario).toMatchObject({ kind: "scenario", source: "official", rootId: "official" });
             expect(scenario.compatibility).toHaveLength(2);
-            expect(scenario).toMatchObject({ difficulties: ["easy", "medium", "hard"], defaultDifficulty: "medium" });
+            expect(scenario).toMatchObject({ difficulties: ["Easy", "Medium", "Hard"], defaultDifficulty: "Medium" });
             expect(tutorial).toMatchObject({ kind: "tutorial", id: "sample-tutorial" });
         });
 
@@ -110,7 +110,7 @@ describe("loadSingleplayerContent", () => {
             ["scenarios/newer-format/manifest.json", /Requires a newer client: format version 99/],
             ["scenarios/no-compatibility/manifest.json", /compatibility is required/],
             ["scenarios/no-difficulties/manifest.json", /difficulties and defaultDifficulty are required/],
-            ["scenarios/bad-default-difficulty/manifest.json", /defaultDifficulty "story" is not one of difficulties \(easy, medium, hard\)/],
+            ["scenarios/bad-default-difficulty/manifest.json", /defaultDifficulty "Story" is not one of difficulties \(Easy, Medium, Hard\)/],
             ["scenarios/empty-compatibility/manifest.json", /\/compatibility must NOT have fewer than 1 items/],
             ["scenarios/engine-without-games/manifest.json", /\/compatibility\/0\/gameVersions must NOT have fewer than 1 items/],
             ["scenarios/duplicate-engine/manifest.json", /lists engine 2025.04.10 more than once/],
@@ -256,12 +256,12 @@ describe("loadSingleplayerContent", () => {
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
             const configPath = path.join(campaign, "campaignConfig.json");
             const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-            await fs.writeFile(configPath, JSON.stringify({ ...config, difficulties: ["easy", "medium"], defaultDifficulty: "hard" }));
+            await fs.writeFile(configPath, JSON.stringify({ ...config, difficulties: ["Easy", "Medium"], defaultDifficulty: "Hard" }));
 
             const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
 
             expect(content.campaigns).toEqual([]);
-            expect(content.problems).toEqual([{ path: configPath, severity: "error", message: 'defaultDifficulty "hard" is not one of difficulties (easy, medium)' }]);
+            expect(content.problems).toEqual([{ path: configPath, severity: "error", message: 'defaultDifficulty "Hard" is not one of difficulties (Easy, Medium)' }]);
         });
 
         it("warns that a campaign mission's own difficulties are ignored", async () => {
@@ -269,7 +269,7 @@ describe("loadSingleplayerContent", () => {
             await fs.cp(path.join(official.path, "campaigns", "sample-campaign"), campaign, { recursive: true });
             const manifestPath = path.join(campaign, "mission01", "manifest.json");
             const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, difficulties: ["hard"], defaultDifficulty: "hard" }));
+            await fs.writeFile(manifestPath, JSON.stringify({ ...manifest, difficulties: ["Hard"], defaultDifficulty: "Hard" }));
 
             const content = await loadSingleplayerContent([{ source: "custom", rootId: "custom", path: root }]);
 
@@ -505,13 +505,24 @@ describe("loadSingleplayerContent", () => {
         });
 
         // Until missions launch, an item without an archive loads; see the TODO in mission-archive.ts.
-        it("doesn't look for the archive outside games/", async () => {
-            await fs.rename(archive, path.join(root.path, "scenarios", "outpost-strike", "bar-scenario-outpost-strike.sdz"));
+        it("doesn't use an archive outside games/, and warns about one at the item's root", async () => {
+            const atRoot = path.join(root.path, "scenarios", "outpost-strike", "bar-scenario-outpost-strike.sdz");
+            await fs.rename(archive, atRoot);
 
             const content = await loadSingleplayerContent([root]);
 
-            expect(content.problems).toEqual([]);
+            expect(content.problems).toEqual([{ path: atRoot, severity: "warning", message: expect.stringContaining(`belongs at ${archive}`) }]);
             expect(content.scenarios.map((s) => [s.id, s.archivePath])).toEqual([["outpost-strike", undefined]]);
+        });
+
+        it("warns about any archive at the item's root, even beside the one in games/", async () => {
+            const stray = path.join(root.path, "scenarios", "outpost-strike", "old-build.SDZ");
+            await fs.copyFile(archive, stray);
+
+            const content = await loadSingleplayerContent([root]);
+
+            expect(content.problems).toEqual([{ path: stray, severity: "warning", message: expect.stringContaining(`belongs at ${archive}`) }]);
+            expect(content.scenarios.map((s) => [s.id, s.archivePath])).toEqual([["outpost-strike", archive]]);
         });
 
         it("leaves out an item whose archive cannot be opened", async () => {
@@ -550,7 +561,7 @@ describe("loadSingleplayerContent", () => {
                 modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"', depend: '{ "Beyond All Reason test-1-abc" }' }),
                 /depend names "Beyond All Reason test-1-abc", but none of the games in compatibility/,
             ],
-            ["depends on nothing", modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"' }), /depend names no game/],
+            ["depends on nothing", modinfo({ name: '"bar-scenario-outpost-strike"', version: '"1.0"' }), /has no depend/],
         ])("leaves out an item whose modinfo.lua %s", async (_, lua, message) => {
             await writeArchive(archive, { "modinfo.lua": lua, "scenarios/outpost-strike/mission.lua": "return {}" });
 
@@ -560,14 +571,27 @@ describe("loadSingleplayerContent", () => {
             expect(content.problems).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(message) }]);
         });
 
-        it("doesn't check depend for content still in development", async () => {
+        it("doesn't check depend against compatibility for content still in development", async () => {
             await setManifest({ compatibility: "dev" });
-            await writeArchive(archive, { "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"' }), "scenarios/outpost-strike/mission.lua": "return {}" });
+            await writeArchive(archive, {
+                "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"', depend: '{ "Beyond All Reason test-1-abc" }' }),
+                "scenarios/outpost-strike/mission.lua": "return {}",
+            });
 
             const content = await loadSingleplayerContent([root], { devContent: true });
 
             expect(content.problems.filter((problem) => problem.severity === "error")).toEqual([]);
             expect(content.scenarios.map((s) => s.archiveName)).toEqual(["bar-scenario-outpost-strike 2.0"]);
+        });
+
+        it("leaves out content still in development whose modinfo.lua depends on nothing", async () => {
+            await setManifest({ compatibility: "dev" });
+            await writeArchive(archive, { "modinfo.lua": modinfo({ name: '"bar-scenario-outpost-strike"', version: '"2.0"' }), "scenarios/outpost-strike/mission.lua": "return {}" });
+
+            const content = await loadSingleplayerContent([root], { devContent: true });
+
+            expect(content.scenarios).toEqual([]);
+            expect(content.problems.filter((problem) => problem.severity === "error")).toEqual([{ path: archive, severity: "error", message: expect.stringMatching(/has no depend/) }]);
         });
 
         // The campaign's folder is a data directory at launch, so the engine reads these folders as its own.

@@ -5,10 +5,11 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { ContentRef } from "@main/content/content-ref";
-import { InstallState, LaunchFailureError, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
+import { InstallState, LaunchFailureError, missionInputs, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
+import type { SingleplayerSave } from "@shared/content/save";
 import type { Compatibility } from "@shared/content/schema/common";
 import type { MissionConfig } from "@shared/content/schema/mission-config";
-import type { SingleplayerCampaign, SingleplayerMission, SingleplayerScenario } from "@shared/content/singleplayer";
+import type { ItemDifficulties, SingleplayerCampaign, SingleplayerMission, SingleplayerScenario } from "@shared/content/singleplayer";
 
 const ENGINE = "2026.07.04";
 const OTHER_ENGINE = "2025.04.10";
@@ -174,5 +175,41 @@ describe("planMissionLaunch", () => {
         it("refuses a map that is neither installed, shipped nor downloadable", () => {
             expect(refusal(() => planMissionLaunch({ item: scenario() }, steam({ maps: [] })))).toBe("map_unavailable");
         });
+    });
+});
+
+describe("missionInputs", () => {
+    const difficulties: ItemDifficulties = { difficulties: ["Easy", "Medium", "Hard"], defaultDifficulty: "Medium" };
+    const save = (fields: Partial<SingleplayerSave>) =>
+        ({ formatVersion: 1, item: { kind: "campaign", source: "custom", rootId: "custom", id: "sample" }, plays: {}, recent: [], ...fields }) as SingleplayerSave;
+    const campaignProgress = { unlocked: [], removed: [], prerequisitesMet: [], variables: { mission01_choice: "left", mission01_score: 1200 } };
+
+    it("gives a scenario the difficulty chosen, or its default, and no variables", () => {
+        const item = { ...scenario(), ...difficulties } as SingleplayerScenario;
+
+        expect(missionInputs({ item }, undefined)).toEqual({ difficulty: "Medium" });
+        expect(missionInputs({ item }, save({ difficulty: "Hard" }))).toEqual({ difficulty: "Hard" });
+    });
+
+    it("gives a campaign mission the campaign's difficulty and the variables its missions have reported", () => {
+        const owner = { ...campaign([mission("mission01")]), ...difficulties } as SingleplayerCampaign;
+
+        expect(missionInputs({ item: owner.missions[0], campaign: owner }, save({ difficulty: "Easy", campaign: campaignProgress }))).toEqual({
+            difficulty: "Easy",
+            variables: { mission01_choice: "left", mission01_score: 1200 },
+        });
+    });
+
+    it("leaves the variables out when the campaign has none", () => {
+        const owner = { ...campaign([mission("mission01")]), ...difficulties } as SingleplayerCampaign;
+
+        expect(missionInputs({ item: owner.missions[0], campaign: owner }, undefined)).toEqual({ difficulty: "Medium" });
+        expect(missionInputs({ item: owner.missions[0], campaign: owner }, save({ campaign: { ...campaignProgress, variables: {} } }))).toEqual({ difficulty: "Medium" });
+    });
+
+    it("plays at the default when the saved difficulty is no longer offered", () => {
+        const item = { ...scenario(), ...difficulties } as SingleplayerScenario;
+
+        expect(missionInputs({ item }, save({ difficulty: "Story" }))).toEqual({ difficulty: "Medium" });
     });
 });

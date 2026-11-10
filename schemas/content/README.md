@@ -167,13 +167,13 @@ A mission is played on the map its manifest names in `mapName`, by the name the 
 
 ## Difficulty
 
-The difficulties are the mission API's own set, from its `luarules/mission_api/difficulties.json`: `story`, `easy`, `medium` and `hard`. The client names them in the player's language and passes the chosen one to the mission by id. The mission decides what each one means.
+The difficulties are the mission API's own set, from its `luarules/mission_api/difficulties.json`: `Story`, `Easy`, `Medium` and `Hard`. The client names them in the player's language and passes the chosen one to the mission by id, as `difficulty` in its `missionoptions`. The mission decides what each one means.
 
 `campaignConfig.json` and each scenario's or tutorial's manifest list the difficulties they offer, at least one, and the one chosen until the player picks another:
 
 ```json
-"difficulties": ["easy", "medium", "hard"],
-"defaultDifficulty": "medium"
+"difficulties": ["Easy", "Medium", "Hard"],
+"defaultDifficulty": "Medium"
 ```
 
 The player chooses from the ones listed, which are shown easiest first whatever order they are listed in. A campaign's missions leave both out: the player chooses once for the whole campaign, and every mission is played at it. They can change it at any time, and the next mission is played at the new one.
@@ -250,7 +250,7 @@ Prefer the safe changes above, and keep version raises for changes you can't mak
 
 ### Variables in saved progress
 
-Missions can report variables when they end, won or lost. Each reported value replaces the one before, across the whole campaign, and every mission receives the current values when it launches. Only the current values are kept, not the values each result reported.
+Missions can report variables when they end, won or lost. Each reported value replaces the one before, across the whole campaign, and every mission receives the current values when it launches, as `variables` in its `missionoptions`. Only the current values are kept, not the values each result reported.
 
 Any mission can change any variable, so give each variable to one mission, for example by prefixing its name with the mission id, unless several missions are meant to share it. A replayable mission that sets a shared variable changes it for every mission played after it.
 

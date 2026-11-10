@@ -6,7 +6,7 @@ import path from "node:path";
 import { getContentRoots, SAVES_PATH } from "@main/config/app";
 import { getDefaultEngineVersion, getInstallDefaults } from "@main/config/install-defaults";
 import { contentAPI } from "@main/content/content-api";
-import { InstallState, LaunchFailureError, LaunchTarget, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
+import { InstallState, LaunchFailureError, LaunchTarget, missionInputs, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
 import { missionStartScript } from "@main/content/singleplayer/mission-script";
 import { gameAPI } from "@main/game/game";
 import * as saves from "@main/content/singleplayer/saves";
@@ -99,9 +99,7 @@ async function getSaves(): Promise<SingleplayerSaves> {
     return { saves: read.saves, unusable };
 }
 
-// Saved progress, for whatever reports a finished game and for launching a mission with its saved variables
-// and difficulty. A campaign's save is only usable while saveCompatibility with the campaign's saveVersion says
-// so: launching must check that, then pass on campaignVariables(save) and chosenDifficulty(save, item).
+// Saved progress, for whatever reports a finished game.
 function readSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
     return saves.readSave(SAVES_PATH, kind, ref);
 }
@@ -174,8 +172,20 @@ function installState(): InstallState {
     };
 }
 
-// Launches the item as main last scanned it, checking again what the renderer only showed: no result is read back
-// yet, so Pass and Fail still record one.
+// The save a launched mission's result would go in, refused now if it couldn't take one.
+async function saveForLaunch(kind: SingleplayerKind, ref: SingleplayerItemRef, saveVersion: number | undefined) {
+    try {
+        return await saves.readUsableSave(SAVES_PATH, kind, ref, saveVersion);
+    } catch (err) {
+        if (err instanceof SaveFailureError && (err.reason === "save_unusable" || err.reason === "save_version_older" || err.reason === "save_version_newer")) {
+            throw new LaunchFailureError(err.reason, err.message);
+        }
+        throw err;
+    }
+}
+
+// Launches the item as main last scanned it, checking again what the renderer only showed, with the difficulty
+// and campaign variables from its save. No result is read back yet, so Pass and Fail still record one.
 async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionId: string | undefined, playerName: string) {
     if (!(KINDS as readonly string[]).includes(kind)) {
         throw new LaunchFailureError("unknown_item", `Unknown singleplayer kind ${JSON.stringify(kind)}`);
@@ -193,9 +203,11 @@ async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionI
     }
 
     const plan = planMissionLaunch(target, installState());
-    const script = await missionStartScript({ archiveName: plan.archiveName, mapName: plan.mapName, config: plan.config, entryPoint: plan.entryPoint, playerName });
+    const save = await saveForLaunch(kind, ref, target.campaign?.config.saveVersion);
+    const inputs = missionInputs(target, save);
+    const script = await missionStartScript({ archiveName: plan.archiveName, mapName: plan.mapName, config: plan.config, entryPoint: plan.entryPoint, inputs, playerName });
     log.info(
-        `Launching ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} as ${plan.archiveName} on engine ${plan.engineVersion} with ${plan.gameVersion}, data directories ${plan.dataDirs.join(", ")}`
+        `Launching ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} as ${plan.archiveName} on engine ${plan.engineVersion} with ${plan.gameVersion} at difficulty ${inputs.difficulty}, data directories ${plan.dataDirs.join(", ")}`
     );
     await gameAPI.launchMission({ engineVersion: plan.engineVersion, gameVersion: plan.gameVersion, mapSpringName: plan.mapToEnsure, script, dataDirs: plan.dataDirs });
 }

@@ -115,6 +115,37 @@ export async function readSave(dir: string, kind: SingleplayerKind, ref: Singlep
     return "save" in read ? read.save : undefined;
 }
 
+// The save at filePath, or undefined if there is none. Throws if it can't take a result: it can't be read, or
+// was started under another save version of the content.
+async function usableSave(filePath: string, saveVersion: number): Promise<SingleplayerSave | undefined> {
+    const read = await readSaveFile(filePath);
+    if ("problem" in read) {
+        throw new SaveFailureError("save_unusable", `${filePath}: ${read.problem}. Delete the save to start over.`);
+    }
+    if (!("save" in read)) {
+        return undefined;
+    }
+    const compatibility = saveCompatibility(read.save, saveVersion);
+    if (compatibility !== "compatible") {
+        throw compatibility === "older"
+            ? new SaveFailureError(
+                  "save_version_older",
+                  `${filePath}: Started under save version ${read.save.saveVersion ?? 1} of this content, which is now at ${saveVersion}. Start over to play it.`
+              )
+            : new SaveFailureError("save_version_newer", `${filePath}: Started under save version ${read.save.saveVersion ?? 1} of this content, newer than the ${saveVersion} installed.`);
+    }
+
+    return read.save;
+}
+
+/**
+ * One item's save, or undefined if it has never been played, checked as a result would be. Throws a
+ * SaveFailureError if the save couldn't take one, so a mission isn't played only for its result to be refused.
+ */
+export async function readUsableSave(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, saveVersion = 1): Promise<SingleplayerSave | undefined> {
+    return usableSave(path.join(dir, saveFileName(kind, ref)), saveVersion);
+}
+
 // Changes to one file run one after another, so two results recorded close together both land, in order.
 const queues = new Map<string, Promise<unknown>>();
 
@@ -157,20 +188,13 @@ async function changeSave(dir: string, kind: SingleplayerKind, ref: Singleplayer
     const filePath = path.join(dir, saveFileName(kind, ref));
 
     return queued(filePath, async () => {
-        const read = await readSaveFile(filePath);
-        if ("problem" in read) {
-            throw new SaveFailureError("save_unusable", `${filePath}: ${read.problem}. Delete the save to start over.`);
-        }
-
-        const save: SingleplayerSave =
-            "save" in read ? read.save : { formatVersion: SAVE_FORMAT_VERSION, saveVersion, item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id }, plays: {}, recent: [] };
-        const compatibility = saveCompatibility(save, saveVersion);
-        if (compatibility !== "compatible") {
-            throw compatibility === "older"
-                ? new SaveFailureError("save_version_older", `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, which is now at ${saveVersion}. Start over to play it.`)
-                : new SaveFailureError("save_version_newer", `${filePath}: Started under save version ${save.saveVersion ?? 1} of this content, newer than the ${saveVersion} installed.`);
-        }
-
+        const save = (await usableSave(filePath, saveVersion)) ?? {
+            formatVersion: SAVE_FORMAT_VERSION,
+            saveVersion,
+            item: { kind, source: ref.source, rootId: ref.rootId, id: ref.id },
+            plays: {},
+            recent: [],
+        };
         const updated = change(save);
         await writeSave(filePath, updated);
 

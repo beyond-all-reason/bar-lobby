@@ -45,8 +45,8 @@ function scenario(mapName: string, { compatibility = PLAYS_HERE, maps = [] as st
         source: "official",
         rootId: "official",
         compatibility,
-        difficulties: ["story"],
-        defaultDifficulty: "story",
+        difficulties: ["Story"],
+        defaultDifficulty: "Story",
         archivePath: withoutArchive ? undefined : "games/bar-scenario-river-crossing.sdz",
     } as unknown as SingleplayerScenario;
 }

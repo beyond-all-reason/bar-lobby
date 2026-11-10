@@ -25,6 +25,9 @@
                     "noArchive": "Tihs ctnnoet has no mosiisn avchire, so it can't be luhcaend.",
                     "noEngineAndGame": "Tihs ilantsl has no egnnie and gmae tihs ctnnoet can run on.",
                     "mapUnavailable": "Tihs ctnnoet's map is not inaellstd.",
+                    "saveUnusable": "Your seavd prsgeros can't be raed, so tihs mosiisn wasn't luhcaend. Deetle the save to strat oevr.",
+                    "saveVersionOlder": "Tihs mosiisn wasn't luhcaend: your seavd prsgeros is form an older veoirsn of tihs ctnnoet. Strat oevr to paly it.",
+                    "saveVersionNewer": "Tihs mosiisn wasn't luhcaend: your seavd prsgeros is form a nweer veoirsn of tihs ctnnoet. Uadpte it to cotiunne, or detele your save to paly the inaellstd veoirsn.",
                     "launchFailed": "The mosiisn coludn't be luhcaend. The log has the daleits."
                 },
                 "savesLoadFailures": {

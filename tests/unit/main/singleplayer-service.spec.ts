@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { decodeModoptionValue } from "@shared/startbox-modoptions";
 
 const paths = vi.hoisted(() => ({ saves: "", roots: [] as { source: "custom"; rootId: string; path: string }[] }));
 // What a Steam install with the outpost-strike example's engine, game and map would offer.
@@ -119,15 +120,15 @@ describe("singleplayer IPC handlers", () => {
     const setDifficultyOverIpc = (kind: string, id: string, difficulty: string) => ipc.handlers.get("singleplayer:setDifficulty")!({}, kind, "custom", "custom", id, difficulty);
 
     it("saves a difficulty the item offers", async () => {
-        expect(await setDifficultyOverIpc("campaign", "sample-campaign", "story")).toMatchObject({ status: "success", data: { difficulty: "story" } });
+        expect(await setDifficultyOverIpc("campaign", "sample-campaign", "Story")).toMatchObject({ status: "success", data: { difficulty: "Story" } });
     });
 
-    // The combat tutorial offers easy, medium and hard only.
+    // The combat tutorial offers Easy, Medium and Hard only.
     it("refuses a difficulty the item doesn't offer, and saves nothing", async () => {
-        expect(await setDifficultyOverIpc("tutorial", "combat", "story")).toEqual({
+        expect(await setDifficultyOverIpc("tutorial", "combat", "Story")).toEqual({
             status: "failed",
             reason: "invalid_difficulty",
-            details: expect.stringMatching(/does not offer difficulty "story"/),
+            details: expect.stringMatching(/does not offer difficulty "Story"/),
         });
         expect(await singleplayerService.readSave("tutorial", custom("combat"))).toBeUndefined();
     });
@@ -169,6 +170,44 @@ describe("singleplayer IPC handlers", () => {
                 reason: "unknown_item",
                 details: expect.stringMatching(/mission no-such-mission/),
             });
+        });
+
+        const outpostStrike = { source: "custom" as const, rootId: "sdz", id: "outpost-strike" };
+        const launchedOptions = () => {
+            const calls = launching.launchMission.mock.calls as unknown as [{ script: string }][];
+            return decodeModoptionValue(/missionoptions=([^;]*);/.exec(calls.at(-1)![0].script)?.[1]);
+        };
+        const writeSave = async (text: string) => {
+            const { saveFileName } = await import("@main/content/singleplayer/saves");
+            await fs.writeFile(path.join(paths.saves, saveFileName("scenario", outpostStrike)), text);
+        };
+
+        // outpost-strike offers every difficulty, with Story as its default.
+        it("launches at the scenario's default difficulty until the player chooses one", async () => {
+            expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toMatchObject({ status: "success" });
+            expect(await launchedOptions()).toEqual({ entryPoint: "scenarios/outpost-strike/mission.lua", difficulty: "Story" });
+
+            await ipc.handlers.get("singleplayer:setDifficulty")!({}, "scenario", "custom", "sdz", "outpost-strike", "Hard");
+            expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toMatchObject({ status: "success" });
+            expect(await launchedOptions()).toEqual({ entryPoint: "scenarios/outpost-strike/mission.lua", difficulty: "Hard" });
+        });
+
+        it("refuses to launch when the save couldn't take the result, so the mission isn't played for nothing", async () => {
+            launching.launchMission.mockClear();
+            try {
+                await writeSave("{ not json");
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toMatchObject({ status: "failed", reason: "save_unusable" });
+
+                await writeSave(JSON.stringify({ formatVersion: 1, saveVersion: 2, item: { kind: "scenario", ...outpostStrike }, plays: {}, recent: [] }));
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toEqual({
+                    status: "failed",
+                    reason: "save_version_newer",
+                    details: expect.stringMatching(/save version 2 of this content, newer than the 1 installed/),
+                });
+                expect(launching.launchMission).not.toHaveBeenCalled();
+            } finally {
+                await ipc.handlers.get("singleplayer:deleteSave")!({}, "scenario", "custom", "sdz", "outpost-strike");
+            }
         });
 
         it("refuses when the install lacks the game the archive depends on", async () => {

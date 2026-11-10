@@ -36,8 +36,9 @@ export type ContentProblem = { path: string; severity: "error" | "warning"; mess
 // behind it goes to main's log. Nothing it reads can refuse a load, so the only code is for anything unexpected.
 export type SingleplayerLoadFailure = "load_failed";
 
-// Why main didn't launch a mission, as a code the renderer words.
-export type SingleplayerLaunchFailure = "unknown_item" | "no_archive" | "no_engine_and_game" | "map_unavailable" | "launch_failed";
+// Why main didn't launch a mission, as a code the renderer words. The save_ codes are a save that couldn't take
+// the mission's result, as SaveFailure has them.
+export type SingleplayerLaunchFailure = "unknown_item" | "no_archive" | "no_engine_and_game" | "map_unavailable" | "save_unusable" | "save_version_older" | "save_version_newer" | "launch_failed";
 
 export type MissionConfigs = {
     default: MissionConfig;

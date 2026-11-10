@@ -118,12 +118,12 @@
             "type": "array",
             "items": {
                 "title": "Difficulty",
-                "description": "One of the mission API's difficulties: story, easy, medium, hard.",
+                "description": "One of the mission API's difficulties: Story, Easy, Medium, Hard.",
                 "anyOf": [
-                    { "const": "story", "type": "string" },
-                    { "const": "easy", "type": "string" },
-                    { "const": "medium", "type": "string" },
-                    { "const": "hard", "type": "string" }
+                    { "const": "Story", "type": "string" },
+                    { "const": "Easy", "type": "string" },
+                    { "const": "Medium", "type": "string" },
+                    { "const": "Hard", "type": "string" }
                 ]
             }
         },
@@ -131,10 +131,10 @@
             "title": "Default difficulty",
             "description": "The difficulty chosen until the player picks another. Must be one of `difficulties`. Required for a scenario or tutorial. A campaign mission leaves it out and uses the campaign's.",
             "anyOf": [
-                { "const": "story", "type": "string" },
-                { "const": "easy", "type": "string" },
-                { "const": "medium", "type": "string" },
-                { "const": "hard", "type": "string" }
+                { "const": "Story", "type": "string" },
+                { "const": "Easy", "type": "string" },
+                { "const": "Medium", "type": "string" },
+                { "const": "Hard", "type": "string" }
             ]
         }
     },

@@ -1882,6 +1882,9 @@
                     "noArchive": null,
                     "noEngineAndGame": null,
                     "mapUnavailable": null,
+                    "saveUnusable": null,
+                    "saveVersionOlder": null,
+                    "saveVersionNewer": null,
                     "launchFailed": null
                 },
                 "savesLoadFailures": {

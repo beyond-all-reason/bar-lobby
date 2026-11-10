@@ -99,7 +99,7 @@ export type ItemCompatibility = Static<typeof ItemCompatibility>;
 
 // The difficulties the mission API defines, in its luarules/mission_api/difficulties.json, easiest first.
 // The client passes the chosen one to the mission by id, and the mission decides what it means.
-export const DIFFICULTIES = ["story", "easy", "medium", "hard"] as const;
+export const DIFFICULTIES = ["Story", "Easy", "Medium", "Hard"] as const;
 
 export const Difficulty = Type.Union(
     DIFFICULTIES.map((id) => Type.Literal(id)),

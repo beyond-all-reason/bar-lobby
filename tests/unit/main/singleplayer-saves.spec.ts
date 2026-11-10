@@ -163,20 +163,20 @@ describe("singleplayer saves", () => {
 
     describe("difficulty", () => {
         it("creates the save when chosen before the first result", async () => {
-            const save = await setDifficulty(dir, "scenario", official, "hard");
+            const save = await setDifficulty(dir, "scenario", official, "Hard");
 
-            expect(save).toMatchObject({ formatVersion: 1, saveVersion: 1, item: { kind: "scenario", ...official }, plays: {}, recent: [], difficulty: "hard" });
+            expect(save).toMatchObject({ formatVersion: 1, saveVersion: 1, item: { kind: "scenario", ...official }, plays: {}, recent: [], difficulty: "Hard" });
             expect(await readSave(dir, "scenario", official)).toEqual(save);
         });
 
         it("replaces the choice, and keeps it and the progress through results", async () => {
             await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
-            await setDifficulty(dir, "campaign", official, "easy");
-            await setDifficulty(dir, "campaign", official, "story");
+            await setDifficulty(dir, "campaign", official, "Easy");
+            await setDifficulty(dir, "campaign", official, "Story");
             await recordResult(dir, "campaign", official, { missionId: "mission02", outcome: "failure" });
 
             expect(await readSave(dir, "campaign", official)).toMatchObject({
-                difficulty: "story",
+                difficulty: "Story",
                 plays: { mission01: { victories: 1, failures: 0 }, mission02: { victories: 0, failures: 1 } },
             });
         });
@@ -186,8 +186,8 @@ describe("singleplayer saves", () => {
             const file = fileOf(saveFileName("campaign", official));
             const before = await fs.readFile(file, "utf8");
 
-            await expect(setDifficulty(dir, "campaign", official, "hard", 3)).rejects.toThrow(expect.objectContaining({ reason: "save_version_older" }));
-            await expect(setDifficulty(dir, "campaign", official, "hard", 1)).rejects.toThrow(expect.objectContaining({ reason: "save_version_newer" }));
+            await expect(setDifficulty(dir, "campaign", official, "Hard", 3)).rejects.toThrow(expect.objectContaining({ reason: "save_version_older" }));
+            await expect(setDifficulty(dir, "campaign", official, "Hard", 1)).rejects.toThrow(expect.objectContaining({ reason: "save_version_newer" }));
 
             expect(await fs.readFile(file, "utf8")).toBe(before);
         });
@@ -197,7 +197,7 @@ describe("singleplayer saves", () => {
             await fs.mkdir(dir, { recursive: true });
             await fs.writeFile(file, "{ half");
 
-            await expect(setDifficulty(dir, "scenario", official, "hard")).rejects.toThrow(expect.objectContaining({ reason: "save_unusable" }));
+            await expect(setDifficulty(dir, "scenario", official, "Hard")).rejects.toThrow(expect.objectContaining({ reason: "save_unusable" }));
             expect(await fs.readFile(file, "utf8")).toBe("{ half");
         });
 
