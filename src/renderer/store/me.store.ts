@@ -16,6 +16,7 @@ import {
 } from "tachyon-protocol/types";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onTachyonConnected } from "@renderer/utils/connection-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
 import { battleHistoryActions } from "@renderer/store/battleHistory.store";
@@ -220,7 +221,7 @@ export async function initMeStore() {
         return;
     }
     onWentOffline.add(clearOnlineState);
-    window.tachyon.onConnected(() => {
+    onTachyonConnected.add(() => {
         // Subscriptions don't survive the socket, so rebuild them from the server's friend list
         // rather than trusting what subsManager held before the drop.
         if (connectionStore.isAuthenticated) {

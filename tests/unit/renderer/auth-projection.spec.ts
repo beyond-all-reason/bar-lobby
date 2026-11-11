@@ -238,3 +238,55 @@ describe("failure text the sign-in screen shows", () => {
         await expect(connectionLogic.logout()).rejects.toBe(fromMain);
     });
 });
+
+describe("startup connection", () => {
+    it("fetches the friend list once for a restored session", async () => {
+        const connected: Array<() => void> = [];
+        const session = { authenticated: false };
+        windowAuth.hasCredentials.mockResolvedValue(true);
+        windowAuth.getState.mockImplementation(async () => ({ authenticated: session.authenticated }));
+        windowAuth.login.mockImplementation(async () => void (session.authenticated = true));
+        Object.assign(window.tachyon, {
+            onConnected: vi.fn((handler: () => void) => void connected.push(handler)),
+            connect: vi.fn(async () => connected.forEach((handler) => handler())),
+        });
+        const { start } = await loadStores();
+
+        await start();
+
+        const friendListRequests = vi.mocked(window.tachyon.requestStructured).mock.calls.filter(([commandId]) => commandId === "friend/list");
+        expect(friendListRequests).toHaveLength(1);
+    });
+
+    // A renderer reload leaves main's socket open, and connecting to it again sends no connected event.
+    it("fetches the friend list when the socket was already open", async () => {
+        windowAuth.hasCredentials.mockResolvedValue(true);
+        windowAuth.getState.mockResolvedValue({ authenticated: true });
+        vi.mocked(window.tachyon.isConnected).mockResolvedValue(true);
+        const { connectionStore, start } = await loadStores();
+
+        await start();
+
+        const friendListRequests = vi.mocked(window.tachyon.requestStructured).mock.calls.filter(([commandId]) => commandId === "friend/list");
+        expect(friendListRequests).toHaveLength(1);
+        expect(connectionStore.wantsConnection).toBe(true);
+    });
+
+    it("keeps a connection that opens while startup is still asking", async () => {
+        const connected: Array<() => void> = [];
+        let answer: (connected: boolean) => void = () => {};
+        Object.assign(window.tachyon, {
+            onConnected: vi.fn((handler: () => void) => void connected.push(handler)),
+            isConnected: vi.fn(() => new Promise<boolean>((resolve) => (answer = resolve))),
+        });
+        const { connectionStore, start } = await loadStores();
+
+        const starting = start();
+        await vi.waitFor(() => expect(connected).toHaveLength(1));
+        connected.forEach((handler) => handler());
+        answer(false);
+        await starting;
+
+        expect(connectionStore.isConnected).toBe(true);
+    });
+});
