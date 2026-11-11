@@ -10,5 +10,6 @@ export const authApi = {
     logout: () => window.auth.logout(),
     hasCredentials: () => window.auth.hasCredentials(),
     getState: () => window.auth.getState(),
+    getIdentity: () => window.auth.getIdentity(),
     onChanged: (handler: Parameters<AuthApi["onChanged"]>[0]) => window.auth.onChanged(handler),
 };

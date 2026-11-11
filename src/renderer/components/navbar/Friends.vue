@@ -103,7 +103,8 @@ import Button from "@renderer/components/controls/Button.vue";
 import Number from "@renderer/components/controls/Number.vue";
 import Friend from "@renderer/components/navbar/Friend.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
-import { me, friends } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
+import { friendsLogic } from "@renderer/logic/me";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonError, isTachyonErrorForCommand } from "@renderer/api/tachyon";
@@ -192,7 +193,7 @@ async function addFriend() {
     addFriendDisabled.value = true;
 
     try {
-        await friends.sendRequest(userIdToAdd);
+        await friendsLogic.sendRequest(userIdToAdd);
     } catch (error) {
         if (!isTachyonError(error)) {
             console.error("Failed to send friend request:", error);

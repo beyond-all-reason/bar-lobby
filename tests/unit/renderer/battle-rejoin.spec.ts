@@ -18,14 +18,14 @@ Object.assign(window.tachyon, {
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
-const { me } = await import("@renderer/store/me.store");
+const { meActions } = await import("@renderer/store/me.store");
 const { tachyonStore } = await import("@renderer/store/tachyon.store");
 
 const emit = (command: string, data: unknown) => handlers.get(command)?.(data);
 
 describe("battle rejoin state", () => {
     beforeAll(async () => {
-        me.userId = "1";
+        meActions.assign({ userId: "1" });
         await initLobbyStore();
     });
 

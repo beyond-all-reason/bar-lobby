@@ -19,7 +19,7 @@ Object.assign(window.tachyon, {
 Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
-const { me } = await import("@renderer/store/me.store");
+const { meActions } = await import("@renderer/store/me.store");
 
 const emit = (command: string, data: unknown) => handlers.get(command)?.(data);
 
@@ -46,7 +46,7 @@ async function joinLobbyWithVote(currentVote: Vote | undefined) {
 
 describe("lobby vote updates", () => {
     beforeAll(async () => {
-        me.userId = "1";
+        meActions.assign({ userId: "1" });
         await initLobbyStore();
     });
 
