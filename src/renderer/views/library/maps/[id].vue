@@ -102,7 +102,9 @@ SPDX-License-Identifier: MIT
 import Button from "@renderer/components/controls/Button.vue";
 import { db } from "@renderer/store/db";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { notificationsApi } from "@renderer/api/notifications";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
@@ -128,6 +130,12 @@ const { id } = defineProps<{
 }>();
 
 const map = useDexieLiveQueryWithDeps([() => id], () => db.maps.get(id));
+
+onMounted(async () => {
+    if (await db.maps.get(id)) return;
+    notificationsApi.alert({ text: t("lobby.library.maps.notFound", { name: id }), severity: "warning" });
+    await router.replace("/library/maps/maps");
+});
 
 async function play() {
     battleActions.resetToDefaultBattle(enginesStore.selectedEngineVersion, gameStore.selectedGameVersion, map.value);

@@ -183,7 +183,8 @@
                 "removeFromFavorites": "Rmvoee form frteoiavs",
                 "play": "Paly",
                 "downloading": "Doanondlwig...",
-                "download": "Dlawonod map"
+                "download": "Dlawonod map",
+                "notFound": "Map \"{name}\" was not fnuod"
             }
         },
         "multiplayer": {

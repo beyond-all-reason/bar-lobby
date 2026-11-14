@@ -333,3 +333,15 @@ const notificationsApi = {
 };
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);
+
+import { buildLobbyShareableUrl, LOBBY_PROTOCOL_SCHEME, type LobbyProtocolParams } from "@main/lobbyProtocol/scheme";
+
+const lobbyProtocolApi = {
+    scheme: LOBBY_PROTOCOL_SCHEME,
+    getLabels: (): Promise<Record<string, string>> => ipcRenderer.invoke("lobbyProtocol:getLabels"),
+    handlePending: (): Promise<void> => ipcRenderer.invoke("lobbyProtocol:handlePending"),
+    handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("lobbyProtocol:handleUrl", url),
+    getShareableUrl: (handler: string, action: string, params?: LobbyProtocolParams): string => buildLobbyShareableUrl(handler, action, params).href,
+};
+export type LobbyProtocolApi = typeof lobbyProtocolApi;
+contextBridge.exposeInMainWorld("lobbyProtocol", lobbyProtocolApi);

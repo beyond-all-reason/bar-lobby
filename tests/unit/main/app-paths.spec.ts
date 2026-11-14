@@ -28,6 +28,7 @@ async function loadPaths(options: { edition: Edition; platform: NodeJS.Platform;
             isPackaged: options.isPackaged ?? true,
             getPath: (name: string) => (name === "exe" ? exePath : ""),
             setPath: vi.fn(),
+            getAppPath: () => process.cwd(),
         },
     }));
     vi.doMock("@main/config/edition", () => ({ EDITION: options.edition, EDITION_FEATURES: editionFeatures(options.edition) }));

@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
                         <span class="user-name">
                             {{ displayNames?.get(message.source.userId) ?? message.source.userId }}
                         </span>
-                        <Markdown :source="message.message" />
+                        <Markdown :source="message.message" :allow-protocol-links="props.type === 'player'" />
                     </div>
                 </div>
             </div>

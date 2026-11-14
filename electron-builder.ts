@@ -28,6 +28,7 @@ const config: Configuration = {
     },
 
     publish: { provider: "github" },
+    protocols: [{ name: "barrts", schemes: ["barrts"] }],
     fileAssociations: [
         {
             ext: "barreplay",

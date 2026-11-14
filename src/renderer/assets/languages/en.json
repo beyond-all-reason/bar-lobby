@@ -2014,7 +2014,8 @@
                 "removeFromFavorites": "Remove from favorites",
                 "play": "Play",
                 "downloading": "Downloading...",
-                "download": "Download map"
+                "download": "Download map",
+                "notFound": "Map \"{name}\" was not found"
             }
         },
         "multiplayer": {

@@ -16,6 +16,18 @@ import type { ContentRoot } from "@shared/content/singleplayer";
 // and in workaround in installer.nsh.
 export const APP_NAME = "BeyondAllReason";
 
+function getLinuxXdgStateHome(): string {
+    return process.env.XDG_STATE_HOME || path.join(homedir(), ".local", "state");
+}
+
+function getLinuxXdgDataHome(): string {
+    return process.env.XDG_DATA_HOME || path.join(homedir(), ".local", "share");
+}
+
+export function getLinuxApplicationsDir(): string {
+    return path.join(getLinuxXdgDataHome(), "applications");
+}
+
 /**
  * The function returns default base directories for the application data.
  *
@@ -63,8 +75,8 @@ function getDefaultLocations(): { state: string; assets: string } {
     // in the system.
     if (!app.isPackaged) {
         return {
-            assets: path.join(process.cwd(), "assets"),
-            state: path.join(process.cwd(), "state"),
+            assets: path.join(app.getAppPath(), "assets"),
+            state: path.join(app.getAppPath(), "state"),
         };
     }
     if (process.platform === "win32") {
@@ -79,13 +91,11 @@ function getDefaultLocations(): { state: string; assets: string } {
             state: path.join(appData, APP_NAME),
         };
     }
-    const xdgStateHome = process.env.XDG_STATE_HOME || path.join(homedir(), ".local/state");
-    const xdgDataHome = process.env.XDG_DATA_HOME || path.join(homedir(), ".local/share");
     return {
         // The `assets` prefix isn't really needed under Linux, but we add
         // it for consistency.
-        assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(xdgDataHome, APP_NAME, "assets"),
-        state: path.join(xdgStateHome, APP_NAME),
+        assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(getLinuxXdgDataHome(), APP_NAME, "assets"),
+        state: path.join(getLinuxXdgStateHome(), APP_NAME),
     };
 }
 
