@@ -4,7 +4,7 @@
 
 import path from "node:path";
 import { getContentRoots, SAVES_PATH } from "@main/config/app";
-import { getDefaultEngineVersion, getInstallDefaults } from "@main/config/install-defaults";
+import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { contentAPI } from "@main/content/content-api";
 import { InstallState, LaunchFailureError, LaunchTarget, missionInputs, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
 import { missionStartScript } from "@main/content/singleplayer/mission-script";
@@ -167,7 +167,6 @@ function installState(): InstallState {
         canAcquire: (ref) => contentAPI.canAcquire(ref),
         installedEngines: contentAPI.installed("engine").map((ref) => ref.id),
         installedGames: contentAPI.installed("game").map((ref) => ref.id),
-        installDefaults: getInstallDefaults(),
         defaultEngine: getDefaultEngineVersion(),
     };
 }

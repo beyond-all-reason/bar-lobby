@@ -93,19 +93,20 @@ describe("a scenario's or tutorial's map", () => {
 });
 
 describe("an item's engine and game", () => {
-    it("must include the install's default pair when it names one", () => {
+    it("must include an installed engine with an installed game", () => {
         expect(singleplayerLogic.itemUnplayable(scenario(INSTALLED_MAP, { compatibility: PLAYS_ELSEWHERE }))).toEqual({ compatibility: `engine ${ENGINE} with game ${OTHER_GAME}` });
     });
 
-    // Without both defaults, any installed engine with any installed game will do.
-    it("may use any installed engine and game when the install names no default pair", () => {
-        asEdition("steam", { engine: ENGINE });
+    // The install's default pair is only what skirmish uses.
+    it("may use any installed engine and game, not only the install's default pair", () => {
+        enginesStore.availableEngineVersions = [{ id: ENGINE, installed: true } as EngineVersion, { id: "2025.06.01", installed: true } as EngineVersion];
         gameStore.availableGameVersions = new Map([
             [GAME, {} as GameVersion],
             [OTHER_GAME, {} as GameVersion],
         ]);
 
         expect(singleplayerLogic.itemUnplayable(scenario(INSTALLED_MAP, { compatibility: PLAYS_ELSEWHERE }))).toBeUndefined();
+        expect(singleplayerLogic.itemUnplayable(scenario(INSTALLED_MAP, { compatibility: [{ engineVersion: "2025.06.01", gameVersions: [GAME] }] }))).toBeUndefined();
         expect(singleplayerLogic.itemUnplayable(scenario(INSTALLED_MAP, { compatibility: [{ engineVersion: "2099.01.01", gameVersions: [GAME] }] }))).toEqual({
             compatibility: `engine 2099.01.01 with game ${GAME}`,
         });

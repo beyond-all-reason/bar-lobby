@@ -20,13 +20,7 @@ const DEFAULT_CONFIG = { alliances: { players: ["player"] }, playerTeam: ["playe
 const ONE_PLAYER_CONFIG = { alliances: { solo: ["player"] }, playerTeam: ["player"] } as MissionConfig;
 
 // What each kind of install offers.
-function install({
-    downloads = false,
-    defaults = {},
-    engines = [ENGINE],
-    games = [GAME],
-    maps = [MAP],
-}: Partial<{ downloads: boolean; defaults: InstallState["installDefaults"]; engines: string[]; games: string[]; maps: string[] }> = {}): InstallState {
+function install({ downloads = false, engines = [ENGINE], games = [GAME], maps = [MAP] }: Partial<{ downloads: boolean; engines: string[]; games: string[]; maps: string[] }> = {}): InstallState {
     const present = { engine: engines, game: games, map: maps };
 
     return {
@@ -34,7 +28,6 @@ function install({
         canAcquire: () => downloads,
         installedEngines: engines,
         installedGames: games,
-        installDefaults: defaults,
         defaultEngine: ENGINE,
     };
 }
@@ -120,20 +113,16 @@ describe("planMissionLaunch", () => {
     });
 
     describe("the engine and game", () => {
-        it("are the install's own pair when it names both", () => {
-            const plan = planMissionLaunch({ item: scenario() }, steam({ defaults: { engine: ENGINE, game: GAME }, engines: [ENGINE, OTHER_ENGINE] }));
-
-            expect([plan.engineVersion, plan.gameVersion]).toEqual([ENGINE, GAME]);
-        });
-
-        it("are refused when the item doesn't accept the install's own pair", () => {
-            expect(refusal(() => planMissionLaunch({ item: scenario() }, steam({ defaults: { engine: OTHER_ENGINE, game: GAME } })))).toBe("no_engine_and_game");
-        });
-
-        it("may be any installed engine with any installed game when the install names no pair", () => {
+        it("may be any installed engine with any installed game", () => {
             const item = scenario({ compatibility: [{ engineVersion: OTHER_ENGINE, gameVersions: [GAME] }] });
 
             expect(planMissionLaunch({ item }, steam({ engines: [ENGINE, OTHER_ENGINE] })).engineVersion).toBe(OTHER_ENGINE);
+        });
+
+        it("are refused when the item accepts no installed engine with an installed game", () => {
+            const item = scenario({ compatibility: [{ engineVersion: OTHER_ENGINE, gameVersions: [GAME] }] });
+
+            expect(refusal(() => planMissionLaunch({ item }, steam()))).toBe("no_engine_and_game");
         });
 
         // The engine loads the archive's dependency, so the game must be the one it depends on.

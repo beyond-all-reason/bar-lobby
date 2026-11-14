@@ -340,13 +340,10 @@ async function deleteAllSaves(): Promise<TranslationKey | undefined> {
 export type UnplayableReason = { map: string } | { compatibility: string } | { noArchive: true } | { startMissions: true };
 
 // The engine and game pairs this install can play, or undefined where it can download any engine and game.
+// Any installed engine with any installed game: the install's default pair is only what skirmish uses.
 function availablePairs(): Compatibility | undefined {
     if (editionLogic.canAcquire("engine") && editionLogic.canAcquire("game")) {
         return undefined;
-    }
-    const { engine, game } = infosStore.installDefaults ?? {};
-    if (engine && game) {
-        return [{ engineVersion: engine, gameVersions: [game] }];
     }
     const games = [...gameStore.availableGameVersions.keys()];
 
