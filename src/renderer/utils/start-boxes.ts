@@ -28,7 +28,6 @@
  *    - Values are in [0, 1] as a percentage from the top left
  */
 
-import { StartBoxPoly } from "@main/content/maps/map-metadata";
 import { StartBoxOrientation } from "@main/game/battle/battle-types";
 import type { StartBox } from "tachyon-protocol/types";
 
@@ -57,40 +56,4 @@ export function getBoxes(orientation: StartBoxOrientation, percent = 30): StartB
                 { left: sizeInverse, top: sizeInverse, right: 1, bottom: 1 },
             ];
     }
-}
-
-/**
- * Converts a startbox poly to the Tachyon `StartBox` rectangle format.
- * Accepts either:
- *   - 2 points: legacy axis-aligned rectangle (top-left, bottom-right corners)
- *   - 3+ points: closed polygon ring (a Catmull-Rom spline if any anchor has
- *     `strength`); the bounding box of the vertices is returned, since the
- *     Tachyon protocol and engine start script are rectangle-only.
- * The original polygon shape is preserved upstream and rendered as an SVG
- * overlay on the map preview.
- */
-export function spadsBoxToStartBox(points: StartBoxPoly[]) {
-    if (points.length < 2) {
-        throw new Error("spadsBoxToStartBox needs at least 2 points");
-    }
-
-    const xs = points.map((point) => point.x);
-    const ys = points.map((point) => point.y);
-    const x1 = Math.min(...xs);
-    const y1 = Math.min(...ys);
-    const x2 = Math.max(...xs);
-    const y2 = Math.max(...ys);
-
-    const box: StartBox = {
-        left: roundToMultiple(x1 / 200, 0.01),
-        top: roundToMultiple(y1 / 200, 0.01),
-        right: roundToMultiple(x2 / 200, 0.01),
-        bottom: roundToMultiple(y2 / 200, 0.01),
-    };
-
-    return box;
-}
-
-function roundToMultiple(num: number, multiple: number) {
-    return Number((Math.round(num / multiple) * multiple).toFixed(2));
 }

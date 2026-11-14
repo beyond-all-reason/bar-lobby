@@ -1,0 +1,16 @@
+{
+    "name": "redirector",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "cf-typegen": "wrangler types",
+        "typecheck": "wrangler types && tsc"
+    },
+    "devDependencies": {
+        "typescript": "^7.0.2",
+        "wrangler": "^4.127.1"
+    }
+}

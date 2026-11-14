@@ -41,9 +41,11 @@ import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
+import { reportUserIconClass, useReportUser } from "@renderer/composables/useReportUser";
 
 const { t } = useTypedI18n();
 const router = useRouter();
+const { openReportUser } = useReportUser();
 
 const props = defineProps<{
     player: Player;
@@ -57,7 +59,7 @@ const isSynced = computed(() => {
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const actions =
+const actions = computed(() =>
     props.player.user.userId === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
@@ -78,8 +80,13 @@ const actions =
                       //   { label: "Add Bonus", command: addBonus },
                   ],
               },
-              { label: "Report", command: reportPlayer },
-          ];
+              {
+                  label: t("lobby.components.user.reportUser.menuLabel"),
+                  icon: reportUserIconClass,
+                  command: () => openReportUser(props.player.user),
+              },
+          ]
+);
 
 function onRightClick(event: MouseEvent) {
     if (menu.value) {
@@ -124,13 +131,6 @@ async function addFriend() {
     // await api.comms.request("c.user.add_friend", {
     //     user_id: props.player.user.userId,
     // });
-}
-
-function reportPlayer() {
-    // Player.id is number, which is incompatible with Tachyon UserId <string> values.
-    // Need to fix more broadly when implementing lobbies.
-    // This should pop up some modal that then implements users.requestReportUsers()
-    // because both reason.type and message content are expected for the report.
 }
 </script>
 

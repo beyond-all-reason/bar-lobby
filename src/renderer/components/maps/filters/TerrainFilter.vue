@@ -7,18 +7,33 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="flex-col gap-md">
         <div class="terrain-container gap-md">
-            <IconFilterCheckbox v-for="terrain in terrainOptions" v-model:checked="terrainFilters[terrain]" v-bind:key="terrain">
+            <IconFilterCheckbox
+                v-for="terrain in terrainOptions"
+                :checked="!!selected[terrain]"
+                @update:checked="(checked: boolean | undefined) => toggle(terrain, !!checked)"
+                v-bind:key="terrain"
+            >
                 <TerrainIcon :terrain="terrain" class="lg" />
             </IconFilterCheckbox>
         </div>
         <div class="flex-row gap-md">
             <div class="terrain-container water gap-md">
-                <IconFilterCheckbox v-for="terrain in waterOptions" v-model:checked="terrainFilters[terrain]" v-bind:key="terrain">
+                <IconFilterCheckbox
+                    v-for="terrain in waterOptions"
+                    :checked="!!selected[terrain]"
+                    @update:checked="(checked: boolean | undefined) => toggle(terrain, !!checked)"
+                    v-bind:key="terrain"
+                >
                     <TerrainIcon :terrain="terrain" class="lg" />
                 </IconFilterCheckbox>
             </div>
             <div class="terrain-container layout gap-md">
-                <IconFilterCheckbox v-for="terrain in layoutOptions" v-model:checked="terrainFilters[terrain]" v-bind:key="terrain">
+                <IconFilterCheckbox
+                    v-for="terrain in layoutOptions"
+                    :checked="!!selected[terrain]"
+                    @update:checked="(checked: boolean | undefined) => toggle(terrain, !!checked)"
+                    v-bind:key="terrain"
+                >
                     <TerrainIcon :terrain="terrain" class="lg" />
                 </IconFilterCheckbox>
             </div>
@@ -30,9 +45,11 @@ SPDX-License-Identifier: MIT
 import { type Terrain } from "@main/content/maps/map-metadata";
 import IconFilterCheckbox from "@renderer/components/maps/filters/IconFilterCheckbox.vue";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
-import { mapsStore } from "@renderer/store/maps.store";
-const { filters } = mapsStore;
-const { terrain: terrainFilters } = filters;
+const selected = defineModel<Partial<Record<Terrain, boolean>>>({ required: true });
+
+function toggle(terrain: Terrain, checked: boolean) {
+    selected.value = { ...selected.value, [terrain]: checked };
+}
 
 const terrainOptions: Terrain[] = [
     "acidic",

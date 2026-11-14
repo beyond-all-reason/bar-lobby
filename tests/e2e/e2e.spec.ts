@@ -11,7 +11,7 @@ const { describe, beforeAll, afterAll } = test;
 
 describe("Electron App", async () => {
     let electronApp: ElectronApplication;
-    let firstWindow: Page;
+    let mainWindow: Page;
 
     beforeAll(async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +24,7 @@ describe("Electron App", async () => {
         }
 
         electronApp = await electron.launch({ args });
-        firstWindow = await electronApp.firstWindow();
+        mainWindow = await electronApp.firstWindow();
     });
 
     afterAll(async () => {
@@ -32,28 +32,36 @@ describe("Electron App", async () => {
     });
 
     test("run app", async () => {
-        const title = await firstWindow.title();
+        const title = await mainWindow.title();
         expect(title).toBeTruthy();
     });
 
     test("Main window state", async () => {
-        const windowState: { isVisible: boolean; isDevToolsOpened: boolean; isCrashed: boolean } = await electronApp.evaluate(({ BrowserWindow }) => {
-            const mainWindow = BrowserWindow.getAllWindows()[0];
+        function getWindowState() {
+            return electronApp.evaluate(({ BrowserWindow }) => {
+                const windows = BrowserWindow.getAllWindows();
+                const targetMainWindow =
+                    windows.find((w) => {
+                        const url = w.webContents.getURL();
+                        return url.includes("index.html") && !url.includes("splash");
+                    }) || windows[windows.length - 1];
 
-            function getState() {
+                if (!targetMainWindow) {
+                    throw new Error("Could not find the main window process.");
+                }
+
                 return {
-                    isVisible: mainWindow.isVisible(),
-                    isDevToolsOpened: mainWindow.webContents.isDevToolsOpened(),
-                    isCrashed: mainWindow.webContents.isCrashed(),
+                    isVisible: targetMainWindow.isVisible(),
+                    isDevToolsOpened: targetMainWindow.webContents.isDevToolsOpened(),
+                    isCrashed: targetMainWindow.webContents.isCrashed(),
                 };
-            }
-
-            return new Promise((resolve) => {
-                if (mainWindow.isVisible()) {
-                    resolve(getState());
-                } else mainWindow.once("ready-to-show", () => setTimeout(() => resolve(getState()), 0));
             });
-        });
+        }
+
+        // Polled rather than waiting on ready-to-show: the event can fire before the test subscribes,
+        // and under Xvfb the window can still report hidden just after show(), which hung the wait forever.
+        await expect.poll(async () => (await getWindowState()).isVisible, { message: "The main window was not visible", timeout: 20_000 }).toBeTruthy();
+        const windowState = await getWindowState();
 
         expect(windowState.isCrashed, "The app has crashed").toBeFalsy();
         expect(windowState.isVisible, "The main window was not visible").toBeTruthy();
@@ -61,8 +69,25 @@ describe("Electron App", async () => {
     });
 
     test("Main window web content", async () => {
-        const page = await electronApp.firstWindow();
-        const element = await page.$("#app", { strict: true });
+        const element = await mainWindow.$("#app", { strict: true });
         expect(element, "Was unable to find the root element").not.toBeNull();
+    });
+
+    test("Survives a Tachyon disconnect and reconnect", async () => {
+        const pageErrors: Error[] = [];
+        mainWindow.on("pageerror", (error) => pageErrors.push(error));
+
+        // The stores react to these IPC events rather than to the socket itself, so driving them
+        // from main exercises the real handlers without needing a reachable Tachyon server.
+        for (const channel of ["tachyon:disconnected", "tachyon:connected", "tachyon:disconnected"]) {
+            await electronApp.evaluate(({ BrowserWindow }, name) => {
+                BrowserWindow.getAllWindows()[0].webContents.send(name);
+            }, channel);
+        }
+
+        await mainWindow.waitForTimeout(500);
+
+        expect(pageErrors, `Uncaught errors after disconnect: ${pageErrors.map((e) => e.message).join(", ")}`).toHaveLength(0);
+        expect(await mainWindow.$("#app", { strict: true }), "The app was torn down by a disconnect").not.toBeNull();
     });
 });

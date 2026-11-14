@@ -22,13 +22,15 @@ SPDX-License-Identifier: MIT
             class="fullwidth"
             @update:model-value="onRouteSelect"
         />
-        <Button to="/debug"> Debug Sandbox </Button>
+        <Button to="/debug"> {{ t("lobby.components.misc.debugSidebar.debugSandbox") }} </Button>
         <Button @click="openSettings"> {{ t("lobby.components.misc.debugSidebar.openSettingsFile") }} </Button>
+        <Button @click="openConfigFile"> {{ t("lobby.components.misc.debugSidebar.openConfigFile") }} </Button>
         <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugSidebar.openAssetsDir") }} </Button>
         <Button @click="openStateDir"> {{ t("lobby.components.misc.debugSidebar.openStateDir") }} </Button>
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
         <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
         <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
+        <Button @click="createParty"> {{ t("lobby.components.misc.debugSidebar.createParty") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
@@ -47,7 +49,7 @@ SPDX-License-Identifier: MIT
             :label="t('lobby.components.misc.debugSidebar.engine')"
             :filter="true"
             class="fullwidth"
-            @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+            @update:model-value="selectEngineVersion"
         />
         <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugSidebar.lobbyServerSettings") }}</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
@@ -64,10 +66,13 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue";
 import { gameStore } from "@renderer/store/game.store";
-import { enginesStore, installedEngineVersions } from "@renderer/store/engine.store";
+import { enginesStore, installedEngineVersions, selectEngineVersion } from "@renderer/store/engine.store";
 import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { partyLogic } from "@renderer/logic/party";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
+import { shellApi } from "@renderer/api/shell";
 const { t } = useTypedI18n();
 
 const active = ref(false);
@@ -93,23 +98,35 @@ async function onRouteSelect(newRoute: string) {
 }
 
 function openSettings() {
-    window.shell.openSettingsFile();
+    shellApi.openSettingsFile();
 }
 
-async function openAssetsDir() {
-    window.shell.openAssetsDir();
+async function openConfigFile() {
+    shellApi.openConfigFile();
 }
 
-async function openStateDir() {
-    window.shell.openStateDir();
+function openAssetsDir() {
+    shellApi.openAssetsDir();
 }
 
-async function openStartScript() {
-    window.shell.openStartScript();
+function openStateDir() {
+    shellApi.openStateDir();
+}
+
+function openStartScript() {
+    shellApi.openStartScript();
 }
 
 function openSyncLobbyContentTool() {
     syncLobbyContentToolOpen.value = true;
+}
+
+async function createParty() {
+    try {
+        await partyLogic.create();
+    } catch (error) {
+        alertRequestFailure(error, "party/create");
+    }
 }
 
 function causeError() {

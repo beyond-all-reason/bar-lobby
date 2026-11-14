@@ -6,10 +6,9 @@
 
 import { promises as fs } from "fs";
 import { glob } from "glob";
-import { LocalStatement, TableConstructorExpression, TableKey, TableKeyString, TableValue, parse } from "luaparse";
 import * as path from "path";
 import { readSpecificFile } from "@main/utils/extract-7z";
-import { MapInfo } from "$/map-parser/map-model";
+import { springNameFromMapInfo } from "$/map-parser/map-name";
 
 export class UltraSimpleMapParser {
     public async parseMap(mapFilePath: string): Promise<{
@@ -25,17 +24,7 @@ export class UltraSimpleMapParser {
                 throw new Error(`${mapFilePath} - ${fileExt} extension is not supported, .sd7 and .sdz only.`);
             }
             const rawMapinfo = await readSpecificFile(mapFilePath, "mapinfo.lua")
-            const mapInfo = await this.parseMapInfo(rawMapinfo);
-            let springName = "";
-            if (mapInfo && mapInfo.name && mapInfo.version && mapInfo.name.includes(mapInfo.version!)) {
-                springName = mapInfo.name;
-            } else if (mapInfo && mapInfo.name) {
-                springName = `${mapInfo.name} ${mapInfo.version}`;
-            } else if (mapInfo.smtFileName) {
-                springName = mapInfo.smtFileName;
-            } else {
-                springName = fileName;
-            }
+            const springName = springNameFromMapInfo(rawMapinfo, fileName);
             return {
                 fileName: filePath.name,
                 fileNameWithExt: filePath.base,
@@ -56,49 +45,6 @@ export class UltraSimpleMapParser {
         const smfName = smfPath ? path.parse(smfPath).name : undefined;
         const mapInfo = mapInfoPath ? await fs.readFile(mapInfoPath) : undefined;
         return { smfName, mapInfo };
-    }
-
-    protected async parseMapInfo(mapinfo: string): Promise<MapInfo> {
-        const parsedMapInfo = parse(mapinfo, { encodingMode: "x-user-defined", comments: false });
-        const rootObj = parsedMapInfo.body[0] as LocalStatement;
-        const rootTable = rootObj.init.find((block) => block.type === "TableConstructorExpression") as TableConstructorExpression;
-        const obj = this.parseMapInfoFields(rootTable.fields);
-        return obj as MapInfo;
-    }
-
-    protected parseMapInfoFields(fields: (TableKey | TableKeyString | TableValue)[]) {
-        const arr: any = [];
-        const obj: any = {};
-        for (const field of fields) {
-            if (field.type === "TableKeyString") {
-                if (field.value.type === "StringLiteral" || field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
-                    obj[field.key.name] = field.value.value;
-                } else if (field.value.type === "UnaryExpression" && field.value.argument.type === "NumericLiteral") {
-                    obj[field.key.name] = -field.value.argument.value;
-                } else if (field.value.type === "TableConstructorExpression") {
-                    obj[field.key.name] = this.parseMapInfoFields(field.value.fields);
-                }
-            } else if (field.type === "TableValue") {
-                if (field.value.type === "StringLiteral" || field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
-                    const val = field.value.value;
-                    arr.push(val);
-                }
-            } else if (field.type === "TableKey") {
-                if (field.value.type === "StringLiteral" || field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
-                    if (field.key.type === "NumericLiteral") {
-                        arr[field.key.type] = field.value.value;
-                    }
-                } else if (field.value.type === "UnaryExpression" && field.value.argument.type === "NumericLiteral") {
-                    arr[field.key.type] = -field.value.argument.value;
-                } else if (field.value.type === "TableConstructorExpression") {
-                    arr.push(this.parseMapInfoFields(field.value.fields));
-                }
-            }
-        }
-        if (arr.length) {
-            return arr;
-        }
-        return obj;
     }
 
     protected async cleanup(tmpDir: string) {

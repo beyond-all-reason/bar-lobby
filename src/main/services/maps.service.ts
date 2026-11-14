@@ -3,22 +3,16 @@
 // SPDX-License-Identifier: MIT
 
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
-import { mapContentAPI } from "@main/content/maps/map-content";
+import { contentAPI } from "@main/content/content-api";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
+import { configService } from "@main/services/config.service";
 
-async function init() {
-    await mapContentAPI.init();
-}
-
-async function reinit() {
-    await mapContentAPI.reinit();
-}
 const FETCH_MAPS_TIMEOUT_MS = 15_000;
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
-    const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json", {
+    const maps = await fetch(configService.getConfig().mapsMetadataUrl, {
         signal: AbortSignal.timeout(FETCH_MAPS_TIMEOUT_MS),
     });
     const mapsAsObject = await maps.json();
@@ -28,52 +22,46 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
         // transform the map object to a MapData object
         return {
             ...map,
-            isInstalled: mapContentAPI.isVersionInstalled(map.springName),
+            isInstalled: contentAPI.isPresent({ type: "map", id: map.springName }),
         } satisfies MapData;
     });
 
     const liveMapsSet = new Set(liveMaps.map((m) => m.springName));
 
-    const nonLiveMaps = Object.entries(mapContentAPI.mapNameFileNameLookup)
-        .map(([springName]) => {
-            if (liveMapsSet.has(springName)) {
-                return;
-            }
-
+    const nonLiveMaps = contentAPI
+        .installed("map")
+        .filter((ref) => !liveMapsSet.has(ref.id))
+        .map((ref) => {
             return {
-                springName: springName,
+                springName: ref.id,
                 isDownloading: false,
-                isInstalled: mapContentAPI.isVersionInstalled(springName),
+                isInstalled: true,
             } satisfies MapDownloadData;
-        })
-        .filter((v) => v != undefined);
+        });
 
     return [liveMaps, nonLiveMaps];
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
-    ipcMain.handle("maps:downloadMap", (_, springName: string) => mapContentAPI.downloadMap(springName));
-    ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => mapContentAPI.downloadMaps(springNames));
-    ipcMain.handle("maps:getInstalledMapNames", () => Object.keys(mapContentAPI.mapNameFileNameLookup));
-    ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.availableVersions);
-    ipcMain.handle("maps:isVersionInstalled", (_, id: string) => mapContentAPI.isVersionInstalled(id));
-    ipcMain.handle("maps:attemptCacheErrorMaps", () => mapContentAPI.attemptCacheErrorMaps());
+    ipcMain.handle("maps:downloadMap", (_, springName: string) => contentAPI.ensure([{ type: "map", id: springName }]));
+    ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => contentAPI.ensure(springNames.map((springName) => ({ type: "map" as const, id: springName }))));
+    ipcMain.handle("maps:getInstalledMapNames", () => contentAPI.installed("map").map((ref) => ref.id));
+    ipcMain.handle("maps:isVersionInstalled", (_, id: string) => contentAPI.isPresent({ type: "map", id }));
 
     ipcMain.handle("maps:online:fetchAllMaps", () => fetchAllMaps());
     ipcMain.handle("maps:online:fetchMapImages", (_, imageSource: string) => fetchMapImages(imageSource));
 
     // Events
-    mapContentAPI.onMapAdded.add((filename: string) => {
-        webContents.send("maps:mapAdded", filename);
-    });
-    mapContentAPI.onMapDeleted.add((filename: string) => {
-        webContents.send("maps:mapDeleted", filename);
+    contentAPI.onPresenceChanged.add(({ type, id, present }) => {
+        if (type !== "map") {
+            return;
+        }
+
+        webContents.send(present ? "maps:mapAdded" : "maps:mapDeleted", id);
     });
 }
 
 const mapsService = {
-    init,
-    reinit,
     registerIpcHandlers,
 };
 

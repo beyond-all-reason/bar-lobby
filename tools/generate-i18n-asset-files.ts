@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import prettier from "prettier";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,6 +89,18 @@ function logAssetGeneration(assetPath: string) {
     console.log("\x1b[2;32mTranslation asset file written to:\x1b[0m\x1b[36m\x1b[0m", assetPath);
 }
 
+// These files are committed, so they have to come out matching the repo's
+// prettier config or every run shows up as a whole-file change. Prettier keeps
+// an object on one line if it arrived that way, so it has to be given the
+// indented form rather than a compact one.
+async function writeTranslationAsset(assetPath: string, translations: TranslationObject) {
+    const prettierOptions = await prettier.resolveConfig(assetPath);
+    const formatted = await prettier.format(JSON.stringify(translations, null, 2), { ...prettierOptions, filepath: assetPath });
+
+    fs.writeFileSync(assetPath, formatted);
+    logAssetGeneration(assetPath);
+}
+
 async function main() {
     const locales = await getLocalesFromLangDirectories();
 
@@ -103,9 +116,7 @@ async function main() {
     console.log(`Processing reference locale: ${REFERENCE_LOCALE}`);
     const referenceObject = await processLocale(REFERENCE_LOCALE);
 
-    const referenceOutputPath = path.join(OUTPUT_DIR, `${REFERENCE_LOCALE}.json`);
-    fs.writeFileSync(referenceOutputPath, JSON.stringify(referenceObject, null, 2));
-    logAssetGeneration(referenceOutputPath);
+    await writeTranslationAsset(path.join(OUTPUT_DIR, `${REFERENCE_LOCALE}.json`), referenceObject);
 
     for (const locale of locales) {
         if (locale === REFERENCE_LOCALE) continue;
@@ -115,9 +126,7 @@ async function main() {
 
         const completeLocaleObject = addMissingKeys(referenceObject, localeObject);
 
-        const outputFilePath = path.join(OUTPUT_DIR, `${locale}.json`);
-        fs.writeFileSync(outputFilePath, JSON.stringify(completeLocaleObject, null, 2));
-        logAssetGeneration(outputFilePath);
+        await writeTranslationAsset(path.join(OUTPUT_DIR, `${locale}.json`), completeLocaleObject);
     }
 }
 

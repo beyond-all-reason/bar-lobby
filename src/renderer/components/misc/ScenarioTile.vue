@@ -14,13 +14,14 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { Scenario } from "@main/content/game/scenario";
+import { toBarUrl } from "@shared/bar-url";
 import { ref } from "vue";
 
 const props = defineProps<{
     scenario: Scenario;
 }>();
 
-const backgroundImageCss = ref(`url('bar://${encodeURIComponent(props.scenario.imagepath)}')`);
+const backgroundImageCss = ref(`url('${toBarUrl(props.scenario.imagepath)}')`);
 </script>
 
 <style lang="scss" scoped>

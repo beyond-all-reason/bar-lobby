@@ -1,0 +1,361 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import Ajv2020 from "ajv/dist/2020";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { loadSingleplayerContent } from "../../../src/main/content/singleplayer/singleplayer-loader";
+import type { SingleplayerContent } from "../../../src/shared/content/singleplayer";
+import { missingMaps, readBundle, unbundledItems } from "../../../tools/validate-content";
+
+const repo = path.resolve(__dirname, "../../..");
+const fixtures = path.join(repo, "tests", "fixtures");
+const sample = path.join(fixtures, "content");
+
+// The committed files, exactly as an author would copy them, through a validator that knows nothing of the
+// client.
+function validatorFor(name: string) {
+    const schema = JSON.parse(fs.readFileSync(path.join(repo, "schemas", "content", `${name}.schema.json`), "utf8"));
+
+    return new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+}
+
+function readJson(...parts: string[]) {
+    return JSON.parse(fs.readFileSync(path.join(...parts), "utf8"));
+}
+
+describe("exported content schemas", () => {
+    const campaign = path.join(sample, "campaigns", "sample-campaign");
+    const secondCampaign = path.join(sample, "campaigns", "second-campaign");
+    const missionFolders = [
+        ...[campaign, secondCampaign].flatMap((folder) =>
+            fs
+                .readdirSync(folder, { withFileTypes: true })
+                .filter((entry) => entry.isDirectory() && entry.name !== "shared")
+                .map((entry) => path.join(folder, entry.name))
+        ),
+        ...["sample-scenario", "river-crossing", "night-raid"].map((id) => path.join(sample, "scenarios", id)),
+        ...["sample-tutorial", "movement", "economy", "combat", "final-exam"].map((id) => path.join(sample, "tutorials", id)),
+    ];
+
+    it("accept the sample index manifests", () => {
+        const validate = validatorFor("index-manifest");
+
+        for (const kind of ["campaigns", "scenarios", "tutorials"]) {
+            expect(validate(readJson(sample, kind, "manifest.json")), kind).toBe(true);
+        }
+    });
+
+    it.each([campaign, secondCampaign])("accept the sample campaign config and credits in %s, $schema key included", (folder) => {
+        const config = readJson(folder, "campaignConfig.json");
+
+        expect(config.$schema).toBeDefined();
+        expect(validatorFor("campaign-config")(config)).toBe(true);
+        expect(validatorFor("credits")(readJson(folder, "credits.json"))).toBe(true);
+    });
+
+    it("accept every sample mission manifest and mission config", () => {
+        const manifests = validatorFor("mission-manifest");
+        const configs = validatorFor("mission-config");
+
+        for (const folder of missionFolders) {
+            const manifest = readJson(folder, "manifest.json");
+            expect(manifests(manifest), folder).toBe(true);
+            for (const file of [manifest.config.default, ...Object.values<string>(manifest.config.numPlayers ?? {})]) {
+                expect(configs(readJson(folder, file)), path.join(folder, file)).toBe(true);
+            }
+        }
+    });
+
+    it("accept the sample language files, nested and flat", () => {
+        const validate = validatorFor("language-file");
+        const languageFiles = [path.join(campaign, "shared", "language", "en.json"), path.join(campaign, "shared", "language", "fr.json"), path.join(campaign, "mission01", "language", "en.json")];
+
+        for (const file of languageFiles) {
+            expect(validate(readJson(file)), file).toBe(true);
+        }
+        expect(validate({ a: { b: 1 } })).toBe(false);
+    });
+
+    it("reject the schema violation fixture", () => {
+        const validate = validatorFor("mission-manifest");
+
+        expect(validate(readJson(fixtures, "content-broken", "scenarios", "schema-violation", "manifest.json"))).toBe(false);
+        expect(validate.errors?.map((error) => error.message)).toEqual(expect.arrayContaining(["must have required property 'mapName'", "must be string"]));
+    });
+
+    it("accept only the listed start position types", () => {
+        const validate = validatorFor("mission-config");
+        const config = readJson(sample, "scenarios", "sample-scenario", "missionConfig.json");
+
+        for (const startPosType of ["fixed", "random", "in-game", "in-client"]) {
+            expect(validate({ ...config, startPosType }), startPosType).toBe(true);
+        }
+        for (const startPosType of ["boxes", "Fixed", "", 0]) {
+            expect(validate({ ...config, startPosType }), String(startPosType)).toBe(false);
+        }
+    });
+
+    it("accept only startscript-safe team and alliance names", () => {
+        const validate = validatorFor("mission-config");
+        const config = { alliances: { north: ["red_1"], south: ["Blue2"] }, playerTeam: ["red_1"] };
+
+        expect(validate(config)).toBe(true);
+        for (const bad of ["red team", "red;team", "red=team", "rød", ""]) {
+            expect(validate({ ...config, alliances: { ...config.alliances, [bad]: ["green"] } }), `alliance ${bad}`).toBe(false);
+            expect(validate({ ...config, alliances: { north: ["red_1", bad], south: ["Blue2"] } }), `team ${bad}`).toBe(false);
+            expect(validate({ ...config, playerTeam: [bad] }), `player team ${bad}`).toBe(false);
+            expect(validate({ ...config, allianceSettings: { [bad]: {} } }), `alliance settings ${bad}`).toBe(false);
+            expect(validate({ ...config, allianceSettings: { north: { alliedWith: bad } } }), `allied with ${bad}`).toBe(false);
+            expect(validate({ ...config, teamSettings: { [bad]: {} } }), `team settings ${bad}`).toBe(false);
+        }
+    });
+
+    it("accept a team color of three numbers from 0 to 1", () => {
+        const validate = validatorFor("mission-config");
+        const config = { alliances: { north: ["red"] }, playerTeam: ["red"] };
+        const withColor = (rgbColor: unknown) => ({ ...config, teamSettings: { red: { rgbColor } } });
+
+        expect(validate(withColor([0, 0.5, 1]))).toBe(true);
+        for (const rgbColor of [[255, 128, 0], [0.1, 0.5], [0.1, 0.5, 0.9, 1], [-0.1, 0.5, 0.9], "0.1 0.5 0.9", "#1a80e6"]) {
+            expect(validate(withColor(rgbColor)), JSON.stringify(rgbColor)).toBe(false);
+        }
+    });
+
+    it('accept "dev" compatibility, and no other word', () => {
+        const campaigns = validatorFor("campaign-config");
+        const manifests = validatorFor("mission-manifest");
+        const config = readJson(campaign, "campaignConfig.json");
+        const manifest = readJson(sample, "scenarios", "sample-scenario", "manifest.json");
+
+        expect(campaigns({ ...config, compatibility: "dev" })).toBe(true);
+        expect(manifests({ ...manifest, compatibility: "dev" })).toBe(true);
+        for (const compatibility of ["Dev", "development", ""]) {
+            expect(campaigns({ ...config, compatibility }), compatibility).toBe(false);
+            expect(manifests({ ...manifest, compatibility }), compatibility).toBe(false);
+        }
+    });
+
+    it("reject a rapid tag, an empty compatibility and an engine with no games", () => {
+        const validate = validatorFor("mission-manifest");
+
+        for (const name of ["rapid-tag", "empty-compatibility", "engine-without-games"]) {
+            expect(validate(readJson(fixtures, "content-broken", "scenarios", name, "manifest.json")), name).toBe(false);
+        }
+    });
+
+    // The start script is `key=value;` text: a value ends at a ; or line break, loses spaces before it and the
+    // quotes around it, and the engine lowercases keys.
+    describe("strings the start script carries", () => {
+        const manifest = readJson(sample, "scenarios", "sample-scenario", "manifest.json");
+        const config = readJson(sample, "scenarios", "sample-scenario", manifest.config.default);
+        const validManifest = validatorFor("mission-manifest");
+        const validConfig = validatorFor("mission-config");
+        const validCampaign = validatorFor("campaign-config");
+        const campaign = readJson(sample, "campaigns", "sample-campaign", "campaignConfig.json");
+
+        it.each(["Quicksilver Remake 1.24", "[ABC] Map v2", "a=b {c} //d", "x"])("accept the value %o", (value) => {
+            expect(validManifest({ ...manifest, mapName: value })).toBe(true);
+            expect(validConfig({ ...config, teamSettings: { player: { side: value, luaAI: value } }, restrictions: { [value]: 0 }, modOptions: { option: value } })).toBe(true);
+        });
+
+        it.each(["Quick;silver", 'Quick"silver', "Quick\nsilver", "Quick\rsilver", " Quicksilver", "Quicksilver ", "\tQuicksilver", ""])("reject the value %o", (value) => {
+            expect(validManifest({ ...manifest, mapName: value })).toBe(false);
+            expect(validManifest({ ...manifest, missionId: value })).toBe(false);
+            expect(validCampaign({ ...campaign, campaignId: value })).toBe(false);
+            expect(validConfig({ ...config, teamSettings: { player: { side: value } } })).toBe(false);
+            expect(validConfig({ ...config, teamSettings: { player: { luaAI: value } } })).toBe(false);
+            expect(validConfig({ ...config, restrictions: { [value]: 0 } })).toBe(false);
+            expect(validConfig({ ...config, modOptions: { option: value } })).toBe(false);
+            expect(validConfig({ ...config, mapOptions: { option: value } })).toBe(false);
+        });
+
+        it("accept lowercase option keys, and numbers and booleans as values", () => {
+            expect(validConfig({ ...config, modOptions: { deathmode: "neverend", start_metal_2: 1000, fog: true }, mapOptions: { water_level: -10 } })).toBe(true);
+        });
+
+        it.each(["DeathMode", "death mode", "death-mode", "death=mode", ""])("reject the option key %o", (key) => {
+            expect(validConfig({ ...config, modOptions: { [key]: 1 } })).toBe(false);
+            expect(validConfig({ ...config, mapOptions: { [key]: 1 } })).toBe(false);
+        });
+
+        // The client passes the mission API its options under this key.
+        it("reserve missionoptions for the client, in modOptions only", () => {
+            expect(validConfig({ ...config, modOptions: { missionoptions: "x" } })).toBe(false);
+            expect(validConfig({ ...config, modOptions: { missionoptions_extra: "x" } })).toBe(true);
+            expect(validConfig({ ...config, mapOptions: { missionoptions: "x" } })).toBe(true);
+        });
+    });
+});
+
+describe("validate-content --bundle", () => {
+    // The sample has no mission archives, so each item is given one, as shipped content has.
+    const withArchives = (content: SingleplayerContent): SingleplayerContent => {
+        const archived = <T extends { kind: string; id: string; path: string }>(item: T) => ({ ...item, archivePath: path.join(item.path, "games", `bar-${item.kind}-${item.id}.sdz`) });
+
+        return { ...content, campaigns: content.campaigns.map(archived), scenarios: content.scenarios.map(archived), tutorials: content.tutorials.map(archived) };
+    };
+    const loadSample = async () => withArchives(await loadSingleplayerContent([{ source: "official", rootId: "official", path: sample }]));
+    const BUNDLED = { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28000-aaaaaaa" };
+
+    it("fails an item without a mission archive, naming the archive it expects", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+        const [campaign] = content.campaigns;
+
+        expect(unbundledItems({ ...content, campaigns: [{ ...campaign, archivePath: undefined }], scenarios: [{ ...scenario, archivePath: undefined }], tutorials: [] }, BUNDLED)).toEqual([
+            `campaign sample-campaign (${campaign.path}) has no mission archive, so it can't be launched. Expected games/bar-campaign-sample-campaign.sdz`,
+            `scenario sample-scenario (${scenario.path}) has no mission archive, so it can't be launched. Expected games/bar-scenario-sample-scenario.sdz`,
+        ]);
+    });
+
+    describe("reading the assets folder", () => {
+        let assets: string;
+        const write = (folder: string, text: string) => {
+            fs.mkdirSync(path.join(assets, folder), { recursive: true });
+            fs.writeFileSync(path.join(assets, folder, "default.txt"), text);
+        };
+
+        beforeEach(() => {
+            assets = fs.mkdtempSync(path.join(os.tmpdir(), "bundle-"));
+        });
+        afterEach(() => fs.rmSync(assets, { recursive: true, force: true }));
+
+        it("reads the pair the two default.txt files name", async () => {
+            write("engine", "2025.04.10\n");
+            write("games", "Beyond All Reason test-28000-aaaaaaa\n");
+
+            expect(await readBundle(assets)).toEqual({ pair: BUNDLED });
+        });
+
+        // The client treats these as naming nothing; CI would then check against nothing.
+        it("fails on a missing or empty file, naming each", async () => {
+            write("games", "  \n");
+
+            expect(await readBundle(assets)).toEqual({
+                errors: [
+                    expect.stringMatching(/engine[\\/]default\.txt is missing, so the bundle names no engine$/),
+                    expect.stringMatching(/games[\\/]default\.txt is empty, so the bundle names no game$/),
+                ],
+            });
+        });
+    });
+
+    it("passes when every item accepts the bundled pair", async () => {
+        const content = await loadSample();
+
+        expect(unbundledItems(content, BUNDLED)).toEqual([]);
+    });
+
+    // The sample accepts this engine and this game, but only ever with other partners.
+    it("fails an item whose engine and game are each accepted but never together", async () => {
+        const content = await loadSample();
+        const failures = unbundledItems(content, { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28200-ccccccc" });
+
+        expect(failures).toHaveLength(10);
+        expect(failures[0]).toMatch(/^campaign sample-campaign .* It accepts: engine 2025\.04\.10 with games .*; engine 2025\.06\.01 with games /);
+        expect(failures[1]).toMatch(/^campaign second-campaign /);
+        expect(failures[2]).toMatch(/^scenario sample-scenario /);
+        expect(failures[3]).toMatch(/^scenario river-crossing /);
+        expect(failures[4]).toMatch(/^scenario night-raid /);
+        expect(failures[5]).toMatch(/^tutorial sample-tutorial /);
+        expect(failures[6]).toMatch(/^tutorial movement /);
+        expect(failures[7]).toMatch(/^tutorial economy /);
+        expect(failures[8]).toMatch(/^tutorial combat /);
+        expect(failures[9]).toMatch(/^tutorial final-exam /);
+    });
+
+    it("fails every item when the engine is not bundled", async () => {
+        const content = await loadSample();
+
+        expect(unbundledItems(content, { ...BUNDLED, engineVersion: "2099.01.01" })).toHaveLength(10);
+    });
+
+    it("fails an item whose archive depends on another game", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+        const only = (item: typeof scenario) => ({ ...content, campaigns: [], tutorials: [], scenarios: [item] });
+
+        expect(unbundledItems(only({ ...scenario, archiveDepend: [BUNDLED.gameVersion] }), BUNDLED)).toEqual([]);
+        expect(unbundledItems(only({ ...scenario, archiveDepend: ["Beyond All Reason test-28100-bbbbbbb"] }), BUNDLED)).toEqual([
+            expect.stringMatching(/^scenario sample-scenario .* has an archive whose modinfo\.lua depend doesn't name the bundled game Beyond All Reason test-28000-aaaaaaa$/),
+        ]);
+    });
+
+    it("fails a campaign whose archive depends on another game", async () => {
+        const content = await loadSample();
+        const [campaign] = content.campaigns;
+        const only = (item: typeof campaign) => ({ ...content, campaigns: [item], tutorials: [], scenarios: [] });
+
+        expect(unbundledItems(only({ ...campaign, archiveDepend: [BUNDLED.gameVersion] }), BUNDLED)).toEqual([]);
+        expect(unbundledItems(only({ ...campaign, archiveDepend: ["Beyond All Reason test-28100-bbbbbbb"] }), BUNDLED)).toEqual([
+            expect.stringMatching(/^campaign sample-campaign .* has an archive whose modinfo\.lua depend doesn't name the bundled game Beyond All Reason test-28000-aaaaaaa$/),
+        ]);
+    });
+
+    // Dev content only loads when the tool is told to allow it, and names no pair to check.
+    it("passes over dev content", async () => {
+        const content = await loadSample();
+        const [scenario] = content.scenarios;
+
+        expect(
+            unbundledItems({ ...content, campaigns: [], tutorials: [], scenarios: [{ ...scenario, compatibility: "dev", archiveDepend: ["x"] }] }, { engineVersion: "2099.01.01", gameVersion: "x" })
+        ).toEqual([]);
+    });
+});
+
+describe("validate-content --bundle maps", () => {
+    const loadSample = () => loadSingleplayerContent([{ source: "official", rootId: "official", path: sample }]);
+    const QUICKSILVER = "Quicksilver Remake 1.24";
+    const ISTHMUS = "Supreme Isthmus v1.6.4";
+
+    it("passes when every map is bundled", async () => {
+        expect(missingMaps(await loadSample(), new Set([QUICKSILVER, ISTHMUS]))).toEqual([]);
+    });
+
+    it("fails a scenario whose map is neither bundled nor in its own maps", async () => {
+        expect(missingMaps(await loadSample(), new Set([QUICKSILVER]))).toEqual([
+            expect.stringMatching(/^scenario river-crossing .* needs map "Supreme Isthmus v1\.6\.4", which is in neither the bundle's maps nor its own maps$/),
+        ]);
+    });
+
+    it("accepts a scenario's or tutorial's map from its own maps only", async () => {
+        const content = await loadSample();
+        const withMaps = (id: string) => ({ ...content, scenarios: content.scenarios.map((scenario) => (scenario.id === id ? { ...scenario, maps: [ISTHMUS] } : scenario)) });
+
+        expect(missingMaps(withMaps("river-crossing"), new Set([QUICKSILVER]))).toEqual([]);
+        expect(missingMaps(withMaps("night-raid"), new Set([QUICKSILVER]))).toEqual([expect.stringMatching(/^scenario river-crossing /)]);
+    });
+
+    // Official campaigns ship their own maps; custom ones may use bundled maps.
+    it("accepts a campaign mission's map from its campaign's shared/maps or its own maps", async () => {
+        const content = await loadSample();
+        const [sampleCampaign, secondCampaign] = content.campaigns;
+        const [landing, ...otherSecondMissions] = secondCampaign.missions;
+        const campaigns = [
+            { ...sampleCampaign, sharedMaps: [QUICKSILVER] },
+            { ...secondCampaign, missions: [{ ...landing, maps: [QUICKSILVER] }, ...otherSecondMissions] },
+        ];
+        const failures = missingMaps({ ...content, campaigns }, new Set([ISTHMUS]));
+
+        expect(failures.filter((failure) => failure.startsWith("campaign "))).toEqual(
+            otherSecondMissions.map(({ id }) =>
+                expect.stringMatching(
+                    new RegExp(
+                        `^campaign second-campaign mission ${id} .* needs map "Quicksilver Remake 1\\.24", which is in none of the bundle's maps, the campaign's shared/maps or the mission's own maps$`
+                    )
+                )
+            )
+        );
+    });
+
+    it("passes over dev content", async () => {
+        const content = await loadSample();
+        const dev = <T extends object>(item: T) => ({ ...item, compatibility: "dev" as const });
+
+        expect(missingMaps({ ...content, campaigns: content.campaigns.map(dev), scenarios: content.scenarios.map(dev), tutorials: content.tutorials.map(dev) }, new Set())).toEqual([]);
+    });
+});

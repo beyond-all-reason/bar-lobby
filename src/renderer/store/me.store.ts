@@ -5,14 +5,25 @@
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
-import { tachyonStore } from "@renderer/store/tachyon.store";
-import { PrivateUser } from "tachyon-protocol/types";
+import {
+    PrivateUser,
+    UserSelfEventData,
+    FriendRequestReceivedEventData,
+    FriendRequestAcceptedEventData,
+    FriendRequestRejectedEventData,
+    FriendRequestCancelledEventData,
+    FriendRemovedEventData,
+} from "tachyon-protocol/types";
 import { subsManager } from "@renderer/store/users.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
+import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError, tachyonRequest } from "@renderer/api/tachyon";
+import { battleHistoryActions } from "@renderer/store/battleHistory.store";
+import { connectionStore } from "@renderer/store/connection.store";
 
 export const me = reactive<
     Me & {
         isInitialized: boolean;
-        isAuthenticated: boolean;
     }
 >({
     isInitialized: false,
@@ -22,7 +33,6 @@ export const me = reactive<
     countryCode: "",
     displayName: "",
     status: "offline",
-    isAuthenticated: false,
     username: "Player",
     battleRoomState: {},
     outgoingFriendRequestUserIds: new Set<string>(),
@@ -44,46 +54,24 @@ async function unsubscribeFromUsers(userIds: string[]) {
     subsManager.detach(userIds, friendsSymbol);
 }
 
-async function login() {
-    try {
-        await window.auth.login();
-        me.isAuthenticated = true;
-    } catch (e) {
-        console.error(e);
-        me.isAuthenticated = false;
-        throw e;
-    }
-}
-
-function playOffline() {
-    me.isAuthenticated = false;
-}
-
-async function logout() {
-    subsManager.clearAllFromList(friendsSymbol);
-    window.auth.logout();
-    window.tachyon.disconnect();
-    me.isAuthenticated = false;
-}
-
-async function changeAccount() {
-    await window.auth.wipe();
-    me.isAuthenticated = false;
-}
-
-window.tachyon.onEvent("user/self", async (event) => {
-    console.debug(`Received user/self event: ${JSON.stringify(event)}`);
-    if (event && event.user) {
+// Main persists the identity off this same event and that is what gets read back
+// on startup, but db.users is still where anything looking up a user by id goes,
+// the profile view included, so our own record has to be in there too.
+// TODO tidy this up: the row is a snapshot of the whole reactive object, written
+// in two steps that aren't in one transaction, and nothing reads isMe any more.
+async function onUserSelfEvent(data: UserSelfEventData) {
+    console.debug(`Received user/self event: ${JSON.stringify(data)}`);
+    if (data && data.user) {
         await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
-        Object.assign(me, event.user);
+        Object.assign(me, data.user);
         db.users.put({
             ...toRaw(me),
             isMe: 1,
         });
 
-        await processFriendData(event.user);
+        await processFriendData(data.user);
     }
-});
+}
 
 // Process friend data and manage subscriptions
 async function processFriendData(userData: PrivateUser) {
@@ -104,38 +92,40 @@ async function processFriendData(userData: PrivateUser) {
     }
 }
 
-window.tachyon.onEvent("friend/requestReceived", async (event) => {
-    me.incomingFriendRequestUserIds.add(event.from);
-    await subscribeToUsers([event.from]);
-});
+async function onFriendRequestReceivedEvent(data: FriendRequestReceivedEventData) {
+    me.incomingFriendRequestUserIds.add(data.from);
+    await subscribeToUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/requestAccepted", async (event) => {
-    me.outgoingFriendRequestUserIds.delete(event.from);
-    me.friendUserIds.add(event.from);
-});
+async function onFriendRequestAcceptedEvent(data: FriendRequestAcceptedEventData) {
+    me.outgoingFriendRequestUserIds.delete(data.from);
+    me.friendUserIds.add(data.from);
+}
 
-window.tachyon.onEvent("friend/requestRejected", async (event) => {
-    me.outgoingFriendRequestUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRequestRejectedEvent(data: FriendRequestRejectedEventData) {
+    me.outgoingFriendRequestUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/requestCancelled", async (event) => {
-    me.incomingFriendRequestUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRequestCancelledEvent(data: FriendRequestCancelledEventData) {
+    me.incomingFriendRequestUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/removed", async (event) => {
-    me.friendUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRemovedEvent(data: FriendRemovedEventData) {
+    me.friendUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-// export const me = readonly(_me);
-export const auth = { login, playOffline, logout, changeAccount };
+// Identity fields survive; they're persisted in db and used while offline.
+function clearOnlineState() {
+    subsManager.clearAllFromList(friendsSymbol);
+}
 
 // Friend methods
 export const friends = {
     async sendRequest(to: string) {
-        const response = await window.tachyon.request("friend/sendRequest", { to });
+        const response = await tachyonRequest("friend/sendRequest", { to });
         me.outgoingFriendRequestUserIds.add(to);
         await subscribeToUsers([to]);
         return response;
@@ -143,7 +133,7 @@ export const friends = {
 
     async acceptRequest(from: string) {
         try {
-            const response = await window.tachyon.request("friend/acceptRequest", { from });
+            const response = await tachyonRequest("friend/acceptRequest", { from });
             me.incomingFriendRequestUserIds.delete(from);
             me.friendUserIds.add(from);
             return response;
@@ -156,7 +146,7 @@ export const friends = {
 
     async rejectRequest(from: string) {
         try {
-            const response = await window.tachyon.request("friend/rejectRequest", { from });
+            const response = await tachyonRequest("friend/rejectRequest", { from });
             me.incomingFriendRequestUserIds.delete(from);
             await unsubscribeFromUsers([from]);
             return response;
@@ -170,7 +160,7 @@ export const friends = {
 
     async cancelRequest(to: string) {
         try {
-            const response = await window.tachyon.request("friend/cancelRequest", { to });
+            const response = await tachyonRequest("friend/cancelRequest", { to });
             me.outgoingFriendRequestUserIds.delete(to);
             await unsubscribeFromUsers([to]);
             return response;
@@ -183,55 +173,74 @@ export const friends = {
     },
 
     async remove(userId: string) {
-        const response = await window.tachyon.request("friend/remove", { userId });
-        me.friendUserIds.delete(userId);
-        await unsubscribeFromUsers([userId]);
-        return response;
+        try {
+            const response = await tachyonRequest("friend/remove", { userId });
+            me.friendUserIds.delete(userId);
+            await unsubscribeFromUsers([userId]);
+            return response;
+        } catch (error) {
+            if (!isTachyonError(error)) {
+                console.error(`Failed to remove friend with userId: ${userId}`, error);
+            }
+
+            notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
+        }
     },
 
     async fetchFriendList() {
-        const response = await window.tachyon.request("friend/list");
-        console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
+        try {
+            const response = await tachyonRequest("friend/list");
+            console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
 
-        // Clear existing friend data and populate with new data
-        me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
-        me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
-        me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
+            // Clear existing friend data and populate with new data
+            me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
+            me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
+            me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
 
-        // Get all user IDs to subscribe to
-        const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+            // Get all user IDs to subscribe to
+            const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
-        if (allUserIds.length > 0) {
-            await subscribeToUsers(allUserIds);
+            if (allUserIds.length > 0) {
+                await subscribeToUsers(allUserIds);
+            }
+            return response;
+        } catch (error) {
+            if (!isTachyonError(error)) {
+                console.error(`Failed to fetch friend list`, error);
+            }
+
+            notificationsApi.alert({ severity: "error", text: "Failed to fetch friend list." });
         }
-
-        return response;
     },
 };
 
 export async function initMeStore() {
-    await db.users
-        .where({ isMe: 1 })
-        .first()
-        .then((user) => {
-            if (user) {
-                Object.assign(me, user);
-            }
-        });
-    const hasCredentials = await window.auth.hasCredentials();
-    if (hasCredentials) {
-        try {
-            await login();
-
-            if (tachyonStore.isConnected) {
-                await friends.fetchFriendList();
-            }
-        } catch (error) {
-            // Auth renewal runs before the UI mounts, so there's no way to show
-            // a retry dialog here. Log the failure and continue — the user will
-            // see they're not logged in and can retry from the UI.
-            console.warn("Auth failed during startup, continuing offline", error);
+    if (me.isInitialized) {
+        console.warn("Me store is already initialized. Skipping initialization.");
+        return;
+    }
+    onWentOffline.add(clearOnlineState);
+    window.tachyon.onConnected(() => {
+        // Subscriptions don't survive the socket, so rebuild them from the server's friend list
+        // rather than trusting what subsManager held before the drop.
+        if (connectionStore.isAuthenticated) {
+            friends.fetchFriendList();
         }
+    });
+    // We need to register these listeners before we try to restore a previous session
+    window.tachyon.onEvent("user/self", onUserSelfEvent);
+    window.tachyon.onEvent("friend/requestReceived", onFriendRequestReceivedEvent);
+    window.tachyon.onEvent("friend/requestAccepted", onFriendRequestAcceptedEvent);
+    window.tachyon.onEvent("friend/requestRejected", onFriendRequestRejectedEvent);
+    window.tachyon.onEvent("friend/requestCancelled", onFriendRequestCancelledEvent);
+    window.tachyon.onEvent("friend/removed", onFriendRemovedEvent);
+    window.tachyon.onEvent("battle/ended", battleHistoryActions.recordBattleEnded);
+
+    // Last known, from whenever we were last connected. Absent on a fresh
+    // install, in which case the defaults stand in until a socket says otherwise.
+    const identity = await window.auth.getIdentity();
+    if (identity) {
+        Object.assign(me, identity);
     }
 
     me.isInitialized = true;

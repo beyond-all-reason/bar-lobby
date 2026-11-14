@@ -2,6 +2,20 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { toRaw } from "vue";
+
+function normalizeBlob(value: Blob): Blob | undefined {
+    const rawValue = toRaw(value);
+    if (!rawValue || typeof rawValue !== "object") return;
+
+    const type = "type" in rawValue && typeof rawValue.type === "string" ? rawValue.type : "image/webp";
+    if (rawValue instanceof Blob || Object.prototype.toString.call(rawValue) === "[object Blob]") {
+        return new Blob([rawValue], { type });
+    }
+
+    return;
+}
+
 function base64ToBlobUrl(base64: string) {
     const byteString = atob(base64.split(",")[1]);
     const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
@@ -32,7 +46,9 @@ export const useImageBlobUrlCache = () => {
             return cache.get(id);
         }
         if (blob) {
-            const url = URL.createObjectURL(blob);
+            const normalizedBlob = normalizeBlob(blob);
+            if (!normalizedBlob) return;
+            const url = URL.createObjectURL(normalizedBlob);
             cache.set(id, url);
             return url;
         }

@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { MapData } from "@main/content/maps/map-data";
+import { StartBoxPoly } from "@main/content/maps/map-metadata";
 import { User } from "@main/model/user";
+import { RAPTORS_AI, SCAVENGERS_AI } from "@shared/battle-types";
 import { StartBox } from "tachyon-protocol/types";
 
 export interface Battle {
@@ -33,7 +35,6 @@ export enum GameModeID {
 
 export type GameModeWithOptions = {
     id: GameModeID;
-    label: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>;
 };
@@ -54,6 +55,7 @@ export type BattleOptions = {
         startPosType: StartPosType;
         startBoxesIndex?: number;
         customStartBoxes?: StartBox[];
+        customStartBoxShapes?: StartBoxPoly[][];
         customStartBoxPreset?: StartBoxOrientation;
         fixedPositionsIndex?: number;
     };
@@ -109,7 +111,7 @@ export type Restriction = {
 };
 
 export type Player = {
-    id: number;
+    id: string;
     name: string;
     user: User;
     contentSyncState: {
@@ -128,8 +130,8 @@ export type Player = {
 };
 
 export type Bot = {
-    id: number;
-    host: number;
+    id: string;
+    host: string;
     aiShortName: string;
     name: string;
     aiOptions: Record<string, unknown>;
@@ -152,11 +154,11 @@ export function isBot(bot: any): bot is Bot {
 }
 
 export function isRaptor(bot: Bot): boolean {
-    return bot.aiShortName === "RaptorsAI";
+    return bot.aiShortName === RAPTORS_AI;
 }
 
 export function isScavenger(bot: Bot): boolean {
-    return bot.aiShortName === "ScavengersAI";
+    return bot.aiShortName === SCAVENGERS_AI;
 }
 
 export function isScavengerOrRaptor(p: Bot | Player): boolean {

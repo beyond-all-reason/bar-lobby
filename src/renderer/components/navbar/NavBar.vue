@@ -7,8 +7,11 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="nav" :class="{ hidden }">
         <div class="logo">
-            <Button to="/play/menu?">
-                <img src="/src/renderer/assets/images/logo.svg" />
+            <Button @click="onLogoClick">
+                <div class="logo-container">
+                    <img src="/src/renderer/assets/images/logo.svg" :class="{ dim: tachyonStore.springConnectionDetails }" />
+                    <ActiveBattleVideo class="battle-video" v-if="tachyonStore.springConnectionDetails" />
+                </div>
             </Button>
         </div>
         <div class="flex-col flex-grow">
@@ -21,7 +24,7 @@ SPDX-License-Identifier: MIT
                 <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
-                        v-if="me.isAuthenticated && settingsStore.devMode"
+                        v-if="connectionStore.isAuthenticated && settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -74,7 +77,7 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="secondary-right flex-row flex-right">
                     <ServerStatus v-if="settingsStore.devMode" />
-                    <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
+                    <Button v-if="connectionStore.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
@@ -121,11 +124,16 @@ import Exit from "@renderer/components/navbar/Exit.vue";
 import Friends from "@renderer/components/navbar/Friends.vue";
 import Messages from "@renderer/components/navbar/Messages.vue";
 import { useRouter } from "vue-router";
+import { mainWindowApi } from "@renderer/api/main-window";
+import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 import { chatStore } from "@renderer/store/chat.store";
+import { tachyonStore } from "@renderer/store/tachyon.store";
+import { connectionStore } from "@renderer/store/connection.store";
+import ActiveBattleVideo from "@renderer/components/misc/ActiveBattleVideo.vue";
 
 defineProps<{
     hidden?: boolean;
@@ -157,7 +165,7 @@ const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 
 const { openLogInConfirmation } = useLogInConfirmation();
 function handleFriendsClick() {
-    if (!me.isAuthenticated) {
+    if (!connectionStore.isAuthenticated) {
         openLogInConfirmation(router.currentRoute.value);
         return;
     }
@@ -167,11 +175,19 @@ function handleFriendsClick() {
 const messagesUnread = computed(() => [...chatStore.userChats.values()].some((m) => m.at(-1)?.seen === false));
 
 function minimizeWindow() {
-    window.mainWindow?.minimize();
+    mainWindowApi.minimize();
 }
 
 function toggleFullscreen() {
-    settingsStore.fullscreen = !settingsStore.fullscreen;
+    settingsLogic.update({ fullscreen: !settingsStore.fullscreen });
+}
+
+function onLogoClick() {
+    if (tachyonStore.springConnectionDetails) {
+        tachyonStore.rejoinModalOpen = true;
+    } else {
+        router.push("/play/menu");
+    }
 }
 </script>
 
@@ -360,5 +376,25 @@ function toggleFullscreen() {
 .drag-window-area {
     flex-grow: 1;
     -webkit-app-region: drag !important;
+}
+.logo-container {
+    position: relative;
+    display: inline-block;
+}
+.logo-container img {
+    display: block;
+    // max-width: 100%;
+    // height: auto;
+}
+.battle-video {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+.dim {
+    filter: brightness(0.12);
 }
 </style>

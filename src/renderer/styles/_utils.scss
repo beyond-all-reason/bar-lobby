@@ -13,6 +13,11 @@
     content: "";
 }
 
+// The draggable region is geometric, not hit-tested, so covering it is not enough.
+.blocks-window-drag {
+    -webkit-app-region: no-drag;
+}
+
 .fullwidth {
     width: 100%;
 }

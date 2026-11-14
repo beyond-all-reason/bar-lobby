@@ -20,6 +20,7 @@ vi.mock("@renderer/store/settings.store", () => ({
         devMode: false,
     },
 }));
+vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
 vi.mock("@renderer/store/infos.store", () => ({
     infosStore: {
@@ -35,12 +36,15 @@ vi.mock("@renderer/store/battle.store", () => ({
 }));
 
 vi.mock("@renderer/store/me.store", () => ({
-    me: { isAuthenticated: true },
-    auth: { playOffline: vi.fn() },
+    me: {},
+}));
+
+vi.mock("@renderer/store/connection.store", () => ({
+    connectionStore: { isAuthenticated: true, isConnected: true, isReconnecting: false },
 }));
 
 vi.mock("@renderer/store/tachyon.store", () => ({
-    tachyonStore: { isConnected: true },
+    tachyonStore: {},
 }));
 
 vi.mock("@renderer/utils/play-random-music", () => ({
@@ -75,6 +79,7 @@ vi.mock("vue-router", () => ({
         afterEach: vi.fn(),
     }),
 }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 describe("App.vue", () => {
     it("renders the App root and lobby version", () => {

@@ -29,9 +29,9 @@ Every commit on the `master` branch is also built. To download an installer of t
 ## Functionality and Goals
 
 - Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
-- Simple and intutive codebase, lots of documenation for contributing
+- Simple and intuitive codebase, lots of documentation for contributing
 - Steam integration, automatic account creation and login
-- Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
+- Smooth, seamless, fully integrated downloads. Content should be preloaded when sensible
 - Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/tachyon). No support for the legacy SpringLobbyProtocol
 - TLS only, no unencypted comms
 
@@ -74,6 +74,8 @@ If you change node.js version, you **need** to re-run `npm install`.
 ```
 .
 ├──buildResources   # used by electron-builder
+├──schemas
+│  └──content       # JSON Schemas for singleplayer content, and its format's README
 ├──src
 │  ├──main
 │  │  ├──main.ts
@@ -86,6 +88,7 @@ If you change node.js version, you **need** to re-run `npm install`.
 │     ├──index.ts
 │     ├──index.html
 │     └──...
+├──tools            # development scripts, such as validate-content and start:multi
 ├──electron-builder.ts
 ├──electron.vite.config.ts
 ├──package.json
@@ -122,6 +125,10 @@ If you change node.js version, you **need** to re-run `npm install`.
     - Runs `electron-forge` in `development` mode
     - **renderer** runs with Hot Module Replacement (HMR)
     - **main** and **preload** are directly bundled to `.vite/build`
+- `npm run start:multi [count] [config.json]`
+    - Builds once, then starts `count` clients (2 by default), each in its own terminal with its own state and assets folders (`state`, `state-2`, … and `assets`, `assets-2`, …)
+    - An optional client config, such as `configs/server5.json`, is passed to every client. A launch profiles file, such as `configs/launch-profiles.json`, offers ready-made setups to pick from instead
+    - Useful for testing multiplayer, or several setups side by side
 - `npm run package`
     - Runs `electron-forge` in `production` mode
     - **renderer** is bundled to `.vite/renderer`
@@ -151,8 +158,19 @@ If you change node.js version, you **need** to re-run `npm install`.
     - Then run `npm run build:win:dev-cert` to build a signed Windows installer
 - `npm run generate-i18n-assets` (run when modifying source translation files)
     - Generates transformed asset files for translations in `src/renderer/assets/languages`
+- `npm run validate-content -- <content root> [--bundle <assets folder>] [--allow-dev]`
+    - Checks a singleplayer content folder with the client's own loader, and lists every problem
+    - `--bundle` also checks the content against what an install ships: its engine, game and maps
+    - See [the content README](schemas/content/README.md#what-the-schemas-dont-check)
+- `npm run generate-content-schemas` (run when modifying `src/shared/content/schema`)
+    - Regenerates the JSON Schemas in `schemas/content` that content authors use
+    - `npm run checks` fails if they are out of date
 
-### Mutliplayer
+### Singleplayer content
+
+Campaigns, scenarios and tutorials are read from content folders. Their format, the JSON Schemas for editing them, mission archives, maps, and how to try content in the client are documented in [schemas/content/README.md](schemas/content/README.md), the source of truth for the format.
+
+### Multiplayer
 
 You can start multiple separate instances by overriding the assets and/or state location using env variables:
 
@@ -160,6 +178,12 @@ You can start multiple separate instances by overriding the assets and/or state 
 BAR_STATE_PATH=state-2 npm start
 BAR_ASSETS_PATH=assets-3 BAR_STATE_PATH=state-3 npm start
 ```
+
+Other overrides, for development only (ignored by a packaged build):
+
+- `BAR_EDITION=steam` runs the client as the Steam edition
+- `BAR_CONTENT_PATH=<folder>` reads official singleplayer content from a folder (Steam edition only)
+- `BAR_CUSTOM_CONTENT_PATH=<folder>` reads custom singleplayer content from a folder
 
 At time of writing, the [production server (server4)](https://server4.beyondallreason.info/) isn't setup for the new client. You need
 to enable dev mode in the settings, and then, in the dev settings, choose [server5](https://server5.beyondallreason.info/) which is closer to the production

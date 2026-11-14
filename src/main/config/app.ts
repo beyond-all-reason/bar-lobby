@@ -7,6 +7,10 @@ import fs from "fs";
 import { env } from "process";
 import { app } from "electron";
 import { homedir } from "os";
+import { Type, Static } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
+import type { ContentRoot } from "@shared/content/singleplayer";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -32,7 +36,7 @@ export function getLinuxApplicationsDir(): string {
  * - Linux AppImage
  * - Linux Flatpak
  * - Windows/Linux development setup
- * - In the future Windows/Linux steam
+ * - Windows/Linux Steam (see edition.ts)
  * - Maybe in the future Windows/Linux portable distribution
  *
  * For now we try to categorize the data into 3 categories:
@@ -58,9 +62,16 @@ export function getLinuxApplicationsDir(): string {
  * - Linux:
  *   - Assets: ~/.local/share/BeyondAllReason
  *   - State: ~/.local/state/BeyondAllReason
+ * - Steam, Windows and Linux:
+ *   - Assets: <install dir>/assets, read-only: Steam installs, patches and
+ *     verifies it, so content we download goes under the state dir instead.
+ *   - State: the same as the standalone client on that platform, so a player
+ *     moving between editions keeps their settings and replays. Maps the
+ *     standalone client downloaded stay in its assets dir, which Steam does
+ *     not read, so they have to be downloaded again.
  */
 function getDefaultLocations(): { state: string; assets: string } {
-    // We separate the developlment installation from production installation
+    // We separate the development installation from production installation
     // in the system.
     if (!app.isPackaged) {
         return {
@@ -80,17 +91,12 @@ function getDefaultLocations(): { state: string; assets: string } {
             state: path.join(appData, APP_NAME),
         };
     }
-    if (process.platform === "linux") {
-        return {
-            // The `assets` prefix isn't really needed under Linux, but we add
-            // it for consistency.
-            assets: path.join(getLinuxXdgDataHome(), APP_NAME, "assets"),
-            state: path.join(getLinuxXdgStateHome(), APP_NAME),
-        };
-    }
-
-    console.error("Unsupported platform");
-    process.exit(1);
+    return {
+        // The `assets` prefix isn't really needed under Linux, but we add
+        // it for consistency.
+        assets: EDITION_FEATURES.assetsBesideExecutable ? path.join(path.dirname(app.getPath("exe")), "assets") : path.join(getLinuxXdgDataHome(), APP_NAME, "assets"),
+        state: path.join(getLinuxXdgStateHome(), APP_NAME),
+    };
 }
 
 export function setAssetsPath(p: string) {
@@ -110,11 +116,21 @@ export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLoca
 // locations, not only our own code.
 app.setPath("userData", STATE_PATH);
 
+console.log(`EDITION: ${EDITION}`);
 console.log(`ASSETS_PATH: ${ASSETS_PATH}`);
 console.log(`STATE_PATH: ${STATE_PATH}`);
 
 export const CONFIG_PATH = path.join(STATE_PATH, "config");
+
+// Logging configuration
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
+const LogLevelSchema = Type.String({ pattern: "^(fatal|error|warn|info|debug|trace|silent)$" });
+const formattedLogLevel: Static<typeof LogLevelSchema> = (process.env.BAR_LOG_LEVEL ?? "info").toLowerCase();
+const isValidLogLevel = Value.Check(LogLevelSchema, formattedLogLevel);
+if (!isValidLogLevel) {
+    console.warn(`Invalid BAR_LOG_LEVEL: ${process.env.BAR_LOG_LEVEL}. Using default log level: info. Valid values are: fatal, error, warn, info, debug, trace, silent.`);
+}
+export const LOG_LEVEL = isValidLogLevel ? formattedLogLevel : "info";
 
 // We will point engine at ASSETS_PATH as a base data directory to only read
 // data from, and at WRITE_DATA_PATH as data directory it can write to.
@@ -127,6 +143,46 @@ export const getRapidIndexPath = () => path.join(ASSETS_PATH, "rapid");
 export const getMapsPaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
 export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
+
+/**
+ * Where singleplayer content is read from, one root per source the edition reads. Official content is the
+ * content depot a Steam install ships in its assets. Custom content is the player's own.
+ *
+ * Saved progress is keyed by each root's `rootId`, so a root keeps its id for good once it has shipped
+ * content. A further official root, such as a DLC depot, gets a fixed id of its own.
+ *
+ * As with BAR_EDITION, the overrides only work from `npm start`.
+ */
+export function getContentRoots(): ContentRoot[] {
+    const override = (name: "BAR_CONTENT_PATH" | "BAR_CUSTOM_CONTENT_PATH") => (app.isPackaged ? undefined : process.env[name]);
+    const roots: ContentRoot[] = [];
+    if (EDITION_FEATURES.officialContent) {
+        roots.push({ source: "official", rootId: "official", path: path.resolve(override("BAR_CONTENT_PATH") || path.join(ASSETS_PATH, "content")) });
+    }
+    if (EDITION_FEATURES.customContent) {
+        roots.push({ source: "custom", rootId: "custom", path: path.resolve(override("BAR_CUSTOM_CONTENT_PATH") || path.join(STATE_PATH, "content")) });
+    }
+
+    return roots;
+}
+
+/**
+ * Where content this client acquires itself lands. pr-downloader lays it out under the root the same way
+ * either way, and the engine already searches both roots.
+ */
+export const getContentWriteRoot = () => (EDITION_FEATURES.assetsReadOnly ? WRITE_DATA_PATH : ASSETS_PATH);
+
+// Map directories whose files are ours to delete.
+export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.assetsReadOnly ? [path.join(WRITE_DATA_PATH, "maps")] : getMapsPaths());
+
+/**
+ * Saved singleplayer progress, one small JSON file per item played. The folder holds nothing else and its
+ * files hold no paths or machine-specific values, so Steam Cloud can sync it as it is: with Auto-Cloud, the
+ * pattern `*.json` in `WinAppDataRoaming` + `BeyondAllReason/saves/singleplayer`. On Linux STATE_PATH is under
+ * XDG_STATE_HOME, which Steam has no root for, so that either assumes the default `LinuxHome` +
+ * `.local/state/...` or goes through the ISteamRemoteStorage API, which only needs the file names and contents.
+ */
+export const SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");

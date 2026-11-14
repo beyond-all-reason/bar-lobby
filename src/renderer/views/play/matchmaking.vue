@@ -5,11 +5,11 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Matchmaking", order: 3, devOnly: true, onlineOnly: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Matchmaking", order: 3, devOnly: false, onlineOnly: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>
-    <div class="view">
+    <div>
         <div class="ranked-container">
             <div class="view-title">
                 <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
@@ -33,19 +33,43 @@ SPDX-License-Identifier: MIT
                     :class="{
                         selected: matchmakingStore.selectedQueue === queue,
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = queue)"
+                    @click="queueSelected(queue)"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>{{ getPlaylistName(queue) }}</span></Button
-                >
+                    ><span>{{ getPlaylistName(queue) }}</span>
+                    <div class="info bl" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
+                        <Icon :icon="informationIcon"></Icon>
+                    </div>
+                    <div
+                        class="info br"
+                        v-if="getTeamSize(queue) < getPartySize()"
+                        v-tooltip.bottom="{ value: t('lobby.multiplayer.ranked.buttons.partyTooLargeTooltip') }"
+                    >
+                        <Icon :icon="stopAlertOutlineIcon"></Icon>
+                    </div>
+                </Button>
             </div>
             <div class="button-container">
+                <div v-if="downloadsAreRequiredForSelected" class="download-button-container">
+                    <DownloadContentButton
+                        :maps="downloadsRequired.maps"
+                        :engines="downloadsRequired.engines"
+                        :games="downloadsRequired.games"
+                        @downloads-complete="handleDownloadsComplete"
+                        @downloads-started="handleDownloadsStarted"
+                        :class="'large'"
+                        >This string should never be visible.</DownloadContentButton
+                    >
+                </div>
+                <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
+                    {{ t("lobby.multiplayer.ranked.buttons.partyTooLarge") }}
+                </button>
                 <button
-                    v-if="matchmakingStore.status === MatchmakingStatus.Idle"
+                    v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
                     class="quick-play-button"
                     :class="{
                         disabled: !matchmakingStore.selectedQueue,
                     }"
-                    @click="matchmaking.sendQueueRequest"
+                    @click="matchmaking.joinQueue"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                 </button>
@@ -62,12 +86,12 @@ SPDX-License-Identifier: MIT
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
-                    @click="matchmaking.sendReadyRequest"
+                    @click="matchmaking.ready"
                 >
-                    {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
+                    {{ t("lobby.multiplayer.ranked.buttons.matchFound", { seconds: matchmakingStore.readySecondsRemaining }) }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
-                    {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
+                    {{ t("lobby.multiplayer.ranked.buttons.accepted", { players: matchmakingStore.playersReady ?? 0 }) }}
                 </button>
                 <button
                     class="cancel-button"
@@ -75,31 +99,92 @@ SPDX-License-Identifier: MIT
                     :class="{
                         disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                     }"
-                    @click="matchmaking.sendCancelRequest"
+                    @click="matchmaking.cancel"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
                 <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
             </div>
         </div>
+        <QueueDownloadsModal
+            v-model="isQueueDownloadsModalOpen"
+            :title="t('lobby.multiplayer.ranked.modalTitle')"
+            :queue="matchmakingStore.selectedQueue"
+            @close-modal="isQueueDownloadsModalOpen = false"
+        />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
+import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
+import { MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
+import { useMatchmakingActions } from "@renderer/composables/useMatchmakingActions";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
-import { computed, onActivated } from "vue";
+import { computed, onActivated, ref } from "vue";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
+import informationIcon from "@iconify-icons/mdi/information";
+import stopAlertOutlineIcon from "@iconify-icons/mdi/stop-alert-outline";
+import { Icon } from "@iconify/vue";
 
 const { t } = useTypedI18n();
+const matchmaking = useMatchmakingActions();
+
+const isQueueDownloadsModalOpen = ref(false);
 
 const availableQueueIds = computed(() => {
-    return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+    return [...matchmakingStore.playlists]
+        .sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams)
+        .map((playlist) => playlist.id);
 });
 
-onActivated(() => {
-    matchmaking.sendListRequest();
+const downloadsRequired = computed(() => {
+    return matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue];
 });
+
+const downloadsAreRequiredForSelected = computed(() => {
+    // 0 returns falsy, anything else returns truthy, so this works to determine if there are any downloads required.
+    const required = downloadsRequired.value;
+    if (!required) return false;
+
+    return required.maps.length + required.engines.length + required.games.length;
+});
+
+const downloading = ref(false);
+
+function queueSelected(queue: string) {
+    // Switching the active queue during a download cannot be allowed because it messes with state.
+    if (downloading.value) {
+        return;
+    } else matchmaking.selectQueue(queue);
+}
+
+function handleDownloadsStarted() {
+    downloading.value = true;
+}
+// After downloads are done, we need to refresh the required list.
+async function handleDownloadsComplete() {
+    try {
+        await matchmaking.refreshRequiredDownloads();
+    } finally {
+        downloading.value = false;
+    }
+}
+
+onActivated(() => {
+    matchmaking.listQueues();
+});
+
+function onInfoClick() {
+    if (!downloading.value) isQueueDownloadsModalOpen.value = true;
+}
+const { partyTooLarge } = usePartySizeMatchmaking();
+
+function getTeamSize(queue: string) {
+    const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+    return playlist ? playlist.teamSize : 0;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -109,7 +194,8 @@ onActivated(() => {
     align-self: center;
     gap: 20px;
     height: 100%;
-    width: 1000px;
+    width: 100%;
+    max-width: 1000px;
     overflow: visible;
 }
 
@@ -227,6 +313,10 @@ onActivated(() => {
         box-shadow 0.3s ease;
 }
 
+.quick-play-button.invalid {
+    background: linear-gradient(0deg, #1e2c23, #304135);
+}
+
 .searching {
     animation: pulse 3s infinite ease-in-out;
 }
@@ -293,5 +383,39 @@ onActivated(() => {
 .disabled {
     cursor: not-allowed;
     opacity: 0.1;
+}
+
+.download-button-container {
+    align-self: center;
+    width: 500px;
+    //padding: 20px 40px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.info {
+    position: absolute;
+    font-size: 24px;
+    font-weight: 600;
+    padding: 2px 5px;
+    transition: 0.2s opacity;
+    opacity: 0.6;
+    &.bl {
+        bottom: 10px;
+        left: 10px;
+    }
+    &.br {
+        bottom: 10px;
+        right: 10px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width: 55%;
+    }
+}
+.info:hover {
+    font-size: 32px;
+    opacity: 1;
 }
 </style>

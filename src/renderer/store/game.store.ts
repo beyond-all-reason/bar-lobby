@@ -4,9 +4,12 @@
 
 import { GameVersion } from "@main/content/game/game-version";
 import { LuaOption } from "@main/content/game/lua-options";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
+import { isEditionRefusal } from "@shared/edition";
+import { infosStore } from "@renderer/store/infos.store";
 import { reactive, watch } from "vue";
 
 export enum GameStatus {
@@ -33,6 +36,12 @@ async function refreshStore() {
         gameStore.availableGameVersions.set(version.gameVersion, version);
         // The last version provided is always the default "selected" version.
         gameStore.selectedGameVersion = version;
+    }
+
+    // The install's own default game wins over the last one listed.
+    const installDefault = infosStore.installDefaults?.game;
+    if (installDefault && gameStore.availableGameVersions.has(installDefault)) {
+        gameStore.selectedGameVersion = gameStore.availableGameVersions.get(installDefault);
     }
 }
 
@@ -65,7 +74,9 @@ export async function downloadGame(version: string) {
         await refreshStore();
     } catch (error) {
         console.error(`DownloadGame for ${version} failed:`, error);
-        notificationsApi.alert({ text: "Game download failed.", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "Game download failed.", severity: "error" });
+        }
     }
 }
 
@@ -77,7 +88,23 @@ export async function startBattle(battle: BattleWithMetadata) {
     } catch (error) {
         console.error("Failed to start battle:", error);
         gameStore.status = GameStatus.CLOSED;
-        notificationsApi.alert({ text: "startBattle failed", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "startBattle failed", severity: "error" });
+        }
+    }
+}
+
+export async function launchScript(script: string, gameVersion: string, engineVersion: string) {
+    try {
+        gameStore.status = GameStatus.LOADING;
+        await window.game.launchScript(script, gameVersion, engineVersion);
+        gameStore.status = GameStatus.RUNNING;
+    } catch (error) {
+        console.error("Failed to launch script:", error);
+        gameStore.status = GameStatus.CLOSED;
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "launchScript failed", severity: "error" });
+        }
     }
 }
 
@@ -89,20 +116,22 @@ export async function watchReplay(replay: Replay) {
     } catch (error) {
         console.error("Failed to watch replay:", error);
         gameStore.status = GameStatus.CLOSED;
-        notificationsApi.alert({ text: "watchReplay failed", severity: "error" });
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "watchReplay failed", severity: "error" });
+        }
     }
 }
 
 export async function initGameStore() {
-    if (gameStore.isInitialized) return;
+    if (gameStore.isInitialized) {
+        console.warn("Game store is already initialized. Skipping initialization.");
+        return;
+    }
     await refreshStore();
-    window.downloads.onDownloadGameComplete(async (downloadInfo) => {
-        console.debug("Received game download completed event", downloadInfo);
-        await refreshStore();
-    });
-    window.downloads.onDownloadGameFail(async (downloadInfo) => {
-        console.error("Game download failed", downloadInfo);
-        await refreshStore();
+    onContentSettled(async (refs) => {
+        if (refs.some((ref) => ref.type === "game")) {
+            await refreshStore();
+        }
     });
     window.game.onGameLaunched(() => {
         console.debug("Game loaded");

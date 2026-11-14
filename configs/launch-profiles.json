@@ -1,0 +1,9 @@
+{
+    "profiles": [
+        { "id": "one", "description": "1 client, no config override", "clients": 1 },
+        { "id": "two", "description": "2 clients, no config override", "clients": 2 },
+        { "id": "two-dev", "description": "2 clients defaulting to lobby-server-dev", "clients": 2, "config": "configs/lobby-dev.json" },
+        { "id": "three-dev", "description": "3 clients defaulting to lobby-server-dev", "clients": 3, "config": "configs/lobby-dev.json" },
+        { "id": "two-server5", "description": "2 clients defaulting to server5", "clients": 2, "config": "configs/server5.json" }
+    ]
+}

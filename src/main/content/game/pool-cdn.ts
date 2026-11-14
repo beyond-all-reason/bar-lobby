@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { getAssetsPath, getPoolPath } from "@main/config/app";
+import { EDITION, EDITION_FEATURES } from "@main/config/edition";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -10,57 +11,48 @@ import { logger } from "@main/utils/logger";
 
 import type { DownloadInfo } from "@main/content/downloads";
 import { Downloader } from "@main/content/abstract-content";
+import { downloadSlots } from "@main/content/download-slots";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { GameContentAPI } from "@main/content/game/game-content";
 import { extract7z } from "@main/utils/extract-7z";
-import { fileExists } from "@main/utils/file";
+import { configService } from "@main/services/config.service";
 
 const log = logger("pool-cdn.ts");
 
 export class PoolCdnDownloader extends Downloader {
-    cdnUrl = "https://pool-init.beyondallreason.dev";
-    poolDataUrl = `${this.cdnUrl}/data.7z`;
-
-    constructor(gameApi: GameContentAPI) {
-        super();
-        this.onDownloadStart.add((downloadInfo) => {
-            gameApi.onDownloadStart.dispatch(downloadInfo);
-        });
-        this.onDownloadComplete.add((downloadInfo) => {
-            gameApi.onDownloadComplete.dispatch(downloadInfo);
-        });
-        this.onDownloadProgress.add((downloadInfo) => {
-            gameApi.onDownloadProgress.dispatch(downloadInfo);
-        });
-        this.onDownloadFail.add((downloadInfo) => {
-            gameApi.onDownloadFail.dispatch(downloadInfo);
-        });
-    }
-
     /**
-     * Download and extract pool data from the pool CDN, if pool directory does not exist in content folder.
+     * Download and extract pool data from the pool CDN.
      *
-     * Will try to reuse existing download if it exists (DownloadHelper will resume download).
+     * Will try to reuse an existing archive download if it exists (DownloadHelper will resume download).
+     *
+     * Only seeds a game download, so an edition that does not download games has no use for it, and it
+     * writes into the assets directory.
      */
     public async preloadPoolData() {
-        if (await fileExists(getPoolPath())) {
-            log.debug("Pool folder already exists, skipping download");
+        if (!EDITION_FEATURES.downloadEngineAndGame) {
+            log.info(`Skipping pool data: the ${EDITION} edition does not download games`);
             return;
         }
-        log.info("Pool folder does not exist, downloading pool data");
-        await fs.promises.mkdir(getPoolPath());
+
+        return downloadSlots.use(() => this.downloadPoolData());
+    }
+
+    private async downloadPoolData() {
+        log.info("Downloading pool data");
+        await fs.promises.mkdir(getPoolPath(), { recursive: true });
 
         const downloadInfo: DownloadInfo = {
             type: "game",
+            id: "pool-data",
             name: "pool-data",
             currentBytes: 0,
             totalBytes: 1,
             progress: 0,
         };
         this.currentDownloads.push(downloadInfo);
+        this.downloadStarted(downloadInfo);
 
         const dlFilePath = path.join(getAssetsPath(), "data.7z");
-        const dl = new DownloaderHelper(this.poolDataUrl, getAssetsPath(), {
+        const dl = new DownloaderHelper(`${configService.getConfig().initialPoolDataUrl}/data.7z`, getAssetsPath(), {
             fileName: "data.7z",
             timeout: 10000,
             retry: { maxRetries: 3, delay: 1000 },
@@ -72,7 +64,6 @@ export class PoolCdnDownloader extends Downloader {
         });
         dl.on("start", () => {
             log.info("Pool data download started");
-            this.downloadStarted(downloadInfo);
         });
         dl.on("end", () => {
             log.info("Pool data download complete");
@@ -108,3 +99,5 @@ export class PoolCdnDownloader extends Downloader {
         this.downloadComplete(downloadInfo);
     }
 }
+
+export const poolCdnDownloader = new PoolCdnDownloader();

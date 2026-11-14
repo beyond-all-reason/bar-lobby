@@ -11,6 +11,7 @@ const alias = {
     "@main": path.resolve(__dirname, "./src/main"),
     "@renderer": path.resolve(__dirname, "./src/renderer"),
     "@preload": path.resolve(__dirname, "./src/preload"),
+    "@shared": path.resolve(__dirname, "./src/shared"),
     $: path.join(__dirname, "vendor"),
 };
 
@@ -51,6 +52,13 @@ export default defineConfig({
                     include: ["tests/unit/shared/**/*.{test,spec}.{ts,mts}"],
                 },
                 resolve: { alias },
+            },
+            {
+                test: {
+                    name: "tools",
+                    environment: "node",
+                    include: ["tests/unit/tools/**/*.{test,spec}.{ts,mts}"],
+                },
             },
         ],
     },

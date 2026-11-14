@@ -17,30 +17,30 @@ import { elementInViewDirective } from "@renderer/utils/element-in-view-directiv
 import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
-import { setupI18n } from "@renderer/i18n";
+import { provideUi } from "@renderer/logic/ui";
+import { appUi } from "@renderer/ui";
+import { i18n } from "@renderer/i18n";
 
 setupVue();
-
-new ResizeObserver(() => {
-    window.mainWindow.resized();
-}).observe(document.body);
 
 async function setupVue() {
     const app = createApp(App);
 
+    provideUi(appUi);
+
+    // Init stores before mounting app
+    await initPreMountStores();
+    await audioApi.init();
+
     // Plugins
     app.use(router);
     app.use(PrimeVue, { ripple: true });
-    app.use(setupI18n());
+    app.use(i18n);
 
     // Directives
     app.directive("click-away", clickAwayDirective);
     app.directive("in-view", elementInViewDirective);
     app.directive("tooltip", Tooltip);
-
-    // Init stores before mounting app
-    await initPreMountStores();
-    await audioApi.init();
 
     app.mount("#app");
 }

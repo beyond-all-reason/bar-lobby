@@ -2,27 +2,32 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { accountService } from "@main/services/account.service";
-import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
+import { authService } from "@main/services/auth.service";
+import { createTachyonRequestHandlers } from "@main/tachyon/tachyon.handlers";
+import { TachyonClient } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
-import { BattleStartRequestData } from "tachyon-protocol/types";
+import { TachyonEvent } from "tachyon-protocol";
 import { BarIpcWebContents } from "@main/typed-ipc";
 
 const log = logger("tachyon-service");
 
+// user/self is the only thing that tells us who we are, and it only ever arrives
+// over the socket. Keeping it beside the credentials means the name is there on
+// the next launch, before anything has connected.
+function rememberIdentity(event: TachyonEvent) {
+    if (event.commandId !== "user/self") return;
+
+    try {
+        const { userId, username, displayName, countryCode } = event.data.user;
+        void authService.setIdentity({ userId, username, displayName, countryCode: countryCode ?? "" });
+    } catch (error) {
+        log.error("Could not read the identity out of user/self", error);
+    }
+}
+
 function registerIpcHandlers(webContents: BarIpcWebContents) {
-    const requestHandlers: TachyonClientRequestHandlers = {
-        "battle/start": async (data: BattleStartRequestData) => {
-            log.info(`Received battle start request: ${JSON.stringify(data)}`);
-            const { ip, port, username, password } = data;
-            const springString = `spring://${username}:${password}@${ip}:${port}`;
-            webContents.send("tachyon:battleStart", springString);
-            return {
-                status: "success",
-            };
-        },
-    };
+    const requestHandlers = createTachyonRequestHandlers(webContents);
     const tachyonClient = new TachyonClient(requestHandlers);
 
     tachyonClient.onSocketOpen.add(() => {
@@ -37,7 +42,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     tachyonClient.onEvent.add((event) => {
         log.info(`Received event: ${JSON.stringify(event)}`);
+        // Forwarded first, so nothing that goes wrong while storing the identity
+        // can stop the renderer seeing the event.
         webContents.send("tachyon:event", event);
+        rememberIdentity(event);
     });
 
     ipcMain.handle("tachyon:isConnected", () => {
@@ -46,7 +54,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     ipcMain.handle("tachyon:connect", async () => {
         if (!tachyonClient.isConnected()) {
-            const token = await accountService.getToken();
+            const token = await authService.getAccessToken();
             if (!token) {
                 throw new Error("Not authenticated");
             }
@@ -55,9 +63,11 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 
     ipcMain.handle("tachyon:disconnect", async () => {
-        if (tachyonClient.isConnected()) {
-            return await tachyonClient.disconnect();
-        }
+        return await tachyonClient.disconnect();
+    });
+
+    ipcMain.handle("tachyon:dropConnection", async () => {
+        return tachyonClient.dropConnection();
     });
 
     ipcMain.handle("tachyon:sendEvent", async (_event, data) => {
@@ -66,6 +76,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     ipcMain.handle("tachyon:request", async (_event, command, args) => {
         return await tachyonClient.request(command, args);
+    });
+
+    ipcMain.handle("tachyon:requestStructured", async (_event, command, args) => {
+        return await tachyonClient.requestStructured(command, args);
     });
 }
 

@@ -11,6 +11,7 @@ export default defineConfig({
             "@main": path.join(__dirname, "src/main"),
             "@renderer": path.join(__dirname, "src/renderer"),
             "@preload": path.join(__dirname, "src/preload"),
+            "@shared": path.join(__dirname, "src/shared"),
             $: path.join(__dirname, "vendor"),
         },
     },
@@ -18,6 +19,7 @@ export default defineConfig({
         sourcemap: true,
     },
     optimizeDeps: {
+        // force: true,
         entries: ["src/renderer/**/*.vue", "src/renderer/**/*.ts", "src/renderer/**/*.js"],
         esbuildOptions: {
             target: "esnext",

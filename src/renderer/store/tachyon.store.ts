@@ -2,150 +2,72 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { enginesStore } from "@renderer/store/engine.store";
-import { gameStore } from "@renderer/store/game.store";
-import { auth, me } from "@renderer/store/me.store";
-import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
-import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
-import { subsManager } from "@renderer/store/users.store";
-import { UserId } from "tachyon-protocol/types";
-import { notificationsApi } from "@renderer/api/notifications";
-import { chat, chatStore } from "@renderer/store/chat.store";
+import { PrivateUser } from "tachyon-protocol/types";
+import { onWentOffline } from "@renderer/utils/offline-signal";
+import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
+
+type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
+    engine: { version: string };
+    game: { springName: string };
+};
 
 export const tachyonStore = reactive({
     isInitialized: false,
-    isConnected: false,
-    serverStats: undefined,
-    error: undefined,
+    rejoinModalOpen: false,
+    springConnectionDetails: undefined,
 } as {
     isInitialized: boolean;
-    isConnected: boolean;
-    serverStats?: SystemServerStatsOkResponseData;
-    error?: string;
-    fetchServerStatsInterval?: NodeJS.Timeout;
-    reconnectInterval?: NodeJS.Timeout;
+    rejoinModalOpen: boolean;
+    springConnectionDetails?: MultiplayerBattleConnectionDetails;
 });
 
-async function connect() {
-    if (!me.isAuthenticated) throw new Error("Not authenticated");
-    try {
-        await window.tachyon.connect();
-        tachyonStore.error = undefined;
-    } catch (err) {
-        console.error("Failed to connect to Tachyon server", err);
-        tachyonStore.error = "Error";
-        auth.logout();
-        if (err instanceof Error) {
-            throw new Error(err.message);
-        } else {
-            throw new Error(String(err));
-        }
-    }
+function launchMultiplayerBattle(connectionDetails: MultiplayerBattleConnectionDetails) {
+    window.game.launchMultiplayer({
+        engineVersion: connectionDetails.engine.version,
+        gameVersion: connectionDetails.game.springName,
+        springString: createSpringString(connectionDetails),
+    });
 }
 
-async function fetchServerStats() {
-    try {
-        tachyonStore.error = undefined;
-        const response = await window.tachyon.request("system/serverStats");
-        tachyonStore.serverStats = response.data;
-    } catch (error) {
-        console.error("Error fetching server stats:", error);
-        tachyonStore.error = "Error fetching server stats";
-        tachyonStore.serverStats = undefined;
+function clearRejoin() {
+    tachyonStore.springConnectionDetails = undefined;
+    tachyonStore.rejoinModalOpen = false;
+}
+
+function onUserSelfEventBattle(battle: PrivateUser["currentBattle"]) {
+    if (!battle) {
+        clearRejoin();
+
+        return;
     }
+    tachyonStore.springConnectionDetails = battle;
+    tachyonStore.rejoinModalOpen = true;
 }
 
 export async function initTachyonStore() {
-    tachyonStore.isConnected = await window.tachyon.isConnected();
-    if (tachyonStore.isConnected) {
-        fetchServerStats();
-        tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+    if (tachyonStore.isInitialized) {
+        console.warn("Tachyon store is already initialized. Skipping initialization.");
+        return;
     }
-    console.debug(`Tachyon server is ${tachyonStore.isConnected ? "connected" : "disconnected"}`);
 
-    window.tachyon.onConnected(() => {
-        console.debug("Connected to Tachyon server");
-        tachyonStore.isConnected = true;
-        fetchServerStats();
-        if (tachyonStore.fetchServerStatsInterval) {
-            clearInterval(tachyonStore.fetchServerStatsInterval);
-            tachyonStore.fetchServerStatsInterval = undefined;
-        }
-        if (tachyonStore.reconnectInterval) {
-            clearInterval(tachyonStore.reconnectInterval);
-            tachyonStore.reconnectInterval = undefined;
-        }
-        // Periodically fetch server stats
-        tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+    onWentOffline.add(clearRejoin);
 
-        // Fetch matchmaking queues when connected
-        if (matchmakingStore.isInitialized) {
-            matchmaking.sendListRequest();
-        }
-
-        // Subscribe to messages (all sources) when connected
-        if (chatStore.isInitialized) {
-            chat.requestSubscribeReceived();
-        }
+    window.tachyon.onBattleStart((data) => {
+        console.debug("Received battle start event", data.ips[0], data.port);
+        // tachyon.service.ts checks assets before sending this request here.
+        tachyonStore.springConnectionDetails = data;
+        launchMultiplayerBattle(data);
     });
 
-    window.tachyon.onDisconnected(() => {
-        console.debug("Disconnected from Tachyon server");
-        tachyonStore.isConnected = false;
-        if (tachyonStore.fetchServerStatsInterval) {
-            clearInterval(tachyonStore.fetchServerStatsInterval);
-            tachyonStore.fetchServerStatsInterval = undefined;
-        }
-        if (tachyonStore.reconnectInterval) {
-            clearInterval(tachyonStore.reconnectInterval);
-            tachyonStore.reconnectInterval = undefined;
-        }
-        // If the user is not in an offline session, try to reconnect
-        if (me.isAuthenticated) {
-            // Try to connect to Tachyon server periodically
-            tachyonStore.reconnectInterval = setInterval(connect, 10000);
-        }
+    window.tachyon.onEvent("battle/ended", (data) => {
+        console.debug("Received battle ended event", data);
+        clearRejoin();
     });
 
-    window.tachyon.onBattleStart((springString) => {
-        console.debug("Received battle start event", springString);
-        const engineVersion = enginesStore.selectedEngineVersion;
-        if (engineVersion === undefined) {
-            console.error("No engine version selected");
-            return;
-        }
-        if (!gameStore.selectedGameVersion) {
-            console.error("No game version selected");
-            return;
-        }
-        window.game.launchMultiplayer({
-            engineVersion: engineVersion.id,
-            gameVersion: gameStore.selectedGameVersion.gameVersion,
-            springString,
-        });
-    });
-
-    subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
-        try {
-            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: users });
-            console.log("Tachyon: user/subscribeUpdates", response);
-        } catch (error) {
-            console.error("Tachyon error: 'user/subscribeUpdates'", error);
-            notificationsApi.alert({ text: "Tachyon error with user/subscribeUpdates", severity: "error" });
-        }
-    });
-    subsManager.onOldUsersDetached.add(async (users: UserId[]) => {
-        try {
-            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
-            console.log("Tachyon: user/unsubscribeUpdates", response);
-        } catch (error) {
-            console.error("Tachyon error: 'user/unsubscribeUpdates'", error);
-            notificationsApi.alert({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
-        }
-    });
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventBattle(data.user.currentBattle));
 
     tachyonStore.isInitialized = true;
 }
 
-export const tachyon = { connect };
+export const tachyon = { launchMultiplayerBattle };

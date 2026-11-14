@@ -3,6 +3,10 @@ import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 
+import { contentLayerRules } from "./eslint/content-layer.mjs";
+import { layerBoundaryRules } from "./eslint/layer-boundaries.mjs";
+import { restrictedSyntaxRules } from "./eslint/restricted-syntax.mjs";
+
 export default [
     { files: ["**/*.{js,mjs,cjs,ts,vue}"] },
     {
@@ -13,6 +17,8 @@ export default [
             "**/out",
             "**/dist_electron",
             "**/node_modules",
+            // Agent worktrees hold whole copies of this repo, which the unscoped lint would walk into.
+            "**/.claude",
             "**/working-files",
             "**/typed-router.d.ts",
             "**/vendor",
@@ -54,4 +60,7 @@ export default [
             "@typescript-eslint/no-unsafe-function-type": "warn",
         },
     },
+    ...contentLayerRules,
+    ...restrictedSyntaxRules,
+    ...layerBoundaryRules,
 ];

@@ -6,6 +6,7 @@
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
+import { customStartboxOverride, encodeModoptionValue, STARTBOX_OVERRIDE_KEY, STARTBOXES_SET_KEY, startboxesSetByTeamCount } from "@shared/startbox-modoptions";
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -15,10 +16,10 @@ import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
  * - parse and convert restrictions
  */
 class StartScriptConverter {
-    public generateScriptStr(battle: BattleWithMetadata): string {
+    public async generateScriptStr(battle: BattleWithMetadata): Promise<string> {
         let scriptStr = "";
         if (!battle.isOnline) {
-            const script = this.offlineBattleToStartScript(battle);
+            const script = await this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
         } else {
             throw new Error("Online battles are not supported yet");
@@ -35,14 +36,14 @@ class StartScriptConverter {
         return obj;
     }
 
-    protected offlineBattleToStartScript(battle: BattleWithMetadata): Game {
+    protected async offlineBattleToStartScript(battle: BattleWithMetadata): Promise<Game> {
         const allyTeams: AllyTeam[] = [];
         const teams: Team[] = [];
         const players: Player[] = [];
         const bots: Bot[] = [];
 
         Object.entries(battle.teams).forEach((entry) => {
-            const teamId = Number(entry[0]);
+            const teamId = entry[0];
             const team = entry[1];
             const allyTeam: AllyTeam = {
                 id: teamId,
@@ -112,6 +113,7 @@ class StartScriptConverter {
                     players.push(player);
                 } else {
                     team.teamleader = teamMember.host;
+                    team.side = teamMember.faction;
                     const bot: Bot = {
                         id,
                         team: team.id,
@@ -146,10 +148,26 @@ class StartScriptConverter {
         if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
         if (!battle.me) throw new Error("failed to access current player");
 
+        const modoptions: Record<string, any> = { ...battle.battleOptions.gameMode.options };
+
+        // The engine only knows rects, so polygons go as the game's startbox modoptions; the startrects above stay as the fallback.
+        const mapOptions = battle.battleOptions.mapOptions;
+        if (mapOptions.startPosType === StartPosType.Boxes) {
+            const startboxesSet = battle.battleOptions.map.startboxesSet;
+            if (startboxesSet?.length) {
+                modoptions[STARTBOXES_SET_KEY] = await encodeModoptionValue(startboxesSetByTeamCount(startboxesSet));
+            }
+
+            const override = mapOptions.startBoxesIndex == undefined ? customStartboxOverride(mapOptions.customStartBoxes, mapOptions.customStartBoxShapes) : undefined;
+            if (override) {
+                modoptions[STARTBOX_OVERRIDE_KEY] = await encodeModoptionValue(override);
+            }
+        }
+
         return {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map.springName,
-            modoptions: battle.battleOptions.gameMode.options,
+            modoptions,
             // mapoptions: battle.battleOptions.???,
             ishost: 1,
             myplayername: battle.me.user.username,
@@ -161,7 +179,7 @@ class StartScriptConverter {
         };
     }
 
-    protected generateScriptString(script: Game): string {
+    public generateScriptString(script: Game): string {
         let scriptObj: Record<string, any> = JSON.parse(JSON.stringify(script));
         scriptObj = this.convertGroups(scriptObj);
         const scriptStr = this.stringifyScriptObj(scriptObj);

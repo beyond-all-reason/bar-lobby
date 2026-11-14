@@ -2,13 +2,16 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { configService } from "@main/services/config.service";
 import { settingsService } from "@main/services/settings.service";
+import { resolveLobbyServer } from "@shared/lobby-server";
 
 export const OAUTH_CLIENT_ID = "generic_lobby";
 export const OAUTH_SCOPE = "tachyon.lobby";
 
 function getLobbyServer() {
-    return settingsService.getSettings().lobbyServer;
+    const { useDefaultServer, lobbyServerOverride } = settingsService.getSettings();
+    return resolveLobbyServer(useDefaultServer, lobbyServerOverride, configService.getConfig().defaultServers);
 }
 
 function isSecure(url) {
@@ -47,4 +50,4 @@ function getWSServerURL() {
     return url.toString();
 }
 
-export { getOAuthAuthorizationServerURL, getOAuthWellKnownURL, getWSServerURL };
+export { getLobbyServer, getOAuthAuthorizationServerURL, getOAuthWellKnownURL, getWSServerURL };

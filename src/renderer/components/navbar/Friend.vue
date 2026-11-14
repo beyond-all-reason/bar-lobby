@@ -49,12 +49,29 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="accountArrowRight" />
                 </Button>
                 <Button
-                    v-if="user && user.status !== 'offline'"
+                    v-if="userInParty || userInvited"
+                    class="slim green square"
+                    v-tooltip.left="userInParty ? t('lobby.navbar.tooltips.userInParty') : t('lobby.navbar.tooltips.userInvited')"
+                >
+                    <Icon :icon="accountMultiple" />
+                </Button>
+                <Button
+                    v-else-if="user && user.status !== 'offline' && !maxMembersReached"
                     v-tooltip.left="t('lobby.navbar.tooltips.inviteToParty')"
                     class="slim square"
                     @click="inviteToParty"
                 >
                     <Icon :icon="accountMultiplePlus" />
+                </Button>
+                <Button
+                    v-else-if="user && user.status !== 'offline' && maxMembersReached"
+                    class="slim red square"
+                    v-tooltip.left="t('lobby.navbar.tooltips.partyFull')"
+                >
+                    <Icon :icon="accountMultiple" />
+                </Button>
+                <Button v-tooltip.left="t('lobby.components.user.reportUser.menuLabel')" class="slim square" @click="reportUser">
+                    <ReportUserIcon />
                 </Button>
                 <Button v-tooltip.left="t('lobby.navbar.tooltips.removeFriend')" class="slim red square" @click="removeFriend">
                     <Icon :icon="deleteIcon" />
@@ -69,6 +86,7 @@ import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import accountArrowRight from "@iconify-icons/mdi/account-arrow-right";
 import accountMultiplePlus from "@iconify-icons/mdi/account-multiple-plus";
+import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import checkThick from "@iconify-icons/mdi/check-thick";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import deleteIcon from "@iconify-icons/mdi/delete";
@@ -77,15 +95,20 @@ import { inject, Ref, watch } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
+import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 import { friends } from "@renderer/store/me.store";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonError } from "@renderer/api/tachyon";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { chat } from "@renderer/store/chat.store";
+import { useReportUser } from "@renderer/composables/useReportUser";
+import { usePartyInviteState } from "@renderer/composables/usePartyInviteState";
 
 const { t } = useTypedI18n();
+const { openReportUser } = useReportUser();
 
 const router = useRouter();
 
@@ -114,11 +137,16 @@ watch(
     { immediate: true }
 );
 
+const { maxMembersReached, userInParty, userInvited, inviteToParty } = usePartyInviteState(() => props.userId);
+
 async function cancelRequest() {
     try {
         await friends.cancelRequest(props.userId.toString());
     } catch (error) {
-        console.error("Failed to cancel friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to cancel friend request:", error);
+        }
+
         notificationsApi.alert({
             text: t("lobby.navbar.friends.notifications.errors.failedToCancel"),
             severity: "error",
@@ -130,7 +158,10 @@ async function acceptRequest() {
     try {
         await friends.acceptRequest(props.userId.toString());
     } catch (error) {
-        console.error("Failed to accept friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to accept friend request:", error);
+        }
+
         notificationsApi.alert({
             text: t("lobby.navbar.friends.notifications.errors.failedToAccept"),
             severity: "error",
@@ -142,7 +173,10 @@ async function rejectRequest() {
     try {
         await friends.rejectRequest(props.userId.toString());
     } catch (error) {
-        console.error("Failed to reject friend request:", error);
+        if (!isTachyonError(error)) {
+            console.error("Failed to reject friend request:", error);
+        }
+
         notificationsApi.alert({
             text: t("lobby.navbar.friends.notifications.errors.failedToReject"),
             severity: "error",
@@ -166,8 +200,10 @@ async function joinBattle() {
     // TODO
 }
 
-async function inviteToParty() {
-    // TODO
+function reportUser() {
+    if (!user.value) return;
+
+    openReportUser(user.value);
 }
 
 async function removeFriend() {

@@ -4,49 +4,39 @@
 
 import { reactive } from "vue";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
-import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
+import { canAcquireInEdition, isEditionRefusal } from "@shared/edition";
+import { infosStore } from "@renderer/store/infos.store";
 
 export const mapsStore: {
     isInitialized: boolean;
-    filters: {
-        terrain: Partial<Record<Terrain, boolean>>;
-        gameType: Partial<Record<GameType, boolean>>;
-        minPlayers: number;
-        maxPlayers: number;
-        favoritesOnly: boolean;
-        downloadedOnly: boolean;
-    };
     availableMapNames: Set<string>;
 } = reactive({
     isInitialized: false,
-    filters: {
-        terrain: {},
-        gameType: {},
-        minPlayers: 2,
-        maxPlayers: 40,
-        favoritesOnly: false,
-        downloadedOnly: false,
-    },
     availableMapNames: new Set(),
 });
 
 export async function getRandomMap() {
-    const mapCount = await db.maps.count();
+    const maps = canAcquireInEdition(infosStore.features, "map") ? db.maps.toCollection() : db.maps.filter((map) => !!map.isInstalled);
+    const mapCount = await maps.clone().count();
     if (mapCount === 0) throw new Error("No maps available");
     const randomIndex = Math.floor(Math.random() * mapCount);
-    const map = await db.maps.offset(randomIndex).first();
+    const map = await maps.offset(randomIndex).first();
     return map;
 }
 
 export async function initMapsStore() {
-    if (mapsStore.isInitialized) return;
     return init();
 }
 
 async function init() {
+    if (mapsStore.isInitialized) {
+        console.warn("Maps store is already initialized. Skipping initialization.");
+        return;
+    }
     window.maps.onMapAdded((springName: string) => {
         console.debug("Received map added event", springName);
         mapsStore.availableMapNames.add(springName);
@@ -59,21 +49,54 @@ async function init() {
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
-    window.downloads.onDownloadMapComplete((download) => {
-        mapsStore.availableMapNames.add(download.name);
+    // Chokidar takes 1-2 seconds longer than this to notice the file, so both paths are wired up and
+    // whichever arrives first wins.
+    onContentSettled((refs) => {
+        for (const ref of refs) {
+            if (ref.type !== "map") {
+                continue;
+            }
+
+            if (ref.present) {
+                mapsStore.availableMapNames.add(ref.id);
+            } else {
+                mapsStore.availableMapNames.delete(ref.id);
+            }
+        }
     });
-    let liveMaps: MapData[];
-    let nonLiveMaps: MapDownloadData[];
-    try {
-        [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
-    } catch (error) {
-        console.warn("Failed to fetch maps metadata, using cached data", error);
-        liveMaps = await db.maps.toArray();
-        nonLiveMaps = await db.nonLiveMaps.toArray();
+    const liveMaps = await db.maps.toArray();
+    const nonLiveMaps = await db.nonLiveMaps.toArray();
+
+    for (const map of liveMaps) {
+        if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
     }
 
-    console.debug("Received maps", [liveMaps, nonLiveMaps]);
+    for (const map of nonLiveMaps) {
+        if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
+    }
+
+    try {
+        await refreshMapsStore();
+    } catch (error) {
+        console.warn("Failed to reconcile map install state from disk", error);
+    }
+
+    mapsStore.isInitialized = true;
+}
+
+export async function refreshMapsStore() {
+    const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+    mapsStore.availableMapNames = installedOnDisk;
+    await db.maps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+    await db.nonLiveMaps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+}
+
+export async function syncMapsMetadata() {
+    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
     await Promise.allSettled(
         liveMaps
@@ -106,42 +129,12 @@ async function init() {
             )
     );
 
-    // Refresh the nonLiveMaps
     const nonLiveMapSet = new Set(nonLiveMaps.map((map) => map.springName));
-
     (await db.nonLiveMaps.toArray())
         .filter((map) => !nonLiveMapSet.has(map.springName))
         .forEach((map) => {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
-
-    // Reconcile IndexedDB isInstalled flags against actual files on disk
-    try {
-        const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
-        mapsStore.availableMapNames = installedOnDisk;
-
-        await db.maps.toCollection().modify((map) => {
-            map.isInstalled = installedOnDisk.has(map.springName);
-        });
-        await db.nonLiveMaps.toCollection().modify((map) => {
-            map.isInstalled = installedOnDisk.has(map.springName);
-        });
-    } catch (error) {
-        console.warn("Failed to reconcile map install state from disk", error);
-    }
-
-    mapsStore.isInitialized = true;
-}
-
-export async function refreshMapsStore() {
-    const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
-    mapsStore.availableMapNames = installedOnDisk;
-    await db.maps.toCollection().modify((map) => {
-        map.isInstalled = installedOnDisk.has(map.springName);
-    });
-    await db.nonLiveMaps.toCollection().modify((map) => {
-        map.isInstalled = installedOnDisk.has(map.springName);
-    });
 }
 
 //TODO We need to support updating map images when reference in map metadata changes.
@@ -188,11 +181,9 @@ export async function downloadMap(springName: string) {
         })
         .catch((error) => {
             console.error("Failed to download map:", springName, error);
-            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            if (!isEditionRefusal(error)) {
+                notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            }
             dbDelegate.update(springName, { isDownloading: false });
         });
-}
-
-export function getFilters() {
-    return mapsStore.filters;
 }
