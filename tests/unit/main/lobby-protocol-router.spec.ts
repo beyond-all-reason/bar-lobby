@@ -9,13 +9,6 @@ describe("lobby protocol router", () => {
         vi.resetModules();
     });
 
-    it("builds canonical lobby protocol urls", async () => {
-        const { buildLobbyProtocolUrl } = await import("@main/lobbyProtocol/lobby-protocol-router");
-
-        expect(buildLobbyProtocolUrl("internal", "ping")).toBe("barrts://internal/ping");
-        expect(buildLobbyProtocolUrl("internal", "ping", "?id=555")).toBe("barrts://internal/ping?id=555");
-    });
-
     it("extracts lobby protocol urls from argv", async () => {
         const { extractLobbyProtocolUrl } = await import("@main/lobbyProtocol/lobby-protocol-router");
 

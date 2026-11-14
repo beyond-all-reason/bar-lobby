@@ -37,10 +37,6 @@ export function getLobbyProtocolLabels(): Record<string, string> {
     return Object.fromEntries(labelMap);
 }
 
-export function buildLobbyProtocolUrl(handler: string, action: string, queryString = ""): string {
-    return `${LOBBY_PROTOCOL_PREFIX}${handler}/${action}${queryString}`;
-}
-
 export function extractLobbyProtocolUrl(argv: string[]): string | undefined {
     return argv.find((arg) => arg.startsWith(LOBBY_PROTOCOL_PREFIX));
 }

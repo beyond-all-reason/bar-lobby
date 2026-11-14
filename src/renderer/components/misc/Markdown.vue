@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
     <div class="text" @click="handleClick" v-html="processedText"></div>
 </template>
 <script lang="ts" setup>
+import { linkifyLobbyProtocolUrls } from "@renderer/utils/lobby-protocol-links";
 import markdownRenderer from "@renderer/utils/mardown";
 import { computedAsync } from "@vueuse/core";
 import DOMPurify from "dompurify";
@@ -21,31 +22,23 @@ const props = defineProps<{
 }>();
 
 const lobbyProtocolPrefix = `${window.lobbyProtocol.scheme}://`;
-const lobbyProtocolUrlPattern = new RegExp(`(?<![([])${window.lobbyProtocol.scheme}://[^\\s)\\]>]+`, "g");
 
-let cachedLabels: Record<string, string> | null = null;
+let cachedLabels: Record<string, string> | undefined;
+let labelsRequest: Promise<Record<string, string>> | undefined;
 
-function resolveLabel(rawUrl: string, labels: Record<string, string>): string | null {
-    let url: URL;
-    try {
-        url = new URL(rawUrl);
-    } catch {
-        return null;
-    }
-    const key = `${url.hostname}/${url.pathname.slice(1)}`;
-    const template = labels[key];
-    if (!template) return null;
-    return template.replace(/\{(\w+)\}/g, (_m, param) => url.searchParams.get(param) ?? param);
+function getLabels(): Promise<Record<string, string>> {
+    labelsRequest ??= window.lobbyProtocol
+        .getLabels()
+        .then((labels) => (cachedLabels = labels))
+        .catch((err) => {
+            labelsRequest = undefined;
+            throw err;
+        });
+    return labelsRequest;
 }
 
-async function linkifyLobbyProtocolUrls(text: string): Promise<string> {
-    if (!cachedLabels) {
-        cachedLabels = await window.lobbyProtocol.getLabels();
-    }
-    return text.replace(lobbyProtocolUrlPattern, (match) => {
-        const label = resolveLabel(match, cachedLabels!) ?? match;
-        return `[${label}](${match})`;
-    });
+async function linkify(text: string): Promise<string> {
+    return linkifyLobbyProtocolUrls(text, window.lobbyProtocol.scheme, cachedLabels ?? (await getLabels()));
 }
 
 const allowedTags = ["p", "em", "b", "strong", "ul", "ol", "li", "code", "pre", "blockquote", "span", "del", "body"];
@@ -70,7 +63,7 @@ if (props.allowProtocolLinks && !props.allowLinks) {
 }
 
 const processedText = computedAsync(async () => {
-    const source = props.allowProtocolLinks ? await linkifyLobbyProtocolUrls(props.source) : props.source;
+    const source = props.allowProtocolLinks ? await linkify(props.source) : props.source;
     const markdown = await marked.parse(source, { renderer: markdownRenderer });
     return purify.sanitize(markdown, {
         ALLOWED_ATTR: allowedAttributes,
@@ -87,10 +80,10 @@ const processedText = computedAsync(async () => {
 });
 
 function handleClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (target.tagName === "A") {
+    const anchor = (event.target as HTMLElement).closest("a");
+    if (anchor) {
         event.preventDefault();
-        const href = target.getAttribute("href");
+        const href = anchor.getAttribute("href");
         if (href?.startsWith(lobbyProtocolPrefix)) {
             window.lobbyProtocol.handleUrl(href);
         }
