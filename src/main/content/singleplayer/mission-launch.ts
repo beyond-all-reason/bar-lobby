@@ -10,7 +10,6 @@ import { chosenDifficulty, type SaveVariableValue, type SingleplayerSave } from 
 import { type Compatibility, DEV_COMPATIBILITY, type Difficulty } from "@shared/content/schema/common";
 import type { MissionConfig } from "@shared/content/schema/mission-config";
 import type { SingleplayerCampaign, SingleplayerLaunchFailure, SingleplayerMission, SingleplayerScenario } from "@shared/content/singleplayer";
-import type { InstallDefaults } from "@shared/install-defaults";
 import { SHARED_FOLDER } from "./campaign-folder";
 import { missionLuaPath } from "./mission-archive";
 
@@ -29,7 +28,6 @@ export type InstallState = {
     canAcquire(ref: ContentRef): boolean;
     installedEngines: readonly string[];
     installedGames: readonly string[];
-    installDefaults: InstallDefaults;
     defaultEngine: string;
 };
 
@@ -51,14 +49,11 @@ export type MissionLaunch = {
 export type LaunchTarget = { item: SingleplayerScenario; campaign?: undefined } | { item: SingleplayerMission; campaign: SingleplayerCampaign };
 
 // The engine and game pairs this install can launch: anything the item accepts where both can be downloaded,
-// the install's own pair when it names both, and otherwise every installed engine with every installed game.
+// and otherwise every installed engine with every installed game. The install's default pair is only what
+// skirmish uses; content may name any other version the install ships.
 function availablePairs(accepted: Compatibility, install: InstallState): Compatibility {
     if (install.canAcquire({ type: "engine", id: "" }) && install.canAcquire({ type: "game", id: "" })) {
         return accepted;
-    }
-    const { engine, game } = install.installDefaults;
-    if (engine && game) {
-        return [{ engineVersion: engine, gameVersions: [game] }];
     }
 
     return install.installedEngines.map((engineVersion) => ({ engineVersion, gameVersions: [...install.installedGames] }));
