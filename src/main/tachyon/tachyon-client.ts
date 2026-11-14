@@ -105,9 +105,11 @@ export class TachyonClient {
             };
             socket.on("ping", expectMoreFromServer);
 
-            this.socket.on("unexpected-response", async (req, res) => {
-                res.on("data", (chunk: Buffer) => {
-                    const error = chunk.toString();
+            this.socket.on("unexpected-response", (req, res) => {
+                const chunks: Buffer[] = [];
+                res.on("data", (chunk: Buffer) => chunks.push(chunk));
+                res.on("end", () => {
+                    const error = Buffer.concat(chunks).toString();
                     log.error(`HTTP Error ${res.statusCode}: ${error}`);
                     try {
                         const errorObject = JSON.parse(error);
@@ -115,6 +117,7 @@ export class TachyonClient {
                     } catch {
                         fail(new Error("Unknown error"));
                     }
+                    socket.terminate();
                 });
             });
             this.socket.on("upgrade", (response) => {
