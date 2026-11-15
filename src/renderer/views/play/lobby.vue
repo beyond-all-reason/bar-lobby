@@ -12,15 +12,13 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <div v-tooltip.bottom="{ value: startBlockedTooltip, disabled: !startBlockedReason }" class="start-game">
-                <Button @click="startGame()" class="green" :disabled="isMapNeeded || !!startBlockedReason">Start Game</Button>
+                <Button @click="startGame()" class="green" :disabled="isContentMissing || !!startBlockedReason">Start Game</Button>
             </div>
             <Button v-if="lobbyStore.activeLobby" @click="editLobbyModalIsOpen = true" class="blue">Edit Battle</Button>
             <Button v-if="lobbyStore.activeLobby" @click="startBoxesModalIsOpen = true" class="blue">Edit Start Boxes</Button>
             <StartBoxesModal v-if="lobbyStore.activeLobby" v-model="startBoxesModalIsOpen" :map="map" />
             <Button @click="joinQueue()" class="green">Join Queue</Button>
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
-            <Button @click="updateReadiness(true)" class="green">Ready</Button>
-            <Button @click="updateReadiness(false)" class="red">Not Ready</Button>
             <Button
                 v-if="editionLogic.canAcquire('map')"
                 @click="fetchMap()"
@@ -145,7 +143,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { contentsStore } from "@renderer/store/contents.store";
 import { router } from "@renderer/router";
-import { mapsStore, downloadMap } from "@renderer/store/maps.store";
+import { downloadMap } from "@renderer/store/maps.store";
 import { editionLogic } from "@renderer/logic/edition";
 import StandardLobby from "@renderer/components/lobbies/standard.vue";
 import FFALobby from "@renderer/components/lobbies/ffa.vue";
@@ -171,6 +169,7 @@ import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import StartBoxesModal from "@renderer/components/battle/StartBoxesModal.vue";
 import VotePanel from "@renderer/components/battle/VotePanel.vue";
 import { useLobbyMap } from "@renderer/composables/useLobbyMap";
+import { useLobbyContentReadiness } from "@renderer/composables/useLobbyContentReadiness";
 import { resolveLobbyArrangement, startboxShortfall } from "@renderer/utils/lobby-startboxes";
 
 const editLobbyModalIsOpen = ref(false);
@@ -207,13 +206,7 @@ function joinQueue() {
 function joinSpectate() {
     lobby.requestSpectate();
 }
-// TODO: Ready status should be automatically watched. This is temp for manually claiming readiness.
-function updateReadiness(isReady: boolean) {
-    lobby.requestUpdateClientStatus({ isReady: isReady });
-}
-const isMapNeeded = computed(() => {
-    return lobbyStore.activeLobby ? !mapsStore.availableMapNames.has(lobbyStore.activeLobby.mapName) : false;
-});
+const { isMapNeeded, isContentMissing } = useLobbyContentReadiness();
 
 const { t } = useTypedI18n();
 
