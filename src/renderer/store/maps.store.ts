@@ -155,17 +155,22 @@ async function fetchMapImages(map: MapData) {
     console.debug("Updated map images ", map.springName);
 }
 
-//TODO: the MapsAPI already includes a multiple-map version request we can use to extend this
-export async function downloadMap(springName: string) {
-    let dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName"> = db.maps;
+export function downloadMap(springName: string) {
+    return downloadMaps([springName]);
+}
 
-    const mapIsLive = await db.maps.get(springName);
+export async function downloadMaps(springNames: string[]) {
+    const delegates = new Map<string, EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName">>();
 
-    if (!mapIsLive) {
-        dbDelegate = db.nonLiveMaps;
-        const isInNonLiveDB = await db.nonLiveMaps.get(springName);
-        if (!isInNonLiveDB) {
-            db.nonLiveMaps.put({
+    for (const springName of springNames) {
+        if (await db.maps.get(springName)) {
+            delegates.set(springName, db.maps);
+            continue;
+        }
+
+        delegates.set(springName, db.nonLiveMaps);
+        if (!(await db.nonLiveMaps.get(springName))) {
+            await db.nonLiveMaps.put({
                 springName: springName,
                 isDownloading: false,
                 isInstalled: false,
@@ -173,17 +178,18 @@ export async function downloadMap(springName: string) {
         }
     }
 
-    dbDelegate.update(springName, { isDownloading: true });
-    await window.maps
-        .downloadMap(springName)
-        .then(() => {
-            dbDelegate.update(springName, { isInstalled: true, isDownloading: false });
-        })
-        .catch((error) => {
-            console.error("Failed to download map:", springName, error);
-            if (!isEditionRefusal(error)) {
-                notificationsApi.alert({ text: "Map download failed.", severity: "error" });
-            }
-            dbDelegate.update(springName, { isDownloading: false });
-        });
+    const setState = (state: { isInstalled?: boolean; isDownloading: boolean }) =>
+        Promise.all([...delegates].map(([springName, delegate]) => delegate.update(springName, state)));
+
+    await setState({ isDownloading: true });
+    try {
+        await window.maps.downloadMaps(springNames);
+        await setState({ isInstalled: true, isDownloading: false });
+    } catch (error) {
+        console.error("Failed to download maps:", springNames, error);
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+        }
+        await setState({ isDownloading: false });
+    }
 }
