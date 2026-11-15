@@ -6,11 +6,11 @@ import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/
 import { describe, expect, it } from "vitest";
 
 describe("isCompatibleEngineVersion", () => {
-    it.each(["2025.01.3", "2025.01.10", "2025.01.3-rc1", "local-dev"])("accepts %s", (id) => {
+    it.each(["2025.01.3", "2025.01.10", "2025.01.3-rc1", "105.1.1-2590-gb9462a0", "local-dev"])("accepts %s", (id) => {
         expect(isCompatibleEngineVersion(id)).toBe(true);
     });
 
-    it.each(["105.1.1-2590-gb9462a0", "2025.1.3", "spring_bar_.rel2501", ""])("rejects %s", (id) => {
+    it.each(["2025.1.3", "spring_bar_.rel2501", ""])("rejects %s", (id) => {
         expect(isCompatibleEngineVersion(id)).toBe(false);
     });
 });
@@ -28,6 +28,12 @@ describe("compareEngineVersions", () => {
     it("orders by year then month", () => {
         expect(compareEngineVersions("2026.01.1", "2025.12.9")).toBeGreaterThan(0);
         expect(compareEngineVersions("2025.02.1", "2025.10.1")).toBeLessThan(0);
+    });
+
+    it("orders old tags numerically and below new tags", () => {
+        expect(compareEngineVersions("105.1.1-2590-gb9462a0", "105.1.1-998-gabcdef0")).toBeGreaterThan(0);
+        expect(compareEngineVersions("105.1.1-2590-gb9462a0", "105.1.2-1-gabcdef0")).toBeLessThan(0);
+        expect(compareEngineVersions("105.1.1-2590-gb9462a0", "2024.12.1")).toBeLessThan(0);
     });
 
     it("treats equal versions as equal", () => {
