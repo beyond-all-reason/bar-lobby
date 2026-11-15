@@ -257,11 +257,12 @@ class ContentAPI {
         return (this.providers[type]?.installed() ?? []).map((id) => ({ type, id }));
     }
 
+    /** Newest first. */
     public engineVersions() {
         return engineProvider.availableVersions
             .values()
             .toArray()
-            .sort((a, b) => compareEngineVersions(a.id, b.id));
+            .sort((a, b) => compareEngineVersions(b.id, a.id));
     }
 
     public gameVersions() {

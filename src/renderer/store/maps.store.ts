@@ -178,8 +178,7 @@ export async function downloadMaps(springNames: string[]) {
         }
     }
 
-    const setState = (state: { isInstalled?: boolean; isDownloading: boolean }) =>
-        Promise.all([...delegates].map(([springName, delegate]) => delegate.update(springName, state)));
+    const setState = (state: { isInstalled?: boolean; isDownloading: boolean }) => Promise.all([...delegates].map(([springName, delegate]) => delegate.update(springName, state)));
 
     await setState({ isDownloading: true });
     try {

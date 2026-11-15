@@ -45,7 +45,11 @@ export async function initReplaysStore() {
 
 // Leaving a game and rejoining it creates two demo files with the same gameId: keep the longer one.
 async function storeReplay(replay: Replay) {
-    const conflicting = await db.replays.where("gameId").equals(replay.gameId).and((other) => other.fileName !== replay.fileName).first();
+    const conflicting = await db.replays
+        .where("gameId")
+        .equals(replay.gameId)
+        .and((other) => other.fileName !== replay.fileName)
+        .first();
     if (conflicting) {
         if (conflicting.gameDurationMs >= replay.gameDurationMs) {
             await window.replays.delete(replay.fileName);
