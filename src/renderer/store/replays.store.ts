@@ -28,7 +28,7 @@ export async function initReplaysStore() {
         return;
     }
     window.replays.onReplayCached((replay: Replay) => {
-        db.replays.put(replay).catch((error) => {
+        storeReplay(replay).catch((error) => {
             console.error("Failed to store replay in database:", replay.fileName, error);
         });
     });
@@ -41,6 +41,20 @@ export async function initReplaysStore() {
     });
     await syncReplays();
     state.isInitialized = true;
+}
+
+// Leaving a game and rejoining it creates two demo files with the same gameId: keep the longer one.
+async function storeReplay(replay: Replay) {
+    const conflicting = await db.replays.where("gameId").equals(replay.gameId).and((other) => other.fileName !== replay.fileName).first();
+    if (conflicting) {
+        if (conflicting.gameDurationMs >= replay.gameDurationMs) {
+            await window.replays.delete(replay.fileName);
+            return;
+        }
+        await window.replays.delete(conflicting.fileName);
+        await db.replays.where("fileName").equals(conflicting.fileName).delete();
+    }
+    await db.replays.put(replay);
 }
 
 async function syncReplays() {

@@ -138,18 +138,7 @@ export class ReplaysAPI {
             if (replayData.gameId === "00000000000000000000000000000000") {
                 throw new Error(`Invalid gameId for replay: ${replayFilePath}`);
             }
-            // TODO handle this use case
-            // const conflictingReplay = await this.getReplayByGameId(replayData.gameId);
-            // if (conflictingReplay) {
-            //     // when leaving a game and rejoining it, 2 demo files are created with the same gameId. below we delete the shortest replay
-            //     if (conflictingReplay.gameDurationMs > replayData.gameDurationMs) {
-            //         await fs.promises.rm(replayFilePath);
-            //     } else {
-            //         const filePath = path.join(REPLAYS_PATH, conflictingReplay.fileName);
-            //         await fs.promises.rm(filePath);
-            //     }
-            // }
-            // Store the cached replay and dispatch the event
+            // Duplicate gameIds (rejoined games) are resolved by the renderer store, which owns the replay database.
             this.onReplayCached.dispatch(replayData);
         } catch (err) {
             log.error(`Error caching replay: ${replayFilePath}`, err);
