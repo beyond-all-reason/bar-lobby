@@ -7,10 +7,8 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import { MatchmakingJoinRefused, matchmakingLogic } from "@renderer/logic/matchmaking";
 import { Alert } from "@renderer/model/notifications";
-import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 
 const joinRefusals: Record<MatchmakingJoinRefused["reason"], Omit<Alert, "id">> = {
-    bad_queue_data: { text: "Bad queue data; refreshing list.", severity: "error" },
     downloads_required: { text: "You have downloads required to join this queue.", severity: "info" },
     queue_not_found: { text: "Selected queue not found. Refreshing list.", severity: "error" },
 };
@@ -75,17 +73,6 @@ export function useMatchmakingActions() {
         }
     }
 
-    async function refreshRequiredDownloads() {
-        try {
-            await matchmakingLogic.refreshRequiredDownloads();
-        } catch (error) {
-            alertRequestFailure(error, "content:missing");
-            // downloadsRequired is stale after a failed refresh, so rebuild it rather than leave the download button
-            // up for content that is installed. listQueues catches its own failures.
-            await listQueues();
-        }
-    }
-
     async function cancel() {
         try {
             await matchmakingLogic.cancel();
@@ -101,6 +88,5 @@ export function useMatchmakingActions() {
         ready,
         cancel,
         selectQueue: matchmakingLogic.selectQueue,
-        refreshRequiredDownloads,
     };
 }

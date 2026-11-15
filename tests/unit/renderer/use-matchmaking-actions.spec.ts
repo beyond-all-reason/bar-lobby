@@ -10,7 +10,6 @@ const logic = vi.hoisted(() => ({
     ready: vi.fn(),
     cancel: vi.fn(),
     selectQueue: vi.fn(),
-    refreshRequiredDownloads: vi.fn(),
 }));
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
@@ -42,7 +41,6 @@ describe("useMatchmakingActions", () => {
 
     it.each([
         ["downloads_required", "You have downloads required to join this queue.", "info"],
-        ["bad_queue_data", "Bad queue data; refreshing list.", "error"],
         ["queue_not_found", "Selected queue not found. Refreshing list.", "error"],
     ] as const)("explains a %s refusal", async (reason, text, severity) => {
         logic.joinQueue.mockRejectedValue(new MatchmakingJoinRefused(reason));
