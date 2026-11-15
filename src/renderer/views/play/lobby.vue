@@ -248,13 +248,10 @@ watch(
     { immediate: true }
 );
 
-async function onGameSelected(gameVersion: string) {
+function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
-    //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
-    //It looks like it's because in offline battles we select from available versions?
-    //gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+    // battle.store mirrors the selection into battleOptions.gameVersion.
     gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
-    battleStore.battleOptions.gameVersion = gameVersion;
 }
 </script>
 
