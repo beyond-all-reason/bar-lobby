@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ props: true, meta: { title: "Map Details", hide: true, transition: { name: "slide-left" } } }
+{ props: true, meta: { title: "Map Details", hide: true, backTo: "/library/maps/maps", transition: { name: "slide-left" } } }
 </route>
 
 <template>
@@ -119,6 +119,7 @@ import gridIcon from "@iconify-icons/mdi/grid";
 import windPower from "@iconify-icons/mdi/wind-power";
 import { useTypedI18n } from "@renderer/i18n";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import { goBackTo } from "@renderer/utils/go-back-to";
 
 const { t } = useTypedI18n();
 
@@ -139,8 +140,11 @@ function toggleMapFavorite() {
     if (map.value) map.value.isFavorite = !map.value.isFavorite;
 }
 
+// Always go to the maps list instead of router.back(). This page can be opened from outside
+// Library (e.g. matchmaking), and the Library navbar button reopens the last Library page,
+// so router.back() would bounce the user between matchmaking and this page forever.
 function routerBack() {
-    router.back();
+    goBackTo(router, "/library/maps/maps");
 }
 </script>
 
