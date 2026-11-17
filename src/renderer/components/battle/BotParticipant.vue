@@ -37,7 +37,7 @@ import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Bot, isRaptor, isScavenger } from "@main/game/battle/battle-types";
-import ContextMenu from "primevue/contextmenu";
+import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import { battleActions } from "@renderer/store/battle.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
