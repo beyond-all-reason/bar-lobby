@@ -50,6 +50,17 @@ SPDX-License-Identifier: MIT
                 :class="{ overridden }"
                 @update:modelValue="(checked: boolean) => !disabled && commit(checked)"
             />
+            <Select
+                v-else-if="selectList"
+                :modelValue="shownValue"
+                :options="selectOptions"
+                optionLabel="label"
+                optionValue="value"
+                :disabled="disabled"
+                :class="{ overridden }"
+                class="select"
+                @update:modelValue="(chosen: string) => commit(chosen)"
+            />
             <Textbox v-else v-model="textDraft" :disabled="disabled" :class="{ overridden }" class="text" @change="commit(textDraft)" />
             <Button
                 v-tooltip.left="t('lobby.navbar.settings.engine.resetToDefault')"
@@ -73,6 +84,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Number from "@renderer/components/controls/Number.vue";
 import Range from "@renderer/components/controls/Range.vue";
+import Select from "@renderer/components/controls/Select.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { engineSettingsLogic } from "@renderer/logic/engine-settings";
@@ -87,6 +99,8 @@ const show = (text: EngineSettingText) => ("key" in text ? t(text.key) : text.te
 
 const slider = computed(() => (props.descriptor.control === "slider" ? props.descriptor : undefined));
 const numberBox = computed(() => (props.descriptor.control === "number" ? props.descriptor : undefined));
+const selectList = computed(() => (props.descriptor.control === "select" ? props.descriptor : undefined));
+const selectOptions = computed(() => selectList.value?.options.map((option) => ({ value: option.value, label: show(option.label) })) ?? []);
 
 type Value = EngineSettingValue<EngineSettingDescriptor>;
 
@@ -150,7 +164,8 @@ async function commit(committed: Value) {
     align-items: center;
     gap: 6px;
 
-    .text {
+    .text,
+    .select {
         flex: 1;
     }
 }

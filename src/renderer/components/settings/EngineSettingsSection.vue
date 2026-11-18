@@ -7,21 +7,34 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="flex-col gap-md">
         <small v-if="failure" class="error">{{ t(engineSettingsLogic.failureKey(failure)) }}</small>
-        <div class="gridform">
-            <EngineSettingControl v-for="descriptor of basic" :key="descriptor.key" :descriptor="descriptor" :disabled="disabled" />
-        </div>
+        <template v-for="run of groupRuns(basic)" :key="run.group">
+            <div v-if="run.group" class="group-header">{{ t(`lobby.navbar.settings.engine.groups.${run.group}`) }}</div>
+            <div class="gridform">
+                <EngineSettingControl
+                    v-for="descriptor of run.descriptors"
+                    :key="descriptor.key"
+                    :descriptor="descriptor"
+                    :disabled="disabled"
+                />
+            </div>
+        </template>
         <template v-if="advanced || dev">
             <SearchBox v-model="query" :placeholder="t('lobby.navbar.settings.engine.search')" />
             <!-- Each tab written out: PrimeVue finds tabs only one level into the slot, so a v-for's are lost. -->
             <Accordion v-model:activeIndex="openSections" multiple lazy>
                 <AccordionTab v-if="advanced" :header="`${t('lobby.navbar.settings.engine.advanced')} (${advanced.length})`">
-                    <div class="gridform">
-                        <EngineSettingControl
-                            v-for="descriptor of advanced"
-                            :key="descriptor.key"
-                            :descriptor="descriptor"
-                            :disabled="disabled"
-                        />
+                    <div class="flex-col gap-md">
+                        <template v-for="run of groupRuns(advanced)" :key="run.group">
+                            <div v-if="run.group" class="group-header">{{ t(`lobby.navbar.settings.engine.groups.${run.group}`) }}</div>
+                            <div class="gridform">
+                                <EngineSettingControl
+                                    v-for="descriptor of run.descriptors"
+                                    :key="descriptor.key"
+                                    :descriptor="descriptor"
+                                    :disabled="disabled"
+                                />
+                            </div>
+                        </template>
                     </div>
                 </AccordionTab>
                 <AccordionTab v-if="dev" :header="`${t('lobby.navbar.settings.engine.dev')} (${dev.length})`">
@@ -48,7 +61,7 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import EngineSettingControl from "@renderer/components/settings/EngineSettingControl.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { engineSettingsLogic } from "@renderer/logic/engine-settings";
-import type { EngineSettingCategory, EngineSettingText } from "@renderer/logic/engine-settings/descriptors";
+import { type EngineSettingCategory, type EngineSettingText, groupRuns } from "@renderer/logic/engine-settings/descriptors";
 import { engineSettingsStore } from "@renderer/store/engine-settings.store";
 import { settingsStore } from "@renderer/store/settings.store";
 
@@ -83,6 +96,15 @@ onMounted(() => engineSettingsLogic.load());
 </script>
 
 <style lang="scss" scoped>
+.group-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.5;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 4px;
+}
+
 .error {
     color: #ff6b6b;
     font-size: 11px;

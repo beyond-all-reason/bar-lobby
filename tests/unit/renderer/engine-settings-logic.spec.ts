@@ -5,7 +5,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createI18n } from "vue-i18n";
 import en from "@renderer/assets/languages/en.json";
-import type { EngineSettingText } from "@renderer/logic/engine-settings/descriptors";
+import type { EngineSettingDescriptor, EngineSettingText } from "@renderer/logic/engine-settings/descriptors";
+import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
 import type { EngineSettingsView } from "@shared/engine-settings/view";
 
 const api = vi.hoisted(() => ({ get: vi.fn(), set: vi.fn(), reset: vi.fn(), onChanged: vi.fn() }));
@@ -13,12 +14,18 @@ vi.mock("@renderer/api/engine-settings", () => ({ engineSettingsApi: api }));
 
 const { engineSettingsStore } = await import("@renderer/store/engine-settings.store");
 const { effectiveValue, engineSettingsLogic, initEngineSettingsLogic } = await import("@renderer/logic/engine-settings");
-const { CURATED_ENGINE_SETTING_DESCRIPTORS, engineSettingDescriptors, matchesQuery } = await import("@renderer/logic/engine-settings/descriptors");
+const { CURATED_ENGINE_SETTING_DESCRIPTORS, engineSettingDescriptors, groupRuns, matchesQuery } = await import("@renderer/logic/engine-settings/descriptors");
 
-const descriptor = (key: string) => CURATED_ENGINE_SETTING_DESCRIPTORS.find((entry) => entry.key === key)!;
-const masterVolume = descriptor("snd_volmaster");
-const musicVolume = descriptor("snd_volmusic");
-const uiScale = descriptor("ui_scale");
+const curated = <Control extends EngineSettingDescriptor["control"]>(key: string, control: Control) => {
+    const found = CURATED_ENGINE_SETTING_DESCRIPTORS.find((entry) => entry.key === key);
+    if (found?.control !== control) throw new Error(`${key} is not a curated ${control}`);
+
+    return found as Extract<EngineSettingDescriptor, { control: Control }>;
+};
+const masterVolume = curated("snd_volmaster", "slider");
+const musicVolume = curated("snd_volmusic", "slider");
+const uiScale = curated("ui_scale", "slider");
+const curatedKeys = CURATED_ENGINE_SETTING_DESCRIPTORS.map((entry) => entry.key);
 
 const succeeded = <T>(data: T) => ({ status: "success", data }) as const;
 const failed = (reason: string) => ({ status: "failed", reason }) as const;
@@ -67,12 +74,49 @@ describe("effectiveValue", () => {
 });
 
 describe("descriptors", () => {
-    it("start with the game's own ranges, groups and categories for the volumes and the interface scale", () => {
-        expect(CURATED_ENGINE_SETTING_DESCRIPTORS.map(({ key, min, max, step, group, category }) => ({ key, min, max, step, group, category }))).toEqual([
+    it("keep the game's own ranges for the volumes and the interface scale", () => {
+        expect([masterVolume, musicVolume, uiScale].map(({ key, min, max, step, group, category }) => ({ key, min, max, step, group, category }))).toEqual([
             { key: "snd_volmaster", min: 0, max: 80, step: 2, group: "sound", category: "basic" },
             { key: "snd_volmusic", min: 0, max: 99, step: 1, group: "sound", category: "basic" },
             { key: "ui_scale", min: 0.8, max: 1.3, step: 0.01, group: "ui", category: "basic" },
         ]);
+    });
+
+    it("list each key once, basic before advanced, in the game's group order within each", () => {
+        const groupOrder = ["gfx", "ui", "game", "control", "sound"];
+        const position = ({ category, group }: EngineSettingDescriptor) => (category === "basic" ? 0 : 100) + groupOrder.indexOf(group!);
+        const positions = CURATED_ENGINE_SETTING_DESCRIPTORS.map(position);
+
+        expect(new Set(curatedKeys).size).toBe(curatedKeys.length);
+        expect(CURATED_ENGINE_SETTING_DESCRIPTORS.every((entry) => entry.group !== undefined && entry.category !== "dev")).toBe(true);
+        expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    });
+
+    it("leave out the keys the game sets for itself, which can't be set from here", () => {
+        expect(curatedKeys.filter(isGameOwnedKey)).toEqual([]);
+    });
+
+    it("come in runs of one group, for showing under the group's heading", () => {
+        const [shadows, scale, , , , mouse] = CURATED_ENGINE_SETTING_DESCRIPTORS;
+        const runs = groupRuns([shadows, scale, mouse, scale]);
+
+        expect(runs.map((run) => [run.group, run.descriptors.map((entry) => entry.key)])).toEqual([
+            ["gfx", ["ShadowQuality"]],
+            ["ui", ["ui_scale"]],
+            ["control", ["grabinput"]],
+            ["ui", ["ui_scale"]],
+        ]);
+        expect(groupRuns(engineSettingDescriptors(engineVars, {}).filter((entry) => entry.category === "dev"))).toHaveLength(1);
+    });
+
+    it("read a list's option from the file's text, as a number too, and write it as it is", () => {
+        const shadows = curated("ShadowQuality", "select");
+
+        expect(shadows.options.map((option) => option.value)).toEqual(["0", "1", "2", "3", "4", "5"]);
+        expect(shadows.options[0].label).toEqual({ key: "lobby.navbar.settings.engine.options.off" });
+        expect([shadows.parse("3"), shadows.parse(" 3.0 "), shadows.parse("9"), shadows.parse("high")]).toEqual(["3", "3", undefined, undefined]);
+        expect(shadows.format("5")).toBe("5");
+        expect(shadows.gameDefault).toBe("3");
     });
 
     it("read numbers, and nothing else, from the file's text", () => {
@@ -101,10 +145,10 @@ describe("generated descriptors", () => {
     const find = (key: string, overrides: Record<string, unknown> = {}) => generated(overrides).find((entry) => entry.key === key);
 
     it("put the curated ones first, then every other variable by key, in the dev category", () => {
-        expect(generated().map(({ key, category }) => `${category} ${key}`)).toEqual([
-            "basic snd_volmaster",
-            "basic snd_volmusic",
-            "basic ui_scale",
+        const all = generated();
+
+        expect(all.slice(0, curatedKeys.length).map((entry) => entry.key)).toEqual(curatedKeys);
+        expect(all.slice(curatedKeys.length).map(({ key, category }) => `${category} ${key}`)).toEqual([
             "dev AdvMapShading",
             "dev AutohostIP",
             "dev BumpWaterAnisotropy",
@@ -226,10 +270,13 @@ describe("engineSettingsLogic", () => {
     it("lists the settings in a category, matching a query", async () => {
         await engineSettingsLogic.load();
 
-        expect(engineSettingsLogic.descriptors("basic").map((entry) => entry.key)).toEqual(["snd_volmaster", "snd_volmusic", "ui_scale"]);
-        expect(engineSettingsLogic.descriptors("dev").map((entry) => entry.key)).toContain("XResolution");
-        expect(engineSettingsLogic.descriptors("dev", "anisotropy", shownAs).map((entry) => entry.key)).toEqual(["BumpWaterAnisotropy"]);
-        expect(engineSettingsLogic.descriptors("advanced")).toEqual([]);
+        const keysIn = (category: EngineSettingDescriptor["category"], query?: string) => engineSettingsLogic.descriptors(category, query, shownAs).map((entry) => entry.key);
+
+        expect(keysIn("basic")).toEqual(CURATED_ENGINE_SETTING_DESCRIPTORS.filter((entry) => entry.category === "basic").map((entry) => entry.key));
+        expect(keysIn("advanced")).toContain("CamTransitionMode");
+        expect(keysIn("dev")).toContain("XResolution");
+        expect(keysIn("dev", "anisotropy")).toEqual(["BumpWaterAnisotropy"]);
+        expect(keysIn("advanced", "nothing is called this")).toEqual([]);
     });
 
     it("writes a checkbox's value as the engine reads a bool", async () => {
