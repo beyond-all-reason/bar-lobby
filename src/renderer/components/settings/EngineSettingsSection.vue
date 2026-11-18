@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <small v-if="failure" class="error">{{ t(engineSettingsLogic.failureKey(failure)) }}</small>
         <div class="gridform">
             <EngineSettingControl
-                v-for="descriptor of ENGINE_SETTING_DESCRIPTORS"
+                v-for="descriptor of CURATED_ENGINE_SETTING_DESCRIPTORS"
                 :key="descriptor.key"
                 :descriptor="descriptor"
                 :disabled="unusable"
@@ -23,7 +23,7 @@ import { computed, onMounted } from "vue";
 import EngineSettingControl from "@renderer/components/settings/EngineSettingControl.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { engineSettingsLogic } from "@renderer/logic/engine-settings";
-import { ENGINE_SETTING_DESCRIPTORS } from "@renderer/logic/engine-settings/descriptors";
+import { CURATED_ENGINE_SETTING_DESCRIPTORS } from "@renderer/logic/engine-settings/descriptors";
 import { engineSettingsStore } from "@renderer/store/engine-settings.store";
 
 const { t } = useTypedI18n();

@@ -61,11 +61,14 @@ const call = (channel: string, ...args: unknown[]) => ipc.handlers.get(channel)!
 beforeEach(async () => {
     state.dir = await fs.mkdtemp(path.join(os.tmpdir(), "bar-engine-settings-service-"));
     state.defaults = { snd_volmaster: 30, ui_scale: 1 };
+    // As the engine prints them, with fields the client doesn't use.
     state.vars = {
-        snd_volmaster: { type: "int", defaultValue: 60 },
+        snd_volmaster: { type: "int", defaultValue: 60, minimumValue: 0, maximumValue: 200, description: "Master sound volume.", declarationLine: 33 } as ConfigVars[string],
         snd_volmusic: { type: "int", defaultValue: 50 },
         XResolution: { type: "int", defaultValue: 0 },
         AdvSky: { type: "bool", deprecated: 1 },
+        TextureMemPoolSize: { type: "unsigned", defaultValue: "512", minimumValue: "0" },
+        SpringData: { type: "std::string", defaultValue: "", readOnly: 1 },
     };
     ipc.handlers.clear();
     ipc.sent.length = 0;
@@ -77,7 +80,7 @@ afterEach(async () => {
 });
 
 describe("engineSettings:get", () => {
-    it("gives the overrides with where each is kept, the client's defaults and the engine's", async () => {
+    it("gives the overrides with where each is kept, the client's defaults, and the engine's defaults and variables", async () => {
         await writeText(synced(), JSON.stringify({ formatVersion: 1, values: { snd_volmusic: "20" } }));
         await writeText(device(), JSON.stringify({ formatVersion: 1, values: { XResolution: "3840" } }));
         await load();
@@ -88,16 +91,24 @@ describe("engineSettings:get", () => {
                 status: { usable: true },
                 overrides: { snd_volmusic: { value: "20", scope: "synced" }, XResolution: { value: "3840", scope: "device" } },
                 clientDefaults: { snd_volmaster: "30", ui_scale: "1" },
-                engineDefaults: { snd_volmaster: "60", snd_volmusic: "50", XResolution: "0" },
+                engineDefaults: { snd_volmaster: "60", snd_volmusic: "50", XResolution: "0", TextureMemPoolSize: "512", SpringData: "" },
+                engineVars: {
+                    snd_volmaster: { type: "int", description: "Master sound volume.", min: 0, max: 200 },
+                    snd_volmusic: { type: "int" },
+                    XResolution: { type: "int" },
+                    AdvSky: { type: "bool", deprecated: true },
+                    TextureMemPoolSize: { type: "unsigned", min: 0 },
+                    SpringData: { type: "std::string", readOnly: true },
+                },
             },
         });
     });
 
-    it("gives no engine defaults when the engine's variables can't be listed", async () => {
+    it("gives no engine defaults or variables when the engine's variables can't be listed", async () => {
         state.vars = undefined;
         await load();
 
-        expect(await call("engineSettings:get")).toMatchObject({ data: { engineDefaults: {} } });
+        expect(await call("engineSettings:get")).toMatchObject({ data: { engineDefaults: {}, engineVars: {} } });
     });
 
     it("reports a master file it can't use instead of failing", async () => {

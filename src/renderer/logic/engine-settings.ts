@@ -5,7 +5,15 @@
 import { engineSettingsApi } from "@renderer/api/engine-settings";
 import type { TranslationKey } from "@renderer/i18n";
 import { fromMain } from "@renderer/logic/from-main";
-import type { EngineSettingDescriptor } from "@renderer/logic/engine-settings/descriptors";
+import {
+    CURATED_ENGINE_SETTING_DESCRIPTORS,
+    type EngineSettingCategory,
+    type EngineSettingDescriptor,
+    engineSettingDescriptors,
+    type EngineSettingText,
+    type EngineSettingValue,
+    matchesQuery,
+} from "@renderer/logic/engine-settings/descriptors";
 import { engineSettingsActions, engineSettingsStore } from "@renderer/store/engine-settings.store";
 import type { EngineSettingScope, EngineSettingsFailure, EngineSettingsView } from "@shared/engine-settings/view";
 
@@ -55,14 +63,23 @@ export function effectiveValue(view: EngineSettingsView, key: string): Effective
 }
 
 // The value a descriptor's control shows, or undefined while loading or for a value it can't show.
-function value(descriptor: EngineSettingDescriptor): number | undefined {
+function value<Descriptor extends EngineSettingDescriptor>(descriptor: Descriptor): EngineSettingValue<Descriptor> | undefined {
     const view = engineSettingsStore.view;
     if (!view) {
         return undefined;
     }
     const effective = effectiveValue(view, descriptor.key);
 
-    return effective ? descriptor.parse(effective.text) : descriptor.gameDefault;
+    return (effective ? descriptor.parse(effective.text) : descriptor.gameDefault) as EngineSettingValue<Descriptor> | undefined;
+}
+
+// Every setting to offer, by category, filtered by a search query when there is one. Before the settings load,
+// only the curated ones. show turns a label or description into what the player reads, for the search.
+function descriptors(category: EngineSettingCategory, query = "", show: (text: EngineSettingText) => string = () => ""): EngineSettingDescriptor[] {
+    const view = engineSettingsStore.view;
+    const all = view ? engineSettingDescriptors(view.engineVars, view.overrides) : [...CURATED_ENGINE_SETTING_DESCRIPTORS];
+
+    return all.filter((descriptor) => descriptor.category === category && matchesQuery(descriptor, query, show));
 }
 
 function isOverridden(key: string): boolean {
@@ -84,8 +101,11 @@ async function change(key: string, call: () => ReturnType<typeof engineSettingsA
 }
 
 // For the next launch. A value equal to the default removes the override.
-function set(descriptor: EngineSettingDescriptor, value: number) {
-    return change(descriptor.key, () => engineSettingsApi.set(descriptor.key, descriptor.format(value)));
+function set<Descriptor extends EngineSettingDescriptor>(descriptor: Descriptor, value: EngineSettingValue<Descriptor>) {
+    // Each descriptor formats only its own control's values, which the signature already ties to it.
+    const format = descriptor.format as (value: EngineSettingValue<Descriptor>) => string;
+
+    return change(descriptor.key, () => engineSettingsApi.set(descriptor.key, format(value)));
 }
 
 function reset(descriptor: EngineSettingDescriptor) {
@@ -96,4 +116,4 @@ function failureKey(reason: EngineSettingsFailure): TranslationKey {
     return failureKeys[reason];
 }
 
-export const engineSettingsLogic = { load, value, isOverridden, scopeOf, set, reset, failureKey };
+export const engineSettingsLogic = { load, descriptors, value, isOverridden, scopeOf, set, reset, failureKey };

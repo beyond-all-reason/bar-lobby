@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <!-- A gridform row: the label cell, then the control cell. -->
 <template>
-    <div :class="{ overridden }">{{ t(descriptor.labelKey) }}</div>
+    <div :class="{ overridden }">{{ "key" in descriptor.label ? t(descriptor.label.key) : descriptor.label.text }}</div>
     <div class="flex-col gap-sm">
         <div class="control-row">
             <Range
@@ -41,12 +41,12 @@ import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { engineSettingsLogic } from "@renderer/logic/engine-settings";
-import type { EngineSettingDescriptor } from "@renderer/logic/engine-settings/descriptors";
+import type { SliderSettingDescriptor } from "@renderer/logic/engine-settings/descriptors";
 import { engineSettingsStore } from "@renderer/store/engine-settings.store";
 
 const { t } = useTypedI18n();
 
-const props = defineProps<{ descriptor: EngineSettingDescriptor; disabled?: boolean }>();
+const props = defineProps<{ descriptor: SliderSettingDescriptor; disabled?: boolean }>();
 
 const value = computed(() => engineSettingsLogic.value(props.descriptor));
 const overridden = computed(() => engineSettingsLogic.isOverridden(props.descriptor.key));

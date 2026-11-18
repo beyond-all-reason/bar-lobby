@@ -18,6 +18,18 @@ export type EngineSettingsFailure =
     | "invalid_setting"
     | "settings_failed";
 
+// What the default engine says about one of its variables, as much as the renderer needs to offer it.
+export type EngineVarInfo = {
+    // As the engine prints it: bool, int, unsigned, float or std::string.
+    type: string;
+    // The engine's own English text.
+    description?: string;
+    min?: number;
+    max?: number;
+    deprecated?: true;
+    readOnly?: true;
+};
+
 /**
  * The engine settings as the renderer sees them. A key's value is its override if it has one, else the
  * client's default, else the engine's own. Values are springsettings.cfg strings, compared exactly.
@@ -29,4 +41,6 @@ export type EngineSettingsView = {
     // The default engine's compiled-in defaults, numbers printed as JavaScript prints them. Empty if they can't
     // be listed.
     engineDefaults: EngineSettingValues;
+    // The default engine's variables, from the same listing. Empty if they can't be listed.
+    engineVars: Record<string, EngineVarInfo>;
 };

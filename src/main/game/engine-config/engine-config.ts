@@ -29,7 +29,7 @@ import { readOverrides, readSnapshot, UnusableSettingsFileError, updateOverrides
 import { adoptCfg, applyChanges, clientChanges, diffValues, effectiveOverrides, gameOwned, type Overrides, removeOverride, routeOverrides, setOverride, withoutGameOwned } from "./overrides";
 import { isDeviceKey } from "@shared/engine-settings/device-keys";
 import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
-import type { EngineSettingsStatus, EngineSettingsView } from "@shared/engine-settings/view";
+import type { EngineSettingsStatus, EngineSettingsView, EngineVarInfo } from "@shared/engine-settings/view";
 
 const log = logger("engine-config.ts");
 
@@ -356,15 +356,37 @@ function checkSetting(key: string, value?: string) {
 }
 
 async function engineDefaults(): Promise<EngineSettingValues> {
+    return (await defaultEngineVars()).defaults;
+}
+
+// Some limits are printed as strings, such as "0" for an unsigned variable.
+function limit(value: number | string | undefined): number | undefined {
+    const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+
+    return typeof number === "number" && Number.isFinite(number) ? number : undefined;
+}
+
+async function defaultEngineVars(): Promise<{ defaults: EngineSettingValues; info: Record<string, EngineVarInfo> }> {
     const vars = await getConfigVars(getDefaultEngineVersion());
     const defaults: EngineSettingValues = {};
+    const info: Record<string, EngineVarInfo> = {};
     for (const [key, meta] of Object.entries(vars ?? {})) {
         if (meta.defaultValue !== undefined) {
             defaults[key] = String(meta.defaultValue);
         }
+        const min = limit(meta.minimumValue);
+        const max = limit(meta.maximumValue);
+        info[key] = {
+            type: meta.type,
+            ...(meta.description !== undefined && { description: meta.description }),
+            ...(min !== undefined && { min }),
+            ...(max !== undefined && { max }),
+            ...(meta.deprecated ? { deprecated: true } : {}),
+            ...(meta.readOnly ? { readOnly: true } : {}),
+        };
     }
 
-    return defaults;
+    return { defaults, info };
 }
 
 // The engine settings as the renderer shows them. Never throws for a master file that can't be used: the
@@ -377,7 +399,7 @@ export async function getView(): Promise<EngineSettingsView> {
             }
             throw err;
         }),
-        engineDefaults(),
+        defaultEngineVars(),
     ]);
     const overrides: EngineSettingsView["overrides"] = {};
     if (!("problem" in masters)) {
@@ -388,7 +410,7 @@ export async function getView(): Promise<EngineSettingsView> {
     }
     const viewStatus: EngineSettingsStatus = "problem" in masters ? { usable: false, problem: masters.problem } : status;
 
-    return { status: viewStatus, overrides, clientDefaults: clientDefaults(), engineDefaults: engine };
+    return { status: viewStatus, overrides, clientDefaults: clientDefaults(), engineDefaults: engine.defaults, engineVars: engine.info };
 }
 
 async function changeSetting(change: (overrides: Overrides) => Overrides): Promise<void> {
