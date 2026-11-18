@@ -11,6 +11,7 @@ import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, sa
 import type { Difficulty } from "../../../shared/content/schema/common";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
 import { describeError, relevantErrors } from "./files";
+import { queued } from "../../utils/file-queue";
 
 // A change to a save that was refused, with the code the renderer words it by. The message is for the log.
 export class SaveFailureError extends Error {
@@ -144,22 +145,6 @@ async function usableSave(filePath: string, saveVersion: number): Promise<Single
  */
 export async function readUsableSave(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef, saveVersion = 1): Promise<SingleplayerSave | undefined> {
     return usableSave(path.join(dir, saveFileName(kind, ref)), saveVersion);
-}
-
-// Changes to one file run one after another, so two results recorded close together both land, in order.
-const queues = new Map<string, Promise<unknown>>();
-
-function queued<T>(filePath: string, task: () => Promise<T>): Promise<T> {
-    const run = (queues.get(filePath) ?? Promise.resolve()).then(task);
-    const settled = run.catch(() => {});
-    queues.set(filePath, settled);
-    settled.then(() => {
-        if (queues.get(filePath) === settled) {
-            queues.delete(filePath);
-        }
-    });
-
-    return run;
 }
 
 // Without the values, which may be long: a result comes from a mission, not from a file someone can open.
