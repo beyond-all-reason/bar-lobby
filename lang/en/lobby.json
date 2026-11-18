@@ -582,7 +582,10 @@
                 "deleteSingleplayerSavesConfirm": "Delete all",
                 "singleplayerSavesDeleted": "Singleplayer saved data deleted.",
                 "cancel": "Cancel",
+                "tabClient": "Client settings",
+                "tabGame": "Game settings",
                 "engine": {
+                    "resetToDefault": "Reset to default",
                     "masterVolume": "In-game master volume",
                     "musicVolume": "In-game music volume",
                     "uiScale": "In-game interface scale"

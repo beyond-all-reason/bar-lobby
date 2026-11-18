@@ -2565,7 +2565,10 @@
                 "deleteSingleplayerSavesConfirm": null,
                 "singleplayerSavesDeleted": null,
                 "cancel": null,
+                "tabClient": null,
+                "tabGame": null,
                 "engine": {
+                    "resetToDefault": null,
                     "masterVolume": null,
                     "musicVolume": null,
                     "uiScale": null

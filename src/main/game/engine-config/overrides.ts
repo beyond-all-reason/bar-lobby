@@ -7,9 +7,8 @@ import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
 import type { EngineSettingValues } from "@shared/engine-settings/engine-settings";
 
 /**
- * The user's changes from the defaults, split by where they are kept. A key lives in the one isDeviceKey picks,
- * and setting it removes it from the other, so a change to the device key patterns moves keys over as they are
- * next set. Until then a key found only in the other is still used.
+ * The user's changes from the defaults, split by where they are kept. A key lives in the one isDeviceKey picks.
+ * Files written before a change to the device key patterns may hold it in the other until routeOverrides moves it.
  */
 export type Overrides = { synced: EngineSettingValues; device: EngineSettingValues };
 
@@ -48,6 +47,16 @@ export function effectiveOverrides(overrides: Overrides): EngineSettingValues {
     }
 
     return values;
+}
+
+// Every key in the file isDeviceKey picks, keeping the value effectiveOverrides would use.
+export function routeOverrides(overrides: Overrides): Overrides {
+    const routed: Overrides = { synced: {}, device: {} };
+    for (const [key, value] of Object.entries(effectiveOverrides(overrides))) {
+        routed[isDeviceKey(key) ? "device" : "synced"][key] = value;
+    }
+
+    return routed;
 }
 
 const without = (values: EngineSettingValues, key: string): EngineSettingValues => Object.fromEntries(Object.entries(values).filter(([other]) => other !== key));

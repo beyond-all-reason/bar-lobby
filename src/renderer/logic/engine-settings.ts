@@ -57,9 +57,12 @@ export function effectiveValue(view: EngineSettingsView, key: string): Effective
 // The value a descriptor's control shows, or undefined while loading or for a value it can't show.
 function value(descriptor: EngineSettingDescriptor): number | undefined {
     const view = engineSettingsStore.view;
-    const effective = view && effectiveValue(view, descriptor.key);
+    if (!view) {
+        return undefined;
+    }
+    const effective = effectiveValue(view, descriptor.key);
 
-    return effective && descriptor.parse(effective.text);
+    return effective ? descriptor.parse(effective.text) : descriptor.gameDefault;
 }
 
 function isOverridden(key: string): boolean {

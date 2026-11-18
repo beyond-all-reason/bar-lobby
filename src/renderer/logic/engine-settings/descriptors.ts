@@ -17,6 +17,9 @@ export type SliderSettingDescriptor = {
     min: number;
     max: number;
     step: number;
+    // For a key only the game reads, which the engine has no default for: the value the game falls back to
+    // when nothing sets it. Only shown, never written.
+    gameDefault?: number;
     // The value a control shows, or undefined for text that isn't a number. Not clamped: a value outside the
     // range, such as one set by hand, shows as it is.
     parse(text: string): number | undefined;
@@ -51,5 +54,5 @@ function slider(options: Omit<SliderSettingDescriptor, "control" | "parse" | "fo
 export const ENGINE_SETTING_DESCRIPTORS: readonly EngineSettingDescriptor[] = [
     slider({ key: "snd_volmaster", labelKey: "lobby.navbar.settings.engine.masterVolume", category: "sound", min: 0, max: 80, step: 2 }),
     slider({ key: "snd_volmusic", labelKey: "lobby.navbar.settings.engine.musicVolume", category: "sound", min: 0, max: 99, step: 1 }),
-    slider({ key: "ui_scale", labelKey: "lobby.navbar.settings.engine.uiScale", category: "interface", min: 0.8, max: 1.3, step: 0.01 }),
+    slider({ key: "ui_scale", labelKey: "lobby.navbar.settings.engine.uiScale", category: "interface", min: 0.8, max: 1.3, step: 0.01, gameDefault: 1 }),
 ];

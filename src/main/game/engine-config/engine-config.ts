@@ -26,7 +26,7 @@ import { type AppliedSnapshot, ENGINE_SETTINGS_FORMAT_VERSION, type EngineSettin
 import { readCfg, writeCfgAtomic } from "./cfg-file";
 import { getConfigVars } from "./config-vars";
 import { readOverrides, readSnapshot, UnusableSettingsFileError, updateOverrides, writeSnapshot } from "./override-files";
-import { adoptCfg, applyChanges, clientChanges, diffValues, effectiveOverrides, gameOwned, type Overrides, removeOverride, setOverride, withoutGameOwned } from "./overrides";
+import { adoptCfg, applyChanges, clientChanges, diffValues, effectiveOverrides, gameOwned, type Overrides, removeOverride, routeOverrides, setOverride, withoutGameOwned } from "./overrides";
 import { isDeviceKey } from "@shared/engine-settings/device-keys";
 import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
 import type { EngineSettingsStatus, EngineSettingsView } from "@shared/engine-settings/view";
@@ -96,14 +96,21 @@ function changeMasters(profileId: string, change: (overrides: Overrides) => Over
     return queued(MASTERS_QUEUE, async () => (await changeMastersQueued(profileId, change)).changed);
 }
 
-// For callers already holding the masters queue. Game-owned keys are never kept, whatever the change.
+// The same keys and values, in any order.
+const sameValues = (a: EngineSettingValues, b: EngineSettingValues) =>
+    Object.keys(a).length === Object.keys(b).length && Object.entries(a).every(([key, value]) => Object.hasOwn(b, key) && b[key] === value);
+
+/**
+ * For callers already holding the masters queue. Game-owned keys are never kept, and every key is routed to the
+ * file it belongs in, whatever the change. A key that only moved file counts as changed, since its scope did.
+ */
 async function changeMastersQueued(profileId: string, change: (overrides: Overrides) => Overrides): Promise<{ changed: boolean; overrides: Overrides }> {
     const before = await readMasters(profileId);
-    const after = withoutGameOwned(change(before));
+    const after = routeOverrides(withoutGameOwned(change(before)));
     const [synced, device] = await Promise.all([updateOverrides(syncedPath(profileId), () => after.synced), updateOverrides(devicePath(), () => after.device)]);
     const overrides = { synced, device };
 
-    return { changed: JSON.stringify(effectiveOverrides(before)) !== JSON.stringify(effectiveOverrides(overrides)), overrides };
+    return { changed: !sameValues(before.synced, synced) || !sameValues(before.device, device), overrides };
 }
 
 async function readUsableSnapshot(): Promise<AppliedSnapshot | undefined> {
@@ -208,7 +215,7 @@ async function apply(engineVersion: string): Promise<AppliedSnapshot | undefined
     await writeCfgAtomic(defaultsCfgPath(), defaults);
 
     return queued(MASTERS_QUEUE, async () => {
-        // Also clears game-owned keys from a master copy written before they were known as such.
+        // Also clears game-owned keys and moves misplaced ones, in a master copy written before either was known.
         const { changed, overrides } = await changeMastersQueued(PROFILE_ID, (unchanged) => unchanged);
         if (changed) {
             onChanged.dispatch();
@@ -259,13 +266,18 @@ function isAlive(pid: number) {
 }
 
 /**
- * Folds back what changed while the client wasn't running, such as a game that outlived it. Skipped while that
+ * Moves keys to the file they now belong in, then folds back what changed while the client wasn't running,
+ * such as a game that outlived it. Folding back is skipped while that
  * game is still running, since the file is still its to change. Runs after content init, so adopting can ask
  * every installed engine which keys are real. Never throws.
  */
 export async function init(): Promise<void> {
     const release = await holdGate();
     try {
+        // Keys whose file changed since the last run move now, before the cloud syncs a device key elsewhere.
+        if (await changeMasters(PROFILE_ID, (overrides) => overrides)) {
+            onChanged.dispatch();
+        }
         const snapshot = await readUsableSnapshot();
         if (snapshot?.pid !== undefined && isAlive(snapshot.pid)) {
             log.info(`The game started before the client last closed is still running (pid ${snapshot.pid}); its settings are folded back at the next launch`);

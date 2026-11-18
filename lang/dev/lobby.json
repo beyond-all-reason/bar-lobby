@@ -582,7 +582,10 @@
                 "deleteSingleplayerSavesConfirm": "Deetle all",
                 "singleplayerSavesDeleted": "Sieeyglnplar seavd dtaa deteeld.",
                 "cancel": "Ceancl",
+                "tabClient": "Clneit seinttgs",
+                "tabGame": "Gmae seinttgs",
                 "engine": {
+                    "resetToDefault": "Reest to dfauelt",
                     "masterVolume": "In-gmae meastr vlomue",
                     "musicVolume": "In-gmae miusc vlomue",
                     "uiScale": "In-gmae ifreatcne slace"

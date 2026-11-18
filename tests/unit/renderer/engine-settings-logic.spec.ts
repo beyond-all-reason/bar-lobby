@@ -23,8 +23,9 @@ const failed = (reason: string) => ({ status: "failed", reason }) as const;
 const view = (overrides: EngineSettingsView["overrides"] = {}): EngineSettingsView => ({
     status: { usable: true },
     overrides,
-    clientDefaults: { snd_volmaster: "30", ui_scale: "1" },
-    engineDefaults: { snd_volmaster: "60", snd_volmusic: "50", ui_scale: "1" },
+    clientDefaults: { snd_volmaster: "30" },
+    // No ui_scale: only the game reads it, so the engine has no default for it.
+    engineDefaults: { snd_volmaster: "60", snd_volmusic: "50" },
 });
 
 beforeEach(() => {
@@ -87,6 +88,13 @@ describe("engineSettingsLogic", () => {
         expect(engineSettingsLogic.isOverridden("snd_volmaster")).toBe(false);
         expect(engineSettingsLogic.scopeOf("snd_volmusic")).toBe("synced");
         expect(engineSettingsStore.loadError).toBeUndefined();
+    });
+
+    it("shows the game's own default for a key nothing sets, which the engine doesn't know", async () => {
+        await engineSettingsLogic.load();
+
+        expect(engineSettingsLogic.value(uiScale)).toBe(1);
+        expect(engineSettingsLogic.isOverridden("ui_scale")).toBe(false);
     });
 
     it("keeps the reason a load failed", async () => {

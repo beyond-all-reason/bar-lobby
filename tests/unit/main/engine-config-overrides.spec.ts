@@ -16,6 +16,7 @@ import {
     gameOwned,
     type Overrides,
     removeOverride,
+    routeOverrides,
     setOverride,
     withoutGameOwned,
 } from "@main/game/engine-config/overrides";
@@ -59,9 +60,16 @@ describe("routing", () => {
         expect(setOverride(setOverride(misplaced, "Shadows", "2"), "ui_scale", "0.9")).toEqual({ synced: { ui_scale: "0.9" }, device: { Shadows: "2" } });
     });
 
-    it("uses a misplaced key until then, preferring the file it belongs in", () => {
+    it("uses a misplaced key until it is moved, preferring the file it belongs in", () => {
         expect(effectiveOverrides({ synced: { Shadows: "1", ui_scale: "1" }, device: { XResolution: "800" } })).toEqual({ Shadows: "1", ui_scale: "1", XResolution: "800" });
         expect(effectiveOverrides({ synced: { Shadows: "1", ui_scale: "1" }, device: { Shadows: "2", ui_scale: "2" } })).toEqual({ Shadows: "2", ui_scale: "1" });
+    });
+
+    it("moves every misplaced key to the file it belongs in, keeping the value in use", () => {
+        const misplaced: Overrides = { synced: { Shadows: "1", ui_scale: "1", FontSize: "18" }, device: { Shadows: "2", ui_scale: "2", XResolution: "800" } };
+
+        expect(routeOverrides(misplaced)).toEqual({ synced: { ui_scale: "1" }, device: { Shadows: "2", FontSize: "18", XResolution: "800" } });
+        expect(routeOverrides(routeOverrides(misplaced))).toEqual(routeOverrides(misplaced));
     });
 
     it("removes a key from both files", () => {

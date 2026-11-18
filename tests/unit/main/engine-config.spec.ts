@@ -199,20 +199,8 @@ describe("a launch", () => {
     });
 
     it("keeps a setting the engine removed as deprecated, for older engines", async () => {
-        await writeMaster(synced(), { AdvSky: "1", snd_volmusic: "20" });
-        const { init, beginSession } = await load();
-        await init();
-
-        const session = await beginSession("2026.07.04");
-        await writeText(userCfg(), cfgText({}));
-        await session.end();
-
-        expect(await values(synced())).toEqual({ AdvSky: "1" });
-    });
-
-    it("treats every removal as a reset when the engine's variables can't be listed", async () => {
-        state.vars = undefined;
-        await writeMaster(synced(), { AdvSky: "1" });
+        await writeMaster(synced(), { snd_volmusic: "20" });
+        await writeMaster(device(), { AdvSky: "1" });
         const { init, beginSession } = await load();
         await init();
 
@@ -221,6 +209,20 @@ describe("a launch", () => {
         await session.end();
 
         expect(await values(synced())).toEqual({});
+        expect(await values(device())).toEqual({ AdvSky: "1" });
+    });
+
+    it("treats every removal as a reset when the engine's variables can't be listed", async () => {
+        state.vars = undefined;
+        await writeMaster(device(), { AdvSky: "1" });
+        const { init, beginSession } = await load();
+        await init();
+
+        const session = await beginSession("2026.07.04");
+        await writeText(userCfg(), cfgText({}));
+        await session.end();
+
+        expect(await values(device())).toEqual({});
     });
 
     it("adopts hand edits made between launches before writing over the file", async () => {
@@ -346,6 +348,37 @@ describe("an unusable master", () => {
         await (await beginSession("2026.07.04")).end();
         expect(getStatus()).toEqual({ usable: true });
         expect(await values(synced())).toEqual({ snd_volmusic: "40" });
+    });
+});
+
+describe("keys whose file changed", () => {
+    it("move at startup, even while an earlier game still runs, and are reported with their new scope", async () => {
+        await writeMaster(synced(), { FontSize: "18", snd_volmusic: "20" });
+        await writeText(snapshot(), JSON.stringify({ formatVersion: 1, profileId: "local", engineVersion: "2026.07.04", pid: process.pid, values: { FontSize: "18", snd_volmusic: "20" } }));
+        const { init, onChanged, getView } = await load();
+        const changed = vi.fn();
+        onChanged.add(changed);
+
+        await init();
+
+        expect(await values(synced())).toEqual({ snd_volmusic: "20" });
+        expect(await values(device())).toEqual({ FontSize: "18" });
+        expect(changed).toHaveBeenCalled();
+        expect((await getView()).overrides.FontSize).toEqual({ value: "18", scope: "device" });
+    });
+
+    it("leave nothing to report when every key is already in place", async () => {
+        await writeMaster(synced(), { snd_volmusic: "20" });
+        await writeMaster(device(), { FontSize: "18" });
+        await writeText(userCfg(), cfgText({ FontSize: "18", snd_volmusic: "20" }));
+        await writeText(snapshot(), JSON.stringify({ formatVersion: 1, profileId: "local", engineVersion: "2026.07.04", values: { FontSize: "18", snd_volmusic: "20" } }));
+        const { init, onChanged } = await load();
+        const changed = vi.fn();
+        onChanged.add(changed);
+
+        await init();
+
+        expect(changed).not.toHaveBeenCalled();
     });
 });
 
