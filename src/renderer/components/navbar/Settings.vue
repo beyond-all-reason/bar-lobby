@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
         no-padding
         @update:modelValue="(open: boolean) => emit('update:modelValue', open)"
     >
-        <TabView>
+        <TabView class="settings-tabs">
             <TabPanel :header="t('lobby.navbar.settings.tabClient')">
                 <div class="gridform">
                     <div class="section-header">{{ t("lobby.navbar.settings.sectionDisplay") }}</div>
@@ -477,6 +477,16 @@ async function uploadLogsCommand(event) {
 </script>
 
 <style lang="scss" scoped>
+// Capped so a long tab, such as every engine variable, scrolls within the window instead of running off it.
+.settings-tabs {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    :deep(.p-tabview-panels) {
+        min-height: 0;
+    }
+}
+
 .confirm {
     width: 352px;
 }

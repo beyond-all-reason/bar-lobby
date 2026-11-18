@@ -586,6 +586,11 @@
                 "tabGame": "Gmae seinttgs",
                 "engine": {
                     "resetToDefault": "Reest to dfauelt",
+                    "advanced": "Acnveadd",
+                    "dev": "Dev: egnnie veaablirs",
+                    "search": "Sacreh seinttgs",
+                    "noMatches": "No seinttgs mcath the sarceh.",
+                    "deviceOnly": "Kpet on tihs dcevie olny, not snyecd",
                     "masterVolume": "In-gmae meastr vlomue",
                     "musicVolume": "In-gmae miusc vlomue",
                     "uiScale": "In-gmae ifreatcne slace",

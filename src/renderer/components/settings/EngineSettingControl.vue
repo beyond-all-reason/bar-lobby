@@ -6,20 +6,51 @@ SPDX-License-Identifier: MIT
 
 <!-- A gridform row: the label cell, then the control cell. -->
 <template>
-    <div :class="{ overridden }">{{ "key" in descriptor.label ? t(descriptor.label.key) : descriptor.label.text }}</div>
+    <div class="label-cell">
+        <div class="label-row" :class="{ overridden }">
+            <span>{{ show(descriptor.label) }}</span>
+            <Icon
+                v-if="descriptor.deviceOnly"
+                v-tooltip.right="t('lobby.navbar.settings.engine.deviceOnly')"
+                :icon="monitor"
+                class="device-only"
+            />
+        </div>
+        <small v-if="descriptor.description" class="description">{{ show(descriptor.description) }}</small>
+    </div>
     <div class="flex-col gap-sm">
         <div class="control-row">
             <Range
-                :modelValue="shownValue"
+                v-if="slider"
+                :modelValue="draggedValue ?? shownNumber ?? slider.min"
                 commitOnRelease
-                :disabled="value === undefined || disabled"
-                :min="descriptor.min"
-                :max="descriptor.max"
-                :step="descriptor.step"
+                :disabled="disabled"
+                :min="slider.min"
+                :max="slider.max"
+                :step="slider.step"
                 :class="{ overridden }"
                 @preview="(preview: number | number[]) => (draggedValue = preview as number)"
-                @update:modelValue="commit"
+                @update:modelValue="(committed: number | number[]) => commit(committed as number)"
             />
+            <Number
+                v-else-if="numberBox"
+                :modelValue="shownNumber"
+                :disabled="disabled"
+                :min="numberBox.min"
+                :max="numberBox.max"
+                :maxFractionDigits="numberBox.integer ? 0 : 6"
+                :useGrouping="false"
+                :class="{ overridden }"
+                @update:modelValue="(committed: number) => commit(committed)"
+            />
+            <Checkbox
+                v-else-if="descriptor.control === 'checkbox'"
+                :modelValue="shownValue === true"
+                :disabled="disabled"
+                :class="{ overridden }"
+                @update:modelValue="(checked: boolean) => !disabled && commit(checked)"
+            />
+            <Textbox v-else v-model="textDraft" :disabled="disabled" :class="{ overridden }" class="text" @change="commit(textDraft)" />
             <Button
                 v-tooltip.left="t('lobby.navbar.settings.engine.resetToDefault')"
                 class="slim square"
@@ -34,49 +65,94 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { Icon } from "@iconify/vue";
+import monitor from "@iconify-icons/mdi/monitor";
 import restore from "@iconify-icons/mdi/restore";
 import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+import Number from "@renderer/components/controls/Number.vue";
 import Range from "@renderer/components/controls/Range.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { engineSettingsLogic } from "@renderer/logic/engine-settings";
-import type { SliderSettingDescriptor } from "@renderer/logic/engine-settings/descriptors";
+import type { EngineSettingDescriptor, EngineSettingText, EngineSettingValue } from "@renderer/logic/engine-settings/descriptors";
 import { engineSettingsStore } from "@renderer/store/engine-settings.store";
 
 const { t } = useTypedI18n();
 
-const props = defineProps<{ descriptor: SliderSettingDescriptor; disabled?: boolean }>();
+const props = defineProps<{ descriptor: EngineSettingDescriptor; disabled?: boolean }>();
+
+const show = (text: EngineSettingText) => ("key" in text ? t(text.key) : text.text);
+
+const slider = computed(() => (props.descriptor.control === "slider" ? props.descriptor : undefined));
+const numberBox = computed(() => (props.descriptor.control === "number" ? props.descriptor : undefined));
+
+type Value = EngineSettingValue<EngineSettingDescriptor>;
 
 const value = computed(() => engineSettingsLogic.value(props.descriptor));
 const overridden = computed(() => engineSettingsLogic.isOverridden(props.descriptor.key));
 const changeError = computed(() => engineSettingsStore.changeErrors.get(props.descriptor.key));
 
 const draggedValue = ref<number | null>(null);
-// Shown until main answers, so the slider doesn't jump back to the old value for the round trip.
-const committingValue = ref<number | null>(null);
-const shownValue = computed(() => draggedValue.value ?? committingValue.value ?? value.value ?? props.descriptor.min);
+// Shown until main answers, so the control doesn't jump back to the old value for the round trip.
+const committingValue = ref<Value | null>(null);
+const shownValue = computed(() => committingValue.value ?? value.value);
+const shownNumber = computed(() => (typeof shownValue.value === "number" ? shownValue.value : undefined));
 
-async function commit(committed: number | number[]) {
+// Typed text is kept until it is committed, and follows the setting otherwise.
+const textDraft = ref("");
+watch(
+    () => shownValue.value,
+    (shown) => (textDraft.value = typeof shown === "string" ? shown : ""),
+    { immediate: true }
+);
+
+async function commit(committed: Value) {
     draggedValue.value = null;
-    if (committed === value.value) return;
+    // Already the value, or already on its way, such as a change event heard on both the text box and its input.
+    if (committed === value.value || committed === committingValue.value) return;
 
-    const target = committed as number;
-    committingValue.value = target;
+    committingValue.value = committed;
     try {
-        await engineSettingsLogic.set(props.descriptor, target);
+        await engineSettingsLogic.set(props.descriptor, committed);
     } finally {
-        // A later release may have replaced it while this one was in flight.
-        if (committingValue.value === target) committingValue.value = null;
+        // A later commit may have replaced it while this one was in flight.
+        if (committingValue.value === committed) committingValue.value = null;
     }
 }
 </script>
 
 <style lang="scss" scoped>
+.label-cell {
+    gap: 2px;
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.device-only {
+    opacity: 0.6;
+}
+
+.description {
+    max-width: 320px;
+    opacity: 0.6;
+    font-size: 11px;
+    white-space: pre-line;
+}
+
 .control-row {
     display: flex;
     align-items: center;
     gap: 6px;
+
+    .text {
+        flex: 1;
+    }
 }
 
 .overridden {

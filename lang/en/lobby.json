@@ -586,6 +586,11 @@
                 "tabGame": "Game settings",
                 "engine": {
                     "resetToDefault": "Reset to default",
+                    "advanced": "Advanced",
+                    "dev": "Dev: engine variables",
+                    "search": "Search settings",
+                    "noMatches": "No settings match the search.",
+                    "deviceOnly": "Kept on this device only, not synced",
                     "masterVolume": "In-game master volume",
                     "musicVolume": "In-game music volume",
                     "uiScale": "In-game interface scale",

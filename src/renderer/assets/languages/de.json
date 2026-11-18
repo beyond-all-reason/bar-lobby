@@ -2440,6 +2440,11 @@
                 "tabGame": null,
                 "engine": {
                     "resetToDefault": null,
+                    "advanced": null,
+                    "dev": null,
+                    "search": null,
+                    "noMatches": null,
+                    "deviceOnly": null,
                     "masterVolume": null,
                     "musicVolume": null,
                     "uiScale": null,
