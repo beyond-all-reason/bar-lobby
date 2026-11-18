@@ -19,6 +19,7 @@ import { getEnginePath } from "@main/config/app";
 import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
 import { holdChecksums } from "@main/utils/checksums";
+import { getConfigVars } from "@main/game/engine-config/config-vars";
 
 const log = logger("engine-provider.ts");
 
@@ -48,6 +49,10 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
         }
         this.checkIfDefaultIsNew();
         log.info(`Found ${this.availableVersions.size} engine versions total.`);
+        // Ready before the first game ends, when settings the engine removed are told apart from deprecated ones.
+        if (this.isVersionInstalled(getDefaultEngineVersion())) {
+            void getConfigVars(getDefaultEngineVersion());
+        }
         return this;
     }
 
@@ -151,6 +156,7 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
         log.debug(`Download complete: ${downloadInfo.name}`);
         const ais = await this.parseAis(downloadInfo.name);
         this.availableVersions.set(downloadInfo.name, { id: downloadInfo.name, ais, installed: true });
+        void getConfigVars(downloadInfo.name);
         super.downloadComplete(downloadInfo);
     }
 

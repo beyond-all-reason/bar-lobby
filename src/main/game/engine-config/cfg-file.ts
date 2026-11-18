@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import fs from "node:fs/promises";
-import path from "node:path";
+import { writeFileAtomic } from "@main/utils/atomic-write";
 import { type EngineSettingValues, isEngineSettingKey, isEngineSettingValue } from "@shared/engine-settings/engine-settings";
 
 export type ParsedCfg = {
@@ -61,10 +61,4 @@ export async function readCfg(filePath: string): Promise<ParsedCfg | undefined> 
     return parseCfg(text);
 }
 
-// Through a temp file, so the engine never reads a half-written file.
-export async function writeCfgAtomic(filePath: string, values: EngineSettingValues): Promise<void> {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.tmp`;
-    await fs.writeFile(tempPath, serializeCfg(values));
-    await fs.rename(tempPath, filePath);
-}
+export const writeCfgAtomic = (filePath: string, values: EngineSettingValues) => writeFileAtomic(filePath, serializeCfg(values));

@@ -7,10 +7,10 @@
 // (perhaps only half synced), is left alone, never reset, and nothing is written over it.
 
 import fs from "node:fs/promises";
-import path from "node:path";
 import Ajv2020, { type ValidateFunction } from "ajv/dist/2020";
 import { AppliedSnapshot, ENGINE_SETTINGS_FORMAT_VERSION, EngineSettingsFile, type EngineSettingValues } from "@shared/engine-settings/engine-settings";
 import { queued } from "@main/utils/file-queue";
+import { writeFileAtomic } from "@main/utils/atomic-write";
 
 const ajv = new Ajv2020({ strict: true, allErrors: true });
 const validateSettingsFile = ajv.compile<EngineSettingsFile>(EngineSettingsFile);
@@ -56,14 +56,7 @@ function sortedValues(values: EngineSettingValues): EngineSettingValues {
     return Object.fromEntries(Object.entries(values).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 }
 
-// Through a temp file, so a crash mid-write can't truncate it. The temp name doesn't end in .json, so a cloud
-// sync pattern doesn't pick it up.
-async function writeJson(filePath: string, value: unknown) {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.tmp`;
-    await fs.writeFile(tempPath, JSON.stringify(value, null, 4));
-    await fs.rename(tempPath, filePath);
-}
+const writeJson = (filePath: string, value: unknown) => writeFileAtomic(filePath, JSON.stringify(value, null, 4));
 
 export type OverridesRead = { values: EngineSettingValues } | { problem: string };
 
