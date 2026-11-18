@@ -247,6 +247,41 @@ async function writeSave(filePath: string, save: SingleplayerSave) {
     await fs.rename(tempPath, filePath);
 }
 
+export type LegacySavesMove = "moved" | "nothing-to-move" | "both-present" | { failed: string };
+
+/**
+ * Moves the saves folder from before profiles into the first profile, once. When both exist, which one is
+ * right can't be told, so both are left as they are. Never throws.
+ */
+export async function moveLegacySaves(from: string, to: string): Promise<LegacySavesMove> {
+    try {
+        if (!(await exists(from))) {
+            return "nothing-to-move";
+        }
+        if (await exists(to)) {
+            return "both-present";
+        }
+        await fs.mkdir(path.dirname(to), { recursive: true });
+        await fs.rename(from, to);
+
+        return "moved";
+    } catch (err) {
+        return { failed: err instanceof Error ? err.message : String(err) };
+    }
+}
+
+async function exists(p: string) {
+    try {
+        await fs.stat(p);
+        return true;
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+            return false;
+        }
+        throw err;
+    }
+}
+
 // Deletes an item's save, whatever state it is in. Deleting a save that doesn't exist does nothing.
 export function deleteSave(dir: string, kind: SingleplayerKind, ref: SingleplayerItemRef): Promise<void> {
     const filePath = path.join(dir, saveFileName(kind, ref));

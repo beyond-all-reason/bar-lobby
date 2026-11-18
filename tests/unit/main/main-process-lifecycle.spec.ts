@@ -169,8 +169,11 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/config/app", () => ({
             APP_NAME: "Test App",
             SCENARIO_IMAGE_PATH: "/test/path",
+            LEGACY_SAVES_PATH: "/test/saves/singleplayer",
+            SAVES_PATH: "/test/saves/local/singleplayer",
             setAssetsPath: mockSetAssetsPath,
         }));
+        vi.doMock("@main/content/singleplayer/saves", () => ({ moveLegacySaves: vi.fn().mockResolvedValue("nothing-to-move") }));
 
         // resetModules leaves the mock registry alone, so a test that mocks another edition would otherwise
         // leave every later test on it. doUnmock would drop the setup file's mock too and let BAR_EDITION in.

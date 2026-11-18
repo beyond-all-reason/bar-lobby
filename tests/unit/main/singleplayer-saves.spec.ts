@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteAllSaves, deleteSave, readSave, readSaves, recordResult as recordWith, saveFileName, setDifficulty } from "@main/content/singleplayer/saves";
+import { deleteAllSaves, deleteSave, moveLegacySaves, readSave, readSaves, recordResult as recordWith, saveFileName, setDifficulty } from "@main/content/singleplayer/saves";
 import { applyResult } from "@shared/content/campaign-progress";
 import { type ReportedResult, SAVE_LIMITS, type SingleplayerSave } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
@@ -367,5 +367,46 @@ describe("singleplayer saves", () => {
             const wide = (count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`w${i}`, "€".repeat(SAVE_LIMITS.variableStringLength / 2)]));
             await expect(record(wide(Math.ceil(overBytes / 1.5)))).rejects.toThrow(/bytes of variables reported/);
         });
+    });
+});
+
+describe("moving saves into the first profile", () => {
+    // `dir` is <tmp>/saves, as before profiles; the profile folder sits beside it.
+    const profileDir = () => path.join(path.dirname(dir), "profile", "singleplayer");
+
+    it("moves the legacy folder, saves and all, into the profile", async () => {
+        const save = await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+
+        expect(await moveLegacySaves(dir, profileDir())).toBe("moved");
+        expect(await fs.stat(dir).catch(() => undefined)).toBeUndefined();
+        expect(await readSave(profileDir(), "campaign", official)).toEqual(save);
+    });
+
+    it("does nothing when there is no legacy folder, including when it was already moved", async () => {
+        expect(await moveLegacySaves(dir, profileDir())).toBe("nothing-to-move");
+        expect(await fs.stat(profileDir()).catch(() => undefined)).toBeUndefined();
+
+        await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+        await moveLegacySaves(dir, profileDir());
+
+        expect(await moveLegacySaves(dir, profileDir())).toBe("nothing-to-move");
+    });
+
+    it("leaves both folders alone when both exist", async () => {
+        const legacy = await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+        const current = await recordResult(profileDir(), "campaign", custom, { missionId: "mission01", outcome: "victory" });
+
+        expect(await moveLegacySaves(dir, profileDir())).toBe("both-present");
+        expect(await readSaves(dir)).toEqual({ saves: [legacy], problems: [] });
+        expect(await readSaves(profileDir())).toEqual({ saves: [current], problems: [] });
+    });
+
+    it("reports a failure instead of throwing", async () => {
+        await recordResult(dir, "campaign", official, { missionId: "mission01", outcome: "victory" });
+        const blocker = path.join(path.dirname(dir), "file");
+        await fs.writeFile(blocker, "");
+
+        expect(await moveLegacySaves(dir, path.join(blocker, "singleplayer"))).toEqual({ failed: expect.any(String) });
+        expect(await readSave(dir, "campaign", official)).toBeDefined();
     });
 });

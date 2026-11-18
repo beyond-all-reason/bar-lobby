@@ -21,7 +21,8 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, SCENARIO_IMAGE_PATH, getContentRoots, setAssetsPath } from "./config/app";
+import { APP_NAME, LEGACY_SAVES_PATH, SAVES_PATH, SCENARIO_IMAGE_PATH, getContentRoots, setAssetsPath } from "./config/app";
+import { moveLegacySaves } from "@main/content/singleplayer/saves";
 import { shellService } from "@main/services/shell.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
@@ -168,6 +169,14 @@ app.whenReady().then(async () => {
     const savedAssetsPath = settingsService.getSettings().assetsPath;
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH && EDITION_FEATURES.changeAssetsPath) {
         setAssetsPath(savedAssetsPath);
+    }
+    const savesMove = await moveLegacySaves(LEGACY_SAVES_PATH, SAVES_PATH);
+    if (savesMove === "moved") {
+        log.info(`Moved singleplayer saves from ${LEGACY_SAVES_PATH} to ${SAVES_PATH}`);
+    } else if (savesMove === "both-present") {
+        log.warn(`Singleplayer saves exist in both ${LEGACY_SAVES_PATH} and ${SAVES_PATH}; using ${SAVES_PATH} and leaving the other alone`);
+    } else if (typeof savesMove === "object") {
+        log.error(`Could not move singleplayer saves from ${LEGACY_SAVES_PATH} to ${SAVES_PATH}: ${savesMove.failed}`);
     }
     // A saved assets path can point somewhere unavailable, and the screen that lets the user repoint it
     // cannot appear if this throws on the way to creating the window.
