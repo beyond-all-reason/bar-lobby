@@ -1,6 +1,13 @@
 {
     "lobby": {
         "logic": {
+            "engineSettings": {
+                "failures": {
+                    "settingsUnusable": "In-game settings can't be changed: a settings file can't be read. The log has the details.",
+                    "invalidSetting": "That in-game setting can't be changed from here.",
+                    "settingsFailed": "In-game settings couldn't be changed. The log has the details."
+                }
+            },
             "edition": {
                 "refusals": {
                     "contentBundledWithInstall": "{content} is missing. It comes with the Steam install: verify the integrity of the game files in Steam. | {content} are missing. They come with the Steam install: verify the integrity of the game files in Steam.",
@@ -574,7 +581,12 @@
                 "deleteSingleplayerSavesBody": "This deletes your progress and saved values in every campaign, scenario and tutorial, official and custom. It cannot be undone.",
                 "deleteSingleplayerSavesConfirm": "Delete all",
                 "singleplayerSavesDeleted": "Singleplayer saved data deleted.",
-                "cancel": "Cancel"
+                "cancel": "Cancel",
+                "engine": {
+                    "masterVolume": "In-game master volume",
+                    "musicVolume": "In-game music volume",
+                    "uiScale": "In-game interface scale"
+                }
             },
             "friends": {
                 "unknownUser": "Unknown User",

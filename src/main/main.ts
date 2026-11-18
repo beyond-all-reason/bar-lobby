@@ -34,6 +34,7 @@ import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
 import { singleplayerService } from "@main/services/singleplayer.service";
+import { engineSettingsService } from "@main/services/engine-settings.service";
 import { configService } from "./services/config.service";
 import { EDITION_FEATURES } from "@main/config/edition";
 import { reconcileCustomServers } from "@shared/lobby-server";
@@ -211,4 +212,5 @@ app.whenReady().then(async () => {
     navigationService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
     singleplayerService.registerIpcHandlers(webContents);
+    engineSettingsService.registerIpcHandlers(webContents);
 });

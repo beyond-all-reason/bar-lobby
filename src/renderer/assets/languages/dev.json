@@ -1,6 +1,13 @@
 {
     "lobby": {
         "logic": {
+            "engineSettings": {
+                "failures": {
+                    "settingsUnusable": "In-gmae seinttgs can't be cngeahd: a seinttgs flie can't be raed. The log has the daleits.",
+                    "invalidSetting": "That in-gmae stinteg can't be cngeahd form hree.",
+                    "settingsFailed": "In-gmae seinttgs coludn't be cngeahd. The log has the daleits."
+                }
+            },
             "edition": {
                 "refusals": {
                     "contentBundledWithInstall": "{content} is misnsig. It cmeos wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam. | {content} are misnsig. Tehy cmoe wtih the Steam ilantsl: virefy the iegttnriy of the gmae fleis in Steam.",
@@ -574,7 +581,12 @@
                 "deleteSingleplayerSavesBody": "Tihs deteles your prsgeros and seavd vleaus in eervy ciagampn, senicaro and toaturil, ofiiacfl and cuotsm. It caonnt be unnode.",
                 "deleteSingleplayerSavesConfirm": "Deetle all",
                 "singleplayerSavesDeleted": "Sieeyglnplar seavd dtaa deteeld.",
-                "cancel": "Ceancl"
+                "cancel": "Ceancl",
+                "engine": {
+                    "masterVolume": "In-gmae meastr vlomue",
+                    "musicVolume": "In-gmae miusc vlomue",
+                    "uiScale": "In-gmae ifreatcne slace"
+                }
             },
             "friends": {
                 "unknownUser": "Unwnokn User",

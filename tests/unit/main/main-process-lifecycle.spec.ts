@@ -47,6 +47,7 @@ describe("Main Process Lifecycle", () => {
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
         pathsService: { registerIpcHandlers: vi.fn() },
+        engineSettingsService: { registerIpcHandlers: vi.fn() },
     };
     const mockSetAssetsPath = vi.fn();
     const mockWarn = vi.fn();
@@ -201,6 +202,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
         vi.doMock("@main/services/paths.service", () => ({ pathsService: mockServices.pathsService }));
+        vi.doMock("@main/services/engine-settings.service", () => ({ engineSettingsService: mockServices.engineSettingsService }));
 
         vi.stubGlobal("process", mockProcess);
     });
@@ -343,6 +345,7 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.engineSettingsService.registerIpcHandlers).toHaveBeenCalled();
     });
 
     it("should warn and continue when the user chooses to continue on an unsupported platform", async () => {

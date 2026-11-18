@@ -3948,6 +3948,13 @@
     },
     "lobby": {
         "logic": {
+            "engineSettings": {
+                "failures": {
+                    "settingsUnusable": null,
+                    "invalidSetting": null,
+                    "settingsFailed": null
+                }
+            },
             "edition": {
                 "refusals": {
                     "contentBundledWithInstall": null,
@@ -4521,7 +4528,12 @@
                 "deleteSingleplayerSavesBody": null,
                 "deleteSingleplayerSavesConfirm": null,
                 "singleplayerSavesDeleted": null,
-                "cancel": null
+                "cancel": null,
+                "engine": {
+                    "masterVolume": null,
+                    "musicVolume": null,
+                    "uiScale": null
+                }
             },
             "friends": {
                 "unknownUser": null,

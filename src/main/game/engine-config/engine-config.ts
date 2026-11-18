@@ -26,7 +26,10 @@ import { type AppliedSnapshot, ENGINE_SETTINGS_FORMAT_VERSION, type EngineSettin
 import { readCfg, writeCfgAtomic } from "./cfg-file";
 import { getConfigVars } from "./config-vars";
 import { readOverrides, readSnapshot, UnusableSettingsFileError, updateOverrides, writeSnapshot } from "./override-files";
-import { adoptCfg, applyChanges, clientChanges, diffValues, effectiveOverrides, gameOwned, type Overrides, withoutGameOwned } from "./overrides";
+import { adoptCfg, applyChanges, clientChanges, diffValues, effectiveOverrides, gameOwned, type Overrides, removeOverride, setOverride, withoutGameOwned } from "./overrides";
+import { isDeviceKey } from "@shared/engine-settings/device-keys";
+import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
+import type { EngineSettingsStatus, EngineSettingsView } from "@shared/engine-settings/view";
 
 const log = logger("engine-config.ts");
 
@@ -38,7 +41,7 @@ const syncedPath = (profileId: string) => path.join(getSyncedSettingsPath(profil
 const devicePath = () => path.join(CONFIG_PATH, "engine-device.json");
 
 // While a master file can't be used, nothing is applied or folded back, and the engine's file is left as it is.
-export type EngineConfigStatus = { usable: true } | { usable: false; problem: string };
+export type EngineConfigStatus = EngineSettingsStatus;
 
 export type EngineSession = {
     // The game process is running. While it is alive at startup, the file is still the game's to change.
@@ -220,7 +223,9 @@ async function apply(engineVersion: string): Promise<AppliedSnapshot | undefined
     });
 }
 
+// Whoever shows the status hears when it changes, as for any other change.
 function setOutcome(err?: unknown) {
+    const before = JSON.stringify(status);
     if (err === undefined) {
         status = { usable: true };
     } else if (err instanceof UnusableSettingsFileError) {
@@ -228,6 +233,9 @@ function setOutcome(err?: unknown) {
         log.error(`Engine settings are left as they are until this is fixed: ${err.message}`);
     } else {
         log.error("Engine settings could not be synchronised", err);
+    }
+    if (JSON.stringify(status) !== before) {
+        onChanged.dispatch();
     }
 }
 
@@ -316,4 +324,92 @@ export async function beginSession(engineVersion: string): Promise<EngineSession
     };
 }
 
-export const engineConfig = { init, beginSession, getStatus, onChanged };
+export class InvalidEngineSettingError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "InvalidEngineSettingError";
+    }
+}
+
+function checkSetting(key: string, value?: string) {
+    if (!isEngineSettingKey(key)) {
+        throw new InvalidEngineSettingError(`Not a key springsettings.cfg can hold: ${JSON.stringify(key)}`);
+    }
+    if (isGameOwnedKey(key)) {
+        throw new InvalidEngineSettingError(`${key} is set by the game for itself`);
+    }
+    if (value !== undefined && !isEngineSettingValue(value)) {
+        throw new InvalidEngineSettingError(`Not a value springsettings.cfg can hold for ${key}: ${JSON.stringify(value)}`);
+    }
+}
+
+async function engineDefaults(): Promise<EngineSettingValues> {
+    const vars = await getConfigVars(getDefaultEngineVersion());
+    const defaults: EngineSettingValues = {};
+    for (const [key, meta] of Object.entries(vars ?? {})) {
+        if (meta.defaultValue !== undefined) {
+            defaults[key] = String(meta.defaultValue);
+        }
+    }
+
+    return defaults;
+}
+
+// The engine settings as the renderer shows them. Never throws for a master file that can't be used: the
+// status says so instead.
+export async function getView(): Promise<EngineSettingsView> {
+    const [masters, engine] = await Promise.all([
+        readMasters(PROFILE_ID).catch((err) => {
+            if (err instanceof UnusableSettingsFileError) {
+                return { problem: err.message };
+            }
+            throw err;
+        }),
+        engineDefaults(),
+    ]);
+    const overrides: EngineSettingsView["overrides"] = {};
+    if (!("problem" in masters)) {
+        for (const [key, value] of Object.entries(effectiveOverrides(masters))) {
+            const inDevice = Object.hasOwn(masters.device, key) && (isDeviceKey(key) || !Object.hasOwn(masters.synced, key));
+            overrides[key] = { value, scope: inDevice ? "device" : "synced" };
+        }
+    }
+    const viewStatus: EngineSettingsStatus = "problem" in masters ? { usable: false, problem: masters.problem } : status;
+
+    return { status: viewStatus, overrides, clientDefaults: clientDefaults(), engineDefaults: engine };
+}
+
+async function changeSetting(change: (overrides: Overrides) => Overrides): Promise<void> {
+    try {
+        const changed = await changeMasters(PROFILE_ID, change);
+        setOutcome();
+        if (changed) {
+            onChanged.dispatch();
+        }
+    } catch (err) {
+        if (err instanceof UnusableSettingsFileError) {
+            setOutcome(err);
+        }
+        throw err;
+    }
+}
+
+/**
+ * Sets one setting for the next launch. A value equal to the default beneath it, the client's or else the
+ * engine's, removes the override instead, as the engine itself would. A game already running keeps what it
+ * has; if it changes the same setting before it closes, its value wins.
+ */
+export async function setSetting(key: string, value: string): Promise<void> {
+    checkSetting(key, value);
+    const client = clientDefaults();
+    const beneath = Object.hasOwn(client, key) ? client[key] : (await engineDefaults())[key];
+    await changeSetting((overrides) => (value === beneath ? removeOverride(overrides, key) : setOverride(overrides, key, value)));
+}
+
+// Back to the default, for the next launch.
+export async function resetSetting(key: string): Promise<void> {
+    checkSetting(key);
+    await changeSetting((overrides) => removeOverride(overrides, key));
+}
+
+export const engineConfig = { init, beginSession, getStatus, getView, setSetting, resetSetting, onChanged };
