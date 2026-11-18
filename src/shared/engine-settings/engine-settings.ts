@@ -40,7 +40,8 @@ export type EngineSettingsFile = Static<typeof EngineSettingsFile>;
 export const AppliedSnapshot = Type.Object({
     formatVersion: Type.Integer({ minimum: 1 }),
     profileId: Type.String({ minLength: 1 }),
-    engineVersion: Type.String({ minLength: 1 }),
+    // The engine the file was written for, whose deprecated keys a removal may be. Unknown for an adopted file.
+    engineVersion: Type.Optional(Type.String({ minLength: 1 })),
     // The game process, once it has started. While it is alive the file is still the game's to change.
     pid: Type.Optional(Type.Integer({ minimum: 1 })),
     values: EngineSettingValues,

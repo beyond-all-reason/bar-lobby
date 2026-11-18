@@ -13,6 +13,10 @@ export const DEVICE_KEY_PATTERNS: readonly RegExp[] = [
     /^Fullscreen$/,
     /^WindowBorderless$/,
     /^VSync/,
+    /^SelectedScreenMode$/,
+    // The game sizes fonts to the display.
+    /^(Small)?FontSize$/,
+    /^(Small)?FontOutlineWidth$/,
     // Graphics quality
     /^MSAA/,
     /^Shadow/,

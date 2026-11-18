@@ -10,14 +10,15 @@ import * as path from "path";
 
 import { contentAPI } from "@main/content/content-api";
 import type { ContentRef } from "@main/content/content-ref";
-import { applyDefaultSpringsettings } from "@main/game/springsettings";
+import { engineConfig } from "@main/game/engine-config/engine-config";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
-import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
+import { WRITE_DATA_PATH, REPLAYS_PATH, ENGINE_DEFAULTS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { Replay } from "@main/replays/replay";
 
 const log = logger("main/game/game.ts");
+const CLOSING_PROCESS_GRACE_MS = 15_000;
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
 
 export interface ScriptLaunchSettings {
@@ -49,6 +50,8 @@ export class GameAPI {
     public readonly startScriptName = "script.txt";
 
     protected gameProcess: ChildProcess | null = null;
+    // A process that has asked to close but not yet closed, which can take seconds; see RecoilEngine#2450.
+    protected closingProcess: { process: ChildProcess; closed: Promise<void> } | null = null;
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
         const script = await startScriptConverter.generateScriptStr(battle);
@@ -128,7 +131,8 @@ export class GameAPI {
         // Also the last word on whether everything is there: content that cannot be acquired is refused here.
         await this.fetchMissingContent(content);
 
-        applyDefaultSpringsettings();
+        await this.waitForClosingProcess();
+        const session = await engineConfig.beginSession(engineVersion);
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
         // A full path, never a bare name: Windows only finds a bare name in cwd by searching the current
@@ -144,10 +148,14 @@ export class GameAPI {
                     detached: true,
                     env: {
                         ...process.env,
-                        // The engine reads the assets, these, and the write dir, which --write-dir names.
-                        SPRING_DATADIR: [getAssetsPath(), ...dataDirs].join(path.delimiter),
+                        // Beneath the write dir and the engine's own dir, the engine reads the client's default
+                        // settings, then the assets, then these.
+                        SPRING_DATADIR: [ENGINE_DEFAULTS_PATH, getAssetsPath(), ...dataDirs].join(path.delimiter),
                     },
                 });
+                const gameProcess = this.gameProcess;
+                const closed = new Promise<void>((resolveClosed) => gameProcess.once("close", () => resolveClosed()));
+                if (gameProcess.pid !== undefined) session.started(gameProcess.pid);
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
                 let isGameRunning = false;
                 this.gameProcess.stdout.on("data", (data) => {
@@ -164,6 +172,7 @@ export class GameAPI {
                     // See https://github.com/beyond-all-reason/RecoilEngine/issues/2450
                     if (isGameRunning && data.toString().includes("[SpringApp::Kill][8]")) {
                         log.info("Game process requested to close");
+                        this.closingProcess = { process: gameProcess, closed };
                         this.gameProcess = null;
                         isGameRunning = false;
                         this.onGameClosed.dispatch(null);
@@ -174,6 +183,7 @@ export class GameAPI {
                 });
                 this.gameProcess.addListener("error", (err) => {
                     log.error(err);
+                    void session.end();
                 });
                 this.gameProcess.addListener("exit", (code) => {
                     if (code !== 0) {
@@ -187,15 +197,36 @@ export class GameAPI {
                 this.gameProcess.addListener("spawn", () => {
                     log.debug(`Game process spawned successfully`);
                 });
+                // Not on exit: the engine may still be writing its settings until its streams close.
                 this.gameProcess.addListener("close", (exitCode) => {
                     log.debug(`Game process closed with exit code: ${exitCode}`);
+                    if (this.closingProcess?.process === gameProcess) this.closingProcess = null;
+                    void session.end();
                 });
                 log.debug(`Game process PID: ${this.gameProcess.pid}`);
             } catch (err) {
                 log.error(`Failed to launch game: ${err}`);
+                void session.end();
                 reject(err);
             }
         });
+    }
+
+    /**
+     * A launch can start while the previous game is still closing. It gets a moment to finish, since it may
+     * still be writing its settings, and is then stopped: it has already asked to close.
+     */
+    protected async waitForClosingProcess() {
+        const closing = this.closingProcess;
+        if (!closing) return;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timedOut = await Promise.race([closing.closed.then(() => false), new Promise<boolean>((resolve) => (timer = setTimeout(() => resolve(true), CLOSING_PROCESS_GRACE_MS)))]);
+        clearTimeout(timer);
+        if (timedOut) {
+            log.warn(`The previous game process (pid ${closing.process.pid}) asked to close but hasn't after ${CLOSING_PROCESS_GRACE_MS / 1000} s; stopping it`);
+            closing.process.kill();
+            await closing.closed;
+        }
     }
 
     public isGameRunning() {

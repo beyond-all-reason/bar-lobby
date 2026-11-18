@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { isDeviceKey } from "@shared/engine-settings/device-keys";
+import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
 import type { EngineSettingValues } from "@shared/engine-settings/engine-settings";
 
 /**
@@ -14,7 +15,18 @@ export type Overrides = { synced: EngineSettingValues; device: EngineSettingValu
 
 export type ValuesDiff = { set: EngineSettingValues; removed: string[] };
 
-export type DroppedKey = { key: string; value: string; reason: "default" | "truncated" };
+export type DroppedKey = { key: string; value: string; reason: "default" | "truncated" | "game-owned" };
+
+const clientOwned = (values: EngineSettingValues): EngineSettingValues => Object.fromEntries(Object.entries(values).filter(([key]) => !isGameOwnedKey(key)));
+
+// The game-owned keys in a file, to carry through when the file is rewritten.
+export const gameOwned = (values: EngineSettingValues): EngineSettingValues => Object.fromEntries(Object.entries(values).filter(([key]) => isGameOwnedKey(key)));
+
+// Without game-owned keys, which a master copy from before they were known as such may still hold.
+export const withoutGameOwned = (overrides: Overrides): Overrides => ({ synced: clientOwned(overrides.synced), device: clientOwned(overrides.device) });
+
+// Only what the client keeps: the game's own changes to game-owned keys are its business.
+export const clientChanges = (diff: ValuesDiff): ValuesDiff => ({ set: clientOwned(diff.set), removed: diff.removed.filter((key) => !isGameOwnedKey(key)) });
 
 export function diffValues(before: EngineSettingValues, after: EngineSettingValues): ValuesDiff {
     const set: EngineSettingValues = {};
@@ -84,7 +96,7 @@ export function findTruncatedKeys(values: EngineSettingValues, isKnownKey: (key:
 
 /**
  * Takes an existing springsettings.cfg as the starting point, when there is no record of what the client wrote
- * to it. Values equal to the client's defaults and truncated keys are dropped. On a conflict, a device key
+ * to it. Game-owned keys, values equal to the client's defaults and truncated keys are dropped. On a conflict, a device key
  * takes the file's value, since the file is this machine's, and a synced key keeps the master's, which may
  * have come from another machine.
  */
@@ -94,7 +106,9 @@ export function adoptCfg(file: EngineSettingValues, master: Overrides, clientDef
     const dropped: DroppedKey[] = [];
     let overrides = master;
     for (const [key, value] of Object.entries(file)) {
-        if (truncated.has(key)) {
+        if (isGameOwnedKey(key)) {
+            dropped.push({ key, value, reason: "game-owned" });
+        } else if (truncated.has(key)) {
             dropped.push({ key, value, reason: "truncated" });
         } else if (clientDefaults[key] === value) {
             dropped.push({ key, value, reason: "default" });

@@ -6,7 +6,19 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseCfg } from "@main/game/engine-config/cfg-file";
-import { adoptCfg, applyChanges, diffValues, effectiveOverrides, findTruncatedKeys, type Overrides, removeOverride, setOverride } from "@main/game/engine-config/overrides";
+import {
+    adoptCfg,
+    applyChanges,
+    clientChanges,
+    diffValues,
+    effectiveOverrides,
+    findTruncatedKeys,
+    gameOwned,
+    type Overrides,
+    removeOverride,
+    setOverride,
+    withoutGameOwned,
+} from "@main/game/engine-config/overrides";
 
 const corruptedFixture = path.join(__dirname, "../../fixtures/engine-settings/corrupted-springsettings.cfg");
 
@@ -102,27 +114,47 @@ describe("findTruncatedKeys", () => {
     });
 });
 
+describe("game-owned keys", () => {
+    it("leaves the game's own changes out of what the client folds back", () => {
+        const diff = diffValues({ snd_volbattle: "68", MouseDragSelectionThreshold: "21", ui_scale: "1" }, { snd_volbattle: "83", ui_scale: "0.9", music_loadscreen_track: "a.ogg" });
+
+        expect(clientChanges(diff)).toEqual({ set: { ui_scale: "0.9" }, removed: [] });
+    });
+
+    it("clears them from a master copy written before they were known as such", () => {
+        expect(withoutGameOwned({ synced: { snd_volbattle: "83", snd_volmaster: "50" }, device: { MouseDragBoxCommandThreshold: "48", XResolution: "3840" } })).toEqual({
+            synced: { snd_volmaster: "50" },
+            device: { XResolution: "3840" },
+        });
+    });
+
+    it("picks them out of a file, to carry through", () => {
+        expect(gameOwned({ snd_volbattle: "83", snd_volmaster: "50", music_loadscreen_track: "a.ogg" })).toEqual({ snd_volbattle: "83", music_loadscreen_track: "a.ogg" });
+    });
+});
+
 describe("adoptCfg", () => {
     const clientDefaults = { snd_volmaster: "30", Shadows: "1" };
 
     it("drops values equal to the client defaults and truncated keys, and says why", () => {
-        const file = { snd_volmaster: "30", Shadows: "2", ui_opacity: "0.6", acity: "0.6", music: "1" };
+        const file = { snd_volmaster: "30", Shadows: "2", ui_opacity: "0.6", acity: "0.6", music: "1", snd_volbattle: "68" };
 
         expect(adoptCfg(file, none, clientDefaults, nothingKnown)).toEqual({
             overrides: { synced: { ui_opacity: "0.6", music: "1" }, device: { Shadows: "2" } },
             dropped: [
                 { key: "snd_volmaster", value: "30", reason: "default" },
                 { key: "acity", value: "0.6", reason: "truncated" },
+                { key: "snd_volbattle", value: "68", reason: "game-owned" },
             ],
         });
     });
 
     it("on a conflict, takes the file's device keys and keeps the master's synced keys", () => {
         const master: Overrides = { synced: { ui_scale: "0.8", snd_volmusic: "10" }, device: { XResolution: "1920" } };
-        const file = { ui_scale: "1", XResolution: "2560", YResolution: "1440", snd_volbattle: "68" };
+        const file = { ui_scale: "1", XResolution: "2560", YResolution: "1440", snd_volui: "68" };
 
         expect(adoptCfg(file, master, clientDefaults, nothingKnown).overrides).toEqual({
-            synced: { ui_scale: "0.8", snd_volmusic: "10", snd_volbattle: "68" },
+            synced: { ui_scale: "0.8", snd_volmusic: "10", snd_volui: "68" },
             device: { XResolution: "2560", YResolution: "1440" },
         });
     });
@@ -132,6 +164,14 @@ describe("adoptCfg", () => {
         const { overrides, dropped } = adoptCfg(values, none, { snd_volmaster: "30", snd_volmusic: "30" }, isKnownKey);
 
         expect(dropped.filter((entry) => entry.reason === "default").map((entry) => entry.key)).toEqual(["snd_volmaster", "snd_volmusic"]);
+        expect(dropped.filter((entry) => entry.reason === "game-owned").map((entry) => entry.key)).toEqual([
+            "MouseDragBoxCommandThreshold",
+            "MouseDragCircleCommandThreshold",
+            "MouseDragFrontCommandThreshold",
+            "MouseDragSelectionThreshold",
+            "music_loadscreen_track",
+            "snd_volbattle",
+        ]);
         expect(overrides.device).toMatchObject({ XResolutionWindowed: "2560", MSAALevel: "4", Water: "4", Shadows: "1" });
         expect(overrides.synced).toMatchObject({ ui_scale: "0.94", version: "9", music: "1" });
         expect(overrides.synced).not.toHaveProperty("acity");

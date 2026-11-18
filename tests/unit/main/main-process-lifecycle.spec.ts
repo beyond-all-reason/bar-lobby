@@ -174,6 +174,7 @@ describe("Main Process Lifecycle", () => {
             setAssetsPath: mockSetAssetsPath,
         }));
         vi.doMock("@main/content/singleplayer/saves", () => ({ moveLegacySaves: vi.fn().mockResolvedValue("nothing-to-move") }));
+        vi.doMock("@main/game/engine-config/engine-config", () => ({ engineConfig: { init: vi.fn().mockResolvedValue(undefined) } }));
 
         // resetModules leaves the mock registry alone, so a test that mocks another edition would otherwise
         // leave every later test on it. doUnmock would drop the setup file's mock too and let BAR_EDITION in.
@@ -294,6 +295,7 @@ describe("Main Process Lifecycle", () => {
         mockServices.contentAPI.init.mockRejectedValueOnce(new Error("ENOENT: assets path is gone"));
 
         await import("@main/main");
+        await vi.waitFor(() => expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled());
 
         expect(mockServices.contentAPI.init).toHaveBeenCalled();
         expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
@@ -322,6 +324,8 @@ describe("Main Process Lifecycle", () => {
 
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
+        // Startup runs on after the import resolves, and registering handlers is the last of it.
+        await vi.waitFor(() => expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled());
 
         expect(mockServices.configService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();

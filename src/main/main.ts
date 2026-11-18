@@ -23,6 +23,7 @@ import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
 import { APP_NAME, LEGACY_SAVES_PATH, SAVES_PATH, SCENARIO_IMAGE_PATH, getContentRoots, setAssetsPath } from "./config/app";
 import { moveLegacySaves } from "@main/content/singleplayer/saves";
+import { engineConfig } from "@main/game/engine-config/engine-config";
 import { shellService } from "@main/services/shell.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
@@ -185,6 +186,8 @@ app.whenReady().then(async () => {
     } catch (err) {
         log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
     }
+    // After content, which lists the installed engines, and before the window, from which a game can launch.
+    await engineConfig.init();
     await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();

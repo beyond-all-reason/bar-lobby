@@ -177,13 +177,16 @@ export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.
  * the `local` profile.
  */
 export const PROFILE_ID = "local";
-export const SYNCED_PATH = path.join(STATE_PATH, "saves", PROFILE_ID);
+export const getSyncedPath = (profileId: string) => path.join(STATE_PATH, "saves", profileId);
+export const SYNCED_PATH = getSyncedPath(PROFILE_ID);
 
 // Saved singleplayer progress, one file per item played.
 export const SAVES_PATH = path.join(SYNCED_PATH, "singleplayer");
 // Where SAVES_PATH was before profiles; moved into the first profile at startup.
 export const LEGACY_SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
-export const SYNCED_SETTINGS_PATH = path.join(SYNCED_PATH, "settings");
+// Settings files are named by what they hold, such as engine.json.
+export const getSyncedSettingsPath = (profileId: string) => path.join(getSyncedPath(profileId), "settings");
+export const SYNCED_SETTINGS_PATH = getSyncedSettingsPath(PROFILE_ID);
 
 // Engine config files the client owns. Never synced.
 export const ENGINE_CONFIG_PATH = path.join(STATE_PATH, "engine-config");

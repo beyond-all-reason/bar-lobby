@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { isDeviceKey } from "@shared/engine-settings/device-keys";
 import { isEngineSettingKey, isEngineSettingValue } from "@shared/engine-settings/engine-settings";
+import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
 
 describe("engine setting keys and values", () => {
     it.each(["snd_volmaster", "XResolution", "a", "Key With Spaces", "music_loadscreen_track"])("accepts the key %j", (key) => {
@@ -34,6 +35,11 @@ describe("device keys", () => {
         "WindowBorderless",
         "VSync",
         "VSyncGame",
+        "SelectedScreenMode",
+        "FontSize",
+        "SmallFontSize",
+        "FontOutlineWidth",
+        "SmallFontOutlineWidth",
         "MSAALevel",
         "Shadows",
         "ShadowMapSize",
@@ -66,7 +72,24 @@ describe("device keys", () => {
     });
 
     // Including keys nobody recognises: syncing too much is the safe side.
-    it.each(["snd_volmaster", "snd_volmusic", "ui_scale", "version", "KeybindingFile", "CamMode", "WaterLevel", "MyWater", "SomeKeyNobodyKnows"])("syncs %s", (key) => {
-        expect(isDeviceKey(key)).toBe(false);
+    it.each(["snd_volmaster", "snd_volmusic", "ui_scale", "version", "KeybindingFile", "CamMode", "WaterLevel", "MyWater", "FontFile", "SmallFontOutlineWeight", "SomeKeyNobodyKnows"])(
+        "syncs %s",
+        (key) => {
+            expect(isDeviceKey(key)).toBe(false);
+        }
+    );
+});
+
+describe("game-owned keys", () => {
+    it.each(["snd_volbattle", "music_loadscreen_track", "MouseDragSelectionThreshold", "MouseDragBoxCommandThreshold", "MouseDragCircleCommandThreshold", "MouseDragFrontCommandThreshold"])(
+        "leaves %s to the game",
+        (key) => {
+            expect(isGameOwnedKey(key)).toBe(true);
+        }
+    );
+
+    // The player's own choices beside them: the battle volume option, and the drag scroll toggle.
+    it.each(["snd_volbattle_options", "snd_volmaster", "music", "MouseDragScrollThreshold", "XResolution"])("keeps %s for the client", (key) => {
+        expect(isGameOwnedKey(key)).toBe(false);
     });
 });

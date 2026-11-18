@@ -50,8 +50,10 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
         this.checkIfDefaultIsNew();
         log.info(`Found ${this.availableVersions.size} engine versions total.`);
         // Ready before the first game ends, when settings the engine removed are told apart from deprecated ones.
-        if (this.isVersionInstalled(getDefaultEngineVersion())) {
-            void getConfigVars(getDefaultEngineVersion());
+        // Every installed version, since a locked campaign engine is played as well as the default. Each is
+        // listed once ever, and the checksum queue runs them one at a time.
+        for (const version of this.getInstalledVersionsNewestFirst()) {
+            void getConfigVars(version.id);
         }
         return this;
     }
