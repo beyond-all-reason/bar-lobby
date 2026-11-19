@@ -54,12 +54,15 @@ const vars = {
 
 // Each test gets a fresh module, since what it has listed is remembered for the life of the process.
 const load = async () => (await import("@main/game/engine-config/config-vars")).getConfigVars;
-// The module reads its cache from disk before spawning, so this waits on I/O rather than a fixed tick.
+// The module reads its cache from disk before spawning, so this waits on I/O for a time, not a count of ticks:
+// a slow CI runner's disk can take longer than any fixed number of ticks.
 async function spawned(count = 1) {
-    for (let i = 0; i < 1000 && state.processes.length < count; i++) {
-        await new Promise<void>((resolve) => setImmediate(resolve));
-    }
-    if (state.processes.length < count) throw new Error("Nothing was spawned");
+    await vi.waitFor(
+        () => {
+            if (state.processes.length < count) throw new Error("Nothing was spawned");
+        },
+        { timeout: 5000, interval: 5 }
+    );
 }
 const cacheFile = () => path.join(state.dir, "engine-config", "config-vars", `${engineVersion}.json`);
 
