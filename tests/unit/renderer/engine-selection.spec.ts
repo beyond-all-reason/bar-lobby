@@ -26,7 +26,7 @@ function engine(id: string, installed: boolean): EngineVersion {
     return { id, ais: [], installed } as EngineVersion;
 }
 
-// Available versions arrive oldest first, which is what "newest installed" leans on.
+// Available versions arrive newest first, which is what "newest installed" leans on.
 function available(...versions: EngineVersion[]) {
     listAvailableVersions.mockResolvedValue(versions);
 }
@@ -50,7 +50,7 @@ describe("engine version selection", () => {
 
     // A client whose default version was bumped while the player was away still has a working engine.
     it("falls back to the newest installed engine when the default is not installed", async () => {
-        available(engine(OLDER, true), engine(DEFAULT_ENGINE_VERSION, false));
+        available(engine(DEFAULT_ENGINE_VERSION, false), engine(OLDER, true));
 
         await refreshEnginesStore();
 
@@ -102,7 +102,7 @@ describe("engine version selection", () => {
 
     it("counts the install's default engine as the default one installed", async () => {
         infos.installDefaults = { engine: OLDER };
-        available(engine(OLDER, true), engine(DEFAULT_ENGINE_VERSION, false));
+        available(engine(DEFAULT_ENGINE_VERSION, false), engine(OLDER, true));
 
         await refreshEnginesStore();
 
@@ -111,7 +111,7 @@ describe("engine version selection", () => {
 
     it("keeps an explicit choice ahead of the install's default engine", async () => {
         infos.installDefaults = { engine: OLDER };
-        available(engine(OLDER, true), engine(NEWER, true));
+        available(engine(NEWER, true), engine(OLDER, true));
         await refreshEnginesStore();
 
         selectEngineVersion(engine(NEWER, true));

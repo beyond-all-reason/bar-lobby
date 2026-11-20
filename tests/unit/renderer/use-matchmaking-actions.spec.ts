@@ -10,7 +10,6 @@ const logic = vi.hoisted(() => ({
     ready: vi.fn(),
     cancel: vi.fn(),
     selectQueue: vi.fn(),
-    refreshRequiredDownloads: vi.fn(),
 }));
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
@@ -21,6 +20,7 @@ vi.mock("@renderer/logic/matchmaking", async (importOriginal) => ({
 
 const { notificationsApi } = await import("@renderer/api/notifications");
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
+const { IpcCallError } = await import("@renderer/api/ipc-call");
 const { MatchmakingJoinRefused } = await import("@renderer/logic/matchmaking");
 const { useMatchmakingActions } = await import("@renderer/composables/useMatchmakingActions");
 
@@ -42,7 +42,6 @@ describe("useMatchmakingActions", () => {
 
     it.each([
         ["downloads_required", "You have downloads required to join this queue.", "info"],
-        ["bad_queue_data", "Bad queue data; refreshing list.", "error"],
         ["queue_not_found", "Selected queue not found. Refreshing list.", "error"],
     ] as const)("explains a %s refusal", async (reason, text, severity) => {
         logic.joinQueue.mockRejectedValue(new MatchmakingJoinRefused(reason));
@@ -70,6 +69,15 @@ describe("useMatchmakingActions", () => {
         await matchmaking.joinQueue();
 
         expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Tachyon error: matchmaking/queue", severity: "error" });
+        expect(consoleError).not.toHaveBeenCalled();
+    });
+
+    it("names the content check, not the queue request, when the check fails", async () => {
+        logic.joinQueue.mockRejectedValue(new IpcCallError("content:missing", new Error("main crashed")));
+
+        await matchmaking.joinQueue();
+
+        expect(notificationsApi.alert).toHaveBeenCalledExactlyOnceWith({ text: "Error with request content:missing", severity: "error" });
         expect(consoleError).not.toHaveBeenCalled();
     });
 
