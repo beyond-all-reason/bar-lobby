@@ -23,10 +23,16 @@ const { lobby, lobbyStore } = await import("@renderer/store/lobby.store");
 const { mapsStore } = await import("@renderer/store/maps.store");
 const { gameStore } = await import("@renderer/store/game.store");
 const { enginesStore } = await import("@renderer/store/engine.store");
+const { me } = await import("@renderer/store/me.store");
 const { useLobbyContentReadiness } = await import("@renderer/composables/useLobbyContentReadiness");
 
-const lobbyWith = (content: Partial<Pick<Lobby, "mapName" | "gameVersion" | "engineVersion">> = {}) =>
-    ({ id: "lobby-1", mapName: "Map A", gameVersion: "game-1", engineVersion: "engine-1", ...content }) as Lobby;
+const ME = "user-me";
+
+const asPlayer = { players: { [ME]: { id: ME } }, spectators: {} } as unknown as Pick<Lobby, "players" | "spectators">;
+const asSpectator = { players: {}, spectators: { [ME]: { id: ME } } } as unknown as Pick<Lobby, "players" | "spectators">;
+
+const lobbyWith = (content: Partial<Pick<Lobby, "mapName" | "gameVersion" | "engineVersion" | "players" | "spectators">> = {}) =>
+    ({ id: "lobby-1", mapName: "Map A", gameVersion: "game-1", engineVersion: "engine-1", ...asPlayer, ...content }) as Lobby;
 
 const engine = (id: string, installed: boolean) => ({ id, installed }) as EngineVersion;
 
@@ -47,6 +53,7 @@ describe("useLobbyContentReadiness", () => {
     beforeEach(() => {
         requestStatus = vi.spyOn(lobby, "requestUpdateClientStatus").mockResolvedValue(undefined);
         scope = effectScope();
+        me.userId = ME;
         lobbyStore.activeLobby = undefined;
         mapsStore.availableMapNames = new Set();
         gameStore.availableGameVersions = new Map();
@@ -150,5 +157,41 @@ describe("useLobbyContentReadiness", () => {
         await nextTick();
 
         expect(requestStatus).toHaveBeenCalledTimes(1);
+    });
+
+    // Joining an open lobby makes you a spectator, and the server refuses readiness from spectators.
+    it("sends nothing while spectating", async () => {
+        installEverything();
+        lobbyStore.activeLobby = lobbyWith(asSpectator);
+        const { isContentMissing } = mount();
+        await nextTick();
+
+        expect(isContentMissing.value).toBe(false);
+        expect(requestStatus).not.toHaveBeenCalled();
+    });
+
+    it("reports readiness once a spectator joins a team, though the content did not change", async () => {
+        installEverything();
+        lobbyStore.activeLobby = lobbyWith(asSpectator);
+        mount();
+
+        lobbyStore.activeLobby = lobbyWith(asPlayer);
+        await nextTick();
+
+        expect(requestStatus).toHaveBeenCalledExactlyOnceWith({ isReady: true });
+    });
+
+    it("reports readiness again after a player spectates and rejoins a team", async () => {
+        installEverything();
+        lobbyStore.activeLobby = lobbyWith();
+        mount();
+
+        lobbyStore.activeLobby = lobbyWith(asSpectator);
+        await nextTick();
+        lobbyStore.activeLobby = lobbyWith(asPlayer);
+        await nextTick();
+
+        expect(requestStatus).toHaveBeenCalledTimes(2);
+        expect(requestStatus).toHaveBeenLastCalledWith({ isReady: true });
     });
 });
