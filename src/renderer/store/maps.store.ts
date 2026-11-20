@@ -155,6 +155,8 @@ async function fetchMapImages(map: MapData) {
     console.debug("Updated map images ", map.springName);
 }
 
+// To be moved into the stores/api/logic/ui/views split (https://github.com/beyond-all-reason/bar-lobby/issues/727),
+// so only the batch's bookkeeping is fixed here, nothing deeper.
 export function downloadMap(springName: string) {
     return downloadMaps([springName]);
 }
@@ -178,17 +180,26 @@ export async function downloadMaps(springNames: string[]) {
         }
     }
 
-    const setState = (state: { isInstalled?: boolean; isDownloading: boolean }) => Promise.all([...delegates].map(([springName, delegate]) => delegate.update(springName, state)));
-
-    await setState({ isDownloading: true });
+    await Promise.all([...delegates].map(([springName, delegate]) => delegate.update(springName, { isDownloading: true })));
     try {
         await window.maps.downloadMaps(springNames);
-        await setState({ isInstalled: true, isDownloading: false });
     } catch (error) {
         console.error("Failed to download maps:", springNames, error);
         if (!isEditionRefusal(error)) {
             notificationsApi.alert({ text: "Map download failed.", severity: "error" });
         }
-        await setState({ isDownloading: false });
     }
+
+    // Each map in the batch is acquired on its own, so one failing leaves the others installed: stamp each by what
+    // is on disk now rather than by whether the whole batch succeeded.
+    const installed = await window.maps.getInstalledMapNames().then(
+        (names) => new Set(names),
+        (error) => {
+            console.error("Failed to check downloaded maps:", springNames, error);
+            return undefined;
+        }
+    );
+    await Promise.all(
+        [...delegates].map(([springName, delegate]) => delegate.update(springName, installed ? { isDownloading: false, isInstalled: installed.has(springName) } : { isDownloading: false }))
+    );
 }
