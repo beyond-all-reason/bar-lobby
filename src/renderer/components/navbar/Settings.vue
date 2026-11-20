@@ -8,148 +8,163 @@ SPDX-License-Identifier: MIT
     <Modal
         :modelValue="modelValue"
         :title="t('lobby.navbar.settings.title')"
+        no-padding
         @update:modelValue="(open: boolean) => emit('update:modelValue', open)"
     >
-        <div class="gridform">
-            <div class="section-header">{{ t("lobby.navbar.settings.sectionDisplay") }}</div>
+        <TabView class="settings-tabs">
+            <TabPanel :header="t('lobby.navbar.settings.tabClient')">
+                <div class="gridform">
+                    <div class="section-header">{{ t("lobby.navbar.settings.sectionDisplay") }}</div>
 
-            <div>{{ t("lobby.navbar.settings.resolution") }}</div>
-            <Select v-model="displayMode" :options="resolutionOptions" optionLabel="label" optionValue="value" />
+                    <div>{{ t("lobby.navbar.settings.resolution") }}</div>
+                    <Select v-model="displayMode" :options="resolutionOptions" optionLabel="label" optionValue="value" />
 
-            <div>{{ t("lobby.navbar.settings.display") }}</div>
-            <Select v-model="selectedDisplay" :options="displayOptions" optionLabel="label" optionValue="value" />
+                    <div>{{ t("lobby.navbar.settings.display") }}</div>
+                    <Select v-model="selectedDisplay" :options="displayOptions" optionLabel="label" optionValue="value" />
 
-            <div>{{ t("lobby.navbar.settings.uiScale") }}</div>
-            <!-- Wrapped so the cell, not the slider, takes gridform's positional rule for
+                    <div>{{ t("lobby.navbar.settings.uiScale") }}</div>
+                    <!-- Wrapped so the cell, not the slider, takes gridform's positional rule for
             the label column. See #716. -->
-            <div>
-                <Range
-                    :modelValue="shownScalePercent"
-                    commitOnRelease
-                    :min="UI_SCALE_MIN * 100"
-                    :max="UI_SCALE_MAX * 100"
-                    :step="UI_SCALE_STEP * 100"
-                    @preview="(value: number | number[]) => (draggedScalePercent = value as number)"
-                    @update:modelValue="commitScalePercent"
-                />
-            </div>
+                    <div>
+                        <Range
+                            :modelValue="shownScalePercent"
+                            commitOnRelease
+                            :min="UI_SCALE_MIN * 100"
+                            :max="UI_SCALE_MAX * 100"
+                            :step="UI_SCALE_STEP * 100"
+                            @preview="(value: number | number[]) => (draggedScalePercent = value as number)"
+                            @update:modelValue="commitScalePercent"
+                        />
+                    </div>
 
-            <div class="section-header">{{ t("lobby.navbar.settings.sectionSound") }}</div>
+                    <div class="section-header">{{ t("lobby.navbar.settings.sectionSound") }}</div>
 
-            <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
-            <Range
-                :modelValue="settingsStore.sfxVolume"
-                @update:modelValue="(value: number | number[]) => settingsLogic.update({ sfxVolume: value as number })"
-                :min="0"
-                :max="100"
-                :step="1"
-            />
+                    <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
+                    <Range
+                        :modelValue="settingsStore.sfxVolume"
+                        @update:modelValue="(value: number | number[]) => settingsLogic.update({ sfxVolume: value as number })"
+                        :min="0"
+                        :max="100"
+                        :step="1"
+                    />
 
-            <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
-            <Range
-                :modelValue="settingsStore.musicVolume"
-                @update:modelValue="(value: number | number[]) => settingsLogic.update({ musicVolume: value as number })"
-                :min="0"
-                :max="100"
-                :step="1"
-            />
+                    <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
+                    <Range
+                        :modelValue="settingsStore.musicVolume"
+                        @update:modelValue="(value: number | number[]) => settingsLogic.update({ musicVolume: value as number })"
+                        :min="0"
+                        :max="100"
+                        :step="1"
+                    />
 
-            <div class="section-header">{{ t("lobby.navbar.settings.sectionGeneral") }}</div>
+                    <div class="section-header">{{ t("lobby.navbar.settings.sectionGeneral") }}</div>
 
-            <div>
-                <span>
-                    <Icon :icon="language" />
-                    {{ t("lobby.navbar.settings.language") }}
-                </span>
-            </div>
-            <Select
-                :modelValue="settingsStore.language"
-                @update:modelValue="(language: string) => settingsLogic.update({ language })"
-                :options="localeOptions"
-                optionLabel="label"
-                optionValue="value"
-            />
+                    <div>
+                        <span>
+                            <Icon :icon="language" />
+                            {{ t("lobby.navbar.settings.language") }}
+                        </span>
+                    </div>
+                    <Select
+                        :modelValue="settingsStore.language"
+                        @update:modelValue="(language: string) => settingsLogic.update({ language })"
+                        :options="localeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                    />
 
-            <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
-            <Checkbox :modelValue="settingsStore.skipIntro" @update:modelValue="(skipIntro) => settingsLogic.update({ skipIntro })" />
+                    <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
+                    <Checkbox
+                        :modelValue="settingsStore.skipIntro"
+                        @update:modelValue="(skipIntro) => settingsLogic.update({ skipIntro })"
+                    />
 
-            <template v-if="settingsStore.devMode">
-                <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
-                <Checkbox
-                    :modelValue="settingsStore.loginAutomatically"
-                    @update:modelValue="(loginAutomatically) => settingsLogic.update({ loginAutomatically })"
-                />
-            </template>
+                    <template v-if="settingsStore.devMode">
+                        <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
+                        <Checkbox
+                            :modelValue="settingsStore.loginAutomatically"
+                            @update:modelValue="(loginAutomatically) => settingsLogic.update({ loginAutomatically })"
+                        />
+                    </template>
 
-            <div>{{ t("lobby.navbar.settings.devMode") }}</div>
-            <Checkbox :modelValue="settingsStore.devMode" @update:modelValue="(devMode) => settingsLogic.update({ devMode })" />
+                    <div>{{ t("lobby.navbar.settings.devMode") }}</div>
+                    <Checkbox :modelValue="settingsStore.devMode" @update:modelValue="(devMode) => settingsLogic.update({ devMode })" />
 
-            <OverlayPanel ref="op">
-                <div class="container">
-                    {{ tooltipMessage }}
-                </div>
-            </OverlayPanel>
-            <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
-
-            <div class="section-header">{{ t("lobby.navbar.settings.storage") }}</div>
-
-            <div>{{ t("lobby.navbar.settings.assetsPath") }}</div>
-            <div class="path-row">
-                <Textbox :model-value="currentAssetsPath" readonly class="path-input" />
-                <Button v-if="infosStore.features.changeAssetsPath" class="slim" :disabled="isBusy" @click="browseForNewAssetsPath">{{
-                    t("lobby.navbar.settings.browse")
-                }}</Button>
-            </div>
-
-            <template v-if="pendingAssetsPath && pendingAssetsPath !== currentAssetsPath">
-                <div></div>
-                <div class="pending-section">
-                    <Textbox :model-value="pendingAssetsPath" readonly class="path-input" />
-                    <div v-if="isTransferring" class="copy-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" :style="{ width: copyProgressPercent + '%' }"></div>
+                    <OverlayPanel ref="op">
+                        <div class="container">
+                            {{ tooltipMessage }}
                         </div>
-                        <small>{{ t("lobby.navbar.settings.transferringFiles", { percent: copyProgressPercent }) }}</small>
+                    </OverlayPanel>
+                    <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
+
+                    <div class="section-header">{{ t("lobby.navbar.settings.storage") }}</div>
+
+                    <div>{{ t("lobby.navbar.settings.assetsPath") }}</div>
+                    <div class="path-row">
+                        <Textbox :model-value="currentAssetsPath" readonly class="path-input" />
+                        <Button
+                            v-if="infosStore.features.changeAssetsPath"
+                            class="slim"
+                            :disabled="isBusy"
+                            @click="browseForNewAssetsPath"
+                            >{{ t("lobby.navbar.settings.browse") }}</Button
+                        >
                     </div>
-                    <div v-else class="change-mode-section">
-                        <label class="radio-option" :class="{ selected: changeMode === 'move' }">
-                            <input v-model="changeMode" type="radio" value="move" name="changeMode" />
-                            <div>
-                                <span>{{ t("lobby.navbar.settings.moveToNewLocation") }}</span>
-                                <small>{{ t("lobby.navbar.settings.moveToNewLocationDesc") }}</small>
+
+                    <template v-if="pendingAssetsPath && pendingAssetsPath !== currentAssetsPath">
+                        <div></div>
+                        <div class="pending-section">
+                            <Textbox :model-value="pendingAssetsPath" readonly class="path-input" />
+                            <div v-if="isTransferring" class="copy-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" :style="{ width: copyProgressPercent + '%' }"></div>
+                                </div>
+                                <small>{{ t("lobby.navbar.settings.transferringFiles", { percent: copyProgressPercent }) }}</small>
                             </div>
-                        </label>
-                        <label class="radio-option" :class="{ selected: changeMode === 'copy' }">
-                            <input v-model="changeMode" type="radio" value="copy" name="changeMode" />
-                            <div>
-                                <span>{{ t("lobby.navbar.settings.copyToNewLocation") }}</span>
-                                <small>{{ t("lobby.navbar.settings.copyToNewLocationDesc") }}</small>
+                            <div v-else class="change-mode-section">
+                                <label class="radio-option" :class="{ selected: changeMode === 'move' }">
+                                    <input v-model="changeMode" type="radio" value="move" name="changeMode" />
+                                    <div>
+                                        <span>{{ t("lobby.navbar.settings.moveToNewLocation") }}</span>
+                                        <small>{{ t("lobby.navbar.settings.moveToNewLocationDesc") }}</small>
+                                    </div>
+                                </label>
+                                <label class="radio-option" :class="{ selected: changeMode === 'copy' }">
+                                    <input v-model="changeMode" type="radio" value="copy" name="changeMode" />
+                                    <div>
+                                        <span>{{ t("lobby.navbar.settings.copyToNewLocation") }}</span>
+                                        <small>{{ t("lobby.navbar.settings.copyToNewLocationDesc") }}</small>
+                                    </div>
+                                </label>
+                                <label class="radio-option" :class="{ selected: changeMode === 'change-only' }">
+                                    <input v-model="changeMode" type="radio" value="change-only" name="changeMode" />
+                                    <div>
+                                        <span>{{ t("lobby.navbar.settings.useNewLocationOnly") }}</span>
+                                        <small>{{ t("lobby.navbar.settings.useNewLocationOnlyDesc") }}</small>
+                                    </div>
+                                </label>
+                                <small v-if="pathError" class="path-error">{{ pathError }}</small>
+                                <Button class="green slim" :disabled="isBusy" @click="applyPathChange">{{
+                                    t("lobby.navbar.settings.apply")
+                                }}</Button>
                             </div>
-                        </label>
-                        <label class="radio-option" :class="{ selected: changeMode === 'change-only' }">
-                            <input v-model="changeMode" type="radio" value="change-only" name="changeMode" />
-                            <div>
-                                <span>{{ t("lobby.navbar.settings.useNewLocationOnly") }}</span>
-                                <small>{{ t("lobby.navbar.settings.useNewLocationOnlyDesc") }}</small>
-                            </div>
-                        </label>
-                        <small v-if="pathError" class="path-error">{{ pathError }}</small>
-                        <Button class="green slim" :disabled="isBusy" @click="applyPathChange">{{
-                            t("lobby.navbar.settings.apply")
+                        </div>
+                    </template>
+
+                    <div>{{ t("lobby.navbar.settings.singleplayerSaves") }}</div>
+                    <div class="flex-col gap-sm">
+                        <Button class="red slim" @click="confirmDeleteSaves = true">{{
+                            t("lobby.navbar.settings.deleteSingleplayerSaves")
                         }}</Button>
+                        <small v-if="savesDeleted">{{ t("lobby.navbar.settings.singleplayerSavesDeleted") }}</small>
+                        <small v-else-if="deleteSavesError" class="path-error">{{ t(deleteSavesError) }}</small>
                     </div>
                 </div>
-            </template>
-
-            <div>{{ t("lobby.navbar.settings.singleplayerSaves") }}</div>
-            <div class="flex-col gap-sm">
-                <Button class="red slim" @click="confirmDeleteSaves = true">{{
-                    t("lobby.navbar.settings.deleteSingleplayerSaves")
-                }}</Button>
-                <small v-if="savesDeleted">{{ t("lobby.navbar.settings.singleplayerSavesDeleted") }}</small>
-                <small v-else-if="deleteSavesError" class="path-error">{{ t(deleteSavesError) }}</small>
-            </div>
-        </div>
+            </TabPanel>
+            <TabPanel :header="t('lobby.navbar.settings.tabGame')">
+                <EngineSettingsSection />
+            </TabPanel>
+        </TabView>
     </Modal>
 
     <Modal v-model="confirmDeleteSaves" :title="t('lobby.navbar.settings.deleteSingleplayerSavesTitle')">
@@ -172,6 +187,9 @@ import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
+import TabPanel from "primevue/tabpanel";
+import TabView from "@renderer/components/common/TabView.vue";
+import EngineSettingsSection from "@renderer/components/settings/EngineSettingsSection.vue";
 import { mainWindowApi } from "@renderer/api/main-window";
 import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -459,6 +477,16 @@ async function uploadLogsCommand(event) {
 </script>
 
 <style lang="scss" scoped>
+// Capped so a long tab, such as every engine variable, scrolls within the window instead of running off it.
+.settings-tabs {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    :deep(.p-tabview-panels) {
+        min-height: 0;
+    }
+}
+
 .confirm {
     width: 352px;
 }

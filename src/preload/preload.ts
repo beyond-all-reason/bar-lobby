@@ -25,6 +25,7 @@ import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
 import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
+import type { EngineSettingsView } from "@shared/engine-settings/view";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -223,6 +224,16 @@ const singleplayerApi = {
 };
 export type SingleplayerApi = typeof singleplayerApi;
 contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);
+
+const engineSettingsApi = {
+    get: (): Promise<IpcResult<EngineSettingsView>> => ipcRenderer.invoke("engineSettings:get"),
+    set: (key: string, value: string): Promise<IpcResult<EngineSettingsView>> => ipcRenderer.invoke("engineSettings:set", key, value),
+    reset: (key: string): Promise<IpcResult<EngineSettingsView>> => ipcRenderer.invoke("engineSettings:reset", key),
+    // Every change, including ones a game made.
+    onChanged: (callback: (view: EngineSettingsView) => void) => subscribe("engineSettings:changed", callback),
+};
+export type EngineSettingsApi = typeof engineSettingsApi;
+contextBridge.exposeInMainWorld("engineSettings", engineSettingsApi);
 
 const miscApi = {
     getNewsRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),

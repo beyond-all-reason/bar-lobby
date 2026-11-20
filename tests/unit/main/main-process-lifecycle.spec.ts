@@ -47,6 +47,7 @@ describe("Main Process Lifecycle", () => {
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
         pathsService: { registerIpcHandlers: vi.fn() },
+        engineSettingsService: { registerIpcHandlers: vi.fn() },
     };
     const mockSetAssetsPath = vi.fn();
     const mockWarn = vi.fn();
@@ -169,8 +170,12 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/config/app", () => ({
             APP_NAME: "Test App",
             SCENARIO_IMAGE_PATH: "/test/path",
+            LEGACY_SAVES_PATH: "/test/saves/singleplayer",
+            SAVES_PATH: "/test/saves/local/singleplayer",
             setAssetsPath: mockSetAssetsPath,
         }));
+        vi.doMock("@main/content/singleplayer/saves", () => ({ moveLegacySaves: vi.fn().mockResolvedValue("nothing-to-move") }));
+        vi.doMock("@main/game/engine-config/engine-config", () => ({ engineConfig: { init: vi.fn().mockResolvedValue(undefined) } }));
 
         // resetModules leaves the mock registry alone, so a test that mocks another edition would otherwise
         // leave every later test on it. doUnmock would drop the setup file's mock too and let BAR_EDITION in.
@@ -197,6 +202,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
         vi.doMock("@main/services/paths.service", () => ({ pathsService: mockServices.pathsService }));
+        vi.doMock("@main/services/engine-settings.service", () => ({ engineSettingsService: mockServices.engineSettingsService }));
 
         vi.stubGlobal("process", mockProcess);
     });
@@ -291,6 +297,7 @@ describe("Main Process Lifecycle", () => {
         mockServices.contentAPI.init.mockRejectedValueOnce(new Error("ENOENT: assets path is gone"));
 
         await import("@main/main");
+        await vi.waitFor(() => expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled());
 
         expect(mockServices.contentAPI.init).toHaveBeenCalled();
         expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
@@ -319,6 +326,8 @@ describe("Main Process Lifecycle", () => {
 
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
+        // Startup runs on after the import resolves, and registering handlers is the last of it.
+        await vi.waitFor(() => expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled());
 
         expect(mockServices.configService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
@@ -336,6 +345,7 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.engineSettingsService.registerIpcHandlers).toHaveBeenCalled();
     });
 
     it("should warn and continue when the user chooses to continue on an unsupported platform", async () => {

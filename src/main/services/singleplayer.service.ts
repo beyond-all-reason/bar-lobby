@@ -13,8 +13,9 @@ import * as saves from "@main/content/singleplayer/saves";
 import { SaveFailureError } from "@main/content/singleplayer/saves";
 import { loadSingleplayerContent } from "@main/content/singleplayer/singleplayer-loader";
 import { settingsService } from "@main/services/settings.service";
-import { ipcMain, IpcResult } from "@main/typed-ipc";
+import { ipcMain } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
+import { overIpc } from "@main/utils/over-ipc";
 import { applyResult } from "@shared/content/campaign-progress";
 import type { ReportedResult, SaveChange, SaveFailure, SingleplayerSaves } from "@shared/content/save";
 import { Signal } from "$/jaz-ts-utils/signal";
@@ -209,20 +210,6 @@ async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionI
         `Launching ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} as ${plan.archiveName} on engine ${plan.engineVersion} with ${plan.gameVersion} at difficulty ${inputs.difficulty}, data directories ${plan.dataDirs.join(", ")}`
     );
     await gameAPI.launchMission({ engineVersion: plan.engineVersion, gameVersion: plan.gameVersion, mapSpringName: plan.mapToEnsure, script, dataDirs: plan.dataDirs });
-}
-
-// A call over IPC gives the renderer the reason it failed as a code to word, since a thrown error would reach
-// it as its message alone. What is behind the code goes to the log.
-async function overIpc<T>(action: () => Promise<T>, reasonOf: (err: unknown) => string): Promise<IpcResult<T>> {
-    try {
-        return { status: "success", data: await action() };
-    } catch (err) {
-        const reason = reasonOf(err);
-        const details = err instanceof Error ? err.message : String(err);
-        log.error(`${reason}: ${details}`);
-
-        return { status: "failed", reason, details };
-    }
 }
 
 const saveFailureOf = (err: unknown): SaveFailure => (err instanceof SaveFailureError ? err.reason : "save_failed");
