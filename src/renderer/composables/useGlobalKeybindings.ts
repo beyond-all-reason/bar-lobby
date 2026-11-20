@@ -7,6 +7,7 @@ import { useRouter } from "vue-router";
 import { onKeyDown } from "@vueuse/core";
 import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
+import { goBackTo } from "@renderer/utils/go-back-to";
 
 type KeybindingProps = { exitOpen: Ref<boolean, boolean> };
 
@@ -26,7 +27,10 @@ export function useGlobalKeybindings({ exitOpen }: KeybindingProps) {
         } else {
             const routeSegments = router.currentRoute.value.path.split("/");
             // "/primary/secondary" => ["", "primary", "secondary", ...]
-            if (routeSegments.length <= 3) {
+            const backTo = router.currentRoute.value.meta.backTo;
+            if (backTo) {
+                goBackTo(router, backTo);
+            } else if (routeSegments.length <= 3) {
                 router.push("/play");
             } else {
                 router.back();

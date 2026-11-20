@@ -62,5 +62,8 @@ declare module "vue-router" {
         overflowY?: "scroll" | "hidden";
         devOnly?: boolean;
         redirect?: string;
+        // Where Escape goes from this page instead of back through history. For pages that can be
+        // opened from another section, where going back through history would leave the section.
+        backTo?: string;
     }
 }
