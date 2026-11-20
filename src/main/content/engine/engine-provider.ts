@@ -19,6 +19,7 @@ import { getEnginePath } from "@main/config/app";
 import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
 import { holdChecksums } from "@main/utils/checksums";
+import { holdEngineDir } from "@main/content/engine/engine-dir-lock";
 import { getConfigVars } from "@main/game/engine-config/config-vars";
 
 const log = logger("engine-provider.ts");
@@ -149,8 +150,8 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
             version = version.id;
         }
         const engineDir = path.join(this.engineDirs, version);
-        // Checksums run the engine out of this directory, so deleting it underneath one fails on Windows.
-        await holdChecksums(() => fs.promises.rm(engineDir, { force: true, recursive: true }));
+        // Checksums and config variable listings run the engine out of this directory.
+        await holdChecksums(() => holdEngineDir(version, () => fs.promises.rm(engineDir, { force: true, recursive: true })));
         this.availableVersions.delete(version);
     }
 

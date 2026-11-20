@@ -218,4 +218,54 @@ describe("GameAPI engine settings session", () => {
         expect(first.proc.kill).toHaveBeenCalled();
         await vi.waitFor(() => expect(beginSession).toHaveBeenCalledTimes(2));
     });
+
+    it("kills a game SIGTERM doesn't stop, and launches anyway if it still won't close", async () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        const first = fakeProcess(1);
+        spawn.mockReturnValueOnce(first.proc);
+        const launched = launch();
+        await vi.waitFor(() => expect(spawn).toHaveBeenCalledTimes(1));
+        first.print("[Game::Load]");
+        await launched;
+        first.print("[SpringApp::Kill][8]");
+
+        spawn.mockReturnValueOnce(fakeProcess(2).proc);
+        void launch().catch(() => {});
+        await vi.advanceTimersByTimeAsync(15_000);
+        expect(first.proc.kill).toHaveBeenLastCalledWith();
+
+        await vi.advanceTimersByTimeAsync(5_000);
+        expect(first.proc.kill).toHaveBeenLastCalledWith("SIGKILL");
+        expect(session.end).not.toHaveBeenCalled();
+
+        await vi.advanceTimersByTimeAsync(5_000);
+        expect(session.end).toHaveBeenCalled();
+        await vi.waitFor(() => expect(beginSession).toHaveBeenCalledTimes(2));
+    });
+
+    it("refuses a launch while a game is running", async () => {
+        const first = fakeProcess(1);
+        spawn.mockReturnValueOnce(first.proc);
+        const launched = launch();
+        await vi.waitFor(() => expect(spawn).toHaveBeenCalledTimes(1));
+        first.print("[Game::Load]");
+        await launched;
+
+        await expect(launch()).rejects.toThrow("A game is already running");
+        expect(beginSession).toHaveBeenCalledTimes(1);
+    });
+
+    it("refuses a launch while another is still being prepared", async () => {
+        let contentReady!: () => void;
+        ensure.mockReturnValueOnce(new Promise<void>((resolve) => (contentReady = resolve)));
+        spawn.mockImplementation(() => {
+            throw new Error("spawned");
+        });
+        const first = launch();
+
+        await expect(launch()).rejects.toThrow("A game is already running");
+        contentReady();
+        await expect(first).rejects.toThrow("spawned");
+        await expect(launch()).rejects.toThrow("spawned");
+    });
 });

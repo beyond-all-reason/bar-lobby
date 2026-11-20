@@ -53,6 +53,8 @@ export type EngineSession = {
 let status: EngineConfigStatus = { usable: true };
 // Held from the start of a launch until its process has closed, so launches never overlap on the engine's file.
 let gate: Promise<void> = Promise.resolve();
+// The window opens without waiting for init, which may list every installed engine; the view waits instead.
+let initialized: Promise<void> = Promise.resolve();
 
 export const onChanged = new Signal<void>();
 
@@ -113,10 +115,12 @@ async function changeMastersQueued(profileId: string, change: (overrides: Overri
     return { changed: !sameValues(before.synced, synced) || !sameValues(before.device, device), overrides };
 }
 
+// Undefined only when there is none. One that can't be used stops everything, as a master that can't be does:
+// without it the file would be adopted again, and the snapshot written over.
 async function readUsableSnapshot(): Promise<AppliedSnapshot | undefined> {
     const read = await readSnapshot(snapshotPath());
     if ("problem" in read) {
-        log.warn(`Ignoring the record of the last applied engine settings, ${snapshotPath()}: ${read.problem}`);
+        throw new UnusableSettingsFileError(snapshotPath(), read.problem);
     }
 
     return "snapshot" in read ? read.snapshot : undefined;
@@ -187,7 +191,12 @@ async function adopt(fileValues: EngineSettingValues): Promise<void> {
     // A key any installed engine knows is real, even if the default engine doesn't know it.
     const installed = contentAPI.installed("engine").map((ref) => ref.id);
     const allVars = await Promise.all((installed.length > 0 ? installed : [getDefaultEngineVersion()]).map((version) => getConfigVars(version)));
-    const isKnownKey = (key: string) => allVars.some((vars) => vars !== undefined && Object.hasOwn(vars, key));
+    // With no listing at all every key would be unknown, and any real key that ends another would be dropped.
+    const listed = allVars.filter((vars) => vars !== undefined);
+    if (listed.length === 0) {
+        log.warn("No engine's config variables could be listed, so no keys are dropped as left over from a corrupted write");
+    }
+    const isKnownKey = (key: string) => listed.length === 0 || listed.some((vars) => Object.hasOwn(vars, key));
     const defaults = clientDefaults();
     let dropped: ReturnType<typeof adoptCfg>["dropped"] = [];
     const changed = await changeMasters(PROFILE_ID, (master) => {
@@ -269,9 +278,16 @@ function isAlive(pid: number) {
  * Moves keys to the file they now belong in, then folds back what changed while the client wasn't running,
  * such as a game that outlived it. Folding back is skipped while that
  * game is still running, since the file is still its to change. Runs after content init, so adopting can ask
- * every installed engine which keys are real. Never throws.
+ * every installed engine which keys are real. Never throws. Takes the gate at once, so a launch made before it
+ * finishes waits for it.
  */
-export async function init(): Promise<void> {
+export function init(): Promise<void> {
+    initialized = initialize();
+
+    return initialized;
+}
+
+async function initialize(): Promise<void> {
     const release = await holdGate();
     try {
         // Keys whose file changed since the last run move now, before the cloud syncs a device key elsewhere.
@@ -392,6 +408,7 @@ async function defaultEngineVars(): Promise<{ defaults: EngineSettingValues; inf
 // The engine settings as the renderer shows them. Never throws for a master file that can't be used: the
 // status says so instead.
 export async function getView(): Promise<EngineSettingsView> {
+    await initialized;
     const [masters, engine] = await Promise.all([
         readMasters(PROFILE_ID).catch((err) => {
             if (err instanceof UnusableSettingsFileError) {

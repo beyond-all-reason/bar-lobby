@@ -5,7 +5,11 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="flex-col gap-md">
+    <div v-if="loading" class="flex-col flex-center gap-md loading">
+        <Loader :absolutePosition="false" />
+        <span>{{ t("lobby.navbar.settings.engine.loading") }}</span>
+    </div>
+    <div v-else class="flex-col gap-md">
         <small v-if="failure" class="error">{{ t(engineSettingsLogic.failureKey(failure)) }}</small>
         <template v-for="run of groupRuns(basic)" :key="run.group">
             <div v-if="run.group" class="group-header">{{ t(`lobby.navbar.settings.engine.groups.${run.group}`) }}</div>
@@ -57,6 +61,7 @@ SPDX-License-Identifier: MIT
 import { computed, onMounted, ref, watch } from "vue";
 import AccordionTab from "primevue/accordiontab";
 import Accordion from "@renderer/components/common/Accordion.vue";
+import Loader from "@renderer/components/common/Loader.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import EngineSettingControl from "@renderer/components/settings/EngineSettingControl.vue";
 import { useTypedI18n } from "@renderer/i18n";
@@ -69,6 +74,8 @@ const { t } = useTypedI18n();
 
 const unusable = computed(() => engineSettingsStore.view?.status.usable === false);
 const disabled = computed(() => engineSettingsStore.view === undefined || unusable.value);
+// Main reads every installed engine's settings at startup, which can take a while the first time.
+const loading = computed(() => engineSettingsStore.view === undefined && engineSettingsStore.loadError === undefined);
 const failure = computed(() => engineSettingsStore.loadError ?? (unusable.value ? "settings_unusable" : undefined));
 
 const show = (text: EngineSettingText) => ("key" in text ? t(text.key) : text.text);
@@ -103,6 +110,11 @@ onMounted(() => engineSettingsLogic.load());
     opacity: 0.5;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     padding-bottom: 4px;
+}
+
+.loading {
+    padding: 40px 0;
+    opacity: 0.8;
 }
 
 .error {

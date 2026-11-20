@@ -187,8 +187,8 @@ app.whenReady().then(async () => {
     } catch (err) {
         log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
     }
-    // After content, which lists the installed engines, and before the window, from which a game can launch.
-    await engineConfig.init();
+    // After content, which lists the installed engines. Not awaited: launches and the settings view wait for it.
+    void engineConfig.init();
     await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();

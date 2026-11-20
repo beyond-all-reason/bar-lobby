@@ -10,7 +10,7 @@ import * as path from "path";
 
 import { contentAPI } from "@main/content/content-api";
 import type { ContentRef } from "@main/content/content-ref";
-import { engineConfig } from "@main/game/engine-config/engine-config";
+import { engineConfig, type EngineSession } from "@main/game/engine-config/engine-config";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { WRITE_DATA_PATH, REPLAYS_PATH, ENGINE_DEFAULTS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
@@ -19,6 +19,8 @@ import { Replay } from "@main/replays/replay";
 
 const log = logger("main/game/game.ts");
 const CLOSING_PROCESS_GRACE_MS = 15_000;
+// After each signal, how long a process stopped by the client has to close.
+const STOP_GRACE_MS = 5_000;
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
 
 export interface ScriptLaunchSettings {
@@ -51,7 +53,9 @@ export class GameAPI {
 
     protected gameProcess: ChildProcess | null = null;
     // A process that has asked to close but not yet closed, which can take seconds; see RecoilEngine#2450.
-    protected closingProcess: { process: ChildProcess; closed: Promise<void> } | null = null;
+    protected closingProcess: { process: ChildProcess; closed: Promise<void>; session: EngineSession } | null = null;
+    // From the start of a launch until its process is spawned, so a second launch is refused rather than queued.
+    protected preparingLaunch = false;
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
         const script = await startScriptConverter.generateScriptStr(battle);
@@ -122,17 +126,29 @@ export class GameAPI {
             throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
         }
 
+        // A second launch would otherwise wait for the whole match to end before starting.
+        if (this.gameProcess || this.preparingLaunch) {
+            throw new Error("A game is already running");
+        }
+
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
 
-        // Playing something is the clearest sign it is still wanted, and it is the one thing every
-        // launch path has in common.
-        const content: ContentRef[] = [{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])];
-        void contentAPI.markUsed(content);
-        // Also the last word on whether everything is there: content that cannot be acquired is refused here.
-        await this.fetchMissingContent(content);
+        let session: EngineSession;
+        this.preparingLaunch = true;
+        try {
+            // Playing something is the clearest sign it is still wanted, and it is the one thing every
+            // launch path has in common.
+            const content: ContentRef[] = [{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])];
+            void contentAPI.markUsed(content);
+            // Also the last word on whether everything is there: content that cannot be acquired is refused here.
+            await this.fetchMissingContent(content);
 
-        await this.waitForClosingProcess();
-        const session = await engineConfig.beginSession(engineVersion);
+            await this.waitForClosingProcess();
+            session = await engineConfig.beginSession(engineVersion);
+        } finally {
+            // Nothing is awaited from here to the spawn, so no launch can slip in between.
+            this.preparingLaunch = false;
+        }
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
         // A full path, never a bare name: Windows only finds a bare name in cwd by searching the current
@@ -172,7 +188,7 @@ export class GameAPI {
                     // See https://github.com/beyond-all-reason/RecoilEngine/issues/2450
                     if (isGameRunning && data.toString().includes("[SpringApp::Kill][8]")) {
                         log.info("Game process requested to close");
-                        this.closingProcess = { process: gameProcess, closed };
+                        this.closingProcess = { process: gameProcess, closed, session };
                         this.gameProcess = null;
                         isGameRunning = false;
                         this.onGameClosed.dispatch(null);
@@ -214,19 +230,30 @@ export class GameAPI {
 
     /**
      * A launch can start while the previous game is still closing. It gets a moment to finish, since it may
-     * still be writing its settings, and is then stopped: it has already asked to close.
+     * still be writing its settings, and is then stopped: it has already asked to close. SIGTERM can't stop the
+     * hang this works around, so SIGKILL follows. If even that doesn't close it, its session is ended here, or
+     * every later launch would wait for it.
      */
     protected async waitForClosingProcess() {
         const closing = this.closingProcess;
         if (!closing) return;
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        const timedOut = await Promise.race([closing.closed.then(() => false), new Promise<boolean>((resolve) => (timer = setTimeout(() => resolve(true), CLOSING_PROCESS_GRACE_MS)))]);
-        clearTimeout(timer);
-        if (timedOut) {
-            log.warn(`The previous game process (pid ${closing.process.pid}) asked to close but hasn't after ${CLOSING_PROCESS_GRACE_MS / 1000} s; stopping it`);
-            closing.process.kill();
-            await closing.closed;
-        }
+        const closedWithin = async (ms: number) => {
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            const closed = await Promise.race([closing.closed.then(() => true), new Promise<boolean>((resolve) => (timer = setTimeout(() => resolve(false), ms)))]);
+            clearTimeout(timer);
+
+            return closed;
+        };
+        if (await closedWithin(CLOSING_PROCESS_GRACE_MS)) return;
+        log.warn(`The previous game process (pid ${closing.process.pid}) asked to close but hasn't after ${CLOSING_PROCESS_GRACE_MS / 1000} s; stopping it`);
+        closing.process.kill();
+        if (await closedWithin(STOP_GRACE_MS)) return;
+        log.warn(`The previous game process (pid ${closing.process.pid}) is still running; killing it`);
+        closing.process.kill("SIGKILL");
+        if (await closedWithin(STOP_GRACE_MS)) return;
+        log.error(`The previous game process (pid ${closing.process.pid}) still hasn't closed; launching anyway`);
+        if (this.closingProcess === closing) this.closingProcess = null;
+        await closing.session.end();
     }
 
     public isGameRunning() {

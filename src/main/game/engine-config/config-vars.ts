@@ -9,7 +9,7 @@ import Ajv2020 from "ajv/dist/2020";
 import { Type } from "@sinclair/typebox";
 import { ENGINE_CONFIG_VARS_PATH, ENGINE_SCRATCH_PATH, getEnginePath } from "@main/config/app";
 import { ConfigVars } from "@shared/engine-settings/config-vars";
-import { holdChecksums } from "@main/utils/checksums";
+import { holdEngineDir } from "@main/content/engine/engine-dir-lock";
 import { writeFileAtomic } from "@main/utils/atomic-write";
 import { logger } from "@main/utils/logger";
 
@@ -58,7 +58,8 @@ async function loadConfigVars(engineVersion: string): Promise<ConfigVars | undef
         return cached;
     }
     try {
-        const vars = parseListOutput(await holdChecksums(() => listConfigVars(engineVersion)));
+        // Not behind the checksum queue, which can hold every installed map's checksum.
+        const vars = parseListOutput(await holdEngineDir(engineVersion, () => listConfigVars(engineVersion)));
         await writeFileAtomic(cachePath(engineVersion), JSON.stringify({ formatVersion: CACHE_FORMAT_VERSION, engineVersion, vars }));
 
         return vars;

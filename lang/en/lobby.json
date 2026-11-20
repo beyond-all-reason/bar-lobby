@@ -590,6 +590,7 @@
                     "dev": "Dev: engine variables",
                     "search": "Search settings",
                     "noMatches": "No settings match the search.",
+                    "loading": "Available settings are being read from the engine, please wait...",
                     "deviceOnly": "Kept on this device only, not synced",
                     "masterVolume": "In-game master volume",
                     "musicVolume": "In-game music volume",

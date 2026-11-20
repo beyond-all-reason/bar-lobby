@@ -11,7 +11,7 @@ import { isDeprecated } from "@shared/engine-settings/config-vars";
 
 type FakeProcess = EventEmitter & { stdout: EventEmitter; kill: () => void; binary: string; args: string[]; cwd: string };
 
-const { state } = vi.hoisted(() => ({ state: { dir: "", processes: [] as FakeProcess[], held: 0 } }));
+const { state } = vi.hoisted(() => ({ state: { dir: "", processes: [] as FakeProcess[], held: [] as string[] } }));
 
 vi.mock("@main/utils/logger", () => ({ logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 vi.mock("@main/config/app", () => ({
@@ -23,13 +23,13 @@ vi.mock("@main/config/app", () => ({
         return path.join(state.dir, "engine-config", "scratch");
     },
 }));
-vi.mock("@main/utils/checksums", () => ({
-    holdChecksums: async <T>(work: () => Promise<T>) => {
-        state.held++;
+vi.mock("@main/content/engine/engine-dir-lock", () => ({
+    holdEngineDir: async <T>(version: string, work: () => Promise<T>) => {
+        state.held.push(version);
         try {
             return await work();
         } finally {
-            state.held--;
+            state.held.splice(state.held.indexOf(version), 1);
         }
     },
 }));
@@ -85,7 +85,7 @@ afterEach(async () => {
 });
 
 describe("getConfigVars", () => {
-    it("lists through headless with scratch files, holding checksums, from the engine's directory", async () => {
+    it("lists through headless with scratch files, holding its directory, from the engine's directory", async () => {
         const getConfigVars = await load();
         const result = getConfigVars(engineVersion);
         await spawned();
@@ -95,11 +95,11 @@ describe("getConfigVars", () => {
         expect(path.basename(proc.binary)).toMatch(/^spring-headless(\.exe)?$/);
         expect(proc.cwd).toBe(path.join(state.dir, "engine", engineVersion));
         expect(proc.args).toEqual(["--write-dir", scratch, "--isolation", "--config", `${scratch}.cfg`, "--list-config-vars"]);
-        expect(state.held).toBe(1);
+        expect(state.held).toEqual([engineVersion]);
 
         await answer(JSON.stringify(vars));
         expect(await result).toEqual(vars);
-        expect(state.held).toBe(0);
+        expect(state.held).toEqual([]);
     });
 
     it("skips anything printed around the JSON", async () => {

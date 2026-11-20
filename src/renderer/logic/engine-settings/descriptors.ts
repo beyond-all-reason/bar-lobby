@@ -8,6 +8,7 @@
 import en from "@renderer/assets/languages/en.json";
 import type { TranslationKey } from "@renderer/i18n";
 import { isDeviceKey } from "@shared/engine-settings/device-keys";
+import { isGameOwnedKey } from "@shared/engine-settings/game-owned-keys";
 import type { EngineVarInfo } from "@shared/engine-settings/view";
 
 // The game's own options menu's tabs (gui_options.lua's optionGroups).
@@ -75,7 +76,8 @@ function slider(options: Shown & Pick<SliderSettingDescriptor, "min" | "max" | "
             const clamped = Math.min(options.max, Math.max(options.min, value));
             const snapped = options.min + Math.round((clamped - options.min) / options.step) * options.step;
             // Through toFixed, so 0.1 steps don't print as 0.30000000000000004, then Number, so 1.00 prints as 1.
-            return String(Number(Math.min(options.max, snapped).toFixed(decimals)));
+            // Clamped again after rounding, which can carry a limit with more decimals than the step past itself.
+            return String(Math.min(options.max, Math.max(options.min, Number(snapped.toFixed(decimals)))));
         },
     };
 }
@@ -251,7 +253,7 @@ const byKey = (a: { key: string }, b: { key: string }) => a.key.localeCompare(b.
 export function engineSettingDescriptors(engineVars: Record<string, EngineVarInfo>, overrides: Record<string, unknown>): EngineSettingDescriptor[] {
     const curated = new Set<string>(CURATED_ENGINE_SETTING_DESCRIPTORS.map((descriptor) => descriptor.key));
     const generated = Object.entries(engineVars)
-        .filter(([key, info]) => !curated.has(key) && !info.readOnly && (!info.deprecated || Object.hasOwn(overrides, key)))
+        .filter(([key, info]) => !curated.has(key) && !isGameOwnedKey(key) && !info.readOnly && (!info.deprecated || Object.hasOwn(overrides, key)))
         .map(([key, info]) => fromEngineVar(key, info));
     const unrecognised = Object.keys(overrides)
         .filter((key) => !curated.has(key) && !Object.hasOwn(engineVars, key))

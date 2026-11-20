@@ -138,6 +138,14 @@ describe("descriptors", () => {
         expect(uiScale.format(1)).toBe("1");
         expect(uiScale.format(0.5)).toBe("0.8");
     });
+
+    it("never write past a limit with more decimals than the step", () => {
+        const scroll = curated("MiddleClickScrollSpeed", "slider");
+
+        expect(scroll.format(-0.00195)).toBe("-0.00195");
+        expect(scroll.format(0)).toBe("-0.00195");
+        expect(scroll.format(-0.005)).toBe("-0.005");
+    });
 });
 
 describe("generated descriptors", () => {
@@ -172,6 +180,15 @@ describe("generated descriptors", () => {
         expect(find("AutohostIP")?.description).toEqual({ text: "Engine text, with no string of its own." });
         expect(find("MSAALevel")?.description).toEqual({ key: "lobby.navbar.settings.engine.descriptions.MSAALevel" });
         expect(find("BumpWaterAnisotropy")?.description).toBeUndefined();
+    });
+
+    it("leave out the variables the game sets for itself", () => {
+        const withGameOwned = { ...engineVars, snd_volbattle: { type: "int" }, MouseDragSelectionThreshold: { type: "int" }, MouseDragScrollThreshold: { type: "int" } };
+        const keys = engineSettingDescriptors(withGameOwned, {}).map((entry) => entry.key);
+
+        expect(keys).not.toContain("snd_volbattle");
+        expect(keys).not.toContain("MouseDragSelectionThreshold");
+        expect(keys).toContain("MouseDragScrollThreshold");
     });
 
     it("leave out read-only variables, and deprecated ones unless overridden, so those can still be reset", () => {

@@ -141,6 +141,15 @@ describe("startup: adopting an existing file", () => {
         expect(await values(synced())).toEqual({ ExposureMult: "1", unitExposureMult: "1" });
     });
 
+    it("drops no key as left over when no engine's variables can be listed", async () => {
+        state.vars = undefined;
+        await writeText(userCfg(), cfgText({ acity: "0.6", ui_opacity: "0.6" }));
+
+        await (await load()).init();
+
+        expect(await values(synced())).toEqual({ acity: "0.6", ui_opacity: "0.6" });
+    });
+
     it("backs up only once", async () => {
         const backup = file("engine-config", "springsettings.pre-migration.cfg");
         await writeText(backup, "first = 1\n");
@@ -348,6 +357,40 @@ describe("an unusable master", () => {
         await (await beginSession("2026.07.04")).end();
         expect(getStatus()).toEqual({ usable: true });
         expect(await values(synced())).toEqual({ snd_volmusic: "40" });
+    });
+});
+
+describe("an unusable snapshot", () => {
+    it.each([
+        ["from a newer client", JSON.stringify({ formatVersion: 2, profileId: "local", values: {} })],
+        ["that isn't valid JSON", '{"formatVersion": 1, "valu'],
+    ])("is neither written over nor taken as a reason to adopt the file again, when %s", async (_case, text) => {
+        await writeMaster(synced(), { snd_volmusic: "60" });
+        await writeText(snapshot(), text);
+        await writeText(userCfg(), cfgText({ snd_volmusic: "20" }));
+        const { init, beginSession, getStatus } = await load();
+
+        await init();
+        expect(getStatus()).toEqual({ usable: false, problem: expect.stringContaining(snapshot()) });
+
+        await (await beginSession("2026.07.04")).end();
+        expect(await fs.readFile(snapshot(), "utf8")).toBe(text);
+        expect(await fs.readFile(userCfg(), "utf8")).toBe("snd_volmusic = 20\n");
+        expect(await values(synced())).toEqual({ snd_volmusic: "60" });
+        expect(getStatus().usable).toBe(false);
+    });
+});
+
+describe("the view", () => {
+    it("waits for startup to finish, so it never shows the settings before the file is adopted", async () => {
+        await writeText(userCfg(), cfgText({ snd_volmusic: "20" }));
+        const { init, getView } = await load();
+
+        const initialized = init();
+        const view = await getView();
+        await initialized;
+
+        expect(view.overrides).toEqual({ snd_volmusic: { value: "20", scope: "synced" } });
     });
 });
 
