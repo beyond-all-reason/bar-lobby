@@ -42,7 +42,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
-import ContextMenu from "primevue/contextmenu";
+import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelociraptor.vue";
