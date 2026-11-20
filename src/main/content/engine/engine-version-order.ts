@@ -4,22 +4,31 @@
 
 // Matches new engine version tags (e.g. "2025.01.3", "2025.01.3-rc1")
 const versionPattern = /^(\d{4})\.(\d{2})\.(\d{1,2})(?:-rc(\d+))?$/;
-// Matches old engine version tags (e.g. "105.1.1-2590-gb9462a0"): major.minor.patch-commitsSinceTag-gHash
-const oldVersionPattern = /^(\d{1,3})\.(\d+)\.(\d+)-(\d+)-g[0-9a-f]+$/;
+// Matches old engine versions as the release index and replays name them, the build's branch after the tag
+// (e.g. "105.1.1-2590-gb9462a0 BAR105", "105.0-430-g2727993 BAR105", "104.0.1-1978-gcd328de BAR")
+const oldVersionPattern = /^(\d{2,3})\.(\d+)(?:\.(\d+))?-(\d+)-g[0-9a-f]+ [\w-]+$/;
 
 export function isCompatibleEngineVersion(id: string) {
     return versionPattern.test(id) || oldVersionPattern.test(id) || id.includes("local");
 }
 
 function parseVersion(id: string) {
-    const match = versionPattern.exec(id) ?? oldVersionPattern.exec(id);
-    if (!match) {
-        return undefined;
+    const match = versionPattern.exec(id);
+    if (match) {
+        const [, year, month, patch, releaseCandidate] = match;
+
+        return [Number(year), Number(month), Number(patch), releaseCandidate === undefined ? Infinity : Number(releaseCandidate)];
     }
 
-    const [, first, second, third, last] = match;
+    // Below every new version, whose first component is a year.
+    const old = oldVersionPattern.exec(id);
+    if (old) {
+        const [, major, minor, patch, commits] = old;
 
-    return [Number(first), Number(second), Number(third), last === undefined ? Infinity : Number(last)];
+        return [Number(major), Number(minor), Number(patch ?? 0), Number(commits)];
+    }
+
+    return undefined;
 }
 
 // Ascending. Components are not zero padded and a release candidate precedes its release,

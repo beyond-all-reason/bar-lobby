@@ -6,11 +6,15 @@ import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/
 import { describe, expect, it } from "vitest";
 
 describe("isCompatibleEngineVersion", () => {
-    it.each(["2025.01.3", "2025.01.10", "2025.01.3-rc1", "105.1.1-2590-gb9462a0", "local-dev"])("accepts %s", (id) => {
-        expect(isCompatibleEngineVersion(id)).toBe(true);
-    });
+    it.each(["2025.01.3", "2025.01.10", "2025.01.3-rc1", "105.1.1-2590-gb9462a0 BAR105", "105.0-430-g2727993 BAR105", "104.0.1-1978-gcd328de BAR", "105.1.1-2724-g34671c0 rel2501-test", "local-dev"])(
+        "accepts %s",
+        (id) => {
+            expect(isCompatibleEngineVersion(id)).toBe(true);
+        }
+    );
 
-    it.each(["2025.1.3", "spring_bar_.rel2501", ""])("rejects %s", (id) => {
+    // Old versions are only ever named with their branch, by the release index and by replays alike.
+    it.each(["105.1.1-2590-gb9462a0", "spring_bar_{BAR105}105.1.1-2590-gb9462a0", "2025.1.3", "spring_bar_.rel2501", ""])("rejects %s", (id) => {
         expect(isCompatibleEngineVersion(id)).toBe(false);
     });
 });
@@ -30,10 +34,14 @@ describe("compareEngineVersions", () => {
         expect(compareEngineVersions("2025.02.1", "2025.10.1")).toBeLessThan(0);
     });
 
-    it("orders old tags numerically and below new tags", () => {
-        expect(compareEngineVersions("105.1.1-2590-gb9462a0", "105.1.1-998-gabcdef0")).toBeGreaterThan(0);
-        expect(compareEngineVersions("105.1.1-2590-gb9462a0", "105.1.2-1-gabcdef0")).toBeLessThan(0);
-        expect(compareEngineVersions("105.1.1-2590-gb9462a0", "2024.12.1")).toBeLessThan(0);
+    it("orders old versions numerically, by version then build count", () => {
+        expect(compareEngineVersions("105.1.1-2590-gb9462a0 BAR105", "105.1.1-998-gabcdef0 BAR105")).toBeGreaterThan(0);
+        expect(compareEngineVersions("105.0-430-g2727993 BAR105", "105.1.1-1-gabcdef0 BAR105")).toBeLessThan(0);
+        expect(compareEngineVersions("104.0.1-1978-gcd328de BAR", "105.0-430-g2727993 BAR105")).toBeLessThan(0);
+    });
+
+    it("orders every old version below every new one", () => {
+        expect(compareEngineVersions("105.1.1-2590-gb9462a0 BAR105", "2024.12.1")).toBeLessThan(0);
     });
 
     it("treats equal versions as equal", () => {

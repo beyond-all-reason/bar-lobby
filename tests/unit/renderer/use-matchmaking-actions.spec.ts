@@ -20,6 +20,7 @@ vi.mock("@renderer/logic/matchmaking", async (importOriginal) => ({
 
 const { notificationsApi } = await import("@renderer/api/notifications");
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
+const { IpcCallError } = await import("@renderer/api/ipc-call");
 const { MatchmakingJoinRefused } = await import("@renderer/logic/matchmaking");
 const { useMatchmakingActions } = await import("@renderer/composables/useMatchmakingActions");
 
@@ -68,6 +69,15 @@ describe("useMatchmakingActions", () => {
         await matchmaking.joinQueue();
 
         expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Tachyon error: matchmaking/queue", severity: "error" });
+        expect(consoleError).not.toHaveBeenCalled();
+    });
+
+    it("names the content check, not the queue request, when the check fails", async () => {
+        logic.joinQueue.mockRejectedValue(new IpcCallError("content:missing", new Error("main crashed")));
+
+        await matchmaking.joinQueue();
+
+        expect(notificationsApi.alert).toHaveBeenCalledExactlyOnceWith({ text: "Error with request content:missing", severity: "error" });
         expect(consoleError).not.toHaveBeenCalled();
     });
 

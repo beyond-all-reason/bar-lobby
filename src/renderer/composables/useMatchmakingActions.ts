@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import { isApiFailure } from "@renderer/api/failures";
+import { IpcCallError } from "@renderer/api/ipc-call";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand } from "@renderer/api/tachyon";
 import { MatchmakingJoinRefused, matchmakingLogic } from "@renderer/logic/matchmaking";
 import { Alert } from "@renderer/model/notifications";
+import { alertRequestFailure } from "@renderer/utils/alert-request-failure";
 
 const joinRefusals: Record<MatchmakingJoinRefused["reason"], Omit<Alert, "id">> = {
     downloads_required: { text: "You have downloads required to join this queue.", severity: "info" },
@@ -26,6 +28,13 @@ export function alertQueueListFailed() {
 function alertJoinFailed(error: unknown) {
     if (error instanceof MatchmakingJoinRefused) {
         notificationsApi.alert(joinRefusals[error.reason]);
+
+        return;
+    }
+
+    // The content check before the request, so the queue request itself was never sent.
+    if (error instanceof IpcCallError) {
+        alertRequestFailure(error, error.call);
 
         return;
     }
