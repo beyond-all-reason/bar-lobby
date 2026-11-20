@@ -27,10 +27,15 @@ export async function initReplaysStore() {
         console.warn("Replays store is already initialized. Skipping initialization.");
         return;
     }
+    // One at a time: the startup sync caches replays in parallel, and two halves of a rejoined game stored
+    // concurrently would each miss the other in the duplicate check.
+    let storing = Promise.resolve();
     window.replays.onReplayCached((replay: Replay) => {
-        storeReplay(replay).catch((error) => {
-            console.error("Failed to store replay in database:", replay.fileName, error);
-        });
+        storing = storing.then(() =>
+            storeReplay(replay).catch((error) => {
+                console.error("Failed to store replay in database:", replay.fileName, error);
+            })
+        );
     });
     window.replays.onReplayDeleted((filename: string) => {
         console.debug("Received replay deleted event", filename);
