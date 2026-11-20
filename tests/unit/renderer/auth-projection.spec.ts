@@ -288,5 +288,6 @@ describe("startup connection", () => {
         await starting;
 
         expect(connectionStore.isConnected).toBe(true);
+        expect(connectionStore.wantsConnection).toBe(true);
     });
 });
