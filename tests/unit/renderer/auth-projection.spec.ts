@@ -61,13 +61,14 @@ beforeEach(() => {
 async function loadStores() {
     vi.resetModules();
 
-    const { me, initMeStore } = await import("@renderer/store/me.store");
+    const { me } = await import("@renderer/store/me.store");
+    const { initMeLogic } = await import("@renderer/logic/me");
     const { connectionStore } = await import("@renderer/store/connection.store");
     const { connectionLogic, initConnectionLogic } = await import("@renderer/logic/connection");
 
     async function start() {
         await initConnectionLogic();
-        await initMeStore();
+        await initMeLogic();
         await connectionLogic.restoreSession();
     }
 
