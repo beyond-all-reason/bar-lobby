@@ -109,13 +109,20 @@ async function joinQueue() {
         throw new MatchmakingJoinRefused("queue_not_found");
     }
 
-    // Asked now rather than read from earlier answers, which go stale as content is installed.
-    if ((await contentApi.missing(contentRefs(queueContent(playlist)))).length > 0) {
-        throw new MatchmakingJoinRefused("downloads_required");
-    }
-
-    // Initial state, likely short-lived.
+    // Initial state, likely short-lived. Set before anything is awaited, since leaving Idle is what takes the join
+    // button away, so a second click cannot send a second request.
     matchmakingActions.set({ status: MatchmakingStatus.JoinRequested, errorMessage: null });
+
+    try {
+        // Asked now rather than read from earlier answers, which go stale as content is installed.
+        if ((await contentApi.missing(contentRefs(queueContent(playlist)))).length > 0) {
+            throw new MatchmakingJoinRefused("downloads_required");
+        }
+    } catch (error) {
+        matchmakingActions.set({ status: MatchmakingStatus.Idle });
+
+        throw error;
+    }
 
     try {
         const response = await tachyonRequest("matchmaking/queue", {

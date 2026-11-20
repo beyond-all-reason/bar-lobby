@@ -132,6 +132,31 @@ describe("matchmaking logic", () => {
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         });
 
+        // Leaving Idle is what takes the join button away, so it must happen before the content check is awaited.
+        it("leaves Idle before checking content, so a second click cannot send a second request", async () => {
+            let answerCheck: (missing: unknown[]) => void = () => {};
+            api.missing.mockReturnValue(new Promise((resolve) => (answerCheck = resolve)));
+            respondTo({ "matchmaking/queue": () => ({ status: "success" }) });
+
+            const joining = matchmakingLogic.joinQueue();
+            expect(matchmakingStore.status).toBe(MatchmakingStatus.JoinRequested);
+
+            answerCheck([]);
+            await joining;
+
+            expect(api.tachyonRequest).toHaveBeenCalledTimes(1);
+        });
+
+        it("goes back to Idle when the content check fails", async () => {
+            const failure = new Error("content:missing failed");
+            api.missing.mockRejectedValue(failure);
+
+            await expect(matchmakingLogic.joinQueue()).rejects.toBe(failure);
+
+            expect(api.tachyonRequest).not.toHaveBeenCalled();
+            expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
+        });
+
         it("lets a version mismatch through first, then refreshes the list and goes idle", async () => {
             const failure = failed("matchmaking/queue", "version_mismatch");
             let finishList: (response: unknown) => void = () => {};
