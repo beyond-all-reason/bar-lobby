@@ -15,6 +15,7 @@ export const preloadNamespaces = [
     "engine",
     "game",
     "info",
+    "lobbyProtocol",
     "log",
     "mainWindow",
     "maps",

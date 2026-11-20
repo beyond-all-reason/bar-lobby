@@ -31,6 +31,8 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { lobbyProtocolService } from "@main/services/lobby-protocol.service";
+import { registerLobbyProtocol } from "@main/lobbyProtocol/lobby-protocol-utils";
 import { singleplayerService } from "@main/services/singleplayer.service";
 import { configService } from "./services/config.service";
 import { EDITION_FEATURES } from "@main/config/edition";
@@ -122,6 +124,7 @@ app.whenReady().then(async () => {
     }
     installApplicationMenu();
     registerBarFileProtocol();
+    registerLobbyProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);
@@ -197,6 +200,7 @@ app.whenReady().then(async () => {
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
+    lobbyProtocolService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
     singleplayerService.registerIpcHandlers(webContents);
 });
