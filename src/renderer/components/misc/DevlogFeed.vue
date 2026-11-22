@@ -19,7 +19,7 @@ import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
 
-const devlogRssFeed = await window.misc.getDevlogRssFeed(3);
+const devlogRssFeed = await window.misc.getDevlogRssFeed(20);
 </script>
 
 <style lang="scss" scoped>
