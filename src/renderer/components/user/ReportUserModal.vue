@@ -217,6 +217,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
 import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { replaysApi } from "@renderer/api/replays";
+import { pathsApi } from "@renderer/api/paths";
 import { useTypedI18n } from "@renderer/i18n";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import { users } from "@renderer/store/users.store";
@@ -494,7 +495,7 @@ function fileName(filePath: string) {
 
 // Nothing carries these to the server yet, so they are held only to keep the flow whole.
 async function selectEvidence() {
-    const picked = await window.paths.selectImages();
+    const picked = await pathsApi.selectImages();
     if (!picked.length) return;
 
     evidenceFiles.value = [...new Set([...evidenceFiles.value, ...picked])].slice(0, maxEvidenceFiles);

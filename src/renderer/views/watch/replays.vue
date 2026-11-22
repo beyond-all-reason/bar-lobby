@@ -170,6 +170,7 @@ import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { configStore } from "@renderer/store/config.store";
 import { shellApi } from "@renderer/api/shell";
+import { replaysApi } from "@renderer/api/replays";
 import { editionLogic } from "@renderer/logic/edition";
 import { ContentRef } from "@main/content/content-ref";
 
@@ -192,7 +193,7 @@ const selectedReplay: Ref<Replay | null> = shallowRef(null);
 const highlightedReplays = computed(() => replaysStore.highlightedReplays);
 
 onMounted(() => {
-    window.replays.onReplayDeleted((filename: string) => {
+    replaysApi.onReplayDeleted((filename: string) => {
         if (selectedReplay.value?.fileName == filename) {
             selectedReplay.value = null;
             triggerRef(selectedReplay);
