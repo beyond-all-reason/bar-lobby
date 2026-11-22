@@ -175,7 +175,12 @@ export class GameAPI {
                 this.gameProcess.addListener("error", (err) => {
                     log.error(err);
                 });
+                const gameProcess = this.gameProcess;
                 this.gameProcess.addListener("exit", (code) => {
+                    // Cleared before onGameClosed, whose listeners check isGameRunning. Without this, an engine
+                    // that crashed or failed to load still counted as running, so new replays were queued
+                    // until the next game closed normally.
+                    if (this.gameProcess === gameProcess) this.gameProcess = null;
                     if (code !== 0) {
                         log.error(`Game process exited with code: ${code}`);
                         reject(new Error(`Game process exited with code: ${code}`));

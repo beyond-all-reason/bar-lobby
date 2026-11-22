@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { EventEmitter } from "node:events";
 import path from "node:path";
 import type { Replay } from "@main/replays/replay";
 import { EditionRefusalError } from "@shared/edition";
@@ -83,5 +84,54 @@ describe("GameAPI launch", () => {
         await expect(game.launchScript({ engineVersion: "2025.01.3", gameVersion: "byar:test", script })).rejects.toThrow("spawned");
 
         expect(spawn.mock.calls[0][2].env.SPRING_DATADIR).toBe("/assets");
+    });
+});
+
+// A stand-in for the engine process: tests emit its log lines and its exit.
+function fakeProcess() {
+    return Object.assign(new EventEmitter(), { stdout: new EventEmitter(), stderr: new EventEmitter(), pid: 1 });
+}
+
+describe("GameAPI process state", () => {
+    let game: GameAPI;
+    let proc: ReturnType<typeof fakeProcess>;
+
+    beforeEach(() => {
+        ensure.mockReset().mockResolvedValue(undefined);
+        proc = fakeProcess();
+        spawn.mockReset().mockReturnValue(proc);
+        game = new GameAPI();
+    });
+
+    async function launch() {
+        const launched = game.launchScript({ engineVersion: "2025.01.3", gameVersion: "byar:test", script });
+        await vi.waitFor(() => expect(spawn).toHaveBeenCalled());
+
+        return launched;
+    }
+
+    // e.g. a replay the engine refuses to load: it exits before the game starts.
+    it("is not running after the engine exits before the game loads", async () => {
+        const launched = launch();
+        await vi.waitFor(() => expect(game.isGameRunning()).toBe(true));
+
+        proc.emit("exit", 1);
+
+        await expect(launched).rejects.toThrow("exited with code: 1");
+        expect(game.isGameRunning()).toBe(false);
+    });
+
+    it("is not running by the time onGameClosed fires after a crash", async () => {
+        const runningWhenClosed: boolean[] = [];
+        game.onGameClosed.add(() => runningWhenClosed.push(game.isGameRunning()));
+        const launched = launch();
+        await vi.waitFor(() => expect(game.isGameRunning()).toBe(true));
+        proc.stdout.emit("data", "[Game::Load]");
+        await launched;
+
+        proc.emit("exit", 134);
+
+        expect(runningWhenClosed).toEqual([false]);
+        expect(game.isGameRunning()).toBe(false);
     });
 });
