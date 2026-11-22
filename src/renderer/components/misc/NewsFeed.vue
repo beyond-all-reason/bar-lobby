@@ -14,7 +14,9 @@ SPDX-License-Identifier: MIT
 </template>
 <script lang="ts" setup>
 import NewsTile from "@renderer/components/misc/NewsTile.vue";
-const newsRssFeed = await window.misc.getNewsRssFeed(3);
+import { miscApi } from "@renderer/api/misc";
+
+const newsRssFeed = await miscApi.getNewsRssFeed(3);
 </script>
 
 <style lang="scss" scoped>

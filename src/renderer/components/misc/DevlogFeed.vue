@@ -16,10 +16,11 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import DevlogEntry from "@renderer/components/misc/DevlogEntry.vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { miscApi } from "@renderer/api/misc";
 
 const { t } = useTypedI18n();
 
-const devlogRssFeed = await window.misc.getDevlogRssFeed(20);
+const devlogRssFeed = await miscApi.getDevlogRssFeed(20);
 </script>
 
 <style lang="scss" scoped>
