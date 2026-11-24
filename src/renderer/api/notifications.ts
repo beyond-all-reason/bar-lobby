@@ -38,7 +38,6 @@ class NotificationsAPI {
         this.events.push(event);
     }
 
-    // Alerts that main asks the renderer to show.
     public onShowAlert(handler: (alertConfig: Omit<Alert, "id">) => void) {
         return window.notifications.onShowAlert(handler);
     }
