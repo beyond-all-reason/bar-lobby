@@ -9,7 +9,7 @@ import { initGameStore } from "@renderer/store/game.store";
 import { connectionLogic, initConnectionLogic } from "@renderer/logic/connection";
 import { initInfosLogic } from "@renderer/logic/infos";
 import { initMatchmakingLogic } from "@renderer/logic/matchmaking";
-import { initMeStore } from "@renderer/store/me.store";
+import { initMeLogic } from "@renderer/logic/me";
 import { initPartyLogic } from "@renderer/logic/party";
 import { initSingleplayerLogic } from "@renderer/logic/singleplayer";
 import { initEngineSettingsLogic } from "@renderer/logic/engine-settings";
@@ -37,7 +37,7 @@ export async function initPreMountStores() {
                 initMatchmakingLogic(),
                 initUsersStore(),
                 // The stored identity goes in first, so the user/self a restored socket sends replaces it rather than the other way round.
-                initMeStore().then(() => connectionLogic.restoreSession()),
+                initMeLogic().then(() => connectionLogic.restoreSession()),
                 initLobbyStore(),
                 initChatStore(),
                 initPartyLogic(),

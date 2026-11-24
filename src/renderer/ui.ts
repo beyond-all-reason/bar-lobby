@@ -23,4 +23,7 @@ export const appUi: Ui = {
     userUnsubscribeFailed() {
         notificationsApi.alert({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
     },
+    friendListFailed() {
+        notificationsApi.alert({ severity: "error", text: "Failed to fetch friend list." });
+    },
 };

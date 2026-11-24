@@ -27,6 +27,7 @@ vi.mock("@renderer/store/maps.store", () => ({
 
 vi.mock("@renderer/store/me.store", () => ({
     me: { userId: "1", username: "me", status: "menu", battleRoomState: {} },
+    meActions: { setBattleRoomState: vi.fn(), clearBattleTeam: vi.fn() },
 }));
 
 vi.mock("@renderer/api/notifications", () => ({

@@ -9,6 +9,7 @@ export interface Ui {
     queueListFailed(): void;
     userSubscribeFailed(): void;
     userUnsubscribeFailed(): void;
+    friendListFailed(): void;
 }
 
 let implementation: Ui | undefined;
@@ -31,4 +32,5 @@ export const ui: Ui = {
     queueListFailed: () => provided()?.queueListFailed(),
     userSubscribeFailed: () => provided()?.userSubscribeFailed(),
     userUnsubscribeFailed: () => provided()?.userUnsubscribeFailed(),
+    friendListFailed: () => provided()?.friendListFailed(),
 };

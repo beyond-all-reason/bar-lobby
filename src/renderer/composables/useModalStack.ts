@@ -4,10 +4,11 @@
 
 import { computed, onActivated, onDeactivated, onUnmounted, ref, watch, type Ref } from "vue";
 
-// Each modal dims and blurs what is behind it, and stacked those compound into something
-// nothing is legible through, so only the bottom-most open one draws it.
+// Open modals in the order they opened, so the last one is the one on top.
 const stack = ref<number[]>([]);
 let nextId = 0;
+
+export const isAnyModalOpen = computed(() => stack.value.length > 0);
 
 export function useModalStack(isOpen: Ref<boolean>) {
     const id = nextId++;
@@ -26,5 +27,10 @@ export function useModalStack(isOpen: Ref<boolean>) {
     onDeactivated(leave);
     onUnmounted(leave);
 
-    return computed(() => stack.value[0] === id);
+    return {
+        // Each modal dims and blurs what is behind it, and stacked those compound into something
+        // nothing is legible through, so only the bottom-most open one draws it.
+        isBottom: computed(() => stack.value[0] === id),
+        isTop: computed(() => stack.value.at(-1) === id),
+    };
 }

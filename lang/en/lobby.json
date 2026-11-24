@@ -909,7 +909,8 @@
                     "clickToReadMore": "Click to read more"
                 },
                 "devlogFeed": {
-                    "latestChanges": "Latest changes"
+                    "latestChanges": "Latest changes",
+                    "readMore": "Read more…"
                 },
                 "preloader": {
                     "loading": "Loading",

@@ -18,11 +18,22 @@ import OfflineBattleComponent from "@renderer/components/battle/OfflineBattleCom
 import Panel from "@renderer/components/common/Panel.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { onKeyDown } from "@vueuse/core";
+import { isAnyModalOpen } from "@renderer/composables/useModalStack";
+import { watch } from "vue";
+import { useRoute } from "vue-router";
+
+// watch for route changes and close the lobby drawer when navigating to another view for example library
+const route = useRoute();
+watch(
+    () => route.path,
+    () => (battleStore.isLobbyOpened = false)
+);
 
 onKeyDown(
     "Escape",
     (e) => {
-        if (battleStore.isLobbyOpened) {
+        // A modal opened from the lobby, like the map selector, takes the keypress instead.
+        if (battleStore.isLobbyOpened && !isAnyModalOpen.value) {
             e.preventDefault();
             e.stopPropagation();
             battleStore.isLobbyOpened = false;

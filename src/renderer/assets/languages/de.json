@@ -2763,7 +2763,8 @@
                     "clickToReadMore": null
                 },
                 "devlogFeed": {
-                    "latestChanges": null
+                    "latestChanges": null,
+                    "readMore": null
                 },
                 "preloader": {
                     "loading": null,
