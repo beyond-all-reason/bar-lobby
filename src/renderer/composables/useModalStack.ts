@@ -8,7 +8,6 @@ import { computed, onActivated, onDeactivated, onUnmounted, ref, watch, type Ref
 const stack = ref<number[]>([]);
 let nextId = 0;
 
-// Lets things that also close on Escape, like the battle lobby drawer, leave it to an open modal.
 export const isAnyModalOpen = computed(() => stack.value.length > 0);
 
 export function useModalStack(isOpen: Ref<boolean>) {
@@ -32,7 +31,6 @@ export function useModalStack(isOpen: Ref<boolean>) {
         // Each modal dims and blurs what is behind it, and stacked those compound into something
         // nothing is legible through, so only the bottom-most open one draws it.
         isBottom: computed(() => stack.value[0] === id),
-        // Escape is one keypress, so only the modal on top answers it.
         isTop: computed(() => stack.value.at(-1) === id),
     };
 }
