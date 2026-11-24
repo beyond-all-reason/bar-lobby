@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import type { logLevels } from "@main/services/log.service";
+import type { logLevels } from "@shared/log-levels";
 import { logApi } from "@renderer/api/log";
 
 export class Logger {

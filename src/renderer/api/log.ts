@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import type { logLevels } from "@main/services/log.service";
+import type { logLevels } from "@shared/log-levels";
 import { ipcCall } from "@renderer/api/ipc-call";
 
 export const logApi = {

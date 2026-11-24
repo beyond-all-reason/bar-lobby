@@ -19,7 +19,7 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
-import { logLevels } from "@main/services/log.service";
+import { logLevels } from "@shared/log-levels";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
