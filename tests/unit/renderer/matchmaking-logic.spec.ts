@@ -31,7 +31,7 @@ const { provideUi } = await import("@renderer/logic/ui");
 const { onTachyonConnected } = await import("@renderer/utils/connection-signal");
 const { onWentOffline } = await import("@renderer/utils/offline-signal");
 
-const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn(), userSubscribeFailed: vi.fn(), userUnsubscribeFailed: vi.fn() };
+const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn(), userSubscribeFailed: vi.fn(), userUnsubscribeFailed: vi.fn(), friendListFailed: vi.fn() };
 
 const emit = (commandId: string, data?: unknown) => api.handlers.get(commandId)?.(data);
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
