@@ -23,8 +23,35 @@ describe("Electron App", async () => {
             args.unshift("--no-sandbox");
         }
 
+        const started = Date.now();
+        const note = (what: string) => console.log(`[e2e +${Date.now() - started}ms] ${what}`);
+
         electronApp = await electron.launch({ args });
+        note("launched");
+
+        // On CI the lobby's own output and the window's progress show where a slow or missing window got stuck.
+        const watched = new WeakSet<Page>();
+        const watch = (page: Page) => {
+            if (!process.env.CI || watched.has(page)) return;
+            watched.add(page);
+            note(`watching window: ${page.url()}`);
+            page.on("domcontentloaded", () => note("domcontentloaded"));
+            page.on("load", () => note("load"));
+            page.on("crash", () => note("renderer crashed"));
+            page.on("close", () => note("window closed"));
+            page.on("console", (message) => note(`console.${message.type()}: ${message.text()}`));
+            page.on("pageerror", (error) => note(`page error: ${error.message}`));
+        };
+        if (process.env.CI) {
+            electronApp.process().stdout?.on("data", (data) => note(`app: ${String(data).trimEnd()}`));
+            electronApp.process().stderr?.on("data", (data) => note(`app stderr: ${String(data).trimEnd()}`));
+            electronApp.on("window", watch);
+            electronApp.windows().forEach(watch);
+        }
+
         mainWindow = await electronApp.firstWindow();
+        note(`first window: ${mainWindow.url()}`);
+        watch(mainWindow);
     });
 
     afterAll(async () => {

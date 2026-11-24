@@ -10,9 +10,7 @@ jobs:
     checks:
         strategy:
             matrix:
-                # Pinned while e2e fails on some ubuntu-latest (26.04) images: the lobby window doesn't load under Xvfb.
-                # Move back to ubuntu-latest once that is fixed. Change the e2e step's matrix.os check with it.
-                os: [windows-latest, ubuntu-24.04]
+                os: [windows-latest, ubuntu-latest]
         runs-on: ${{ matrix.os }}
         steps:
             - name: Check out Git repository
@@ -65,9 +63,20 @@ jobs:
               # TODO: Figure out why e2e tests don't work reliably on Windows.
               # They work on some Windows machines but not on others failing with
               # Error: electronApplication.firstWindow: Target page, context or browser has been closed
-              if: matrix.os == 'ubuntu-24.04'
+              if: matrix.os == 'ubuntu-latest'
               uses: coactions/setup-xvfb@v1
               with:
                   run: npm run test:e2e
               env:
                   CI: true
+
+            # The e2e log only shows Playwright's side. The lobby's own log says what the app was doing.
+            - name: Upload e2e logs
+              if: failure() && runner.os == 'Linux'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: e2e-logs
+                  path: |
+                      ~/.local/state/BeyondAllReason/logs/
+                      test-results/
+                  if-no-files-found: warn
