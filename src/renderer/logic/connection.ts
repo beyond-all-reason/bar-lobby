@@ -11,7 +11,7 @@ import { ui } from "@renderer/logic/ui";
 import { battleHistoryActions } from "@renderer/store/battleHistory.store";
 import { configStore } from "@renderer/store/config.store";
 import { connectionActions, connectionStore } from "@renderer/store/connection.store";
-import { friends } from "@renderer/store/me.store";
+import { friendsLogic } from "@renderer/logic/me";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onTachyonConnected } from "@renderer/utils/connection-signal";
@@ -21,6 +21,7 @@ import { resolveLobbyServer } from "@shared/lobby-server";
 let isInitialized = false;
 let reconnectTimer: ReturnType<typeof setInterval> | undefined;
 let serverStatsTimer: ReturnType<typeof setInterval> | undefined;
+let heardFromSocket = false;
 
 // The main process owns the session. Nothing here assigns isAuthenticated
 // directly, or the UI can end up claiming a session that no longer exists.
@@ -160,34 +161,31 @@ async function restorePreviousSession() {
         // browser window while the user is still looking at the loading screen.
         await goOnline();
     } catch (error) {
-        // Deliberately keeps the credentials. Whatever went wrong here, only main
-        // can tell a rejected refresh token from a server that was unreachable,
-        // and it already destroys the account in the first case. Signing out from
-        // here as well threw away working credentials over a laptop that woke up
-        // before its wifi did. Signed in and not connected is a state the status
-        // menu can get you out of.
+        // Deliberately keeps the credentials. Only main can tell a rejected refresh
+        // token from a server that was unreachable, and it already destroys the
+        // account in the first case. Signed in and not connected is a state the
+        // status menu can get you out of.
         console.warn("Could not restore the previous session, continuing offline", error);
-
-        return;
-    }
-
-    try {
-        await friends.fetchFriendList();
-    } catch (error) {
-        console.warn("Could not fetch the friend list", error);
     }
 }
 
 async function restoreSession() {
     await syncAuthState();
+
+    // A socket main still has open, as after a renderer reload, sends no connected
+    // event, so the friend list that event would fetch has to be fetched here.
+    if (connectionStore.isConnected && connectionStore.isAuthenticated) {
+        await friendsLogic.fetchFriendList();
+    }
+
     await restorePreviousSession();
 }
 
 function onConnected() {
+    heardFromSocket = true;
     console.debug("Connected to Tachyon server");
     // Recorded here rather than in connect(), so it holds however the
-    // connection was opened. Setting it at one call site meant the others
-    // silently opted out of reconnecting.
+    // connection was opened.
     connectionActions.set({ isConnected: true, wantsConnection: true });
     fetchServerStats();
     stopFetchingServerStats();
@@ -198,6 +196,7 @@ function onConnected() {
 }
 
 function onDisconnected() {
+    heardFromSocket = true;
     console.debug("Disconnected from Tachyon server");
     // Every failed reconnect attempt builds a socket that closes, so this fires again on each
     // retry. Only the first one is a real transition worth reacting to.
@@ -207,11 +206,9 @@ function onDisconnected() {
     if (!wasConnected) return;
 
     stopFetchingServerStats();
-    // A close the user asked for is not a fault, so it gets no retry.
-    // wantsConnection is the only thing consulted here: pairing it with a
-    // second flag meant the two could disagree about whether a close was
-    // deliberate. The overlay that goes up with the retries is what tells the
-    // user, so there is no alert either.
+    // A close the user asked for is not a fault, so it gets no retry. The overlay
+    // that goes up with the retries is what tells the user, so there is no alert
+    // either.
     if (connectionStore.wantsConnection) {
         startReconnecting();
     }
@@ -291,16 +288,21 @@ export async function initConnectionLogic() {
         return;
     }
 
-    const isConnected = await tachyonConnectionApi.isConnected();
-    connectionActions.set({ isConnected });
-    if (isConnected) {
-        fetchServerStats();
-        serverStatsTimer = setInterval(fetchServerStats, 60000);
-    }
-    console.debug(`Tachyon server is ${isConnected ? "connected" : "disconnected"}`);
-
     tachyonConnectionApi.onConnected(onConnected);
     tachyonConnectionApi.onDisconnected(onDisconnected);
+
+    const isConnected = await tachyonConnectionApi.isConnected();
+    // A connect or close that arrived while asking is newer than the answer.
+    if (!heardFromSocket) {
+        // A socket already open at startup was opened by someone wanting to be online.
+        connectionActions.set({ isConnected, wantsConnection: isConnected });
+        if (isConnected) {
+            fetchServerStats();
+            serverStatsTimer = setInterval(fetchServerStats, 60000);
+        }
+    }
+    console.debug(`Tachyon server is ${connectionStore.isConnected ? "connected" : "disconnected"}`);
+
     networkApi.onOffline(onNetworkOffline);
     authApi.onChanged(onAuthChanged);
     subsManager.onNewUsersAttached.add(onUsersAttached);

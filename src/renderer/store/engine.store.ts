@@ -36,7 +36,7 @@ function reselectEngineVersion() {
     enginesStore.selectedEngineVersion =
         installed(requestedEngineVersion) ??
         installed(defaultEngineVersion.value) ??
-        installedEngineVersions.value.at(-1) ??
+        installedEngineVersions.value[0] ??
         enginesStore.availableEngineVersions.find((e) => e.id === defaultEngineVersion.value);
 }
 

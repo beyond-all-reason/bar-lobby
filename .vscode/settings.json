@@ -3,7 +3,7 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
     },
-    "eslint.validate": ["typescript", "vue"],
+    "eslint.validate": ["typescript", "vue", "json", "jsonc"],
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },

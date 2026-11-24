@@ -82,30 +82,21 @@ SPDX-License-Identifier: MIT
                                         }}</Button>
                                     </div>
                                     <div class="button-container">
-                                        <div v-if="downloadsAreRequiredForSelected" class="download-button-container">
-                                            <DownloadContentButton
-                                                :maps="downloadsRequired.maps"
-                                                :engines="downloadsRequired.engines"
-                                                :games="downloadsRequired.games"
-                                                @downloads-complete="handleDownloadsComplete"
-                                                @downloads-started="handleDownloadsStarted"
-                                                :class="'large'"
-                                                >This string should never be visible.</DownloadContentButton
-                                            >
-                                        </div>
-                                        <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
+                                        <button v-if="partyTooLarge" class="quick-play-button invalid" disabled>
                                             {{ t("lobby.views.party.partyTooLarge") }}
                                         </button>
-                                        <button
+                                        <DownloadContentButton
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
-                                            class="quick-play-button"
-                                            :class="{
-                                                disabled: !matchmakingStore.selectedQueue,
-                                            }"
+                                            :maps="selectedQueueContent.maps"
+                                            :engines="selectedQueueContent.engines"
+                                            :games="selectedQueueContent.games"
+                                            :disabled="!matchmakingStore.selectedQueue"
+                                            @downloads-complete="downloading = false"
+                                            @downloads-started="downloading = true"
                                             @click="matchmaking.joinQueue"
+                                            :class="'large'"
+                                            >{{ t("lobby.multiplayer.ranked.buttons.searchGame") }}</DownloadContentButton
                                         >
-                                            {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
-                                        </button>
                                         <button
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.JoinRequested"
                                             class="quick-play-button searching"
@@ -223,7 +214,7 @@ import { UserId } from "tachyon-protocol/types";
 import TabPanel from "primevue/tabpanel";
 import TabView from "@renderer/components/common/TabView.vue";
 import { me } from "@renderer/store/me.store";
-import { MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
+import { MatchmakingStatus, matchmakingStore, getPlaylistName, queueContent } from "@renderer/store/matchmaking.store";
 import { useMatchmakingActions } from "@renderer/composables/useMatchmakingActions";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
@@ -312,17 +303,7 @@ const availableQueueIds = computed(() => {
         .map((playlist) => playlist.id);
 });
 
-const downloadsRequired = computed(() => {
-    return matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue];
-});
-
-const downloadsAreRequiredForSelected = computed(() => {
-    // 0 returns falsy, anything else returns truthy, so this works to determine if there are any downloads required.
-    const required = downloadsRequired.value;
-    if (!required) return false;
-
-    return required.maps.length + required.engines.length + required.games.length;
-});
+const selectedQueueContent = computed(() => queueContent(matchmakingStore.playlists.find((p) => p.id === matchmakingStore.selectedQueue)));
 
 const downloading = ref(false);
 
@@ -331,18 +312,6 @@ function queueSelected(queue: string) {
     if (downloading.value) {
         return;
     } else matchmaking.selectQueue(queue);
-}
-
-function handleDownloadsStarted() {
-    downloading.value = true;
-}
-// After downloads are done, we need to refresh the required list.
-async function handleDownloadsComplete() {
-    try {
-        await matchmaking.refreshRequiredDownloads();
-    } finally {
-        downloading.value = false;
-    }
 }
 
 function requestMatchmakingQueues() {
@@ -472,14 +441,6 @@ function getTeamSize(queue: string) {
     border-color: white;
 }
 
-.download-button-container {
-    align-self: center;
-    width: 400px;
-    text-align: center;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
 .disabled {
     cursor: not-allowed;
     opacity: 0.1;
@@ -603,15 +564,6 @@ function getTeamSize(queue: string) {
     transform: translate(-50%, -50%) scale(0);
     border-radius: 50%;
     transition: transform 0.4s ease;
-}
-.download-button-container {
-    align-self: center;
-    width: 500px;
-    //padding: 20px 40px;
-    text-align: center;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
 }
 .members-header {
     justify-content: space-between;

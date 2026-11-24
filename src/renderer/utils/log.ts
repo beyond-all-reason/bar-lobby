@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { logLevels } from "@shared/log-levels";
+import { logApi } from "@renderer/api/log";
+
 export class Logger {
     filename: string;
     constructor(filename: string) {
@@ -9,22 +12,26 @@ export class Logger {
     }
 
     debug(msg: string) {
-        window.log.log(this.filename, "debug", msg);
+        this.write("debug", msg);
     }
 
     info(msg: string) {
-        window.log.log(this.filename, "info", msg);
+        this.write("info", msg);
     }
 
     error(msg: string) {
-        window.log.log(this.filename, "error", msg);
+        this.write("error", msg);
     }
 
     fatal(msg: string) {
-        window.log.log(this.filename, "fatal", msg);
+        this.write("fatal", msg);
+    }
+
+    private write(level: logLevels, msg: string) {
+        logApi.log(this.filename, level, msg);
     }
 }
 
 export async function uploadLogs() {
-    return await window.log.upload();
+    return await logApi.upload();
 }

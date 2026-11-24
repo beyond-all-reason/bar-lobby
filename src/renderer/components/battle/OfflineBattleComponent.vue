@@ -162,8 +162,8 @@ function openMapOptions() {
 }
 
 function onGameSelected(gameVersion: string) {
+    // battle.store mirrors the selection into battleOptions.gameVersion.
     gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
-    battleStore.battleOptions.gameVersion = gameVersion;
 }
 
 function onMapSelected(map: MapData) {

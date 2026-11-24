@@ -19,6 +19,15 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { onKeyDown } from "@vueuse/core";
 import { isAnyModalOpen } from "@renderer/composables/useModalStack";
+import { watch } from "vue";
+import { useRoute } from "vue-router";
+
+// watch for route changes and close the lobby drawer when navigating to another view for example library
+const route = useRoute();
+watch(
+    () => route.path,
+    () => (battleStore.isLobbyOpened = false)
+);
 
 onKeyDown(
     "Escape",

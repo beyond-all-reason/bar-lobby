@@ -76,12 +76,13 @@ const fetchNewsRssFeed: FetchNewsRssFeed = async (numberOfNews) => {
 };
 
 let devlogFeed: NewsFeedData | null = null;
-const fetchDevlogRssFeed: FetchDevlogRssFeed = async () => {
+const fetchDevlogRssFeed: FetchDevlogRssFeed = async (numberOfNews) => {
     try {
         if (devlogFeed) {
             return devlogFeed;
         }
         devlogFeed = (await extract(configService.getConfig().devlogRssUrl, {}, {})) as NewsFeedData;
+        devlogFeed.entries = (devlogFeed.entries || []).sort((a, b) => new Date(b.published || "").getTime() - new Date(a.published || "").getTime()).slice(0, numberOfNews);
         return devlogFeed;
     } catch (error) {
         log.error("Error fetching devlog feed:", error);
@@ -90,7 +91,7 @@ const fetchDevlogRssFeed: FetchDevlogRssFeed = async () => {
 
 function registerIpcHandlers() {
     ipcMain.handle("misc:getNewsRssFeed", (_event, numberOfNews: number) => fetchNewsRssFeed(numberOfNews));
-    ipcMain.handle("misc:getDevlogRssFeed", () => fetchDevlogRssFeed());
+    ipcMain.handle("misc:getDevlogRssFeed", (_event, numberOfNews: number) => fetchDevlogRssFeed(numberOfNews));
 }
 
 export const miscService = {

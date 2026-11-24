@@ -12,6 +12,7 @@ import axios from "axios";
 import { logger } from "@main/utils/logger";
 import { LOG_FILE_NAME } from "@main/utils/log-file-name";
 import { configService } from "@main/services/config.service";
+import type { logLevels } from "@shared/log-levels";
 
 const PACK_COPY_GLOB = "*most_recent.log";
 
@@ -134,8 +135,6 @@ async function uploadLogFiles() {
 
     return uploadUrl;
 }
-
-export type logLevels = "debug" | "info" | "error" | "fatal";
 
 async function log(fileName: string, level: logLevels, msg: string) {
     const logInstance = logger(fileName, {

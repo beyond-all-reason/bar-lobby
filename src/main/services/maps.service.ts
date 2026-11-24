@@ -43,7 +43,6 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
-    ipcMain.handle("maps:downloadMap", (_, springName: string) => contentAPI.ensure([{ type: "map", id: springName }]));
     ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => contentAPI.ensure(springNames.map((springName) => ({ type: "map" as const, id: springName }))));
     ipcMain.handle("maps:getInstalledMapNames", () => contentAPI.installed("map").map((ref) => ref.id));
     ipcMain.handle("maps:isVersionInstalled", (_, id: string) => contentAPI.isPresent({ type: "map", id }));

@@ -35,6 +35,7 @@ import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onTachyonConnected } from "@renderer/utils/connection-signal";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { decodeLobbyStartboxes } from "@renderer/utils/lobby-startboxes";
 
@@ -67,7 +68,7 @@ export async function initLobbyStore() {
     window.tachyon.onEvent("lobby/updated", onLobbyUpdatedEvent);
     window.tachyon.onEvent("lobby/left", onLobbyLeftEvent);
     window.tachyon.onEvent("lobby/voteEnded", onLobbyVoteEndedEvent);
-    window.tachyon.onConnected(() => {
+    onTachyonConnected.add(() => {
         // The server drops the list subscription when the socket dies, and customLobbies.vue only
         // subscribes on activation, so a reconnect while sitting there would leave an empty list.
         if (lobbyStore.wantsListSubscription) {
