@@ -58,7 +58,7 @@ export const configSchema = Type.Object({
             FeatureDrawDistance: 10000,
             FeatureFadeDistance: 10000,
             ForceDisableShaders: 0,
-            Fullscreen: 0,
+            Fullscreen: 1,
             FullscreenEdgeMove: 1,
             GrassDetail: 0,
             GroundDecals: 2,
