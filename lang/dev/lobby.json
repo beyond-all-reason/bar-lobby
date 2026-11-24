@@ -642,7 +642,8 @@
                     "clickToReadMore": "Ccilk to raed more"
                 },
                 "devlogFeed": {
-                    "latestChanges": "Lasett cngaehs"
+                    "latestChanges": "Lasett cngaehs",
+                    "readMore": "Raed more…"
                 },
                 "preloader": {
                     "loading": "Lndiaog",
