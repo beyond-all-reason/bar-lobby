@@ -38,6 +38,10 @@ class NotificationsAPI {
         this.events.push(event);
     }
 
+    public onShowAlert(handler: (alertConfig: Omit<Alert, "id">) => void) {
+        return window.notifications.onShowAlert(handler);
+    }
+
     public closeNotification(notification: Alert | Event) {
         if (this.alerts.includes(notification)) {
             removeFromArray(this.alerts, notification);

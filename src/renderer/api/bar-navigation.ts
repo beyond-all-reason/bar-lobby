@@ -6,4 +6,5 @@ import { ipcCall } from "@renderer/api/ipc-call";
 
 export const barNavigationApi = {
     signalReady: () => ipcCall("renderer:ready", () => window.barNavigation.signalReady()),
+    onNavigateTo: (handler: (target: string) => void) => window.barNavigation.onNavigateTo(handler),
 };

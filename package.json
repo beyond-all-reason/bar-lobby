@@ -84,6 +84,7 @@
     "devDependencies": {
         "@electron-forge/cli": "^7.11.1",
         "@electron-forge/plugin-vite": "^7.11.1",
+        "@eslint/json": "^2.1.1",
         "@playwright/test": "^1.54.2",
         "@types/howler": "^2.2.12",
         "@types/luaparse": "^0.2.12",

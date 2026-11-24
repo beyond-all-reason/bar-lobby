@@ -111,6 +111,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import { chatStore } from "@renderer/store/chat.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { barNavigationApi } from "@renderer/api/bar-navigation";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -142,7 +143,7 @@ provide("toggleDownloads", toggleDownloads);
 
 playRandomMusic();
 
-window.barNavigation.onNavigateTo((target: string) => {
+barNavigationApi.onNavigateTo((target: string) => {
     router.push(target);
 });
 

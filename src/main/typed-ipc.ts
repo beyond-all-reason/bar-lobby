@@ -13,7 +13,7 @@ import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
 import type { Info } from "@main/services/info.service";
 import type { IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
-import type { logLevels } from "@main/services/log.service";
+import type { logLevels } from "@shared/log-levels";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";

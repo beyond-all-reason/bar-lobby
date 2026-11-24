@@ -7,5 +7,6 @@ import { ipcCall } from "@renderer/api/ipc-call";
 export const pathsApi = {
     selectFolder: () => ipcCall("paths:selectFolder", () => window.paths.selectFolder()),
     changePath: (newPath: string) => ipcCall("paths:changePath", () => window.paths.changePath(newPath)),
+    selectImages: () => ipcCall("paths:selectImages", () => window.paths.selectImages()),
     getCurrentAssetsPath: () => ipcCall("paths:getCurrentAssetsPath", () => window.paths.getCurrentAssetsPath()),
 };

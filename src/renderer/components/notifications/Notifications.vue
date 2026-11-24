@@ -29,7 +29,7 @@ const { t } = useTypedI18n();
 const notifications = notificationsApi;
 
 onMounted(() => {
-    window.notifications.onShowAlert((alertConfig) => {
+    notificationsApi.onShowAlert((alertConfig) => {
         notificationsApi.alert(alertConfig);
     });
     // Whatever asked for the content only learns that its request failed, so the reason is told here,
