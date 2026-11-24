@@ -214,7 +214,10 @@ async function removeFriend() {
             console.error(`Failed to remove friend with userId: ${props.userId}`, error);
         }
 
-        notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
+        notificationsApi.alert({
+            text: t("lobby.navbar.friends.notifications.errors.failedToRemove"),
+            severity: "error",
+        });
     }
 }
 </script>

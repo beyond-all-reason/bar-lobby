@@ -39,6 +39,6 @@ describe("Friend remove", () => {
         await flushPromises();
 
         expect(stubs.remove).toHaveBeenCalledWith("x");
-        expect(stubs.alert).toHaveBeenCalledWith({ severity: "error", text: "Failed to remove friend." });
+        expect(stubs.alert).toHaveBeenCalledWith({ text: "lobby.navbar.friends.notifications.errors.failedToRemove", severity: "error" });
     });
 });
