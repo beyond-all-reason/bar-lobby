@@ -50,6 +50,10 @@ SPDX-License-Identifier: MIT
                         :status="tutorialStatus(tutorial)"
                         :unplayable="singleplayerLogic.itemUnplayable(tutorial)"
                         :launch="() => singleplayerLogic.launch('tutorial', tutorial)"
+                        :suspended="singleplayerLogic.suspendedOf('tutorial', tutorial)"
+                        :discards-suspended="!!singleplayerLogic.suspendedOf('tutorial', tutorial)"
+                        :continue-launch="() => singleplayerLogic.continueMission('tutorial', tutorial)"
+                        :delete-suspended="() => singleplayerLogic.deleteSuspended('tutorial', tutorial)"
                         @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
                         @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
                     >

@@ -37,6 +37,7 @@ export type MissionLaunch = {
     gameVersion: string;
     // The archive's name as the engine knows it: the start script's gametype.
     archiveName: string;
+    archivePath: string;
     mapName: string;
     // Left out when the item ships the map: only installed or downloadable maps are for the content API.
     mapToEnsure?: string;
@@ -95,6 +96,7 @@ export function planMissionLaunch({ item, campaign }: LaunchTarget, install: Ins
     return {
         ...pair,
         archiveName: owner.archiveName,
+        archivePath: owner.archivePath,
         mapName,
         mapToEnsure: shipped ? undefined : mapName,
         dataDirs,

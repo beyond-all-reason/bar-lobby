@@ -23,6 +23,7 @@ import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
 import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
+import type { SuspendedChange, SuspendedMission } from "@shared/content/suspended-mission";
 import type { EngineSettingsView } from "@shared/engine-settings/view";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
@@ -58,6 +59,7 @@ export type IPCEvents = {
     "tachyon:event": (event: TachyonEvent) => void;
     "auth:changed": (state: AuthState) => void;
     "singleplayer:saveChanged": (change: SaveChange) => void;
+    "singleplayer:suspendedChanged": (change: SuspendedChange) => void;
     "engineSettings:changed": (view: EngineSettingsView) => void;
 };
 
@@ -139,6 +141,9 @@ export type IPCCommands = {
     "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
     "singleplayer:deleteAllSaves": () => IpcResult;
     "singleplayer:launch": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string) => IpcResult;
+    "singleplayer:getSuspended": () => IpcResult<SuspendedMission[]>;
+    "singleplayer:continueMission": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
+    "singleplayer:deleteSuspended": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
     "engineSettings:get": () => IpcResult<EngineSettingsView>;
     "engineSettings:set": (key: string, value: string) => IpcResult<EngineSettingsView>;
     "engineSettings:reset": (key: string) => IpcResult<EngineSettingsView>;

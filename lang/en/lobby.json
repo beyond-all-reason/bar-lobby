@@ -35,6 +35,8 @@
                     "saveUnusable": "Your saved progress can't be read, so this mission wasn't launched. Delete the save to start over.",
                     "saveVersionOlder": "This mission wasn't launched: your saved progress is from an older version of this content. Start over to play it.",
                     "saveVersionNewer": "This mission wasn't launched: your saved progress is from a newer version of this content. Update it to continue, or delete your save to play the installed version.",
+                    "suspendedMissing": "There is no saved game to continue.",
+                    "suspendedUnusable": "This saved game can't be continued with what is installed now.",
                     "launchFailed": "The mission couldn't be launched. The log has the details."
                 },
                 "savesLoadFailures": {
@@ -435,6 +437,21 @@
                 "tutorialSavesUnusable": "Your saved progress for some of these tutorials can't be read. It may be damaged, or saved by a newer version of the lobby. Those tutorials can't be played until their saves are deleted.",
                 "deleteUnusableSaves": "Delete unreadable saves",
                 "startOver": "Delete save and start over",
+                "suspended": {
+                    "savedAt": "Saved game from {date}",
+                    "continue": "Continue",
+                    "delete": "Delete saved game",
+                    "discardWarning": "Starting this mission from the beginning deletes your saved game.",
+                    "playFromStart": "Play from the beginning",
+                    "cancel": "Cancel",
+                    "unusable": {
+                        "engineUnavailable": "This saved game can't be continued: the engine version it was played on is no longer installed.",
+                        "gameUnavailable": "This saved game can't be continued: the game version it was played on is no longer installed.",
+                        "archiveChanged": "This saved game can't be continued: the mission has been updated since it was saved.",
+                        "saveVersionChanged": "This saved game can't be continued: the campaign has been updated since it was saved.",
+                        "missionUnavailable": "This saved game can't be continued: its mission is no longer available."
+                    }
+                },
                 "back": "Back",
                 "notInEdition": "Official campaigns are not part of this edition.",
                 "unplayable": {

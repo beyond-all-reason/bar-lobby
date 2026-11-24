@@ -73,6 +73,10 @@ archive.
                             :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
                             :unplayable="singleplayerLogic.itemUnplayable(selected)"
                             :launch="() => singleplayerLogic.launch('scenario', selected!)"
+                            :suspended="singleplayerLogic.suspendedOf('scenario', selected)"
+                            :discards-suspended="!!singleplayerLogic.suspendedOf('scenario', selected)"
+                            :continue-launch="() => singleplayerLogic.continueMission('scenario', selected!)"
+                            :delete-suspended="() => singleplayerLogic.deleteSuspended('scenario', selected!)"
                             @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
                             @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
                         >

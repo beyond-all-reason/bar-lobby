@@ -38,6 +38,8 @@ export interface MissionLaunchSettings {
     script: string;
     // Read by the engine after the assets: the mission archive's folder and the folders with the maps it ships.
     dataDirs: string[];
+    // Called once the process has closed, by which time the engine has finished writing any save made in the game.
+    onProcessClosed?: () => void;
 }
 
 export interface MultiplayerLaunchSettings {
@@ -95,10 +97,10 @@ export class GameAPI {
         });
     }
 
-    public async launchMission({ engineVersion, gameVersion, mapSpringName, script, dataDirs }: MissionLaunchSettings) {
+    public async launchMission({ engineVersion, gameVersion, mapSpringName, script, dataDirs, onProcessClosed }: MissionLaunchSettings) {
         const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
         await fs.promises.writeFile(scriptPath, script);
-        await this.launch({ engineVersion, gameVersion, mapSpringName, launchArg: scriptPath, dataDirs });
+        await this.launch({ engineVersion, gameVersion, mapSpringName, launchArg: scriptPath, dataDirs, onProcessClosed });
     }
 
     public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
@@ -115,12 +117,14 @@ export class GameAPI {
         mapSpringName,
         launchArg,
         dataDirs = [],
+        onProcessClosed,
     }: {
         engineVersion?: string;
         gameVersion?: string;
         mapSpringName?: string;
         launchArg?: string;
         dataDirs?: string[];
+        onProcessClosed?: () => void;
     }): Promise<void> {
         if (!engineVersion || !gameVersion || !launchArg) {
             throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
@@ -218,6 +222,7 @@ export class GameAPI {
                     log.debug(`Game process closed with exit code: ${exitCode}`);
                     if (this.closingProcess?.process === gameProcess) this.closingProcess = null;
                     void session.end();
+                    onProcessClosed?.();
                 });
                 log.debug(`Game process PID: ${this.gameProcess.pid}`);
             } catch (err) {
