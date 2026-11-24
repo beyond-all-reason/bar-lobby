@@ -108,6 +108,7 @@ export const configSchema = Type.Object({
             UsePBO: 1,
             Water: 4,
             WindowedEdgeMove: 1,
+            WindowBorderless: 1,
             WindowPosX: 0,
             WindowPosY: 0,
             snd_general: 100,
