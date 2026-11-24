@@ -18,6 +18,7 @@ vi.mock("@renderer/store/battle.store", async () => {
     const { reactive } = await import("vue");
     return { battleStore: reactive({ isLobbyOpened: false }) };
 });
+vi.mock("vue-router", () => ({ useRoute: () => ({ path: "/" }) }));
 vi.mock("@renderer/components/battle/OfflineBattleComponent.vue", () => ({ default: { name: "OfflineBattleComponent", template: "<div />" } }));
 
 function pressEscape() {
