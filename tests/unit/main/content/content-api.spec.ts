@@ -156,7 +156,6 @@ vi.mock("@main/content/maps/map-provider", () => {
     return {
         mapProvider: {
             ...stub,
-            downloadMap: stub.acquire,
             downloadMaps: stub.acquireMany,
             uninstallVersion: stub.remove,
             isRemovable: async (id: string) => !bundled.has(id),

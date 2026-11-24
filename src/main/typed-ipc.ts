@@ -113,7 +113,6 @@ export type IPCCommands = {
     "mainWindow:setDisplay": (id: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;
-    "maps:downloadMap": (springName: string) => void;
     "maps:downloadMaps": (springNames: string[]) => void;
     "maps:getInstalledMapNames": () => string[];
     "maps:isVersionInstalled": (springName: string) => boolean;

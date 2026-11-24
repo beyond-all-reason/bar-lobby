@@ -13,12 +13,6 @@ export enum MatchmakingStatus {
     MatchAccepted = "MatchAccepted",
 }
 
-type RequiredDownloads = {
-    engines: string[];
-    games: string[];
-    maps: string[];
-};
-
 type MatchmakingState = {
     status: MatchmakingStatus;
     errorMessage: string | null;
@@ -28,8 +22,6 @@ type MatchmakingState = {
     queueError?: string;
     playersReady?: number;
     playersQueued?: number;
-    // Each playlist is keyed by its id, and any array elements in the value object are required downloads for the corresponding type
-    downloadsRequired: { [k: string]: RequiredDownloads };
     readySecondsRemaining?: number;
 };
 
@@ -42,7 +34,6 @@ const state: MatchmakingState = reactive({
     queueError: undefined,
     playersReady: 0,
     playersQueued: 0,
-    downloadsRequired: {},
     readySecondsRemaining: undefined,
 });
 
@@ -58,15 +49,30 @@ export function getPlaylistName(id: string): string {
     return playlist?.name || id;
 }
 
+/**
+ * The engines, games and maps a queue needs, by the names content is looked up under.
+ */
+export function queueContent(
+    playlist:
+        | {
+              readonly engines: readonly { readonly version: string }[];
+              readonly games: readonly { readonly springName: string }[];
+              readonly maps: readonly { readonly springName: string }[];
+          }
+        | undefined
+) {
+    return {
+        engines: playlist?.engines.map((engine) => engine.version) ?? [],
+        games: playlist?.games.map((game) => game.springName) ?? [],
+        maps: playlist?.maps.map((map) => map.springName) ?? [],
+    };
+}
+
 export const matchmakingActions = {
-    set(changes: Partial<Omit<MatchmakingState, "downloadsRequired">>) {
+    set(changes: Partial<MatchmakingState>) {
         Object.assign(state, changes);
     },
-    setDownloadsRequired(queue: string, required: RequiredDownloads) {
-        state.downloadsRequired[queue] = required;
-    },
-    // selectedQueue is the user's pick, not server state, and downloadsRequired is derived from
-    // installed content rather than the session - the next list response recomputes it.
+    // selectedQueue is the user's pick, not server state, so it survives going offline.
     clearOnlineState() {
         Object.assign(state, {
             status: MatchmakingStatus.Idle,

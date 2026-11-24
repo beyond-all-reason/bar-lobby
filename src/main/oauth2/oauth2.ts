@@ -7,6 +7,7 @@ import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
 import { logger } from "@main/utils/logger";
 import { shell } from "electron";
+import { randomBytes } from "node:crypto";
 
 const log = logger("oauth2");
 
@@ -163,13 +164,12 @@ function parseTokenResponse(body: unknown, currentRefreshToken?: string): TokenR
 export async function authenticate(): Promise<TokenResponse> {
     const { authorizationEndpoint, tokenEndpoint } = await fetchAuthorizationServerMetadata();
     const [code_verifier, code_challenge] = generatePKCE();
-    const redirectHandler = new RedirectHandler();
+    const state = randomBytes(16).toString("base64url");
+    const redirectHandler = new RedirectHandler(state);
 
     try {
         const redirect_uri = await redirectHandler.start();
 
-        // TODO set state parameter to prevent CSRF attacks
-        // https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1
         const authorizationUrl = new URL(authorizationEndpoint);
         authorizationUrl.search = new URLSearchParams({
             client_id: OAUTH_CLIENT_ID,
@@ -178,6 +178,7 @@ export async function authenticate(): Promise<TokenResponse> {
             redirect_uri,
             code_challenge,
             code_challenge_method: "S256",
+            state,
         }).toString();
 
         openInBrowser(authorizationUrl.toString());

@@ -45,7 +45,6 @@ function populateOnlineState() {
         playersQueued: 12,
         selectedQueue: "2v2",
     });
-    matchmakingActions.setDownloadsRequired("2v2", { engines: [], games: [], maps: ["somemap"] });
 
     partyActions.set({ id: "party-1", members: [{ userId: "1", joinedAt: 0 }], maxMembers: 4, invited: [] }, "1");
 
@@ -160,13 +159,6 @@ describe("going offline", () => {
             expect(matchmakingStore.selectedQueue).toBe("2v2");
             expect(lobbyStore.wantsListSubscription).toBe(true);
             expect(chatStore.userChats.get("1")).toHaveLength(1);
-        });
-
-        // Views index downloadsRequired by queue id, so emptying it crashed the matchmaking page.
-        it("keeps the derived download requirements the views index into", async () => {
-            await connectionLogic.goOffline();
-
-            expect(matchmakingStore.downloadsRequired["2v2"]).toEqual({ engines: [], games: [], maps: ["somemap"] });
         });
 
         it("does not ask the dead socket to leave the party", async () => {
