@@ -201,7 +201,6 @@ export class GameAPI {
                     log.error(err);
                     void session.end();
                 });
-                const gameProcess = this.gameProcess;
                 this.gameProcess.addListener("exit", (code) => {
                     // Cleared before onGameClosed, whose listeners check isGameRunning. Without this, an engine
                     // that crashed or failed to load still counted as running, so new replays were queued

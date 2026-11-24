@@ -6,7 +6,6 @@ import { EventEmitter } from "node:events";
 import path from "node:path";
 import type { Replay } from "@main/replays/replay";
 import { EditionRefusalError } from "@shared/edition";
-import { EventEmitter } from "node:events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { ensure, spawn, session, beginSession } = vi.hoisted(() => {
@@ -271,18 +270,13 @@ describe("GameAPI engine settings session", () => {
     });
 });
 
-// A stand-in for the engine process: tests emit its log lines and its exit.
-function fakeProcess() {
-    return Object.assign(new EventEmitter(), { stdout: new EventEmitter(), stderr: new EventEmitter(), pid: 1 });
-}
-
 describe("GameAPI process state", () => {
     let game: GameAPI;
-    let proc: ReturnType<typeof fakeProcess>;
+    let proc: ReturnType<typeof fakeProcess>["proc"];
 
     beforeEach(() => {
         ensure.mockReset().mockResolvedValue(undefined);
-        proc = fakeProcess();
+        proc = fakeProcess().proc;
         spawn.mockReset().mockReturnValue(proc);
         game = new GameAPI();
     });
