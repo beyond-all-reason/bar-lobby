@@ -14,7 +14,7 @@ const appData = path.join(root, "AppData", "Roaming");
 const xdgState = path.join(root, "xdg-state");
 const xdgData = path.join(root, "xdg-data");
 
-const touchedEnv = ["BAR_ASSETS_PATH", "BAR_STATE_PATH", "APPDATA", "XDG_STATE_HOME", "XDG_DATA_HOME"] as const;
+const touchedEnv = ["BAR_ASSETS_PATH", "BAR_STATE_PATH", "BAR_CONTENT_PATH", "BAR_CUSTOM_CONTENT_PATH", "APPDATA", "XDG_STATE_HOME", "XDG_DATA_HOME"] as const;
 const savedEnv: Partial<Record<(typeof touchedEnv)[number], string | undefined>> = {};
 const savedPlatform = process.platform;
 
@@ -119,11 +119,54 @@ describe("app paths", () => {
             expect(paths.STATE_PATH).toBe(path.join(xdgState, "BeyondAllReason"));
         });
 
+        it("falls back to the Linux XDG paths on an unsupported platform", async () => {
+            const paths = await loadPaths({ edition: "standalone", platform: "darwin" });
+
+            expect(paths.getAssetsPath()).toBe(path.join(xdgData, "BeyondAllReason", "assets"));
+            expect(paths.STATE_PATH).toBe(path.join(xdgState, "BeyondAllReason"));
+        });
+
         it("downloads into the assets dir and may remove maps from every maps dir", async () => {
             const paths = await loadPaths({ edition: "standalone", platform: "win32" });
 
             expect(paths.getContentWriteRoot()).toBe(paths.getAssetsPath());
             expect(paths.getRemovableMapsPaths()).toEqual(paths.getMapsPaths());
+        });
+    });
+
+    describe("singleplayer content roots", () => {
+        it("reads official content from the assets dir, then custom content from the state dir, on steam", async () => {
+            const paths = await loadPaths({ edition: "steam", platform: "win32" });
+
+            expect(paths.getContentRoots()).toEqual([
+                { source: "official", rootId: "official", path: path.join(installDir, "assets", "content") },
+                { source: "custom", rootId: "custom", path: path.join(paths.STATE_PATH, "content") },
+            ]);
+        });
+
+        // Even with depot files copied into its assets dir, a standalone build never reads them as official.
+        it("reads only custom content, from the state dir, on standalone", async () => {
+            const paths = await loadPaths({ edition: "standalone", platform: "win32" });
+
+            expect(paths.getContentRoots()).toEqual([{ source: "custom", rootId: "custom", path: path.join(paths.STATE_PATH, "content") }]);
+        });
+
+        it("lets BAR_CONTENT_PATH and BAR_CUSTOM_CONTENT_PATH move the roots when unpackaged", async () => {
+            process.env.BAR_CONTENT_PATH = path.join(root, "official-content");
+            process.env.BAR_CUSTOM_CONTENT_PATH = path.join(root, "custom-content");
+
+            const paths = await loadPaths({ edition: "steam", platform: "linux", isPackaged: false });
+
+            expect(paths.getContentRoots().map((contentRoot) => contentRoot.path)).toEqual([path.join(root, "official-content"), path.join(root, "custom-content")]);
+        });
+
+        it("ignores the content path overrides when packaged", async () => {
+            process.env.BAR_CONTENT_PATH = path.join(root, "official-content");
+            process.env.BAR_CUSTOM_CONTENT_PATH = path.join(root, "custom-content");
+
+            const paths = await loadPaths({ edition: "steam", platform: "linux" });
+
+            expect(paths.getContentRoots().map((contentRoot) => contentRoot.path)).toEqual([path.join(paths.getAssetsPath(), "content"), path.join(paths.STATE_PATH, "content")]);
         });
     });
 });

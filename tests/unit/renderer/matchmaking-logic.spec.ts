@@ -22,16 +22,16 @@ vi.mock("@renderer/api/tachyon", async (importOriginal) => ({
 }));
 vi.mock("@renderer/api/content", () => ({ contentApi: { missing: api.missing } }));
 vi.mock("@renderer/api/game", () => ({ gameApi: { onClosed: (handler: () => void) => api.gameClosed.push(handler) } }));
-vi.mock("@renderer/store/tachyon.store", () => ({ tachyonStore: { isConnected: false } }));
+vi.mock("@renderer/store/connection.store", () => ({ connectionStore: { isConnected: false } }));
 
 const { TachyonIpcError, TachyonRequestError } = await import("@renderer/api/tachyon");
-const { MatchmakingStatus, matchmakingStore, matchmakingUpdates } = await import("@renderer/store/matchmaking.store");
+const { MatchmakingStatus, matchmakingStore, matchmakingActions } = await import("@renderer/store/matchmaking.store");
 const { MatchmakingJoinRefused, matchmakingLogic, initMatchmakingLogic } = await import("@renderer/logic/matchmaking");
 const { provideUi } = await import("@renderer/logic/ui");
 const { onTachyonConnected } = await import("@renderer/utils/connection-signal");
 const { onWentOffline } = await import("@renderer/utils/offline-signal");
 
-const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn() };
+const ui = { matchWaiting: vi.fn(), queuesJoined: vi.fn(), queueListFailed: vi.fn(), userSubscribeFailed: vi.fn(), userUnsubscribeFailed: vi.fn(), friendListFailed: vi.fn() };
 
 const emit = (commandId: string, data?: unknown) => api.handlers.get(commandId)?.(data);
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -67,7 +67,7 @@ describe("matchmaking logic", () => {
 
     beforeEach(() => {
         onWentOffline.dispatch();
-        matchmakingUpdates.set({ selectedQueue: "1v1" });
+        matchmakingActions.set({ selectedQueue: "1v1" });
         api.tachyonRequest.mockReset();
         api.missing.mockReset().mockResolvedValue([]);
         Object.values(ui).forEach((fn) => fn.mockClear());
@@ -78,15 +78,13 @@ describe("matchmaking logic", () => {
     });
 
     describe("listing queues", () => {
-        it("takes the playlists and works out what each one still needs downloaded", async () => {
+        it("takes the playlists and selects the first when the selection is not among them", async () => {
             respondTo({ "matchmaking/list": () => ({ status: "success", data: { playlists: [playlist("2v2", ["somemap"])] } }) });
-            api.missing.mockResolvedValue([{ type: "map", id: "somemap" }]);
 
             await matchmakingLogic.listQueues();
 
             expect(matchmakingStore.playlists.map((p) => p.id)).toEqual(["2v2"]);
             expect(matchmakingStore.selectedQueue).toBe("2v2");
-            expect(matchmakingStore.downloadsRequired["2v2"]).toEqual({ engines: [], games: [], maps: ["somemap"] });
             expect(matchmakingStore.isLoadingQueues).toBe(false);
         });
 
@@ -113,8 +111,7 @@ describe("matchmaking logic", () => {
 
     describe("joining a queue", () => {
         beforeEach(() => {
-            matchmakingUpdates.set({ playlists: [playlist("1v1")], selectedQueue: "1v1" });
-            matchmakingUpdates.setDownloadsRequired("1v1", { engines: [], games: [], maps: [] });
+            matchmakingActions.set({ playlists: [playlist("1v1")], selectedQueue: "1v1" });
         });
 
         it("sends the selected playlist and starts searching", async () => {
@@ -127,7 +124,7 @@ describe("matchmaking logic", () => {
         });
 
         it("refuses without asking the server while downloads are still needed", async () => {
-            matchmakingUpdates.setDownloadsRequired("1v1", { engines: [], games: [], maps: ["somemap"] });
+            api.missing.mockResolvedValue([{ type: "map", id: "somemap" }]);
 
             await expect(matchmakingLogic.joinQueue()).rejects.toEqual(new MatchmakingJoinRefused("downloads_required"));
 
@@ -135,13 +132,29 @@ describe("matchmaking logic", () => {
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         });
 
-        it("refreshes the list and refuses when the selected queue has no download data", async () => {
-            matchmakingUpdates.set({ selectedQueue: "unknown" });
-            respondTo({ "matchmaking/list": () => ({ status: "success", data: { playlists: [playlist("1v1")] } }) });
+        // Leaving Idle is what takes the join button away, so it must happen before the content check is awaited.
+        it("leaves Idle before checking content, so a second click cannot send a second request", async () => {
+            let answerCheck: (missing: unknown[]) => void = () => {};
+            api.missing.mockReturnValue(new Promise((resolve) => (answerCheck = resolve)));
+            respondTo({ "matchmaking/queue": () => ({ status: "success" }) });
 
-            await expect(matchmakingLogic.joinQueue()).rejects.toEqual(new MatchmakingJoinRefused("bad_queue_data"));
+            const joining = matchmakingLogic.joinQueue();
+            expect(matchmakingStore.status).toBe(MatchmakingStatus.JoinRequested);
 
-            expect(api.tachyonRequest).toHaveBeenCalledWith("matchmaking/list");
+            answerCheck([]);
+            await joining;
+
+            expect(api.tachyonRequest).toHaveBeenCalledTimes(1);
+        });
+
+        it("goes back to Idle when the content check fails", async () => {
+            const failure = new Error("content:missing failed");
+            api.missing.mockRejectedValue(failure);
+
+            await expect(matchmakingLogic.joinQueue()).rejects.toBe(failure);
+
+            expect(api.tachyonRequest).not.toHaveBeenCalled();
+            expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         });
 
         it("lets a version mismatch through first, then refreshes the list and goes idle", async () => {
@@ -162,18 +175,15 @@ describe("matchmaking logic", () => {
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         });
 
-        it("lets a missing queue through first, then refreshes the list and goes idle", async () => {
-            matchmakingUpdates.set({ selectedQueue: "2v2" });
-            matchmakingUpdates.setDownloadsRequired("2v2", { engines: [], games: [], maps: [] });
-            let finishList: (response: unknown) => void = () => {};
-            respondTo({ "matchmaking/list": () => new Promise((resolve) => (finishList = resolve)) });
+        it("refreshes the list and refuses when the selected queue is not listed", async () => {
+            matchmakingActions.set({ selectedQueue: "2v2" });
+            respondTo({ "matchmaking/list": () => ({ status: "success", data: { playlists: [playlist("1v1")] } }) });
 
             await expect(matchmakingLogic.joinQueue()).rejects.toEqual(new MatchmakingJoinRefused("queue_not_found"));
-            expect(matchmakingStore.status).toBe(MatchmakingStatus.JoinRequested);
-
-            finishList({ status: "success", data: { playlists: [playlist("1v1")] } });
             await flush();
 
+            expect(api.tachyonRequest).toHaveBeenCalledWith("matchmaking/list");
+            expect(api.tachyonRequest).not.toHaveBeenCalledWith("matchmaking/queue", expect.anything());
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         });
 
@@ -199,7 +209,7 @@ describe("matchmaking logic", () => {
         });
 
         it("goes idle straight away on cancel, before the server answers", async () => {
-            matchmakingUpdates.set({ status: MatchmakingStatus.Searching });
+            matchmakingActions.set({ status: MatchmakingStatus.Searching });
             respondTo({ "matchmaking/cancel": () => new Promise(() => {}) });
 
             void matchmakingLogic.cancel();
@@ -237,7 +247,7 @@ describe("matchmaking logic", () => {
     });
 
     it("goes idle when the game closes", () => {
-        matchmakingUpdates.set({ status: MatchmakingStatus.MatchAccepted });
+        matchmakingActions.set({ status: MatchmakingStatus.MatchAccepted });
 
         api.gameClosed.forEach((handler) => handler());
 

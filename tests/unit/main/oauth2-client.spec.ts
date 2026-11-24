@@ -15,9 +15,12 @@ const redirect = vi.hoisted(() => ({
     start: vi.fn(),
     waitForCallback: vi.fn(),
     close: vi.fn(),
+    expectedState: undefined as string | undefined,
 }));
 
-vi.mock("electron", () => ({ shell: { openExternal: vi.fn() } }));
+const openExternal = vi.hoisted(() => vi.fn());
+
+vi.mock("electron", () => ({ shell: { openExternal } }));
 
 vi.mock("@main/config/server", () => ({
     OAUTH_CLIENT_ID: "generic_lobby",
@@ -28,6 +31,9 @@ vi.mock("@main/config/server", () => ({
 
 vi.mock("@main/oauth2/redirect-handler", () => ({
     default: class {
+        constructor(expectedState: string) {
+            redirect.expectedState = expectedState;
+        }
         start = redirect.start;
         waitForCallback = redirect.waitForCallback;
         close = redirect.close;
@@ -231,5 +237,23 @@ describe("interactive sign in", () => {
 
         await expect(authenticate()).rejects.toThrow();
         expect(redirect.close).toHaveBeenCalled();
+    });
+
+    // The redirect handler only accepts callbacks carrying the state the authorization request sent.
+    it("sends the state the redirect handler expects, fresh for each sign in", async () => {
+        respondWith(json(metadata), json(tokens), json(metadata), json(tokens));
+
+        const sentState = async () => {
+            await authenticate();
+            const authorizationUrl = new URL(openExternal.mock.lastCall![0]);
+            expect(authorizationUrl.searchParams.get("state")).toBe(redirect.expectedState);
+            return redirect.expectedState;
+        };
+
+        const first = await sentState();
+        const second = await sentState();
+
+        expect(first).toBeTruthy();
+        expect(second).not.toBe(first);
     });
 });

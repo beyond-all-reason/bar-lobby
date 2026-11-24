@@ -19,7 +19,8 @@ export default defineConfig({
                 "parse-replay-worker": path.resolve(__dirname, "src/main/replays/parse-replay-worker.ts"),
                 "map-image-worker": path.resolve(__dirname, "src/main/content/maps/map-image-worker.ts"),
             },
-            external: ["fs/promises"],
+            // 7zip-bin finds its binary from its own folder, so bundling it would point at the build output instead.
+            external: ["fs/promises", "7zip-bin"],
         },
         lib: {
             entry: path.resolve(__dirname, "src/main/main.ts"),

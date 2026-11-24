@@ -60,6 +60,7 @@ import type { MapFilterState } from "@renderer/components/maps/filters/map-filte
 
 import { useInfiniteScroll } from "@vueuse/core";
 import { useTypedI18n, type TranslationKey } from "@renderer/i18n";
+import { editionLogic } from "@renderer/logic/edition";
 const { t } = useTypedI18n();
 
 const props = defineProps<{
@@ -98,7 +99,7 @@ function filteredMaps() {
 
     return db.maps.filter((map) => {
         const favorites = !filters.favoritesOnly || map.isFavorite;
-        const downloaded = !filters.downloadedOnly || map.isInstalled;
+        const downloaded = (!filters.downloadedOnly && editionLogic.canAcquire("map")) || map.isInstalled;
         return Boolean(
             map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
                 filters.minPlayers <= map.playerCountMax &&

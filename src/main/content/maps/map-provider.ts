@@ -165,10 +165,6 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
         this.onDownloadComplete.dispatch(downloadInfo);
     }
 
-    public async downloadMap(springName: string) {
-        return this.downloadMaps([springName]);
-    }
-
     /**
      * Whether removing the map would leave it gone. A copy in a directory that is not ours to delete from
      * (the read-only assets root) would survive, so the map is not removable at all, even when another

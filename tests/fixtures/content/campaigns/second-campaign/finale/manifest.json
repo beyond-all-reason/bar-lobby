@@ -1,0 +1,9 @@
+{
+    "missionId": "finale",
+    "titleKey": "missions.finale.title",
+    "descriptionKey": "missions.finale.description",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    }
+}

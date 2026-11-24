@@ -35,6 +35,14 @@ SPDX-License-Identifier: MIT
             >{{ t("lobby.components.controls.downloadContentButton.verifyGameFiles") }}</Button
         >
         <Button
+            v-else-if="mapUnavailable"
+            class="red quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            disabled
+            style="min-height: unset"
+            >{{ t("lobby.components.controls.downloadContentButton.mapUnavailable") }}</Button
+        >
+        <Button
             v-else
             class="red quick-download-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
@@ -47,14 +55,13 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { contentRefs, contentsStore, ensureContent, inFlightFor } from "@renderer/store/contents.store";
-import { contentApi } from "@renderer/api/content";
-import { ContentRef } from "@main/content/content-ref";
+import { useMissingContent } from "@renderer/composables/useMissingContent";
 import { editionLogic } from "@renderer/logic/edition";
 import { isInProgress } from "@main/content/content-state";
 
@@ -77,27 +84,19 @@ const refs = computed(() => contentRefs({ maps, engines, games }));
 // Undefined until the first answer comes back. Meanwhile the play button shows but stays disabled, so the
 // button never offers to play unchecked content, nor flashes a download or verify prompt for content
 // that turns out to be installed.
-const missing = ref<ContentRef[] | undefined>(undefined);
-
-watch(
-    [refs, () => contentsStore.revision],
-    async (_current, _previous, onCleanup) => {
-        // Answers can arrive out of the order they were asked in, and a stale one would decide whether the
-        // button offers to play.
-        let superseded = false;
-        onCleanup(() => (superseded = true));
-
-        const answer = await contentApi.missing(refs.value);
-        if (!superseded) {
-            missing.value = answer;
-        }
-    },
-    { immediate: true }
-);
+const missing = useMissingContent(refs);
 
 const ready = computed(() => missing.value?.length === 0);
 
-const needsGameFilesVerified = computed(() => !!missing.value?.some((ref) => !editionLogic.canAcquire(ref.type)));
+const unacquirable = computed(() => missing.value?.filter((ref) => !editionLogic.canAcquire(ref.type)) ?? []);
+
+// A missing engine or game means a damaged install. Checked first, since verifying the files is the
+// only thing that helps then.
+const needsGameFilesVerified = computed(() => unacquirable.value.some((ref) => ref.type !== "map"));
+
+// A map that was never part of the install cannot be had at all. Anything else missing alongside it
+// still is not offered for download, since playing would need the map regardless.
+const mapUnavailable = computed(() => unacquirable.value.length > 0);
 
 const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
 

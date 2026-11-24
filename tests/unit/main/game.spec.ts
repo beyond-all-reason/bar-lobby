@@ -1,0 +1,87 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
+import path from "node:path";
+import type { Replay } from "@main/replays/replay";
+import { EditionRefusalError } from "@shared/edition";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { ensure, spawn } = vi.hoisted(() => ({ ensure: vi.fn(), spawn: vi.fn() }));
+
+vi.mock("child_process", () => ({ spawn }));
+vi.mock("fs", () => ({ promises: { writeFile: vi.fn(async () => undefined) } }));
+vi.mock("@main/content/content-api", () => ({ contentAPI: { ensure, markUsed: vi.fn(async () => undefined) } }));
+vi.mock("@main/game/springsettings", () => ({ applyDefaultSpringsettings: vi.fn() }));
+vi.mock("@main/utils/start-script-converter", () => ({ startScriptConverter: { generateScriptStr: vi.fn(async () => "[game] {}") } }));
+vi.mock("@main/utils/logger", () => ({ logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock("@main/config/app", () => ({ WRITE_DATA_PATH: "/state/data", REPLAYS_PATH: "/state/data/demos", getEnginePath: () => "/assets/engine", getAssetsPath: () => "/assets" }));
+
+import { GameAPI } from "@main/game/game";
+
+const script = `[game] {
+    mapname=Quicksilver 1.2;
+    gametype=Beyond All Reason test-1-abc;
+}`;
+
+describe("GameAPI launch", () => {
+    let game: GameAPI;
+
+    beforeEach(() => {
+        ensure.mockReset().mockResolvedValue(undefined);
+        // Spawning is where these tests stop: anything that reaches it has already passed the content check.
+        spawn.mockReset().mockImplementation(() => {
+            throw new Error("spawned");
+        });
+        game = new GameAPI();
+    });
+
+    it("asks for the map along with the engine and game", async () => {
+        await expect(game.launchScript({ engineVersion: "2025.01.3", gameVersion: "byar:test", script })).rejects.toThrow("spawned");
+
+        expect(ensure).toHaveBeenCalledWith([
+            { type: "engine", id: "2025.01.3" },
+            { type: "game", id: "Beyond All Reason test-1-abc" },
+            { type: "map", id: "Quicksilver 1.2" },
+        ]);
+    });
+
+    // Which content is refused is up to ensure, which is mocked here, so one refusal stands for all of them.
+    it("does not start the game when content cannot be had", async () => {
+        ensure.mockRejectedValue(new EditionRefusalError("content_unavailable_in_edition", "missing"));
+
+        await expect(game.launchReplay({ engineVersion: "2025.01.3", gameVersion: "Beyond All Reason test-1-abc", mapSpringName: "Quicksilver 1.2", fileName: "a.sdfz" } as Replay)).rejects.toThrow(
+            "content_unavailable_in_edition"
+        );
+
+        expect(spawn).not.toHaveBeenCalled();
+    });
+
+    it("leaves the map out when the launch does not name one", async () => {
+        await expect(game.launchMultiplayer({ engineVersion: "2025.01.3", gameVersion: "Beyond All Reason test-1-abc", springString: "spring://host" })).rejects.toThrow("spawned");
+
+        expect(ensure).toHaveBeenCalledWith([
+            { type: "engine", id: "2025.01.3" },
+            { type: "game", id: "Beyond All Reason test-1-abc" },
+        ]);
+    });
+
+    // The mission archive and a map the mission ships are on the engine's path, but aren't content to fetch.
+    it("launches a mission with its own data directories, asking only for the engine and base game", async () => {
+        const dataDirs = ["/content/campaigns/sample", "/content/campaigns/sample/shared", "/content/campaigns/sample/mission01"];
+
+        await expect(game.launchMission({ engineVersion: "2026.07.04", gameVersion: "Beyond All Reason test-31820-45ea098", script: "[game] {}", dataDirs })).rejects.toThrow("spawned");
+
+        expect(ensure).toHaveBeenCalledWith([
+            { type: "engine", id: "2026.07.04" },
+            { type: "game", id: "Beyond All Reason test-31820-45ea098" },
+        ]);
+        expect(spawn.mock.calls[0][2].env.SPRING_DATADIR).toBe(["/assets", ...dataDirs].join(path.delimiter));
+    });
+
+    it("gives other launches the assets alone", async () => {
+        await expect(game.launchScript({ engineVersion: "2025.01.3", gameVersion: "byar:test", script })).rejects.toThrow("spawned");
+
+        expect(spawn.mock.calls[0][2].env.SPRING_DATADIR).toBe("/assets");
+    });
+});

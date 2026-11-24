@@ -21,6 +21,8 @@ import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/on
 import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
+import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
+import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
@@ -57,6 +59,7 @@ export type IPCEvents = {
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
     "auth:changed": (state: AuthState) => void;
+    "singleplayer:saveChanged": (change: SaveChange) => void;
 };
 
 export type IPCCommands = {
@@ -111,7 +114,6 @@ export type IPCCommands = {
     "mainWindow:setDisplay": (id: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;
-    "maps:downloadMap": (springName: string) => void;
     "maps:downloadMaps": (springNames: string[]) => void;
     "maps:getInstalledMapNames": () => string[];
     "maps:isVersionInstalled": (springName: string) => boolean;
@@ -131,6 +133,13 @@ export type IPCCommands = {
     "replays:searchOnlineByPlayer": (username: string, limit: number) => IpcResult<OnlineReplayOverview[]>;
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
+    "singleplayer:list": () => IpcResult<SingleplayerContent>;
+    "singleplayer:getSaves": () => IpcResult<SingleplayerSaves>;
+    "singleplayer:recordResult": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult) => IpcResult<SingleplayerSave>;
+    "singleplayer:setDifficulty": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, difficulty: string) => IpcResult<SingleplayerSave>;
+    "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
+    "singleplayer:deleteAllSaves": () => IpcResult;
+    "singleplayer:launch": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string) => IpcResult;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;
     "customLobbies:update": (data: Partial<CustomLobbiesPreferences>) => Partial<CustomLobbiesPreferences>;

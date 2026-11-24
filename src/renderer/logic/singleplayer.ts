@@ -1,0 +1,523 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
+import { computed, type DeepReadonly, watch } from "vue";
+import type { IpcResult } from "@main/typed-ipc";
+import { singleplayerApi } from "@renderer/api/singleplayer";
+import type { TranslationKey } from "@renderer/i18n";
+import { editionLogic } from "@renderer/logic/edition";
+import { installedEngineVersions } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
+import { infosStore } from "@renderer/store/infos.store";
+import { me } from "@renderer/store/me.store";
+import { singleplayerStore, singleplayerActions } from "@renderer/store/singleplayer.store";
+import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
+import { chosenDifficulty, ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
+import { describeCompatibility, isCompatible } from "@shared/content/compatibility";
+import { FALLBACK_LOCALE, type LanguageTables, resolveContentText } from "@shared/content/content-text";
+import { type Compatibility, DEV_COMPATIBILITY, DIFFICULTIES, type Difficulty, type ItemCompatibility } from "@shared/content/schema/common";
+import type {
+    ContentSource,
+    ItemDifficulties,
+    SingleplayerCampaign,
+    SingleplayerItemRef,
+    SingleplayerKind,
+    SingleplayerLaunchFailure,
+    SingleplayerLoadFailure,
+    SingleplayerMission,
+    SingleplayerScenario,
+} from "@shared/content/singleplayer";
+
+let isInitialized = false;
+
+// Changes to the store's saves apply one at a time, in the order they arrive. A load holds back whatever
+// arrives while it waits for main, so its copy of the saves can't overwrite a change made since.
+let savesQueue: Promise<unknown> = Promise.resolve();
+
+function inOrder<T>(task: () => T | Promise<T>): Promise<T> {
+    const run = savesQueue.then(task);
+    savesQueue = run.catch(() => {});
+
+    return run;
+}
+
+// Keeps the store's saves current with every change main makes to them, not only the ones asked for here.
+export function initSingleplayerLogic() {
+    if (isInitialized) {
+        return;
+    }
+
+    singleplayerApi.onSaveChanged(({ item, save }) => inOrder(() => singleplayerActions.saveChanged(saveKey(item.kind, item), save)));
+    logUnplayable();
+    isInitialized = true;
+}
+
+// A scenario or tutorial, by what its save is kept under.
+type ItemRef = SingleplayerItemRef & { kind: "scenario" | "tutorial" };
+
+// Keyed on every reason main can give for failing a load, so a new one does not compile until it has wording.
+const contentLoadFailureKeys: Record<SingleplayerLoadFailure, TranslationKey> = {
+    load_failed: "lobby.logic.singleplayer.contentLoadFailures.loadFailed",
+};
+
+const savesLoadFailureKeys: Record<SingleplayerLoadFailure, TranslationKey> = {
+    load_failed: "lobby.logic.singleplayer.savesLoadFailures.loadFailed",
+};
+
+// Keyed on every reason main can give for not changing a save, so a new one does not compile until it has wording.
+const saveFailureKeys: Record<SaveFailure, TranslationKey> = {
+    save_unusable: "lobby.logic.singleplayer.saveFailures.saveUnusable",
+    save_version_older: "lobby.logic.singleplayer.saveFailures.saveVersionOlder",
+    save_version_newer: "lobby.logic.singleplayer.saveFailures.saveVersionNewer",
+    invalid_result: "lobby.logic.singleplayer.saveFailures.invalidResult",
+    invalid_difficulty: "lobby.logic.singleplayer.saveFailures.invalidDifficulty",
+    unknown_item: "lobby.logic.singleplayer.saveFailures.unknownItem",
+    save_failed: "lobby.logic.singleplayer.saveFailures.saveFailed",
+};
+
+// Keyed on every reason main can give for not launching, so a new one does not compile until it has wording.
+const launchFailureKeys: Record<SingleplayerLaunchFailure, TranslationKey> = {
+    unknown_item: "lobby.logic.singleplayer.launchFailures.unknownItem",
+    no_archive: "lobby.logic.singleplayer.launchFailures.noArchive",
+    no_engine_and_game: "lobby.logic.singleplayer.launchFailures.noEngineAndGame",
+    map_unavailable: "lobby.logic.singleplayer.launchFailures.mapUnavailable",
+    save_unusable: "lobby.logic.singleplayer.launchFailures.saveUnusable",
+    save_version_older: "lobby.logic.singleplayer.launchFailures.saveVersionOlder",
+    save_version_newer: "lobby.logic.singleplayer.launchFailures.saveVersionNewer",
+    launch_failed: "lobby.logic.singleplayer.launchFailures.launchFailed",
+};
+
+// The data main gave, or the reason it gave for failing if it is one of `reasons`. Any other reason, or a call
+// that never reached main, which ipcCall has logged, fails as `fallback`.
+async function fromMain<T, R extends string>(call: () => Promise<IpcResult<T>>, reasons: Record<R, unknown>, fallback: R): Promise<{ data: T } | { reason: R }> {
+    const result = await call().catch(() => undefined);
+    if (result?.status === "success") {
+        return { data: result.data };
+    }
+
+    return { reason: result && result.reason in reasons ? (result.reason as R) : fallback };
+}
+
+// Counts content loads, so only the latest one started sets the store's content; an earlier one that
+// finishes after it would otherwise put back older content.
+let latestLoad = 0;
+
+// Rescans the content roots, so content added since the last load shows up. Saves are read the first time
+// only: main writes every change to them, and the store already has each one it returned.
+async function loadContent() {
+    const load = ++latestLoad;
+    singleplayerActions.loading();
+    const [listed] = await Promise.all([fromMain(() => singleplayerApi.list(), contentLoadFailureKeys, "load_failed"), singleplayerStore.savesLoaded ? undefined : loadSaves()]);
+    if (load !== latestLoad) {
+        return;
+    }
+    if ("reason" in listed) {
+        singleplayerActions.failed(listed.reason);
+    } else {
+        singleplayerActions.loaded(listed.data);
+    }
+}
+
+// A failure is kept apart from the content's own, so the content still shows, and is tried again next load.
+function loadSaves() {
+    return inOrder(async () => {
+        // A load queued behind another that succeeded has nothing left to do.
+        if (singleplayerStore.savesLoaded) {
+            return;
+        }
+        const read = await fromMain(() => singleplayerApi.getSaves(), savesLoadFailureKeys, "load_failed");
+        if ("reason" in read) {
+            singleplayerActions.savesLoadFailed(read.reason);
+        } else {
+            singleplayerActions.savesLoaded(read.data);
+        }
+    });
+}
+
+// Why the last content load failed, if it did, as the message to show.
+function loadErrorOf(): TranslationKey | undefined {
+    return singleplayerStore.loadError && contentLoadFailureKeys[singleplayerStore.loadError];
+}
+
+// Why the saves couldn't be read, if they couldn't, as the message to show.
+function savesLoadErrorOf(): TranslationKey | undefined {
+    return singleplayerStore.savesLoadError && savesLoadFailureKeys[singleplayerStore.savesLoadError];
+}
+
+const noProgress: ItemProgress = { plays: {} };
+
+function saveOf(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.saves.get(saveKey(kind, ref));
+}
+
+// Whether the item has a save that can't be used, such as a damaged file. Main refuses every result for it
+// until it is deleted.
+function saveUnusable(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.unusableSaves.has(saveKey(kind, ref));
+}
+
+// Whether main refused the last result for the item because its save is from a newer version of the content.
+// Deleting the save is how the player gets to play the installed version. Launching checks the save first, so a
+// mission isn't played only for its result to be refused.
+function refusedAsNewer(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    return singleplayerStore.saveErrors.get(saveKey(kind, ref)) === "save_version_newer";
+}
+
+// Whether the campaign's save, if it has one, can be used: whether it can be read at all, and was started
+// under the campaign's current saveVersion.
+function campaignSaveStatus(campaign: SingleplayerCampaign): SaveCompatibility | "unusable" {
+    if (saveUnusable("campaign", campaign)) {
+        return "unusable";
+    }
+    const save = saveOf("campaign", campaign);
+
+    return save ? saveCompatibility(save, campaign.config.saveVersion) : "compatible";
+}
+
+// A save that can't be used counts as no progress until the player starts over.
+function campaignProgress(campaign: SingleplayerCampaign): ItemProgress {
+    return (campaignSaveStatus(campaign) === "compatible" && saveOf("campaign", campaign)) || noProgress;
+}
+
+function campaignState(campaign: SingleplayerCampaign): CampaignState {
+    return stateOf(campaign.config, campaignProgress(campaign));
+}
+
+function campaignCompleted(campaign: SingleplayerCampaign) {
+    return campaignState(campaign).finished;
+}
+
+// What the campaign's missions have reported so far, which each of its missions is launched with.
+function variablesOf(campaign: SingleplayerCampaign): Record<string, SaveVariableValue> {
+    return campaignVariables(campaignProgress(campaign));
+}
+
+// Keyed on every difficulty, so a new one does not compile until it has a name.
+// Difficulties from Mission API are keyed with initial capitals
+const difficultyKeys: Record<Difficulty, TranslationKey> = {
+    Story: "lobby.singleplayer.content.difficulties.story",
+    Easy: "lobby.singleplayer.content.difficulties.easy",
+    Medium: "lobby.singleplayer.content.difficulties.medium",
+    Hard: "lobby.singleplayer.content.difficulties.hard",
+};
+
+function difficultyName(difficulty: Difficulty): TranslationKey {
+    return difficultyKeys[difficulty];
+}
+
+// The difficulties an item offers, easiest first, whatever order its content lists them in.
+function offeredDifficulties(item: ItemDifficulties): Difficulty[] {
+    return DIFFICULTIES.filter((difficulty) => item.difficulties.includes(difficulty));
+}
+
+/**
+ * The difficulty the campaign's missions are played at: the one the player chose, or the campaign's default
+ * until they choose. A save that can't be used counts as no choice, as it counts as no progress.
+ */
+function campaignDifficulty(campaign: SingleplayerCampaign): Difficulty {
+    const usable = campaignSaveStatus(campaign) === "compatible";
+
+    return chosenDifficulty(usable ? saveOf("campaign", campaign) : undefined, campaign);
+}
+
+// The difficulty a scenario or tutorial is played at: the one the player chose, or its default until they choose.
+function itemDifficulty(item: ItemRef & ItemDifficulties): Difficulty {
+    return chosenDifficulty(saveOf(item.kind, item), item);
+}
+
+// A scenario or tutorial is completed once it has been won.
+function itemCompleted(item: ItemRef) {
+    return hasWon((saveOf(item.kind, item) ?? noProgress).plays, item.id);
+}
+
+// Why the last change asked for to the item's save failed, if it did, as the message to show.
+function saveErrorOf(kind: SingleplayerKind, ref: SingleplayerItemRef): TranslationKey | undefined {
+    const reason = singleplayerStore.saveErrors.get(saveKey(kind, ref));
+
+    return reason && saveFailureKeys[reason];
+}
+
+function tutorialsOf(source: ContentSource, rootId: string) {
+    return (singleplayerStore.content?.tutorials ?? []).filter((tutorial) => tutorial.source === source && tutorial.rootId === rootId);
+}
+
+// The tutorials of one root count as one group, completed once every tutorial in it has been won.
+function tutorialsCompleted(source: ContentSource, rootId: string) {
+    const tutorials = tutorialsOf(source, rootId);
+
+    return tutorials.length > 0 && tutorials.every(itemCompleted);
+}
+
+// Asks main to change a save and keeps the save main wrote. Gives false, with the reason in the store, if it
+// wasn't changed. A save main found it can't use is marked as such instead, as starting over is the only way past it.
+async function changeSave(kind: SingleplayerKind, ref: SingleplayerItemRef, call: () => Promise<IpcResult<SingleplayerSave>>) {
+    const saved = await fromMain<SingleplayerSave, SaveFailure>(call, saveFailureKeys, "save_failed");
+    if ("reason" in saved) {
+        if (saved.reason === "save_unusable") {
+            singleplayerActions.saveUnusable(saveKey(kind, ref));
+        } else {
+            singleplayerActions.saveFailed(saveKey(kind, ref), saved.reason);
+        }
+        return false;
+    }
+    await inOrder(() => singleplayerActions.saveStored(saveKey(kind, ref), saved.data));
+    return true;
+}
+
+function saveResult(kind: SingleplayerKind, ref: SingleplayerItemRef, result: ReportedResult) {
+    return changeSave(kind, ref, () => singleplayerApi.recordResult(kind, ref, result));
+}
+
+// Saves the difficulty the player chose for a campaign, scenario or tutorial, creating its save if it has none.
+async function setDifficulty(kind: SingleplayerKind, item: SingleplayerItemRef, difficulty: Difficulty) {
+    await changeSave(kind, item, () => singleplayerApi.setDifficulty(kind, item, difficulty));
+}
+
+/**
+ * Records the result of a played campaign mission, with the variables the mission reported. Whatever reports
+ * a finished game calls this, as do the pass and fail buttons until missions can be launched. `finishedNow`
+ * is true when this result is the one that finished the campaign. A result that couldn't be saved leaves the
+ * state as it was.
+ */
+async function recordCampaignResult(campaign: SingleplayerCampaign, missionId: string, outcome: MissionOutcome, variables?: SaveVariables): Promise<{ state: CampaignState; finishedNow: boolean }> {
+    const wasFinished = campaignCompleted(campaign);
+    await saveResult("campaign", campaign, variables ? { missionId, outcome, variables } : { missionId, outcome });
+    const state = campaignState(campaign);
+
+    return { state, finishedNow: state.finished && !wasFinished };
+}
+
+// Records the result of a played scenario or tutorial, the same way as recordCampaignResult.
+async function recordItemResult(item: ItemRef, outcome: MissionOutcome) {
+    await saveResult(item.kind, item, { missionId: item.id, outcome });
+}
+
+async function deleteSave(kind: SingleplayerKind, ref: SingleplayerItemRef) {
+    const deleted = await fromMain(() => singleplayerApi.deleteSave(kind, ref), saveFailureKeys, "save_failed");
+    if ("reason" in deleted) {
+        singleplayerActions.saveFailed(saveKey(kind, ref), deleted.reason);
+        return;
+    }
+    await inOrder(() => singleplayerActions.saveRemoved(saveKey(kind, ref)));
+}
+
+// Deletes the save of every tutorial in one root, which are shown and completed as one group.
+async function deleteTutorialSaves(source: ContentSource, rootId: string) {
+    for (const tutorial of tutorialsOf(source, rootId)) {
+        await deleteSave("tutorial", tutorial);
+    }
+}
+
+// Deletes the saves that can't be used of one root's tutorials, leaving the others' progress.
+async function deleteUnusableTutorialSaves(source: ContentSource, rootId: string) {
+    for (const tutorial of tutorialsOf(source, rootId).filter((tutorial) => saveUnusable("tutorial", tutorial))) {
+        await deleteSave("tutorial", tutorial);
+    }
+}
+
+// Deletes the saves of one root's tutorials that main refused as from a newer version, leaving the others' progress.
+async function deleteNewerTutorialSaves(source: ContentSource, rootId: string) {
+    for (const tutorial of tutorialsOf(source, rootId).filter((tutorial) => refusedAsNewer("tutorial", tutorial))) {
+        await deleteSave("tutorial", tutorial);
+    }
+}
+
+// Deletes every singleplayer save, for the settings menu. Gives the message to show if it failed part way;
+// main has then reported each save it did delete.
+async function deleteAllSaves(): Promise<TranslationKey | undefined> {
+    const deleted = await fromMain(() => singleplayerApi.deleteAllSaves(), saveFailureKeys, "save_failed");
+    if ("reason" in deleted) {
+        return saveFailureKeys[deleted.reason];
+    }
+    await inOrder(() => singleplayerActions.allSavesDeleted());
+    return undefined;
+}
+
+// Why an item can't be played on this install: a map that is neither installed nor shipped with it, an engine
+// and game pair the install lacks, no mission archive to launch, or, for a campaign, no start mission that can be
+// played. These views are dev-only, so such an item is dimmed with the reason rather than hidden.
+export type UnplayableReason = { map: string } | { compatibility: string } | { noArchive: true } | { startMissions: true };
+
+// The engine and game pairs this install can play, or undefined where it can download any engine and game.
+// Any installed engine with any installed game: the install's default pair is only what skirmish uses.
+function availablePairs(): Compatibility | undefined {
+    if (editionLogic.canAcquire("engine") && editionLogic.canAcquire("game")) {
+        return undefined;
+    }
+    const games = [...gameStore.availableGameVersions.keys()];
+
+    return installedEngineVersions.value.map((installed) => ({ engineVersion: installed.id, gameVersions: games }));
+}
+
+function pairReason(compatibility: DeepReadonly<ItemCompatibility>): UnplayableReason | undefined {
+    const available = availablePairs();
+    if (!available || compatibility === DEV_COMPATIBILITY || isCompatible(compatibility, available)) {
+        return undefined;
+    }
+
+    return { compatibility: describeCompatibility(compatibility) };
+}
+
+// The archive holds the mission's Lua, so there is nothing to launch without it. A campaign has one for all
+// its missions.
+function archiveReason(item: DeepReadonly<{ archivePath?: string }>): UnplayableReason | undefined {
+    return item.archivePath ? undefined : { noArchive: true };
+}
+
+// The maps an item ships are its own: they never join the installed maps, and only it can use them.
+function mapReason(mapName: string, shipped: readonly string[]): UnplayableReason | undefined {
+    return !shipped.includes(mapName) && editionLogic.isUnavailable({ type: "map", id: mapName }) ? { map: mapName } : undefined;
+}
+
+function itemUnplayable(item: DeepReadonly<SingleplayerScenario>): UnplayableReason | undefined {
+    return pairReason(item.compatibility) ?? archiveReason(item) ?? mapReason(item.manifest.mapName, item.maps);
+}
+
+function missionUnplayable(campaign: DeepReadonly<SingleplayerCampaign>, mission: DeepReadonly<SingleplayerMission>): UnplayableReason | undefined {
+    return pairReason(campaign.compatibility) ?? archiveReason(campaign) ?? mapReason(mission.manifest.mapName, [...mission.maps, ...campaign.sharedMaps]);
+}
+
+function campaignUnplayable(campaign: DeepReadonly<SingleplayerCampaign>): UnplayableReason | undefined {
+    const whole = pairReason(campaign.compatibility) ?? archiveReason(campaign);
+    if (whole) {
+        return whole;
+    }
+    const starts = campaign.missions.filter((mission) => campaign.config.startMission.includes(mission.id));
+
+    return starts.every((mission) => missionUnplayable(campaign, mission)) ? { startMissions: true } : undefined;
+}
+
+// The reason as the message to show.
+function unplayableText(reason: UnplayableReason): { key: TranslationKey; params: Record<string, string> } {
+    if ("map" in reason) {
+        return { key: "lobby.singleplayer.content.unplayable.map", params: { map: reason.map } };
+    }
+    if ("compatibility" in reason) {
+        return { key: "lobby.singleplayer.content.unplayable.compatibility", params: { compatibility: reason.compatibility } };
+    }
+    if ("noArchive" in reason) {
+        return { key: "lobby.singleplayer.content.unplayable.noArchive", params: {} };
+    }
+
+    return { key: "lobby.singleplayer.content.unplayable.startMissions", params: {} };
+}
+
+// For the log, in English, so a missing map or engine and game can be found from a player's log.
+function unplayableLog(reason: UnplayableReason): string {
+    if ("map" in reason) {
+        return `needs map "${reason.map}", which is not installed`;
+    }
+    if ("compatibility" in reason) {
+        return `needs ${reason.compatibility}, which this install does not have`;
+    }
+    if ("noArchive" in reason) {
+        return "has no mission archive";
+    }
+
+    return "has no start mission that can be played";
+}
+
+const english = (key: string, tables: readonly LanguageTables[]) => resolveContentText(key, FALLBACK_LOCALE, tables);
+
+// One line for each item that can't be played. A campaign that can't be played for its engine and game, or for
+// want of its archive, is one line, rather than one for each of its missions. Nothing can be judged before the edition is known: the
+// watcher starts alongside the info's own load.
+const unplayableLines = computed(() => {
+    const content = singleplayerStore.content;
+    if (!content || !infosStore.isInitialized) {
+        return [];
+    }
+    const lines: string[] = [];
+    for (const campaign of content.campaigns) {
+        const title = english(campaign.config.titleKey, [campaign.language]);
+        const reason = campaignUnplayable(campaign);
+        if (reason) {
+            lines.push(`Campaign unavailable: ${campaign.id} "${title}" ${unplayableLog(reason)}`);
+        }
+        if (reason && ("compatibility" in reason || "noArchive" in reason)) {
+            continue;
+        }
+        for (const mission of campaign.missions) {
+            const missionReason = missionUnplayable(campaign, mission);
+            if (missionReason) {
+                const missionTitle = english(mission.manifest.titleKey, [mission.language, campaign.language]);
+                lines.push(`Campaign mission unavailable: ${campaign.id}/${mission.id} "${missionTitle}" ${unplayableLog(missionReason)}`);
+            }
+        }
+    }
+    for (const item of [...content.scenarios, ...content.tutorials]) {
+        const reason = itemUnplayable(item);
+        if (reason) {
+            const kind = item.kind === "scenario" ? "Scenario" : "Tutorial";
+            lines.push(`${kind} unavailable: ${item.id} "${english(item.manifest.titleKey, [item.language])}" ${unplayableLog(reason)}`);
+        }
+    }
+
+    return lines;
+});
+
+// Each line once per content load. The installed maps, engines and games can arrive after the content, so a
+// line is logged when it first applies rather than only when the content arrives.
+function logUnplayable() {
+    const logged = new Set<string>();
+    watch(
+        () => singleplayerStore.content,
+        () => logged.clear()
+    );
+    watch(
+        unplayableLines,
+        (lines) => {
+            for (const line of lines.filter((line) => !logged.has(line))) {
+                logged.add(line);
+                console.warn(line);
+            }
+        },
+        { immediate: true }
+    );
+}
+
+// Starts a mission, or says why main didn't. Main checks again what the views only showed. A save main found it
+// can't use is marked as such, as when it refuses a result. No result is read back after the game yet, so Pass
+// and Fail still record one.
+async function launch(kind: SingleplayerKind, item: SingleplayerItemRef, missionId?: string): Promise<TranslationKey | undefined> {
+    const launched = await fromMain<void, SingleplayerLaunchFailure>(() => singleplayerApi.launch(kind, item, missionId, me.username), launchFailureKeys, "launch_failed");
+    if ("reason" in launched && launched.reason === "save_unusable") {
+        singleplayerActions.saveUnusable(saveKey(kind, item));
+    }
+
+    return "reason" in launched ? launchFailureKeys[launched.reason] : undefined;
+}
+
+export const singleplayerLogic = {
+    loadContent,
+    loadErrorOf,
+    savesLoadErrorOf,
+    saveUnusable,
+    refusedAsNewer,
+    campaignSaveStatus,
+    campaignState,
+    campaignCompleted,
+    variablesOf,
+    difficultyName,
+    offeredDifficulties,
+    campaignDifficulty,
+    itemDifficulty,
+    setDifficulty,
+    itemCompleted,
+    saveErrorOf,
+    tutorialsOf,
+    tutorialsCompleted,
+    recordCampaignResult,
+    recordItemResult,
+    deleteSave,
+    deleteTutorialSaves,
+    deleteUnusableTutorialSaves,
+    deleteNewerTutorialSaves,
+    deleteAllSaves,
+    itemUnplayable,
+    missionUnplayable,
+    campaignUnplayable,
+    unplayableText,
+    launch,
+};

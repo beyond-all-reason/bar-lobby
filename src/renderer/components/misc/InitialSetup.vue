@@ -488,7 +488,7 @@ onMounted(async () => {
                     console.warn("Failed to sync maps metadata, continuing with cached data", error);
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
-                if (installedMaps === 0) {
+                if (installedMaps === 0 && editionLogic.canAcquire("map")) {
                     relabelStage(this, t("lobby.components.misc.initialSetup.downloadingMaps"));
                     await mapsApi.downloadMaps([...configStore.defaultMaps]);
                 }

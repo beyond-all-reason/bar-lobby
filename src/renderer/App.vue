@@ -102,7 +102,7 @@ import { infosStore } from "@renderer/store/infos.store";
 import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
-import { me } from "@renderer/store/me.store";
+import { connectionStore } from "@renderer/store/connection.store";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
 import accountGroup from "@iconify-icons/mdi/account-group";
@@ -170,7 +170,7 @@ router.beforeEach(async (to) => {
         return { path: router.resolve(defaultRedirect).fullPath };
     }
 
-    const isAuthed = Boolean(toValue(me.isAuthenticated));
+    const isAuthed = Boolean(toValue(connectionStore.isAuthenticated));
     if (!isAuthed) {
         const resolved = router.resolve(rememberedPath);
         const requiresAuth = router.getRoutes().find((r) => r.name === resolved.name)?.meta?.onlineOnly;
@@ -215,7 +215,7 @@ const showPartyPopout = computed(() => {
     return (
         partyStore.state !== PlayersPartyState.None &&
         router.currentRoute.value.name !== "/profile/party" &&
-        !tachyonStore.reconnectInterval
+        !connectionStore.isReconnecting
     );
 });
 </script>

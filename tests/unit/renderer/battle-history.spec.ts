@@ -24,7 +24,8 @@ Object.defineProperty(window, "auth", {
 const { battleHistoryStore, battleHistoryActions } = await import("@renderer/store/battleHistory.store");
 const { recordBattleEnded, clearBattleHistory } = battleHistoryActions;
 const { useBattleResults } = await import("@renderer/composables/useBattleResults");
-const { auth, me } = await import("@renderer/store/me.store");
+const { me } = await import("@renderer/store/me.store");
+const { connectionLogic } = await import("@renderer/logic/connection");
 const { subsManager } = await import("@renderer/store/users.store");
 const { onWentOffline } = await import("@renderer/utils/offline-signal");
 
@@ -126,7 +127,7 @@ describe("logout", () => {
     it("clears the history and closes the results", async () => {
         recordBattleEnded(battle());
 
-        const loggingOut = auth.logout();
+        const loggingOut = connectionLogic.logout();
         await nextTick();
 
         expect(battleHistoryStore.entries).toHaveLength(0);

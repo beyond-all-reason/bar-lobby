@@ -35,8 +35,8 @@ import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
-import { auth, me } from "@renderer/store/me.store";
-import { tachyon } from "@renderer/store/tachyon.store";
+import { connectionLogic } from "@renderer/logic/connection";
+import { connectionStore } from "@renderer/store/connection.store";
 
 const { t } = useTypedI18n();
 
@@ -48,7 +48,7 @@ const error = ref<string>();
 onActivated(async () => {
     // The store restores a previous session before the UI mounts, so there is
     // nothing to log in to here.
-    if (me.isAuthenticated) {
+    if (connectionStore.isAuthenticated) {
         const redirect = router.currentRoute.value.query.redirect as string | undefined;
         await router.replace(redirect || "/play");
 
@@ -67,8 +67,8 @@ async function login() {
     try {
         error.value = "";
         connecting.value = true;
-        await auth.login();
-        await tachyon.connect();
+        await connectionLogic.login();
+        await connectionLogic.connect();
         const redirect = router.currentRoute.value.query.redirect as string | undefined;
         router.push(redirect || "/play");
     } catch (e) {
@@ -85,7 +85,7 @@ async function login() {
 async function abort() {
     connecting.value = false;
     error.value = "";
-    await auth.logout();
+    await connectionLogic.logout();
     router.push("/");
 }
 

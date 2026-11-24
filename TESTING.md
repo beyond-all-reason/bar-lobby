@@ -19,7 +19,10 @@ This document describes how automated testing is set up in **bar-lobby**, and ho
 npm ci
 npm run test
 npm run test:e2e
+npm run checks
 ```
+
+`npm run checks` runs what CI checks besides the tests: types, lint, formatting, the config files, and that the generated JSON Schemas for singleplayer content are up to date.
 
 ---
 

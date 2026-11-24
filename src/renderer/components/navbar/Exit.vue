@@ -7,10 +7,10 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal ref="modal" :title="t('lobby.navbar.exit.title')">
         <div class="flex-row gap-md">
-            <Button @click="login" v-if="!me.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
+            <Button @click="login" v-if="!connectionStore.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
                 t("lobby.navbar.exit.login")
             }}</Button>
-            <Button @click="logout" v-if="me.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
+            <Button @click="logout" v-if="connectionStore.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
                 t("lobby.navbar.exit.logout")
             }}</Button>
             <Button @click="quitToDesktop">{{ t("lobby.navbar.exit.quitToDesktop") }}</Button>
@@ -24,9 +24,9 @@ import { useRouter } from "vue-router";
 
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { auth } from "@renderer/store/me.store";
+import { connectionLogic } from "@renderer/logic/connection";
 import { settingsStore } from "@renderer/store/settings.store";
-import { me } from "@renderer/store/me.store";
+import { connectionStore } from "@renderer/store/connection.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { partyLogic } from "@renderer/logic/party";
 const { t } = useTypedI18n();
@@ -49,7 +49,7 @@ async function logout() {
     modal.value?.close();
 
     partyLogic.onLogout();
-    await auth.logout();
+    await connectionLogic.logout();
     await router.push("/");
 }
 

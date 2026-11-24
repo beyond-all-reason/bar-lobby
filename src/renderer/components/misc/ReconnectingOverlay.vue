@@ -23,15 +23,16 @@ import { computed } from "vue";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { connectionLogic } from "@renderer/logic/connection";
+import { connectionStore } from "@renderer/store/connection.store";
 import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
 
-const isReconnecting = computed(() => tachyonStore.reconnectInterval !== undefined);
+const isReconnecting = computed(() => connectionStore.isReconnecting);
 
 async function playOffline() {
-    await tachyon.goOffline();
+    await connectionLogic.goOffline();
 }
 </script>
 

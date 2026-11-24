@@ -9,6 +9,7 @@ import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
 import { contentAPI } from "@main/content/content-api";
+import type { ContentRef } from "@main/content/content-ref";
 import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
@@ -23,6 +24,17 @@ export interface ScriptLaunchSettings {
     engineVersion: string;
     gameVersion: string;
     script: string;
+}
+
+export interface MissionLaunchSettings {
+    engineVersion: string;
+    // The base game under the mission's archive, which the start script names as its gametype.
+    gameVersion: string;
+    // Left out when the mission ships its map, which isn't content to check or fetch.
+    mapSpringName?: string;
+    script: string;
+    // Read by the engine after the assets: the mission archive's folder and the folders with the maps it ships.
+    dataDirs: string[];
 }
 
 export interface MultiplayerLaunchSettings {
@@ -76,6 +88,12 @@ export class GameAPI {
         });
     }
 
+    public async launchMission({ engineVersion, gameVersion, mapSpringName, script, dataDirs }: MissionLaunchSettings) {
+        const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
+        await fs.promises.writeFile(scriptPath, script);
+        await this.launch({ engineVersion, gameVersion, mapSpringName, launchArg: scriptPath, dataDirs });
+    }
+
     public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
         return this.launch({
             engineVersion,
@@ -84,7 +102,19 @@ export class GameAPI {
         });
     }
 
-    public async launch({ engineVersion, gameVersion, mapSpringName, launchArg }: { engineVersion?: string; gameVersion?: string; mapSpringName?: string; launchArg?: string }): Promise<void> {
+    public async launch({
+        engineVersion,
+        gameVersion,
+        mapSpringName,
+        launchArg,
+        dataDirs = [],
+    }: {
+        engineVersion?: string;
+        gameVersion?: string;
+        mapSpringName?: string;
+        launchArg?: string;
+        dataDirs?: string[];
+    }): Promise<void> {
         if (!engineVersion || !gameVersion || !launchArg) {
             throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
         }
@@ -93,8 +123,10 @@ export class GameAPI {
 
         // Playing something is the clearest sign it is still wanted, and it is the one thing every
         // launch path has in common.
-        void contentAPI.markUsed([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
-        await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
+        const content: ContentRef[] = [{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])];
+        void contentAPI.markUsed(content);
+        // Also the last word on whether everything is there: content that cannot be acquired is refused here.
+        await this.fetchMissingContent(content);
 
         applyDefaultSpringsettings();
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
@@ -112,7 +144,8 @@ export class GameAPI {
                     detached: true,
                     env: {
                         ...process.env,
-                        SPRING_DATADIR: getAssetsPath(), // Engine will read from both the assets and write dir
+                        // The engine reads the assets, these, and the write dir, which --write-dir names.
+                        SPRING_DATADIR: [getAssetsPath(), ...dataDirs].join(path.delimiter),
                     },
                 });
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
@@ -169,16 +202,8 @@ export class GameAPI {
         return this.gameProcess !== null;
     }
 
-    //TODO not handling maps, not sure if needed if we always come from the lobby's UI
-    protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {
-        if (!engineVersion || !gameVersion) {
-            throw new Error("Engine Version and Game Version need to be specified");
-        }
-
-        await contentAPI.ensure([
-            { type: "engine", id: engineVersion },
-            { type: "game", id: gameVersion },
-        ]);
+    protected async fetchMissingContent(content: ContentRef[]) {
+        await contentAPI.ensure(content);
     }
 }
 

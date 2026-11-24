@@ -46,7 +46,7 @@ SPDX-License-Identifier: MIT
                             dataKey="fileName"
                             :sortOrder="sortOrder === 'asc' ? 1 : -1"
                             :sortField="sortField"
-                            :rowClass="(data) => (highlightedReplays.has(data.fileName) ? 'highlighted-replay' : '')"
+                            :rowClass="rowClass"
                             @page="onPage"
                             @sort="onSort"
                         >
@@ -83,7 +83,11 @@ SPDX-License-Identifier: MIT
                                 :header="t('lobby.views.watch.replays.map')"
                                 :sortable="true"
                                 sortField="mapSpringName"
-                            />
+                            >
+                                <template #body="{ data }">
+                                    <span v-tooltip.left="unavailableTooltip(data)">{{ data.mapSpringName }}</span>
+                                </template>
+                            </Column>
                         </DataTable>
                     </div>
                 </Panel>
@@ -166,6 +170,8 @@ import { settingsLogic } from "@renderer/logic/settings";
 import { settingsStore } from "@renderer/store/settings.store";
 import { configStore } from "@renderer/store/config.store";
 import { shellApi } from "@renderer/api/shell";
+import { editionLogic } from "@renderer/logic/edition";
+import { ContentRef } from "@main/content/content-ref";
 
 const { t } = useTypedI18n();
 
@@ -199,6 +205,33 @@ watch(selectedReplay, (newReplay) => {
         acknowledgeReplay(newReplay.fileName);
     }
 });
+
+function unavailableContent(replay: Replay) {
+    const refs: ContentRef[] = [
+        { type: "map", id: replay.mapSpringName },
+        { type: "game", id: replay.gameVersion },
+        { type: "engine", id: replay.engineVersion },
+    ];
+
+    return refs.filter(editionLogic.isUnavailable);
+}
+
+function unavailableTooltip(replay: Replay) {
+    const missing = unavailableContent(replay);
+
+    return missing.length > 0
+        ? t("lobby.views.watch.replays.unavailable", { content: missing.map((ref) => ref.id).join(", ") })
+        : undefined;
+}
+
+function rowClass(replay: Replay) {
+    return [
+        highlightedReplays.value.has(replay.fileName) ? "highlighted-replay" : "",
+        unavailableContent(replay).length > 0 ? "unavailable-replay" : "",
+    ]
+        .join(" ")
+        .trim();
+}
 
 function fulltextSearchFilter(replay: Replay) {
     if (fulltextSearchWords.value.length === 0) return true;
@@ -301,5 +334,9 @@ function showReplayFile(replay: Replay) {
 
 :deep(.p-datatable-tbody tr.highlighted-replay td) {
     background-color: rgba(255, 200, 0, 0.3) !important;
+}
+
+:deep(.p-datatable-tbody tr.unavailable-replay td) {
+    opacity: 0.4;
 }
 </style>

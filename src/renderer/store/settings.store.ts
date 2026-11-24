@@ -13,7 +13,7 @@ const state = reactive({
 
 export const settingsStore = readonly(state);
 
-export const settingsUpdates = {
+export const settingsActions = {
     loaded(settings: Settings) {
         Object.assign(state, settings);
     },

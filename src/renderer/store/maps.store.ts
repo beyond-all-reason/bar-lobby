@@ -8,6 +8,8 @@ import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
+import { canAcquireInEdition, isEditionRefusal } from "@shared/edition";
+import { infosStore } from "@renderer/store/infos.store";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -18,10 +20,11 @@ export const mapsStore: {
 });
 
 export async function getRandomMap() {
-    const mapCount = await db.maps.count();
+    const maps = canAcquireInEdition(infosStore.features, "map") ? db.maps.toCollection() : db.maps.filter((map) => !!map.isInstalled);
+    const mapCount = await maps.clone().count();
     if (mapCount === 0) throw new Error("No maps available");
     const randomIndex = Math.floor(Math.random() * mapCount);
-    const map = await db.maps.offset(randomIndex).first();
+    const map = await maps.offset(randomIndex).first();
     return map;
 }
 
@@ -152,17 +155,24 @@ async function fetchMapImages(map: MapData) {
     console.debug("Updated map images ", map.springName);
 }
 
-//TODO: the MapsAPI already includes a multiple-map version request we can use to extend this
-export async function downloadMap(springName: string) {
-    let dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName"> = db.maps;
+// To be moved into the stores/api/logic/ui/views split (https://github.com/beyond-all-reason/bar-lobby/issues/727),
+// so only the batch's bookkeeping is fixed here, nothing deeper.
+export function downloadMap(springName: string) {
+    return downloadMaps([springName]);
+}
 
-    const mapIsLive = await db.maps.get(springName);
+export async function downloadMaps(springNames: string[]) {
+    const delegates = new Map<string, EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName">>();
 
-    if (!mapIsLive) {
-        dbDelegate = db.nonLiveMaps;
-        const isInNonLiveDB = await db.nonLiveMaps.get(springName);
-        if (!isInNonLiveDB) {
-            db.nonLiveMaps.put({
+    for (const springName of springNames) {
+        if (await db.maps.get(springName)) {
+            delegates.set(springName, db.maps);
+            continue;
+        }
+
+        delegates.set(springName, db.nonLiveMaps);
+        if (!(await db.nonLiveMaps.get(springName))) {
+            await db.nonLiveMaps.put({
                 springName: springName,
                 isDownloading: false,
                 isInstalled: false,
@@ -170,15 +180,26 @@ export async function downloadMap(springName: string) {
         }
     }
 
-    dbDelegate.update(springName, { isDownloading: true });
-    await window.maps
-        .downloadMap(springName)
-        .then(() => {
-            dbDelegate.update(springName, { isInstalled: true, isDownloading: false });
-        })
-        .catch((error) => {
-            console.error("Failed to download map:", springName, error);
+    await Promise.all([...delegates].map(([springName, delegate]) => delegate.update(springName, { isDownloading: true })));
+    try {
+        await window.maps.downloadMaps(springNames);
+    } catch (error) {
+        console.error("Failed to download maps:", springNames, error);
+        if (!isEditionRefusal(error)) {
             notificationsApi.alert({ text: "Map download failed.", severity: "error" });
-            dbDelegate.update(springName, { isDownloading: false });
-        });
+        }
+    }
+
+    // Each map in the batch is acquired on its own, so one failing leaves the others installed: stamp each by what
+    // is on disk now rather than by whether the whole batch succeeded.
+    const installed = await window.maps.getInstalledMapNames().then(
+        (names) => new Set(names),
+        (error) => {
+            console.error("Failed to check downloaded maps:", springNames, error);
+            return undefined;
+        }
+    );
+    await Promise.all(
+        [...delegates].map(([springName, delegate]) => delegate.update(springName, installed ? { isDownloading: false, isInstalled: installed.has(springName) } : { isDownloading: false }))
+    );
 }

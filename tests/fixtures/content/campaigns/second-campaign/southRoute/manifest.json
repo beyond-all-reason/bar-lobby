@@ -1,0 +1,9 @@
+{
+    "missionId": "southRoute",
+    "titleKey": "missions.southRoute.title",
+    "descriptionKey": "missions.southRoute.description",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    }
+}

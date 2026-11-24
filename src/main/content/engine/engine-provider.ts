@@ -16,7 +16,7 @@ import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { getEnginePath } from "@main/config/app";
-import { configService } from "@main/services/config.service";
+import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
 import { holdChecksums } from "@main/utils/checksums";
 
@@ -62,7 +62,7 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
     }
 
     public getDefaultEngine() {
-        return this.availableVersions.get(configService.getConfig().defaultEngineVersion);
+        return this.availableVersions.get(getDefaultEngineVersion());
     }
 
     public getInstalledVersionsNewestFirst() {
@@ -78,9 +78,9 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
     }
 
     protected checkIfDefaultIsNew() {
-        if (!this.availableVersions.has(configService.getConfig().defaultEngineVersion)) {
-            this.availableVersions.set(configService.getConfig().defaultEngineVersion, {
-                id: configService.getConfig().defaultEngineVersion,
+        if (!this.availableVersions.has(getDefaultEngineVersion())) {
+            this.availableVersions.set(getDefaultEngineVersion(), {
+                id: getDefaultEngineVersion(),
                 ais: [],
                 installed: false,
             });
@@ -88,7 +88,7 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
     }
 
     public async downloadEngine(version?: string) {
-        const engineVersion = version || configService.getConfig().defaultEngineVersion;
+        const engineVersion = version || getDefaultEngineVersion();
         try {
             if (this.isVersionInstalled(engineVersion)) {
                 return;

@@ -90,8 +90,14 @@ export class ReplaysAPI {
     // Having the map makes the replay previewable, but the replay is what the caller asked to add, so a
     // map that will not download must not keep it out of the list.
     private async fetchReplayMap(replay: Replay) {
+        // Not even asked for where maps cannot be acquired: every replay synced at startup would report a refusal.
+        const ref = { type: "map" as const, id: replay.mapSpringName };
+        if (!contentAPI.canAcquire(ref)) {
+            return;
+        }
+
         try {
-            await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
+            await contentAPI.ensure([ref]);
         } catch (err) {
             log.error(`Could not fetch map ${replay.mapSpringName} for replay ${replay.fileName}`, err);
         }
@@ -132,18 +138,7 @@ export class ReplaysAPI {
             if (replayData.gameId === "00000000000000000000000000000000") {
                 throw new Error(`Invalid gameId for replay: ${replayFilePath}`);
             }
-            // TODO handle this use case
-            // const conflictingReplay = await this.getReplayByGameId(replayData.gameId);
-            // if (conflictingReplay) {
-            //     // when leaving a game and rejoining it, 2 demo files are created with the same gameId. below we delete the shortest replay
-            //     if (conflictingReplay.gameDurationMs > replayData.gameDurationMs) {
-            //         await fs.promises.rm(replayFilePath);
-            //     } else {
-            //         const filePath = path.join(REPLAYS_PATH, conflictingReplay.fileName);
-            //         await fs.promises.rm(filePath);
-            //     }
-            // }
-            // Store the cached replay and dispatch the event
+            // Duplicate gameIds (rejoined games) are resolved by the renderer store, which owns the replay database.
             this.onReplayCached.dispatch(replayData);
         } catch (err) {
             log.error(`Error caching replay: ${replayFilePath}`, err);

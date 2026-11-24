@@ -215,13 +215,11 @@ describe("Preload API Context Bridge", () => {
     it("should expose maps API", async () => {
         await import("@preload/preload");
 
-        mockWindow.maps.downloadMap("map1");
         mockWindow.maps.downloadMaps(["map1", "map2"]);
         mockWindow.maps.isVersionInstalled("map1");
         mockWindow.maps.fetchAllMaps();
         mockWindow.maps.fetchMapImages("imgsrc");
 
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMap", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMaps", ["map1", "map2"]);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:isVersionInstalled", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchAllMaps");
@@ -252,6 +250,39 @@ describe("Preload API Context Bridge", () => {
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("misc:getNewsRssFeed", 5);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("misc:getDevlogRssFeed", 3);
+    });
+
+    it("should expose singleplayer API", async () => {
+        await import("@preload/preload");
+
+        mockWindow.singleplayer.list();
+        mockWindow.singleplayer.getSaves();
+        mockWindow.singleplayer.recordResult("campaign", "official", "official", "sample-campaign", { missionId: "mission01", outcome: "victory" });
+        mockWindow.singleplayer.setDifficulty("scenario", "official", "official", "sample-scenario", "Hard");
+        mockWindow.singleplayer.deleteSave("tutorial", "custom", "custom", "sample-tutorial");
+        mockWindow.singleplayer.deleteAllSaves();
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:list");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:getSaves");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:recordResult", "campaign", "official", "official", "sample-campaign", {
+            missionId: "mission01",
+            outcome: "victory",
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:setDifficulty", "scenario", "official", "official", "sample-scenario", "Hard");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteSave", "tutorial", "custom", "custom", "sample-tutorial");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("singleplayer:deleteAllSaves");
+    });
+
+    it("should pass save changes from main to the singleplayer callback", async () => {
+        await import("@preload/preload");
+        const callback = vi.fn();
+        const change = { item: { kind: "campaign", source: "official", rootId: "official", id: "sample-campaign" }, save: undefined };
+
+        mockWindow.singleplayer.onSaveChanged(callback);
+        const [dispatch] = listenersFor("singleplayer:saveChanged");
+        dispatch({}, change);
+
+        expect(callback).toHaveBeenCalledWith(change);
     });
 
     it("should expose barNavigation API", async () => {

@@ -1986,7 +1986,35 @@
         "logic": {
             "edition": {
                 "refusals": {
-                    "contentBundledWithInstall": null
+                    "contentBundledWithInstall": null,
+                    "contentUnavailableInEdition": null
+                }
+            },
+            "singleplayer": {
+                "saveFailures": {
+                    "saveUnusable": null,
+                    "saveVersionOlder": null,
+                    "saveVersionNewer": null,
+                    "invalidResult": null,
+                    "invalidDifficulty": null,
+                    "unknownItem": null,
+                    "saveFailed": null
+                },
+                "contentLoadFailures": {
+                    "loadFailed": null
+                },
+                "launchFailures": {
+                    "unknownItem": null,
+                    "noArchive": null,
+                    "noEngineAndGame": null,
+                    "mapUnavailable": null,
+                    "saveUnusable": null,
+                    "saveVersionOlder": null,
+                    "saveVersionNewer": null,
+                    "launchFailed": null
+                },
+                "savesLoadFailures": {
+                    "loadFailed": null
                 }
             }
         },
@@ -2114,7 +2142,8 @@
                     "wayTeamFFA": null,
                     "gameIsRunning": null,
                     "launching": null,
-                    "watch": null
+                    "watch": null,
+                    "unavailable": null
                 }
             },
             "index": {
@@ -2350,7 +2379,49 @@
                 "loseCondition": null,
                 "faction": null,
                 "difficulty": null,
-                "launch": null
+                "launch": null,
+                "noScenarios": null
+            },
+            "content": {
+                "campaigns": null,
+                "customCampaigns": null,
+                "scenarios": null,
+                "tutorials": null,
+                "credits": null,
+                "completed": null,
+                "play": null,
+                "launching": null,
+                "pass": null,
+                "fail": null,
+                "showCredits": null,
+                "deleteSave": null,
+                "deleteAllTutorialSaves": null,
+                "variables": null,
+                "difficulty": null,
+                "difficulties": {
+                    "story": null,
+                    "easy": null,
+                    "medium": null,
+                    "hard": null
+                },
+                "saveFromOlderVersion": null,
+                "saveFromNewerVersion": null,
+                "campaignSaveUnusable": null,
+                "scenarioSaveUnusable": null,
+                "tutorialSavesUnusable": null,
+                "deleteUnusableSaves": null,
+                "startOver": null,
+                "back": null,
+                "notInEdition": null,
+                "unplayable": {
+                    "map": null,
+                    "compatibility": null,
+                    "noArchive": null,
+                    "startMissions": null
+                },
+                "empty": null,
+                "notFound": null,
+                "problems": null
             }
         },
         "navbar": {
@@ -2479,7 +2550,14 @@
                 "useNewLocationOnlyDesc": null,
                 "apply": null,
                 "restartRequired": null,
-                "transferringFiles": null
+                "transferringFiles": null,
+                "singleplayerSaves": null,
+                "deleteSingleplayerSaves": null,
+                "deleteSingleplayerSavesTitle": null,
+                "deleteSingleplayerSavesBody": null,
+                "deleteSingleplayerSavesConfirm": null,
+                "singleplayerSavesDeleted": null,
+                "cancel": null
             },
             "friends": {
                 "unknownUser": null,
@@ -2797,7 +2875,8 @@
                 "downloadContentButton": {
                     "downloading": null,
                     "download": null,
-                    "verifyGameFiles": null
+                    "verifyGameFiles": null,
+                    "mapUnavailable": null
                 },
                 "select": {
                     "search": null

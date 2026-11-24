@@ -1,0 +1,8 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/beyond-all-reason/bar-lobby/master/schemas/content/credits.schema.json",
+    "title": "Campaign credits",
+    "description": "credits.json in a campaign folder: the campaign's credits, one line per entry.",
+    "type": "array",
+    "items": { "title": "Credit", "description": "One line of the credits.", "type": "string" }
+}

@@ -9,6 +9,7 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
 import { isEditionRefusal } from "@shared/edition";
+import { infosStore } from "@renderer/store/infos.store";
 import { reactive, watch } from "vue";
 
 export enum GameStatus {
@@ -35,6 +36,12 @@ async function refreshStore() {
         gameStore.availableGameVersions.set(version.gameVersion, version);
         // The last version provided is always the default "selected" version.
         gameStore.selectedGameVersion = version;
+    }
+
+    // The install's own default game wins over the last one listed.
+    const installDefault = infosStore.installDefaults?.game;
+    if (installDefault && gameStore.availableGameVersions.has(installDefault)) {
+        gameStore.selectedGameVersion = gameStore.availableGameVersions.get(installDefault);
     }
 }
 
@@ -83,6 +90,20 @@ export async function startBattle(battle: BattleWithMetadata) {
         gameStore.status = GameStatus.CLOSED;
         if (!isEditionRefusal(error)) {
             notificationsApi.alert({ text: "startBattle failed", severity: "error" });
+        }
+    }
+}
+
+export async function launchScript(script: string, gameVersion: string, engineVersion: string) {
+    try {
+        gameStore.status = GameStatus.LOADING;
+        await window.game.launchScript(script, gameVersion, engineVersion);
+        gameStore.status = GameStatus.RUNNING;
+    } catch (error) {
+        console.error("Failed to launch script:", error);
+        gameStore.status = GameStatus.CLOSED;
+        if (!isEditionRefusal(error)) {
+            notificationsApi.alert({ text: "launchScript failed", severity: "error" });
         }
     }
 }

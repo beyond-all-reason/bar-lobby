@@ -1,0 +1,17 @@
+{
+    "missionId": "outpost-strike",
+    "titleKey": "missions.outpost-strike.title",
+    "descriptionKey": "missions.outpost-strike.description",
+    "mapName": "Quicksilver Remake 1.24",
+    "config": {
+        "default": "missionConfig.json"
+    },
+    "compatibility": [
+        {
+            "engineVersion": "2026.07.04",
+            "gameVersions": ["Beyond All Reason test-31820-45ea098"]
+        }
+    ],
+    "difficulties": ["Story", "Easy", "Medium", "Hard"],
+    "defaultDifficulty": "Story"
+}

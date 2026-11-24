@@ -37,11 +37,11 @@ SPDX-License-Identifier: MIT
                         <Textbox
                             v-model="newMessage"
                             class="reply"
-                            :disabled="!tachyonStore.isConnected"
+                            :disabled="!connectionStore.isConnected"
                             :placeholder="t('lobby.navbar.messages.message')"
                             @keyup.enter.stop="sendDirectMessage(newMessageUserId, newMessage)"
                         />
-                        <Button :disabled="!tachyonStore.isConnected" @click="sendDirectMessage(newMessageUserId, newMessage)">{{
+                        <Button :disabled="!connectionStore.isConnected" @click="sendDirectMessage(newMessageUserId, newMessage)">{{
                             t("lobby.navbar.messages.send")
                         }}</Button>
                     </div>
@@ -65,7 +65,7 @@ import ChatPanel from "@renderer/components/common/ChatPanel.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { connectionStore } from "@renderer/store/connection.store";
 import { UserId } from "tachyon-protocol/types";
 import { User } from "@main/model/user";
 import { Message } from "@renderer/model/message";
@@ -125,7 +125,7 @@ function focusTextbox(el: HTMLElement) {
 
 function sendDirectMessage(destinationUserId: string, messageText: string) {
     // Button's disabled prop only styles the control, it does not stop the click.
-    if (!tachyonStore.isConnected) return;
+    if (!connectionStore.isConnected) return;
 
     chat.requestSend({
         target: {

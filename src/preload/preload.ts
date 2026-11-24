@@ -23,6 +23,8 @@ import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
+import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
+import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -188,7 +190,6 @@ contextBridge.exposeInMainWorld("game", gameApi);
 
 const mapsApi = {
     // Content
-    downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
     downloadMaps: (springNames: string[]): Promise<void> => ipcRenderer.invoke("maps:downloadMaps", springNames),
     getInstalledMapNames: (): Promise<string[]> => ipcRenderer.invoke("maps:getInstalledMapNames"),
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
@@ -203,6 +204,24 @@ const mapsApi = {
 };
 export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
+
+const singleplayerApi = {
+    // Rescans the content roots.
+    list: (): Promise<IpcResult<SingleplayerContent>> => ipcRenderer.invoke("singleplayer:list"),
+    getSaves: (): Promise<IpcResult<SingleplayerSaves>> => ipcRenderer.invoke("singleplayer:getSaves"),
+    recordResult: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, result: ReportedResult): Promise<IpcResult<SingleplayerSave>> =>
+        ipcRenderer.invoke("singleplayer:recordResult", kind, source, rootId, id, result),
+    setDifficulty: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, difficulty: string): Promise<IpcResult<SingleplayerSave>> =>
+        ipcRenderer.invoke("singleplayer:setDifficulty", kind, source, rootId, id, difficulty),
+    deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
+    deleteAllSaves: (): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
+    launch: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string): Promise<IpcResult> =>
+        ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName),
+    // Every change to a save, including ones main made itself.
+    onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
+};
+export type SingleplayerApi = typeof singleplayerApi;
+contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);
 
 const miscApi = {
     getNewsRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),

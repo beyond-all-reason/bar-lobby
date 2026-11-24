@@ -5,8 +5,8 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { MatchmakingListOkResponseData } from "tachyon-protocol/types";
 import { effectScope, nextTick, type EffectScope, type Ref } from "vue";
-import { partyUpdates } from "@renderer/store/party.store";
-import { matchmakingStore, matchmakingUpdates } from "@renderer/store/matchmaking.store";
+import { partyActions } from "@renderer/store/party.store";
+import { matchmakingStore, matchmakingActions } from "@renderer/store/matchmaking.store";
 import { usePartySizeMatchmaking, getPartySize } from "@renderer/composables/usePartySizeMatchmaking";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
@@ -40,16 +40,16 @@ function makeParty(id: string, memberCount: number, invitedCount = 0) {
 }
 
 function setupParty(memberCount: number, teamSize: number) {
-    partyUpdates.set(makeParty("party-1", memberCount), myUserId);
-    matchmakingUpdates.set({ selectedQueue: "1v1", playlists: [makePlaylist("1v1", teamSize)] });
+    partyActions.set(makeParty("party-1", memberCount), myUserId);
+    matchmakingActions.set({ selectedQueue: "1v1", playlists: [makePlaylist("1v1", teamSize)] });
 }
 
 let scope: EffectScope;
 let partyTooLarge: Ref<boolean>;
 
 beforeEach(() => {
-    partyUpdates.clear();
-    matchmakingUpdates.set({ playlists: [], selectedQueue: "1v1" });
+    partyActions.clear();
+    matchmakingActions.set({ playlists: [], selectedQueue: "1v1" });
 
     scope = effectScope();
     scope.run(() => {
@@ -68,8 +68,8 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            partyUpdates.remove("party-1", myUserId);
-            partyUpdates.set(makeParty("party-2", 4), myUserId);
+            partyActions.remove("party-1", myUserId);
+            partyActions.set(makeParty("party-2", 4), myUserId);
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -77,11 +77,11 @@ describe("usePartySizeMatchmaking", () => {
 
         it("re-evaluates when the selected queue changes", async () => {
             setupParty(2, 3);
-            matchmakingUpdates.set({ playlists: [...matchmakingStore.playlists, makePlaylist("2v2", 1)] as MatchmakingListOkResponseData["playlists"] });
+            matchmakingActions.set({ playlists: [...matchmakingStore.playlists, makePlaylist("2v2", 1)] as MatchmakingListOkResponseData["playlists"] });
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            matchmakingUpdates.set({ selectedQueue: "2v2" });
+            matchmakingActions.set({ selectedQueue: "2v2" });
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -92,7 +92,7 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            matchmakingUpdates.set({ playlists: [makePlaylist("1v1", 1)] });
+            matchmakingActions.set({ playlists: [makePlaylist("1v1", 1)] });
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -103,7 +103,7 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            partyUpdates.set(makeParty("party-1", 4), myUserId);
+            partyActions.set(makeParty("party-1", 4), myUserId);
             await nextTick();
 
             expect(partyTooLarge.value).toBe(true);
@@ -114,7 +114,7 @@ describe("usePartySizeMatchmaking", () => {
             await nextTick();
             expect(partyTooLarge.value).toBe(false);
 
-            partyUpdates.set(makeParty("party-1", 2, 1), myUserId);
+            partyActions.set(makeParty("party-1", 2, 1), myUserId);
             await nextTick();
 
             // Invites don't factor into the size comparison, so the result is expected to stay the same.
@@ -124,14 +124,14 @@ describe("usePartySizeMatchmaking", () => {
 
     describe("false-guard cases", () => {
         it("is false when there is no active party", async () => {
-            matchmakingUpdates.set({ playlists: [makePlaylist("1v1", 1)] });
+            matchmakingActions.set({ playlists: [makePlaylist("1v1", 1)] });
             await nextTick();
 
             expect(partyTooLarge.value).toBe(false);
         });
 
         it("is false when playlists is empty", async () => {
-            partyUpdates.set(makeParty("party-1", 2), myUserId);
+            partyActions.set(makeParty("party-1", 2), myUserId);
             await nextTick();
 
             expect(partyTooLarge.value).toBe(false);
@@ -164,7 +164,7 @@ describe("usePartySizeMatchmaking", () => {
 
 describe("getPartySize", () => {
     beforeEach(() => {
-        partyUpdates.clear();
+        partyActions.clear();
     });
 
     it("returns 0 when there is no active party", () => {
@@ -172,7 +172,7 @@ describe("getPartySize", () => {
     });
 
     it("returns the member count of the active party", () => {
-        partyUpdates.set(makeParty("party-1", 3), myUserId);
+        partyActions.set(makeParty("party-1", 3), myUserId);
 
         expect(getPartySize()).toBe(3);
     });

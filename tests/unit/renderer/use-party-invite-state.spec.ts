@@ -5,7 +5,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import type { PartyState } from "tachyon-protocol/types";
-import { partyUpdates, PlayersPartyState } from "@renderer/store/party.store";
+import { partyActions, PlayersPartyState } from "@renderer/store/party.store";
 import { partyLogic } from "@renderer/logic/party";
 import { usePartyInviteState } from "@renderer/composables/usePartyInviteState";
 
@@ -32,11 +32,11 @@ function setParty({ members = 1, invited = 0, maxMembers = 4, memberIds = [] as 
     );
 
     // "member-0" plays the current user so this party becomes the active party.
-    partyUpdates.set(party, "member-0");
+    partyActions.set(party, "member-0");
 }
 
 beforeEach(() => {
-    partyUpdates.clear();
+    partyActions.clear();
 });
 
 afterEach(() => {
@@ -98,9 +98,9 @@ describe("usePartyInviteState", () => {
     describe("inviteToParty", () => {
         it.each([PlayersPartyState.JoinedOnly, PlayersPartyState.JoinedAndInvited])("invites into the current party when %s", (state) => {
             if (state === PlayersPartyState.JoinedOnly) {
-                partyUpdates.replaceAll([makeParty("joined", [SELF])], SELF);
+                partyActions.replaceAll([makeParty("joined", [SELF])], SELF);
             } else {
-                partyUpdates.replaceAll([makeParty("joined", [SELF]), makeParty("invited", [], [SELF])], SELF);
+                partyActions.replaceAll([makeParty("joined", [SELF]), makeParty("invited", [], [SELF])], SELF);
             }
             const invite = vi.spyOn(partyLogic, "invite").mockResolvedValue(undefined);
 
@@ -111,7 +111,7 @@ describe("usePartyInviteState", () => {
 
         it.each([PlayersPartyState.None, PlayersPartyState.InvitedOnly])("creates a party first when %s", (state) => {
             if (state === PlayersPartyState.InvitedOnly) {
-                partyUpdates.replaceAll([makeParty("invited", [], [SELF])], SELF);
+                partyActions.replaceAll([makeParty("invited", [], [SELF])], SELF);
             }
             const createAndInvite = vi.spyOn(partyLogic, "createAndInvite").mockResolvedValue(undefined);
 

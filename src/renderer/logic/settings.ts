@@ -5,7 +5,7 @@
 import type { Settings } from "@main/services/settings.service";
 import { mainWindowApi } from "@renderer/api/main-window";
 import { settingsApi } from "@renderer/api/settings";
-import { settingsStore, settingsUpdates } from "@renderer/store/settings.store";
+import { settingsStore, settingsActions } from "@renderer/store/settings.store";
 import { toRaw, watch } from "vue";
 
 export async function initSettingsLogic() {
@@ -15,7 +15,7 @@ export async function initSettingsLogic() {
         return;
     }
 
-    settingsUpdates.loaded(await settingsApi.get());
+    settingsActions.loaded(await settingsApi.get());
 
     watch(
         settingsStore,
@@ -52,22 +52,22 @@ export async function initSettingsLogic() {
     );
 
     // The zoom shortcuts work the new scale out in main and leave the storing to here.
-    mainWindowApi.onUiScaleNudged((uiScale) => settingsUpdates.changed({ uiScale }));
+    mainWindowApi.onUiScaleNudged((uiScale) => settingsActions.changed({ uiScale }));
 
     // The window resizes itself when dragged or moved to a smaller display, so the setting
     // follows it rather than only driving it.
-    mainWindowApi.onWindowStateChanged(settingsUpdates.windowStateChanged);
+    mainWindowApi.onWindowStateChanged(settingsActions.windowStateChanged);
 
-    settingsUpdates.initialized();
+    settingsActions.initialized();
 }
 
 function update(values: Partial<Settings>) {
-    settingsUpdates.changed(values);
+    settingsActions.changed(values);
 }
 
 // Not watched like the other window settings, since main also reports the display it was dragged to.
 function setDisplay(displayId: number) {
-    settingsUpdates.changed({ displayId });
+    settingsActions.changed({ displayId });
 
     return mainWindowApi.setDisplay(displayId);
 }
