@@ -4,7 +4,7 @@
 
 import { reactive, readonly } from "vue";
 import { saveKey, type SaveFailure, type SingleplayerSave, type SingleplayerSaves } from "@shared/content/save";
-import type { SingleplayerContent, SingleplayerLoadFailure } from "@shared/content/singleplayer";
+import type { ChosenVersions, SingleplayerContent, SingleplayerLoadFailure } from "@shared/content/singleplayer";
 
 const state = reactive({
     content: undefined,
@@ -15,6 +15,7 @@ const state = reactive({
     savesLoadError: undefined,
     saveErrors: new Map(),
     unusableSaves: new Set(),
+    chosenVersions: new Map(),
 } as {
     content: SingleplayerContent | undefined;
     isLoading: boolean;
@@ -31,6 +32,9 @@ const state = reactive({
     // Items whose save is there but can't be used, such as a damaged file, keyed by saveKey. Main refuses every
     // result for them, and only deleting the save, or main writing a new one, clears it.
     unusableSaves: Set<string>;
+    // The engine and game dev mode chose for a mission, keyed by its save's key and its mission id. Kept until
+    // the client closes.
+    chosenVersions: Map<string, ChosenVersions>;
 });
 
 export const singleplayerStore = readonly(state);
@@ -88,6 +92,9 @@ export const singleplayerActions = {
     saveFailed(key: string, reason: SaveFailure) {
         state.saveErrors.set(key, reason);
     },
+    versionsChosen(key: string, versions: ChosenVersions) {
+        state.chosenVersions.set(key, versions);
+    },
     clear() {
         state.content = undefined;
         state.isLoading = false;
@@ -97,5 +104,6 @@ export const singleplayerActions = {
         state.savesLoadError = undefined;
         state.saveErrors.clear();
         state.unusableSaves.clear();
+        state.chosenVersions.clear();
     },
 };

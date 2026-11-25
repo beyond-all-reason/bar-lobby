@@ -195,6 +195,10 @@ export const ENGINE_CONFIG_VARS_PATH = path.join(ENGINE_CONFIG_PATH, "config-var
 // Config files for engine runs that must not touch the user's springsettings.cfg.
 export const ENGINE_SCRATCH_PATH = path.join(ENGINE_CONFIG_PATH, "scratch");
 
+// A data directory of its own for the mission archive a dev-mode launch rebuilds to depend on another game. Not
+// the write directory, which every launch reads, and emptied before each rebuild.
+export const DEV_MISSION_ARCHIVE_PATH = path.join(STATE_PATH, "dev-mission-archive");
+
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
 

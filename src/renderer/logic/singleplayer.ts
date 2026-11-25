@@ -12,6 +12,7 @@ import { installedEngineVersions } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { infosStore } from "@renderer/store/infos.store";
 import { me } from "@renderer/store/me.store";
+import { settingsStore } from "@renderer/store/settings.store";
 import { singleplayerStore, singleplayerActions } from "@renderer/store/singleplayer.store";
 import { CampaignState, campaignState as stateOf, campaignVariables, hasWon, ItemProgress, MissionOutcome } from "@shared/content/campaign-progress";
 import { chosenDifficulty, ReportedResult, SaveCompatibility, saveCompatibility, SaveFailure, saveKey, SaveVariables, SaveVariableValue, SingleplayerSave } from "@shared/content/save";
@@ -19,6 +20,7 @@ import { describeCompatibility, isCompatible } from "@shared/content/compatibili
 import { FALLBACK_LOCALE, type LanguageTables, resolveContentText } from "@shared/content/content-text";
 import { type Compatibility, DEV_COMPATIBILITY, DIFFICULTIES, type Difficulty, type ItemCompatibility } from "@shared/content/schema/common";
 import type {
+    ChosenVersions,
     ContentSource,
     ItemDifficulties,
     SingleplayerCampaign,
@@ -467,11 +469,23 @@ function logUnplayable() {
     );
 }
 
+const versionsKey = (kind: SingleplayerKind, item: SingleplayerItemRef, missionId?: string) => `${saveKey(kind, item)}/${missionId ?? ""}`;
+
+// The engine and game dev mode chose for a mission. A campaign mission names its mission.
+function chosenVersions(kind: SingleplayerKind, item: SingleplayerItemRef, missionId?: string): ChosenVersions {
+    return { ...singleplayerStore.chosenVersions.get(versionsKey(kind, item, missionId)) };
+}
+
+function chooseVersions(kind: SingleplayerKind, item: SingleplayerItemRef, missionId: string | undefined, versions: ChosenVersions) {
+    singleplayerActions.versionsChosen(versionsKey(kind, item, missionId), versions);
+}
+
 // Starts a mission, or says why main didn't. Main checks again what the views only showed. A save main found it
 // can't use is marked as such, as when it refuses a result. No result is read back after the game yet, so Pass
-// and Fail still record one.
+// and Fail still record one. Outside dev mode, launch picks the engine and game.
 async function launch(kind: SingleplayerKind, item: SingleplayerItemRef, missionId?: string): Promise<TranslationKey | undefined> {
-    const launched = await fromMain<void, SingleplayerLaunchFailure>(() => singleplayerApi.launch(kind, item, missionId, me.username), launchFailureKeys, "launch_failed");
+    const versions = settingsStore.devMode ? chosenVersions(kind, item, missionId) : {};
+    const launched = await fromMain<void, SingleplayerLaunchFailure>(() => singleplayerApi.launch(kind, item, missionId, me.username, versions), launchFailureKeys, "launch_failed");
     if ("reason" in launched && launched.reason === "save_unusable") {
         singleplayerActions.saveUnusable(saveKey(kind, item));
     }
@@ -510,4 +524,6 @@ export const singleplayerLogic = {
     campaignUnplayable,
     unplayableText,
     launch,
+    chosenVersions,
+    chooseVersions,
 };

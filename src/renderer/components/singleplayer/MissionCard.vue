@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <!--
 One mission, scenario or tutorial as its own card, to play, and with pass and fail buttons standing in for its result.
 A mission the player can't start now is still shown, greyed out, so the whole of a campaign can be seen
-while its data is being worked on.
+while its data is being worked on. Dev mode can choose the engine and game it launches with.
 -->
 <template>
     <Panel
@@ -23,9 +23,29 @@ while its data is being worked on.
             <code v-if="settingsStore.devMode" class="dev-status">{{ devStatus }}</code>
             <!-- Settings for playing it, such as its difficulty. -->
             <slot />
+            <template v-if="settingsStore.devMode && launch">
+                <Select
+                    :modelValue="versions?.engineVersion ?? AUTOMATIC"
+                    :options="engineOptions"
+                    optionLabel="label"
+                    optionValue="id"
+                    label="Engine"
+                    :filter="true"
+                    @update:model-value="(engineVersion: string) => choose({ engineVersion })"
+                />
+                <Select
+                    :modelValue="versions?.gameVersion ?? AUTOMATIC"
+                    :options="gameOptions"
+                    optionLabel="label"
+                    optionValue="id"
+                    label="Game"
+                    :filter="true"
+                    @update:model-value="(gameVersion: string) => choose({ gameVersion })"
+                />
+            </template>
             <div class="flex-row gap-sm flex-center-items actions">
                 <span v-if="status.completed" class="completed">{{ t("lobby.singleplayer.content.completed") }}</span>
-                <Button v-if="launch" class="blue" :disabled="!status.available || !!unplayable || launching" @click="play">{{
+                <Button v-if="launch" class="blue" :disabled="!status.available || blocked || launching" @click="play">{{
                     launching ? t("lobby.singleplayer.content.launching") : t("lobby.singleplayer.content.play")
                 }}</Button>
                 <Button class="green" :disabled="!status.available" @click="emit('pass')">{{
@@ -42,11 +62,15 @@ while its data is being worked on.
 import { computed, ref } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
+import Select from "@renderer/components/controls/Select.vue";
 import UnplayableNote from "@renderer/components/singleplayer/UnplayableNote.vue";
 import { type TranslationKey, useTypedI18n } from "@renderer/i18n";
 import type { UnplayableReason } from "@renderer/logic/singleplayer";
+import { installedEngineVersions } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import type { MissionStatus } from "@shared/content/campaign-progress";
+import type { ChosenVersions } from "@shared/content/singleplayer";
 
 const { t } = useTypedI18n();
 
@@ -61,12 +85,36 @@ const props = defineProps<{
     unplayable?: UnplayableReason;
     // Starts it, giving back why it didn't start if it didn't. Without it, there is no Play button.
     launch?: () => Promise<TranslationKey | undefined>;
+    // The engine and game dev mode chose to launch it with.
+    versions?: ChosenVersions;
 }>();
 
 const emit = defineEmits<{
     pass: [];
     fail: [];
+    "update:versions": [versions: ChosenVersions];
 }>();
+
+// Leaves the choice to the launch, which picks as it would outside dev mode. For developers only, so in English.
+const AUTOMATIC = "";
+const optionsOf = (versions: string[]) => [{ id: AUTOMATIC, label: "Automatic" }, ...versions.map((id) => ({ id, label: id }))];
+const engineOptions = computed(() => optionsOf(installedEngineVersions.value.map((engine) => engine.id)));
+const gameOptions = computed(() => optionsOf([...gameStore.availableGameVersions.keys()]));
+
+function choose(change: ChosenVersions) {
+    const versions = { ...props.versions, ...change };
+    emit("update:versions", {
+        engineVersion: versions.engineVersion === AUTOMATIC ? undefined : versions.engineVersion,
+        gameVersion: versions.gameVersion === AUTOMATIC ? undefined : versions.gameVersion,
+    });
+}
+
+// A chosen engine or game is used whatever the item accepts, so only its other reasons keep it from starting.
+const blocked = computed(() => {
+    const chosen = settingsStore.devMode && (props.versions?.engineVersion !== undefined || props.versions?.gameVersion !== undefined);
+
+    return !!props.unplayable && !(chosen && "compatibility" in props.unplayable);
+});
 
 const launching = ref(false);
 const launchError = ref<TranslationKey>();

@@ -146,6 +146,41 @@ describe("planMissionLaunch", () => {
         });
     });
 
+    // Dev mode's choice, which may be anything the install has or can download.
+    describe("chosen in dev mode", () => {
+        const pairOf = (plan: { engineVersion: string; gameVersion: string }) => [plan.engineVersion, plan.gameVersion];
+
+        it("are used whatever the item accepts", () => {
+            const plan = planMissionLaunch({ item: scenario() }, steam({ engines: [ENGINE, OTHER_ENGINE] }), { engineVersion: OTHER_ENGINE });
+
+            expect(pairOf(plan)).toEqual([OTHER_ENGINE, GAME]);
+            expect(plan.devCopyOf).toBeUndefined();
+        });
+
+        it("launch a copy of the archive when the game is one it doesn't depend on", () => {
+            const item = scenario();
+            const plan = planMissionLaunch({ item }, steam({ games: [GAME, OTHER_GAME] }), { gameVersion: OTHER_GAME });
+
+            expect(pairOf(plan)).toEqual([ENGINE, OTHER_GAME]);
+            expect(plan.devCopyOf).toBe(item.archivePath);
+            expect(plan.archiveName).toBe("bar-scenario-outpost-strike 1.0");
+        });
+
+        it("leave the rest to the install where the item accepts nothing it has", () => {
+            const item = scenario({ compatibility: [{ engineVersion: OTHER_ENGINE, gameVersions: [GAME] }] });
+
+            expect(pairOf(planMissionLaunch({ item }, steam(), { gameVersion: GAME }))).toEqual([ENGINE, GAME]);
+            expect(pairOf(planMissionLaunch({ item }, steam(), { engineVersion: ENGINE }))).toEqual([ENGINE, GAME]);
+            expect(refusal(() => planMissionLaunch({ item: scenario({ depend: [OTHER_GAME] }) }, steam(), { engineVersion: ENGINE }))).toBe("no_engine_and_game");
+        });
+
+        it("are refused when the install neither has nor can download them", () => {
+            expect(refusal(() => planMissionLaunch({ item: scenario() }, steam(), { engineVersion: OTHER_ENGINE }))).toBe("no_engine_and_game");
+            expect(refusal(() => planMissionLaunch({ item: scenario() }, steam(), { gameVersion: OTHER_GAME }))).toBe("no_engine_and_game");
+            expect(pairOf(planMissionLaunch({ item: scenario() }, install({ downloads: true }), { gameVersion: OTHER_GAME }))).toEqual([ENGINE, OTHER_GAME]);
+        });
+    });
+
     describe("the map", () => {
         it("is left to the content check when installed or downloadable", () => {
             expect(planMissionLaunch({ item: scenario() }, steam()).mapToEnsure).toBe(MAP);

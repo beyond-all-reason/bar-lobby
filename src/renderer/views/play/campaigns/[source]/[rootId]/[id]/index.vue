@@ -71,6 +71,8 @@ graph: content does not say which missions are alternatives to each other.
                         :status="missionStatus(campaign.config, state, mission.id)"
                         :unplayable="singleplayerLogic.missionUnplayable(campaign, mission)"
                         :launch="() => singleplayerLogic.launch('campaign', campaign!, mission.id)"
+                        :versions="singleplayerLogic.chosenVersions('campaign', campaign, mission.id)"
+                        @update:versions="(versions) => singleplayerLogic.chooseVersions('campaign', campaign!, mission.id, versions)"
                         @pass="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'victory')"
                         @fail="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'failure')"
                     />

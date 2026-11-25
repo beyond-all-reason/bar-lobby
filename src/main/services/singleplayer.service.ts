@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import path from "node:path";
-import { getContentRoots, SAVES_PATH } from "@main/config/app";
+import { DEV_MISSION_ARCHIVE_PATH, getContentRoots, SAVES_PATH } from "@main/config/app";
 import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { contentAPI } from "@main/content/content-api";
 import { InstallState, LaunchFailureError, LaunchTarget, missionInputs, planMissionLaunch } from "@main/content/singleplayer/mission-launch";
+import { devArchiveCopy } from "@main/content/singleplayer/mission-archive";
 import { missionStartScript } from "@main/content/singleplayer/mission-script";
 import { gameAPI } from "@main/game/game";
 import * as saves from "@main/content/singleplayer/saves";
@@ -21,6 +22,7 @@ import type { ReportedResult, SaveChange, SaveFailure, SingleplayerSaves } from 
 import { Signal } from "$/jaz-ts-utils/signal";
 import type { WebContents } from "electron";
 import {
+    ChosenVersions,
     ContentProblem,
     ContentRoot,
     ContentSource,
@@ -184,9 +186,22 @@ async function saveForLaunch(kind: SingleplayerKind, ref: SingleplayerItemRef, s
     }
 }
 
+// The versions come over IPC, so they are checked rather than trusted, and only dev mode may choose them.
+function checkChosen(chosen: unknown): ChosenVersions {
+    const { engineVersion, gameVersion } = (chosen ?? {}) as Record<string, unknown>;
+    if (typeof (chosen ?? {}) !== "object" || [engineVersion, gameVersion].some((version) => version !== undefined && (typeof version !== "string" || version === ""))) {
+        throw new LaunchFailureError("launch_failed", `Chosen versions must be an object of non-empty strings, not ${JSON.stringify(chosen)}`);
+    }
+    if ((engineVersion !== undefined || gameVersion !== undefined) && !settingsService.getSettings().devMode) {
+        throw new LaunchFailureError("launch_failed", "Only dev mode can choose the engine and game a mission launches with");
+    }
+
+    return { engineVersion: engineVersion as string | undefined, gameVersion: gameVersion as string | undefined };
+}
+
 // Launches the item as main last scanned it, checking again what the renderer only showed, with the difficulty
 // and campaign variables from its save. No result is read back yet, so Pass and Fail still record one.
-async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionId: string | undefined, playerName: string) {
+async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionId: string | undefined, playerName: string, chosenVersions?: unknown) {
     if (!(KINDS as readonly string[]).includes(kind)) {
         throw new LaunchFailureError("unknown_item", `Unknown singleplayer kind ${JSON.stringify(kind)}`);
     }
@@ -202,14 +217,16 @@ async function launch(kind: SingleplayerKind, ref: SingleplayerItemRef, missionI
         throw new LaunchFailureError("unknown_item", `No ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} in ${ref.source}/${ref.rootId}`);
     }
 
-    const plan = planMissionLaunch(target, installState());
+    const plan = planMissionLaunch(target, installState(), checkChosen(chosenVersions));
     const save = await saveForLaunch(kind, ref, target.campaign?.config.saveVersion);
     const inputs = missionInputs(target, save);
-    const script = await missionStartScript({ archiveName: plan.archiveName, mapName: plan.mapName, config: plan.config, entryPoint: plan.entryPoint, inputs, playerName });
+    const archiveName = plan.devCopyOf ? await devArchiveCopy(plan.devCopyOf, plan.gameVersion, DEV_MISSION_ARCHIVE_PATH) : plan.archiveName;
+    const dataDirs = plan.devCopyOf ? [...plan.dataDirs, DEV_MISSION_ARCHIVE_PATH] : plan.dataDirs;
+    const script = await missionStartScript({ archiveName, mapName: plan.mapName, config: plan.config, entryPoint: plan.entryPoint, inputs, playerName });
     log.info(
-        `Launching ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} as ${plan.archiveName} on engine ${plan.engineVersion} with ${plan.gameVersion} at difficulty ${inputs.difficulty}, data directories ${plan.dataDirs.join(", ")}`
+        `Launching ${kind} ${ref.id}${missionId ? ` mission ${missionId}` : ""} as ${archiveName} on engine ${plan.engineVersion} with ${plan.gameVersion} at difficulty ${inputs.difficulty}, data directories ${dataDirs.join(", ")}`
     );
-    await gameAPI.launchMission({ engineVersion: plan.engineVersion, gameVersion: plan.gameVersion, mapSpringName: plan.mapToEnsure, script, dataDirs: plan.dataDirs });
+    await gameAPI.launchMission({ engineVersion: plan.engineVersion, gameVersion: plan.gameVersion, mapSpringName: plan.mapToEnsure, script, dataDirs });
 }
 
 const saveFailureOf = (err: unknown): SaveFailure => (err instanceof SaveFailureError ? err.reason : "save_failed");
@@ -234,8 +251,10 @@ function registerIpcHandlers(webContents: WebContents) {
     );
     ipcMain.handle("singleplayer:deleteSave", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => overIpc(() => deleteSave(kind, { source, rootId, id }), saveFailureOf));
     ipcMain.handle("singleplayer:deleteAllSaves", () => overIpc(deleteAllSaves, saveFailureOf));
-    ipcMain.handle("singleplayer:launch", (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string) =>
-        overIpc(() => launch(kind, { source, rootId, id }, missionId, playerName), launchFailureOf)
+    ipcMain.handle(
+        "singleplayer:launch",
+        (_, kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string, chosenVersions: ChosenVersions) =>
+            overIpc(() => launch(kind, { source, rootId, id }, missionId, playerName, chosenVersions), launchFailureOf)
     );
 
     onSaveChanged.add((change) => webContents.send("singleplayer:saveChanged", change));
