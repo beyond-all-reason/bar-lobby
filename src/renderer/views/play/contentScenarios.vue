@@ -75,6 +75,10 @@ archive.
                             :launch="() => singleplayerLogic.launch('scenario', selected!)"
                             :versions="singleplayerLogic.chosenVersions('scenario', selected)"
                             @update:versions="(versions) => singleplayerLogic.chooseVersions('scenario', selected!, undefined, versions)"
+                            :suspended="singleplayerLogic.suspendedOf('scenario', selected)"
+                            :discards-suspended="!!singleplayerLogic.suspendedOf('scenario', selected)"
+                            :continue-launch="() => singleplayerLogic.continueMission('scenario', selected!)"
+                            :delete-suspended="() => singleplayerLogic.deleteSuspended('scenario', selected!)"
                             @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
                             @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
                         >

@@ -13,7 +13,16 @@ import type { SingleplayerCampaign, SingleplayerMission, SingleplayerScenario } 
 import { Edition, editionFeatures } from "@shared/edition";
 import type { InstallDefaults } from "@shared/install-defaults";
 
-const api = vi.hoisted(() => ({ list: vi.fn(), getSaves: vi.fn(), recordResult: vi.fn(), setDifficulty: vi.fn(), deleteSave: vi.fn(), deleteAllSaves: vi.fn(), onSaveChanged: vi.fn() }));
+const api = vi.hoisted(() => ({
+    list: vi.fn(),
+    getSaves: vi.fn(),
+    recordResult: vi.fn(),
+    setDifficulty: vi.fn(),
+    deleteSave: vi.fn(),
+    deleteAllSaves: vi.fn(),
+    onSaveChanged: vi.fn(),
+    onSuspendedChanged: vi.fn(),
+}));
 vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { infosActions } = await import("@renderer/store/infos.store");

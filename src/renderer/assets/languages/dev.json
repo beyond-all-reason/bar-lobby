@@ -35,6 +35,8 @@
                     "saveUnusable": "Your seavd prsgeros can't be raed, so tihs mosiisn wasn't luhcaend. Deetle the save to strat oevr.",
                     "saveVersionOlder": "Tihs mosiisn wasn't luhcaend: your seavd prsgeros is form an older veoirsn of tihs ctnnoet. Strat oevr to paly it.",
                     "saveVersionNewer": "Tihs mosiisn wasn't luhcaend: your seavd prsgeros is form a nweer veoirsn of tihs ctnnoet. Uadpte it to cotiunne, or detele your save to paly the inaellstd veoirsn.",
+                    "suspendedMissing": "There is no seavd gmae to cotiunne.",
+                    "suspendedUnusable": "Tihs seavd gmae can't be cninutoed wtih waht is inaellstd now.",
                     "launchFailed": "The mosiisn coludn't be luhcaend. The log has the daleits."
                 },
                 "savesLoadFailures": {
@@ -435,6 +437,21 @@
                 "tutorialSavesUnusable": "Your seavd prsgeros for smoe of teshe tiroltuas can't be raed. It may be deamagd, or seavd by a nweer veoirsn of the lobby. Tohse tiroltuas can't be pleyad uitnl tiehr saevs are deteeld.",
                 "deleteUnusableSaves": "Deetle ubeadlrnae saevs",
                 "startOver": "Deetle save and strat oevr",
+                "suspended": {
+                    "savedAt": "Svaed gmae form {date}",
+                    "continue": "Contuine",
+                    "delete": "Deetle seavd gmae",
+                    "discardWarning": "Sattnrig tihs mosiisn form the bnineging deteles your seavd gmae.",
+                    "playFromStart": "Paly form the bnineging",
+                    "cancel": "Ceancl",
+                    "unusable": {
+                        "engineUnavailable": "Tihs seavd gmae can't be cninutoed: the egnnie veoirsn it was pleyad on is no logner inaellstd.",
+                        "gameUnavailable": "Tihs seavd gmae can't be cninutoed: the gmae veoirsn it was pleyad on is no logner inaellstd.",
+                        "archiveChanged": "Tihs seavd gmae can't be cninutoed: the mosiisn has been udptead sicne it was seavd.",
+                        "saveVersionChanged": "Tihs seavd gmae can't be cninutoed: the ciagampn has been udptead sicne it was seavd.",
+                        "missionUnavailable": "Tihs seavd gmae can't be cninutoed: its mosiisn is no logner aablviale."
+                    }
+                },
                 "back": "Back",
                 "notInEdition": "Oiafficl cgamianps are not part of tihs etidoin.",
                 "unplayable": {

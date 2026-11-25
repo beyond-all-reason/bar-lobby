@@ -37,8 +37,18 @@ export type ContentProblem = { path: string; severity: "error" | "warning"; mess
 export type SingleplayerLoadFailure = "load_failed";
 
 // Why main didn't launch a mission, as a code the renderer words. The save_ codes are a save that couldn't take
-// the mission's result, as SaveFailure has them.
-export type SingleplayerLaunchFailure = "unknown_item" | "no_archive" | "no_engine_and_game" | "map_unavailable" | "save_unusable" | "save_version_older" | "save_version_newer" | "launch_failed";
+// the mission's result, as SaveFailure has them. The suspended_ codes are for continuing a mission saved in game.
+export type SingleplayerLaunchFailure =
+    | "unknown_item"
+    | "no_archive"
+    | "no_engine_and_game"
+    | "map_unavailable"
+    | "save_unusable"
+    | "save_version_older"
+    | "save_version_newer"
+    | "suspended_missing"
+    | "suspended_unusable"
+    | "launch_failed";
 
 // The engine and game dev mode chose for a mission. Either left out is the one a launch picks on its own.
 export type ChosenVersions = { engineVersion?: string; gameVersion?: string };

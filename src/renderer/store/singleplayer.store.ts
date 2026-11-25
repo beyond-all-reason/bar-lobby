@@ -5,6 +5,7 @@
 import { reactive, readonly } from "vue";
 import { saveKey, type SaveFailure, type SingleplayerSave, type SingleplayerSaves } from "@shared/content/save";
 import type { ChosenVersions, SingleplayerContent, SingleplayerLoadFailure } from "@shared/content/singleplayer";
+import type { SuspendedMission } from "@shared/content/suspended-mission";
 
 const state = reactive({
     content: undefined,
@@ -16,6 +17,8 @@ const state = reactive({
     saveErrors: new Map(),
     unusableSaves: new Set(),
     chosenVersions: new Map(),
+    suspended: new Map(),
+    suspendedLoaded: false,
 } as {
     content: SingleplayerContent | undefined;
     isLoading: boolean;
@@ -35,6 +38,9 @@ const state = reactive({
     // The engine and game dev mode chose for a mission, keyed by its save's key and its mission id. Kept until
     // the client closes.
     chosenVersions: Map<string, ChosenVersions>;
+    // Missions saved in game and left part way, at most one per item, keyed by saveKey.
+    suspended: Map<string, SuspendedMission>;
+    suspendedLoaded: boolean;
 });
 
 export const singleplayerStore = readonly(state);
@@ -95,6 +101,17 @@ export const singleplayerActions = {
     versionsChosen(key: string, versions: ChosenVersions) {
         state.chosenVersions.set(key, versions);
     },
+    suspendedLoaded(suspended: SuspendedMission[]) {
+        state.suspended = new Map(suspended.map((mission) => [saveKey(mission.item.kind, mission.item), mission]));
+        state.suspendedLoaded = true;
+    },
+    suspendedChanged(key: string, suspended: SuspendedMission | undefined) {
+        if (suspended) {
+            state.suspended.set(key, suspended);
+        } else {
+            state.suspended.delete(key);
+        }
+    },
     clear() {
         state.content = undefined;
         state.isLoading = false;
@@ -105,5 +122,7 @@ export const singleplayerActions = {
         state.saveErrors.clear();
         state.unusableSaves.clear();
         state.chosenVersions.clear();
+        state.suspended.clear();
+        state.suspendedLoaded = false;
     },
 };

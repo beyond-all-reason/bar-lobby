@@ -3840,6 +3840,8 @@
                     "saveUnusable": null,
                     "saveVersionOlder": null,
                     "saveVersionNewer": null,
+                    "suspendedMissing": null,
+                    "suspendedUnusable": null,
                     "launchFailed": null
                 },
                 "savesLoadFailures": {
@@ -4240,6 +4242,21 @@
                 "tutorialSavesUnusable": null,
                 "deleteUnusableSaves": null,
                 "startOver": null,
+                "suspended": {
+                    "savedAt": null,
+                    "continue": null,
+                    "delete": null,
+                    "discardWarning": null,
+                    "playFromStart": null,
+                    "cancel": null,
+                    "unusable": {
+                        "engineUnavailable": null,
+                        "gameUnavailable": null,
+                        "archiveChanged": null,
+                        "saveVersionChanged": null,
+                        "missionUnavailable": null
+                    }
+                },
                 "back": null,
                 "notInEdition": null,
                 "unplayable": {
