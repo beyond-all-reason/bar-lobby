@@ -31,6 +31,7 @@ import type {
     SingleplayerMission,
     SingleplayerScenario,
 } from "@shared/content/singleplayer";
+import type { SuspendedMission, SuspendedUnusable } from "@shared/content/suspended-mission";
 
 let isInitialized = false;
 
@@ -52,6 +53,7 @@ export function initSingleplayerLogic() {
     }
 
     singleplayerApi.onSaveChanged(({ item, save }) => inOrder(() => singleplayerActions.saveChanged(saveKey(item.kind, item), save)));
+    singleplayerApi.onSuspendedChanged(({ item, suspended }) => singleplayerActions.suspendedChanged(saveKey(item.kind, item), suspended));
     logUnplayable();
     isInitialized = true;
 }
@@ -88,7 +90,18 @@ const launchFailureKeys: Record<SingleplayerLaunchFailure, TranslationKey> = {
     save_unusable: "lobby.logic.singleplayer.launchFailures.saveUnusable",
     save_version_older: "lobby.logic.singleplayer.launchFailures.saveVersionOlder",
     save_version_newer: "lobby.logic.singleplayer.launchFailures.saveVersionNewer",
+    suspended_missing: "lobby.logic.singleplayer.launchFailures.suspendedMissing",
+    suspended_unusable: "lobby.logic.singleplayer.launchFailures.suspendedUnusable",
     launch_failed: "lobby.logic.singleplayer.launchFailures.launchFailed",
+};
+
+// Keyed on every reason a suspended mission can't be continued, so a new one does not compile until it has wording.
+const suspendedUnusableKeys: Record<SuspendedUnusable, TranslationKey> = {
+    engine_unavailable: "lobby.singleplayer.content.suspended.unusable.engineUnavailable",
+    game_unavailable: "lobby.singleplayer.content.suspended.unusable.gameUnavailable",
+    archive_changed: "lobby.singleplayer.content.suspended.unusable.archiveChanged",
+    save_version_changed: "lobby.singleplayer.content.suspended.unusable.saveVersionChanged",
+    mission_unavailable: "lobby.singleplayer.content.suspended.unusable.missionUnavailable",
 };
 
 // Counts content loads, so only the latest one started sets the store's content; an earlier one that
@@ -108,6 +121,16 @@ async function loadContent() {
         singleplayerActions.failed(listed.reason);
     } else {
         singleplayerActions.loaded(listed.data);
+    }
+    await loadSuspended();
+}
+
+// Read again on every content load, after it: whether one can be continued depends on the content and the
+// installed engines and games. One that can't be read is as if there were none, so a failure only goes to the log.
+async function loadSuspended() {
+    const read = await fromMain(() => singleplayerApi.getSuspended(), savesLoadFailureKeys, "load_failed");
+    if ("data" in read) {
+        singleplayerActions.suspendedLoaded(read.data);
     }
 }
 
@@ -493,6 +516,40 @@ async function launch(kind: SingleplayerKind, item: SingleplayerItemRef, mission
     return "reason" in launched ? launchFailureKeys[launched.reason] : undefined;
 }
 
+// The item's suspended mission, if it has one. Playing any of the item's missions from the start discards it.
+function suspendedOf(kind: SingleplayerKind, ref: SingleplayerItemRef): DeepReadonly<SuspendedMission> | undefined {
+    return singleplayerStore.suspended.get(saveKey(kind, ref));
+}
+
+// Why the suspended mission can't be continued, as the message to show.
+function suspendedUnusableText(reason: SuspendedUnusable): TranslationKey {
+    return suspendedUnusableKeys[reason];
+}
+
+// Continues the item's suspended mission, or says why main didn't. What main found is read again, so the views
+// show whether it can still be continued.
+async function continueMission(kind: SingleplayerKind, item: SingleplayerItemRef): Promise<TranslationKey | undefined> {
+    const launched = await fromMain<void, SingleplayerLaunchFailure>(() => singleplayerApi.continueMission(kind, item), launchFailureKeys, "launch_failed");
+    if ("reason" in launched) {
+        if (launched.reason === "save_unusable") {
+            singleplayerActions.saveUnusable(saveKey(kind, item));
+        }
+        if (launched.reason === "suspended_missing" || launched.reason === "suspended_unusable") {
+            await loadSuspended();
+        }
+        return launchFailureKeys[launched.reason];
+    }
+
+    return undefined;
+}
+
+// Gives the message to show if it couldn't be deleted.
+async function deleteSuspended(kind: SingleplayerKind, item: SingleplayerItemRef): Promise<TranslationKey | undefined> {
+    const deleted = await fromMain(() => singleplayerApi.deleteSuspended(kind, item), saveFailureKeys, "save_failed");
+
+    return "reason" in deleted ? saveFailureKeys[deleted.reason] : undefined;
+}
+
 export const singleplayerLogic = {
     loadContent,
     loadErrorOf,
@@ -526,4 +583,8 @@ export const singleplayerLogic = {
     launch,
     chosenVersions,
     chooseVersions,
+    suspendedOf,
+    suspendedUnusableText,
+    continueMission,
+    deleteSuspended,
 };

@@ -167,8 +167,9 @@ export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.
 
 /**
  * Everything Steam Cloud syncs for one profile: small JSON files holding no paths or machine-specific
- * values, and nothing else. With Auto-Cloud that is the pattern `*.json`, recursive, in `WinAppDataRoaming` +
- * `BeyondAllReason/saves/<account>`. On Linux STATE_PATH is under XDG_STATE_HOME, which Steam has no root
+ * values, and the engine saves of suspended missions, several MB each, one per item at most. With Auto-Cloud
+ * that is the patterns `*.json` and `*.ssf`, recursive, in `WinAppDataRoaming` + `BeyondAllReason/saves/<account>`,
+ * with a quota that allows for the engine saves. On Linux STATE_PATH is under XDG_STATE_HOME, which Steam has no root
  * for, so that either assumes the default `LinuxHome` + `.local/state/...` or goes through the
  * ISteamRemoteStorage API, which only needs the file names and contents.
  *
@@ -182,6 +183,10 @@ export const SYNCED_PATH = getSyncedPath(PROFILE_ID);
 
 // Saved singleplayer progress, one file per item played.
 export const SAVES_PATH = path.join(SYNCED_PATH, "singleplayer");
+// Missions saved in game and left part way, one per item at most.
+export const SUSPENDED_MISSIONS_PATH = path.join(SYNCED_PATH, "missions");
+// Where the engine writes every save, under the name the player gives it.
+export const ENGINE_SAVES_PATH = path.join(WRITE_DATA_PATH, "Saves");
 // Where SAVES_PATH was before profiles; moved into the first profile at startup.
 export const LEGACY_SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
 // Settings files are named by what they hold, such as engine.json.

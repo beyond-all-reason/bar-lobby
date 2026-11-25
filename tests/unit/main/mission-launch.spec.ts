@@ -83,6 +83,7 @@ describe("planMissionLaunch", () => {
             engineVersion: ENGINE,
             gameVersion: GAME,
             archiveName: "bar-scenario-outpost-strike 1.0",
+            archivePath: item.archivePath,
             mapName: MAP,
             mapToEnsure: MAP,
             dataDirs: [item.path],

@@ -52,6 +52,10 @@ SPDX-License-Identifier: MIT
                         :launch="() => singleplayerLogic.launch('tutorial', tutorial)"
                         :versions="singleplayerLogic.chosenVersions('tutorial', tutorial)"
                         @update:versions="(versions) => singleplayerLogic.chooseVersions('tutorial', tutorial, undefined, versions)"
+                        :suspended="singleplayerLogic.suspendedOf('tutorial', tutorial)"
+                        :discards-suspended="!!singleplayerLogic.suspendedOf('tutorial', tutorial)"
+                        :continue-launch="() => singleplayerLogic.continueMission('tutorial', tutorial)"
+                        :delete-suspended="() => singleplayerLogic.deleteSuspended('tutorial', tutorial)"
                         @pass="singleplayerLogic.recordItemResult(tutorial, 'victory')"
                         @fail="singleplayerLogic.recordItemResult(tutorial, 'failure')"
                     >

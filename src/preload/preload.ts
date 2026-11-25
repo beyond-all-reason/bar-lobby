@@ -24,6 +24,7 @@ import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
+import type { SuspendedChange, SuspendedMission } from "@shared/content/suspended-mission";
 import type { EngineSettingsView } from "@shared/engine-settings/view";
 import type { ChosenVersions, ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 
@@ -220,6 +221,11 @@ const singleplayerApi = {
         ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName, chosenVersions),
     // Every change to a save, including ones main made itself.
     onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
+    getSuspended: (): Promise<IpcResult<SuspendedMission[]>> => ipcRenderer.invoke("singleplayer:getSuspended"),
+    continueMission: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:continueMission", kind, source, rootId, id),
+    deleteSuspended: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSuspended", kind, source, rootId, id),
+    // Every change to a suspended mission, such as one kept when a game closes.
+    onSuspendedChanged: (callback: (change: SuspendedChange) => void) => subscribe("singleplayer:suspendedChanged", callback),
 };
 export type SingleplayerApi = typeof singleplayerApi;
 contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);
