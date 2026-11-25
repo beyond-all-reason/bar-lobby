@@ -92,6 +92,12 @@ describe("adoptEngineSave", () => {
         expect(await engineSaveNames()).toHaveLength(9);
     });
 
+    it("keeps a save whose file time trails the launch by a little", async () => {
+        await engineSave("stamped-early", 1_000);
+
+        expect(await adoptEngineSave(engineSaves, dir, launch({ startedAt: Date.now() }))).toMatchObject({ missionId: "CM02" });
+    });
+
     it("keeps the suspended mission the item had when the game made no save", async () => {
         await engineSave("kept", 10_000);
         await adoptEngineSave(engineSaves, dir, launch());

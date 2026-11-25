@@ -17,6 +17,9 @@ import { logger } from "../../utils/logger";
 
 const log = logger("suspended-missions.ts");
 
+// File times can trail Date.now(): Linux stamps them from a coarser clock, and FAT keeps them to 2 seconds.
+const MTIME_SLACK_MS = 5_000;
+
 const ajv = new Ajv2020({ strict: true, allErrors: true, verbose: true });
 const validateFile = ajv.compile(SuspendedMissionFile);
 
@@ -197,7 +200,7 @@ export async function adoptEngineSave(engineSavesDir: string, dir: string, launc
         const ssf = path.join(engineSavesDir, name);
         try {
             const { mtimeMs } = await fs.stat(ssf);
-            if (mtimeMs < launch.startedAt) {
+            if (mtimeMs < launch.startedAt - MTIME_SLACK_MS) {
                 continue;
             }
             const header = await readEngineSaveHeader(ssf);
