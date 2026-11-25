@@ -91,7 +91,7 @@ describe("getConfigVars", () => {
         await spawned();
 
         const [proc] = state.processes;
-        const scratch = path.join(state.dir, "engine-config", "scratch", "list-config-vars");
+        const scratch = path.join(state.dir, "engine-config", "scratch", "list-config-vars", engineVersion);
         expect(path.basename(proc.binary)).toMatch(/^spring-headless(\.exe)?$/);
         expect(proc.cwd).toBe(path.join(state.dir, "engine", engineVersion));
         expect(proc.args).toEqual(["--write-dir", scratch, "--isolation", "--config", `${scratch}.cfg`, "--list-config-vars"]);
@@ -138,7 +138,8 @@ describe("getConfigVars", () => {
         ["a non-zero exit", "", 1],
         ["no JSON", "Error: unknown option", 0],
         ["JSON of another shape", JSON.stringify({ snd_volmaster: { defaultValue: 60 } }), 0],
-    ])("gives undefined for %s, caches nothing and tries again next time", async (_case, stdout, code) => {
+    ])("gives undefined for %s, caches nothing on disk, and tries again only after a while", async (_case, stdout, code) => {
+        vi.useFakeTimers({ toFake: ["Date"] });
         const getConfigVars = await load();
         const failed = getConfigVars(engineVersion);
         await answer(stdout, code);
@@ -146,9 +147,25 @@ describe("getConfigVars", () => {
         expect(await failed).toBeUndefined();
         await expect(fs.stat(cacheFile())).rejects.toThrow();
 
+        vi.advanceTimersByTime(5 * 60_000 - 1);
+        expect(await getConfigVars(engineVersion)).toBeUndefined();
+        expect(state.processes).toEqual([]);
+
+        vi.advanceTimersByTime(1);
         const retried = getConfigVars(engineVersion);
         await answer(JSON.stringify(vars));
         expect(await retried).toEqual(vars);
+    });
+
+    it("lists again at once for an engine installed after it failed to list", async () => {
+        const module = await import("@main/game/engine-config/config-vars");
+        const failed = module.getConfigVars(engineVersion);
+        await answer("", 1);
+        expect(await failed).toBeUndefined();
+
+        const relisted = module.relistConfigVars(engineVersion);
+        await answer(JSON.stringify(vars));
+        expect(await relisted).toEqual(vars);
     });
 
     it("gives undefined when the engine can't be started", async () => {
@@ -170,6 +187,31 @@ describe("getConfigVars", () => {
 
         expect(kill).toHaveBeenCalled();
         expect(await result).toBeUndefined();
+    });
+
+    it("holds the engine's directory until a listing that timed out has exited, killing it if it must", async () => {
+        const getConfigVars = await load();
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        const result = getConfigVars(engineVersion);
+        let settled = false;
+        void result.then(() => (settled = true));
+        await spawned();
+        const [proc] = state.processes;
+        const kill = vi.fn();
+        proc.kill = kill;
+
+        await vi.advanceTimersByTimeAsync(30_000);
+        expect(kill).toHaveBeenLastCalledWith();
+        expect(settled).toBe(false);
+        expect(state.held).toEqual([engineVersion]);
+
+        await vi.advanceTimersByTimeAsync(5_000);
+        expect(kill).toHaveBeenLastCalledWith("SIGKILL");
+        expect(settled).toBe(false);
+
+        proc.emit("exit", null);
+        expect(await result).toBeUndefined();
+        expect(state.held).toEqual([]);
     });
 
     it.each([

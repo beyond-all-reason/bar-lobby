@@ -20,7 +20,7 @@ import { getDefaultEngineVersion } from "@main/config/install-defaults";
 import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
 import { holdChecksums } from "@main/utils/checksums";
 import { holdEngineDir } from "@main/content/engine/engine-dir-lock";
-import { getConfigVars } from "@main/game/engine-config/config-vars";
+import { getConfigVars, relistConfigVars } from "@main/game/engine-config/config-vars";
 
 const log = logger("engine-provider.ts");
 
@@ -52,7 +52,7 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
         log.info(`Found ${this.availableVersions.size} engine versions total.`);
         // Ready before the first game ends, when settings the engine removed are told apart from deprecated ones.
         // Every installed version, since a locked campaign engine is played as well as the default. Each is
-        // listed once ever, and the checksum queue runs them one at a time.
+        // listed once ever, all at once, each with its own scratch files.
         for (const version of this.getInstalledVersionsNewestFirst()) {
             void getConfigVars(version.id);
         }
@@ -159,7 +159,7 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
         log.debug(`Download complete: ${downloadInfo.name}`);
         const ais = await this.parseAis(downloadInfo.name);
         this.availableVersions.set(downloadInfo.name, { id: downloadInfo.name, ais, installed: true });
-        void getConfigVars(downloadInfo.name);
+        void relistConfigVars(downloadInfo.name);
         super.downloadComplete(downloadInfo);
     }
 

@@ -214,11 +214,30 @@ describe("a launch", () => {
         await init();
 
         const session = await beginSession("2026.07.04");
-        await writeText(userCfg(), cfgText({}));
+        await writeText(userCfg(), cfgText({ snd_volbattle: "83" }));
         await session.end();
 
         expect(await values(synced())).toEqual({});
         expect(await values(device())).toEqual({ AdvSky: "1" });
+    });
+
+    it.each([
+        ["deleted", () => fs.rm(userCfg())],
+        ["left with no settings", () => writeText(userCfg(), "\n")],
+    ])("keeps every setting when the file was %s rather than reset by the game", async (_case, lose) => {
+        await writeMaster(synced(), { snd_volmusic: "20" });
+        await writeMaster(device(), { XResolution: "2560" });
+        const { init, beginSession } = await load();
+        await init();
+
+        const session = await beginSession("2026.07.04");
+        await lose();
+        await session.end();
+
+        expect(await values(synced())).toEqual({ snd_volmusic: "20" });
+        expect(await values(device())).toEqual({ XResolution: "2560" });
+        await beginSession("2026.07.04");
+        expect(await fs.readFile(userCfg(), "utf8")).toBe("XResolution = 2560\nsnd_volmusic = 20\n");
     });
 
     it("treats every removal as a reset when the engine's variables can't be listed", async () => {
@@ -228,7 +247,7 @@ describe("a launch", () => {
         await init();
 
         const session = await beginSession("2026.07.04");
-        await writeText(userCfg(), cfgText({}));
+        await writeText(userCfg(), cfgText({ snd_volbattle: "83" }));
         await session.end();
 
         expect(await values(device())).toEqual({});
@@ -352,6 +371,7 @@ describe("an unusable master", () => {
 
         expect(await fs.readFile(master(), "utf8")).toBe(text);
         expect(getStatus().usable).toBe(false);
+        expect(await fs.readFile(file("engine-config", "defaults", "springsettings.cfg"), "utf8")).toBe("CamTimeExponent = 4\nsnd_volmaster = 30\nui_scale = 1\n");
         // Once fixed, what changed meanwhile is adopted.
         await fs.rm(master());
         await (await beginSession("2026.07.04")).end();
@@ -391,6 +411,31 @@ describe("the view", () => {
         await initialized;
 
         expect(view.overrides).toEqual({ snd_volmusic: { value: "20", scope: "synced" } });
+    });
+
+    it("is usable again once a master that couldn't be used is fixed, without waiting for a launch", async () => {
+        await writeText(synced(), '{"formatVersion": 1, "valu');
+        const { init, getView, getStatus, onChanged } = await load();
+        await init();
+        expect((await getView()).status.usable).toBe(false);
+        const changed = vi.fn();
+        onChanged.add(changed);
+
+        await writeMaster(synced(), { snd_volmusic: "20" });
+        const view = await getView();
+
+        expect(view.status).toEqual({ usable: true });
+        expect(view.overrides).toEqual({ snd_volmusic: { value: "20", scope: "synced" } });
+        expect(getStatus()).toEqual({ usable: true });
+        expect(changed).toHaveBeenCalled();
+    });
+
+    it("stays unusable while the snapshot can't be used", async () => {
+        await writeText(snapshot(), '{"formatVersion": 1, "valu');
+        const { init, getView } = await load();
+        await init();
+
+        expect((await getView()).status).toEqual({ usable: false, problem: expect.stringContaining(snapshot()) });
     });
 });
 

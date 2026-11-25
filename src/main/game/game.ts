@@ -21,6 +21,8 @@ const log = logger("main/game/game.ts");
 const CLOSING_PROCESS_GRACE_MS = 15_000;
 // After each signal, how long a process stopped by the client has to close.
 const STOP_GRACE_MS = 5_000;
+// How long after exiting a process's streams have to close. A child it started can hold them open for good.
+const CLOSE_AFTER_EXIT_MS = 5_000;
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
 
 export interface ScriptLaunchSettings {
@@ -59,13 +61,12 @@ export class GameAPI {
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
         const script = await startScriptConverter.generateScriptStr(battle);
-        const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
-        await fs.promises.writeFile(scriptPath, script);
         await this.launch({
             engineVersion: battle.battleOptions.engineVersion,
             gameVersion: battle.battleOptions.gameVersion,
             mapSpringName: battle.battleOptions.map?.springName,
-            launchArg: scriptPath,
+            launchArg: path.join(WRITE_DATA_PATH, this.startScriptName),
+            script,
         });
     }
 
@@ -85,20 +86,17 @@ export class GameAPI {
         if (!mapSpringName) {
             throw new Error("Could not parse map name from script");
         }
-        const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
-        await fs.promises.writeFile(scriptPath, script);
         await this.launch({
             engineVersion,
             gameVersion: scriptGameVersion || gameVersion, // using script's game version if available
             mapSpringName,
-            launchArg: scriptPath,
+            launchArg: path.join(WRITE_DATA_PATH, this.startScriptName),
+            script,
         });
     }
 
     public async launchMission({ engineVersion, gameVersion, mapSpringName, script, dataDirs }: MissionLaunchSettings) {
-        const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
-        await fs.promises.writeFile(scriptPath, script);
-        await this.launch({ engineVersion, gameVersion, mapSpringName, launchArg: scriptPath, dataDirs });
+        await this.launch({ engineVersion, gameVersion, mapSpringName, launchArg: path.join(WRITE_DATA_PATH, this.startScriptName), script, dataDirs });
     }
 
     public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
@@ -114,12 +112,15 @@ export class GameAPI {
         gameVersion,
         mapSpringName,
         launchArg,
+        script,
         dataDirs = [],
     }: {
         engineVersion?: string;
         gameVersion?: string;
         mapSpringName?: string;
         launchArg?: string;
+        // Written to launchArg once the launch is accepted, so a refused one can't replace the script of another.
+        script?: string;
         dataDirs?: string[];
     }): Promise<void> {
         if (!engineVersion || !gameVersion || !launchArg) {
@@ -136,6 +137,9 @@ export class GameAPI {
         let session: EngineSession;
         this.preparingLaunch = true;
         try {
+            if (script !== undefined) {
+                await fs.promises.writeFile(launchArg, script);
+            }
             // Playing something is the clearest sign it is still wanted, and it is the one thing every
             // launch path has in common.
             const content: ContentRef[] = [{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])];
@@ -174,6 +178,7 @@ export class GameAPI {
                 if (gameProcess.pid !== undefined) session.started(gameProcess.pid);
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
                 let isGameRunning = false;
+                let closeTimer: ReturnType<typeof setTimeout> | undefined;
                 this.gameProcess.stdout.on("data", (data) => {
                     engineLogger.info(`${data}`);
                     // Check if the game has started
@@ -202,6 +207,11 @@ export class GameAPI {
                     void session.end();
                 });
                 this.gameProcess.addListener("exit", (code) => {
+                    closeTimer = setTimeout(() => {
+                        log.warn(`The game process exited ${CLOSE_AFTER_EXIT_MS / 1000} s ago but its streams are still open; ending its session`);
+                        if (this.closingProcess?.process === gameProcess) this.closingProcess = null;
+                        void session.end();
+                    }, CLOSE_AFTER_EXIT_MS);
                     // Cleared before onGameClosed, whose listeners check isGameRunning. Without this, an engine
                     // that crashed or failed to load still counted as running, so new replays were queued
                     // until the next game closed normally.
@@ -220,6 +230,7 @@ export class GameAPI {
                 // Not on exit: the engine may still be writing its settings until its streams close.
                 this.gameProcess.addListener("close", (exitCode) => {
                     log.debug(`Game process closed with exit code: ${exitCode}`);
+                    clearTimeout(closeTimer);
                     if (this.closingProcess?.process === gameProcess) this.closingProcess = null;
                     void session.end();
                 });

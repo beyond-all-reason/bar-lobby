@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { EventEmitter } from "node:events";
+import * as fs from "fs";
 import path from "node:path";
 import type { Replay } from "@main/replays/replay";
 import { EditionRefusalError } from "@shared/edition";
@@ -267,6 +268,42 @@ describe("GameAPI engine settings session", () => {
         contentReady();
         await expect(first).rejects.toThrow("spawned");
         await expect(launch()).rejects.toThrow("spawned");
+    });
+
+    it("writes no start script for a launch it refuses", async () => {
+        const writeFile = vi.mocked(fs.promises.writeFile);
+        writeFile.mockClear();
+        let contentReady!: () => void;
+        ensure.mockReturnValueOnce(new Promise<void>((resolve) => (contentReady = resolve)));
+        spawn.mockImplementation(() => {
+            throw new Error("spawned");
+        });
+        const first = game.launchMission({ engineVersion: "2026.07.04", gameVersion: "Beyond All Reason test-1-abc", script: "[game] { first }", dataDirs: [] });
+        await vi.waitFor(() => expect(writeFile).toHaveBeenCalledTimes(1));
+
+        await expect(game.launchScript({ engineVersion: "2025.01.3", gameVersion: "byar:test", script })).rejects.toThrow("A game is already running");
+        expect(writeFile).toHaveBeenCalledTimes(1);
+        expect(writeFile).toHaveBeenCalledWith(path.join("/state/data", "script.txt"), "[game] { first }");
+        contentReady();
+        await expect(first).rejects.toThrow("spawned");
+    });
+
+    // A child the engine started, such as a crash reporter, can hold its streams open after it exits.
+    it("ends the session a while after the process exits if its streams never close", async () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        const first = fakeProcess(1);
+        spawn.mockReturnValueOnce(first.proc);
+        const launched = launch();
+        await vi.waitFor(() => expect(spawn).toHaveBeenCalledTimes(1));
+        first.print("[Game::Load]");
+        await launched;
+
+        first.proc.emit("exit", 134);
+        await vi.advanceTimersByTimeAsync(4_999);
+        expect(session.end).not.toHaveBeenCalled();
+
+        await vi.advanceTimersByTimeAsync(1);
+        expect(session.end).toHaveBeenCalledTimes(1);
     });
 });
 

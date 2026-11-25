@@ -142,7 +142,13 @@ async function reconcile(): Promise<void> {
         return;
     }
 
-    const diff = clientChanges(diffValues(snapshot.values, fileValues));
+    let diff = clientChanges(diffValues(snapshot.values, fileValues));
+    // The game writes some of its own settings on every launch, so a file with none at all was lost or deleted,
+    // not reset by it. Folding that back would reset every setting, on every machine the master syncs to.
+    if (Object.keys(fileValues).length === 0 && diff.removed.length > 0) {
+        log.warn(`${userCfgPath()} is missing or holds no settings, so the ${diff.removed.length} setting(s) written to it are kept rather than reset`);
+        diff = { ...diff, removed: [] };
+    }
     if (Object.keys(diff.set).length > 0 || diff.removed.length > 0) {
         const vars = snapshot.engineVersion ? await getConfigVars(snapshot.engineVersion) : undefined;
         const kept = diff.removed.filter((key) => vars !== undefined && isDeprecated(vars, key));
@@ -216,13 +222,10 @@ async function adopt(fileValues: EngineSettingValues): Promise<void> {
 }
 
 /**
- * Writes the defaults layer, then the user's overrides into the engine's file, and records what was written.
- * Game-owned keys keep the values the game last wrote.
+ * Writes the user's overrides into the engine's file, and records what was written. Game-owned keys keep the
+ * values the game last wrote.
  */
 async function apply(engineVersion: string): Promise<AppliedSnapshot | undefined> {
-    const defaults = clientDefaults();
-    await writeCfgAtomic(defaultsCfgPath(), defaults);
-
     return queued(MASTERS_QUEUE, async () => {
         // Also clears game-owned keys and moves misplaced ones, in a master copy written before either was known.
         const { changed, overrides } = await changeMastersQueued(PROFILE_ID, (unchanged) => unchanged);
@@ -314,6 +317,12 @@ async function initialize(): Promise<void> {
  */
 export async function beginSession(engineVersion: string): Promise<EngineSession> {
     const release = await holdGate();
+    // Needs no master, so the game gets the client's defaults even while the user's settings can't be applied.
+    try {
+        await writeCfgAtomic(defaultsCfgPath(), clientDefaults());
+    } catch (err) {
+        log.error(`Could not write the client's default engine settings to ${defaultsCfgPath()}`, err);
+    }
     let applied: AppliedSnapshot | undefined;
     try {
         // Anything the file holds that isn't folded back yet would be lost by writing over it.
@@ -423,6 +432,17 @@ export async function getView(): Promise<EngineSettingsView> {
         for (const [key, value] of Object.entries(effectiveOverrides(masters))) {
             const inDevice = Object.hasOwn(masters.device, key) && (isDeviceKey(key) || !Object.hasOwn(masters.synced, key));
             overrides[key] = { value, scope: inDevice ? "device" : "synced" };
+        }
+    }
+    // A file that couldn't be used may have been fixed since, such as one the cloud had only half synced.
+    if (!("problem" in masters) && !status.usable) {
+        try {
+            await readUsableSnapshot();
+            setOutcome();
+        } catch (err) {
+            if (!(err instanceof UnusableSettingsFileError)) {
+                throw err;
+            }
         }
     }
     const viewStatus: EngineSettingsStatus = "problem" in masters ? { usable: false, problem: masters.problem } : status;
