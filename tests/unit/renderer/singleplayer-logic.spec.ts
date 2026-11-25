@@ -23,6 +23,7 @@ vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { singleplayerStore, singleplayerActions } = await import("@renderer/store/singleplayer.store");
 const { initSingleplayerLogic, singleplayerLogic } = await import("@renderer/logic/singleplayer");
+const { settingsActions } = await import("@renderer/store/settings.store");
 
 // Stands in for main, which keeps the saves, applies each result under the item's rules and returns the save
 // as written. Every campaign here is the sample campaign.
@@ -420,6 +421,28 @@ describe("singleplayer logic", () => {
             expect(singleplayerLogic.saveUnusable("tutorial", damaged)).toBe(false);
             expect(singleplayerLogic.saveUnusable("tutorial", other)).toBe(true);
             expect(singleplayerLogic.itemCompleted(played)).toBe(true);
+        });
+    });
+
+    describe("chosen engine and game", () => {
+        it("are kept for each mission and launched with only in dev mode", async () => {
+            const versions = { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28000-aaaaaaa" };
+            singleplayerLogic.chooseVersions("campaign", official, "mission01", versions);
+            api.launch.mockResolvedValue(succeeded(undefined));
+            try {
+                expect(singleplayerLogic.chosenVersions("campaign", official, "mission01")).toEqual(versions);
+                expect(singleplayerLogic.chosenVersions("campaign", official, "mission02")).toEqual({});
+
+                await singleplayerLogic.launch("campaign", official, "mission01");
+                expect(api.launch).toHaveBeenLastCalledWith("campaign", official, "mission01", expect.any(String), {});
+
+                settingsActions.changed({ devMode: true });
+                await singleplayerLogic.launch("campaign", official, "mission01");
+                expect(api.launch).toHaveBeenLastCalledWith("campaign", official, "mission01", expect.any(String), versions);
+            } finally {
+                settingsActions.changed({ devMode: false });
+                api.launch.mockReset();
+            }
         });
     });
 
