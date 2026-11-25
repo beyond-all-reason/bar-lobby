@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { computed, type DeepReadonly, watch } from "vue";
-import type { IpcResult } from "@main/typed-ipc";
+import type { IpcResult } from "@shared/ipc-result";
 import { singleplayerApi } from "@renderer/api/singleplayer";
+import { fromMain } from "@renderer/logic/from-main";
 import type { TranslationKey } from "@renderer/i18n";
 import { editionLogic } from "@renderer/logic/edition";
 import { installedEngineVersions } from "@renderer/store/engine.store";
@@ -89,17 +90,6 @@ const launchFailureKeys: Record<SingleplayerLaunchFailure, TranslationKey> = {
     save_version_newer: "lobby.logic.singleplayer.launchFailures.saveVersionNewer",
     launch_failed: "lobby.logic.singleplayer.launchFailures.launchFailed",
 };
-
-// The data main gave, or the reason it gave for failing if it is one of `reasons`. Any other reason, or a call
-// that never reached main, which ipcCall has logged, fails as `fallback`.
-async function fromMain<T, R extends string>(call: () => Promise<IpcResult<T>>, reasons: Record<R, unknown>, fallback: R): Promise<{ data: T } | { reason: R }> {
-    const result = await call().catch(() => undefined);
-    if (result?.status === "success") {
-        return { data: result.data };
-    }
-
-    return { reason: result && result.reason in reasons ? (result.reason as R) : fallback };
-}
 
 // Counts content loads, so only the latest one started sets the store's content; an earlier one that
 // finishes after it would otherwise put back older content.

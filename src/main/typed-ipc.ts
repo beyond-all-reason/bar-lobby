@@ -22,17 +22,15 @@ import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
+import type { EngineSettingsView } from "@shared/engine-settings/view";
 import type { ChosenVersions, ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 import { Config } from "@main/services/config.service";
+import type { IpcResult } from "@shared/ipc-result";
 
-// Errors thrown in main arrive in the renderer stripped of everything but a message, so failures a
-// caller needs to act on have to travel as data instead. Mirrors the shape tachyon-protocol uses for
-// its own responses, which can't be reused here because it's keyed on tachyon command ids.
-// `reason` is a stable code to branch on or translate; `details` carries any raw text behind it.
-export type IpcResult<T = void> = { status: "success"; data: T } | { status: "failed"; reason: string; details?: string };
+export type { IpcResult };
 
 export type IPCEvents = {
     "content:changed": (state: ContentState[]) => void;
@@ -60,6 +58,7 @@ export type IPCEvents = {
     "tachyon:event": (event: TachyonEvent) => void;
     "auth:changed": (state: AuthState) => void;
     "singleplayer:saveChanged": (change: SaveChange) => void;
+    "engineSettings:changed": (view: EngineSettingsView) => void;
 };
 
 export type IPCCommands = {
@@ -140,6 +139,9 @@ export type IPCCommands = {
     "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
     "singleplayer:deleteAllSaves": () => IpcResult;
     "singleplayer:launch": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string, chosenVersions: ChosenVersions) => IpcResult;
+    "engineSettings:get": () => IpcResult<EngineSettingsView>;
+    "engineSettings:set": (key: string, value: string) => IpcResult<EngineSettingsView>;
+    "engineSettings:reset": (key: string) => IpcResult<EngineSettingsView>;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;
     "customLobbies:update": (data: Partial<CustomLobbiesPreferences>) => Partial<CustomLobbiesPreferences>;

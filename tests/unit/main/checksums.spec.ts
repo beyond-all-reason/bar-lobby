@@ -2,17 +2,19 @@
 //
 // SPDX-License-Identifier: MIT
 
+import path from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { running, spawned } = vi.hoisted(() => ({ running: { processes: [] as Array<{ exit: () => void }> }, spawned: [] as string[] }));
+const { running, spawned, spawnedArgs } = vi.hoisted(() => ({ running: { processes: [] as Array<{ exit: () => void }> }, spawned: [] as string[], spawnedArgs: [] as string[][] }));
 
 vi.mock("@main/utils/logger", () => ({ logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
-vi.mock("@main/config/app", () => ({ getEnginePath: () => "/engine", WRITE_DATA_PATH: "/write", getAssetsPath: () => "/assets" }));
+vi.mock("@main/config/app", () => ({ getEnginePath: () => "/engine", WRITE_DATA_PATH: "/write", getAssetsPath: () => "/assets", ENGINE_SCRATCH_PATH: "/scratch" }));
 vi.mock("child_process", () => ({
     // A checksum process that only ends when the test says so, so overlap is observable rather than timed.
     spawn: (_binary: string, args: string[]) => {
         const listeners: Record<string, (code: number) => void> = {};
         spawned.push(args[args.length - 1]);
+        spawnedArgs.push(args);
         running.processes.push({ exit: () => listeners.exit?.(0) });
 
         return { on: (event: string, callback: (code: number) => void) => void (listeners[event] = callback) };
@@ -32,6 +34,16 @@ describe("checksum queue", () => {
     beforeEach(() => {
         running.processes.length = 0;
         spawned.length = 0;
+        spawnedArgs.length = 0;
+    });
+
+    it("points the engine at a scratch config so the user's springsettings.cfg is never rewritten", async () => {
+        const done = calcChecksum("2025.06.21", "a.sd7");
+        await settle();
+        endOldestChecksum();
+        await done;
+
+        expect(spawnedArgs).toEqual([["--write-dir", "/write", "--isolation", "--config", path.join("/scratch", "checksum-springsettings.cfg"), "--calc-checksum", "a.sd7"]]);
     });
 
     it("runs one checksum at a time", async () => {

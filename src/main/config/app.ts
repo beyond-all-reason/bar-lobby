@@ -166,13 +166,34 @@ export const getContentWriteRoot = () => (EDITION_FEATURES.assetsReadOnly ? WRIT
 export const getRemovableMapsPaths = (): readonly string[] => (EDITION_FEATURES.assetsReadOnly ? [path.join(WRITE_DATA_PATH, "maps")] : getMapsPaths());
 
 /**
- * Saved singleplayer progress, one small JSON file per item played. The folder holds nothing else and its
- * files hold no paths or machine-specific values, so Steam Cloud can sync it as it is: with Auto-Cloud, the
- * pattern `*.json` in `WinAppDataRoaming` + `BeyondAllReason/saves/singleplayer`. On Linux STATE_PATH is under
- * XDG_STATE_HOME, which Steam has no root for, so that either assumes the default `LinuxHome` +
- * `.local/state/...` or goes through the ISteamRemoteStorage API, which only needs the file names and contents.
+ * Everything Steam Cloud syncs for one profile: small JSON files holding no paths or machine-specific
+ * values, and nothing else. With Auto-Cloud that is the pattern `*.json`, recursive, in `WinAppDataRoaming` +
+ * `BeyondAllReason/saves/<account>`. On Linux STATE_PATH is under XDG_STATE_HOME, which Steam has no root
+ * for, so that either assumes the default `LinuxHome` + `.local/state/...` or goes through the
+ * ISteamRemoteStorage API, which only needs the file names and contents.
+ *
+ * Steam accounts sharing one OS user share this state dir, and Auto-Cloud uploads every matching file it
+ * finds, so each account needs a folder of its own. Until the client knows the Steam account, there is only
+ * the `local` profile.
  */
-export const SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
+export const PROFILE_ID = "local";
+export const getSyncedPath = (profileId: string) => path.join(STATE_PATH, "saves", profileId);
+export const SYNCED_PATH = getSyncedPath(PROFILE_ID);
+
+// Saved singleplayer progress, one file per item played.
+export const SAVES_PATH = path.join(SYNCED_PATH, "singleplayer");
+// Where SAVES_PATH was before profiles; moved into the first profile at startup.
+export const LEGACY_SAVES_PATH = path.join(STATE_PATH, "saves", "singleplayer");
+// Settings files are named by what they hold, such as engine.json.
+export const getSyncedSettingsPath = (profileId: string) => path.join(getSyncedPath(profileId), "settings");
+export const SYNCED_SETTINGS_PATH = getSyncedSettingsPath(PROFILE_ID);
+
+// Engine config files the client owns. Never synced.
+export const ENGINE_CONFIG_PATH = path.join(STATE_PATH, "engine-config");
+export const ENGINE_DEFAULTS_PATH = path.join(ENGINE_CONFIG_PATH, "defaults");
+export const ENGINE_CONFIG_VARS_PATH = path.join(ENGINE_CONFIG_PATH, "config-vars");
+// Config files for engine runs that must not touch the user's springsettings.cfg.
+export const ENGINE_SCRATCH_PATH = path.join(ENGINE_CONFIG_PATH, "scratch");
 
 // A data directory of its own for the mission archive a dev-mode launch rebuilds to depend on another game. Not
 // the write directory, which every launch reads, and emptied before each rebuild.

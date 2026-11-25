@@ -12,6 +12,7 @@ import { initMatchmakingLogic } from "@renderer/logic/matchmaking";
 import { initMeLogic } from "@renderer/logic/me";
 import { initPartyLogic } from "@renderer/logic/party";
 import { initSingleplayerLogic } from "@renderer/logic/singleplayer";
+import { initEngineSettingsLogic } from "@renderer/logic/engine-settings";
 
 import { initSettingsLogic } from "@renderer/logic/settings";
 import { initTachyonStore } from "@renderer/store/tachyon.store";
@@ -26,6 +27,7 @@ export async function initPreMountStores() {
         Promise.all([initConfigStore(), initSettingsLogic()]).then(() => initCustomLobbiesStore()),
         initInfosLogic(),
         initSingleplayerLogic(),
+        initEngineSettingsLogic(),
         initGameStore(),
         initContentsStore(),
         initDownloadsStore(),

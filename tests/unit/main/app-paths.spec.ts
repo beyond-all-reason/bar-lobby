@@ -134,6 +134,21 @@ describe("app paths", () => {
         });
     });
 
+    describe("synced and engine config paths", () => {
+        it("keeps synced files under the local profile, apart from the client's own engine config", async () => {
+            const paths = await loadPaths({ edition: "steam", platform: "win32" });
+            const state = path.join(appData, "BeyondAllReason");
+
+            expect(paths.SYNCED_PATH).toBe(path.join(state, "saves", "local"));
+            expect(paths.SAVES_PATH).toBe(path.join(state, "saves", "local", "singleplayer"));
+            expect(paths.SYNCED_SETTINGS_PATH).toBe(path.join(state, "saves", "local", "settings"));
+            expect(paths.LEGACY_SAVES_PATH).toBe(path.join(state, "saves", "singleplayer"));
+            expect(paths.ENGINE_DEFAULTS_PATH).toBe(path.join(state, "engine-config", "defaults"));
+            expect(paths.ENGINE_CONFIG_VARS_PATH).toBe(path.join(state, "engine-config", "config-vars"));
+            expect(paths.ENGINE_SCRATCH_PATH).toBe(path.join(state, "engine-config", "scratch"));
+        });
+    });
+
     describe("singleplayer content roots", () => {
         it("reads official content from the assets dir, then custom content from the state dir, on steam", async () => {
             const paths = await loadPaths({ edition: "steam", platform: "win32" });
