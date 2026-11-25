@@ -73,6 +73,8 @@ archive.
                             :status="itemStatus(singleplayerLogic.itemCompleted(selected))"
                             :unplayable="singleplayerLogic.itemUnplayable(selected)"
                             :launch="() => singleplayerLogic.launch('scenario', selected!)"
+                            :versions="singleplayerLogic.chosenVersions('scenario', selected)"
+                            @update:versions="(versions) => singleplayerLogic.chooseVersions('scenario', selected!, undefined, versions)"
                             @pass="singleplayerLogic.recordItemResult(selected, 'victory')"
                             @fail="singleplayerLogic.recordItemResult(selected, 'failure')"
                         >

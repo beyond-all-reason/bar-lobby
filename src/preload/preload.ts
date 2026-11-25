@@ -24,7 +24,7 @@ import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
-import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
+import type { ChosenVersions, ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -215,8 +215,8 @@ const singleplayerApi = {
         ipcRenderer.invoke("singleplayer:setDifficulty", kind, source, rootId, id, difficulty),
     deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
     deleteAllSaves: (): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
-    launch: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string): Promise<IpcResult> =>
-        ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName),
+    launch: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string, chosenVersions: ChosenVersions): Promise<IpcResult> =>
+        ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName, chosenVersions),
     // Every change to a save, including ones main made itself.
     onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
 };

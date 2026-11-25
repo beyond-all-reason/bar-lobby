@@ -40,6 +40,9 @@ export type SingleplayerLoadFailure = "load_failed";
 // the mission's result, as SaveFailure has them.
 export type SingleplayerLaunchFailure = "unknown_item" | "no_archive" | "no_engine_and_game" | "map_unavailable" | "save_unusable" | "save_version_older" | "save_version_newer" | "launch_failed";
 
+// The engine and game dev mode chose for a mission. Either left out is the one a launch picks on its own.
+export type ChosenVersions = { engineVersion?: string; gameVersion?: string };
+
 export type MissionConfigs = {
     default: MissionConfig;
     // Keyed by number of human players, as in the manifest.

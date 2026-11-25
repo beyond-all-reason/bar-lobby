@@ -8,7 +8,7 @@ import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { decodeModoptionValue } from "@shared/startbox-modoptions";
 
-const paths = vi.hoisted(() => ({ saves: "", roots: [] as { source: "custom"; rootId: string; path: string }[] }));
+const paths = vi.hoisted(() => ({ saves: "", devArchive: "", roots: [] as { source: "custom"; rootId: string; path: string }[] }));
 // What a Steam install with the outpost-strike example's engine, game and map would offer.
 const launching = vi.hoisted(() => ({
     launchMission: vi.fn(async () => undefined),
@@ -24,6 +24,9 @@ vi.mock("@main/config/app", () => ({
     get SAVES_PATH() {
         return paths.saves;
     },
+    get DEV_MISSION_ARCHIVE_PATH() {
+        return paths.devArchive;
+    },
 }));
 
 vi.mock("@main/game/game", () => ({ gameAPI: { launchMission: launching.launchMission } }));
@@ -37,7 +40,8 @@ vi.mock("@main/content/content-api", () => ({
 vi.mock("@main/config/install-defaults", () => ({ getInstallDefaults: () => ({}), getDefaultEngineVersion: () => "2026.07.04" }));
 
 // The real settings service reads its file from the mocked config paths.
-vi.mock("@main/services/settings.service", () => ({ settingsService: { getSettings: () => ({ devMode: false }) } }));
+const settings = vi.hoisted(() => ({ devMode: false }));
+vi.mock("@main/services/settings.service", () => ({ settingsService: { getSettings: () => settings } }));
 
 const { singleplayerService } = await import("@main/services/singleplayer.service");
 
@@ -135,7 +139,8 @@ describe("singleplayer IPC handlers", () => {
 
     describe("launching", () => {
         const sdz = path.resolve("tests/fixtures/content-sdz");
-        const launchOverIpc = (kind: string, rootId: string, id: string, missionId?: string) => ipc.handlers.get("singleplayer:launch")!({}, kind, "custom", rootId, id, missionId, "Commander");
+        const launchOverIpc = (kind: string, rootId: string, id: string, missionId?: string, chosenVersions?: unknown) =>
+            ipc.handlers.get("singleplayer:launch")!({}, kind, "custom", rootId, id, missionId, "Commander", chosenVersions);
 
         beforeAll(async () => {
             paths.roots = [{ source: "custom", rootId: "sdz", path: sdz }];
@@ -208,6 +213,68 @@ describe("singleplayer IPC handlers", () => {
             } finally {
                 await ipc.handlers.get("singleplayer:deleteSave")!({}, "scenario", "custom", "sdz", "outpost-strike");
             }
+        });
+
+        describe("with an engine and game chosen in dev mode", () => {
+            const OTHER_GAME = "Beyond All Reason test-28000-aaaaaaa";
+            const installedGames = launching.installed.game;
+
+            beforeAll(async () => {
+                paths.devArchive = await fs.mkdtemp(path.join(os.tmpdir(), "dev-mission-archive-"));
+                launching.installed.game = [...installedGames, OTHER_GAME];
+                settings.devMode = true;
+            });
+
+            afterAll(async () => {
+                settings.devMode = false;
+                launching.installed.game = installedGames;
+                await fs.rm(paths.devArchive, { recursive: true, force: true });
+            });
+
+            it("launches a renamed copy of the archive that depends on the chosen game, beside the item's folder", async () => {
+                const { run7za } = await import("@main/content/singleplayer/mission-archive");
+                const { readModInfo } = await import("@main/content/singleplayer/modinfo");
+                launching.launchMission.mockClear();
+
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { gameVersion: OTHER_GAME })).toEqual({ status: "success", data: undefined });
+                expect(launching.launchMission).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        engineVersion: "2026.07.04",
+                        gameVersion: OTHER_GAME,
+                        script: expect.stringContaining("gametype=bar-scenario-outpost-strike-dev 1.0;"),
+                        dataDirs: [path.join(sdz, "scenarios", "outpost-strike"), paths.devArchive],
+                    })
+                );
+
+                const copy = path.join(paths.devArchive, "games", "bar-scenario-outpost-strike-dev.sdz");
+                const modInfo = await run7za(["e", "-so", copy, "modinfo.lua"]);
+                expect("stdout" in modInfo && readModInfo(modInfo.stdout)).toEqual({ modInfo: { name: "bar-scenario-outpost-strike-dev", version: "1.0", depend: [OTHER_GAME] } });
+                const listing = await run7za(["l", "-ba", copy]);
+                expect("stdout" in listing && listing.stdout.toString()).toMatch(/scenarios[\\/]outpost-strike[\\/]mission\.lua/);
+            });
+
+            it("launches the archive itself when the chosen game is the one it depends on", async () => {
+                launching.launchMission.mockClear();
+
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { engineVersion: "2026.07.04", gameVersion: installedGames[0] })).toMatchObject({ status: "success" });
+                expect(launching.launchMission).toHaveBeenCalledWith(
+                    expect.objectContaining({ script: expect.stringContaining("gametype=bar-scenario-outpost-strike 1.0;"), dataDirs: [path.join(sdz, "scenarios", "outpost-strike")] })
+                );
+            });
+
+            it("refuses a choice outside dev mode, or one that isn't a version", async () => {
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { engineVersion: 7 })).toMatchObject({ status: "failed", reason: "launch_failed" });
+                settings.devMode = false;
+                try {
+                    expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { gameVersion: OTHER_GAME })).toEqual({
+                        status: "failed",
+                        reason: "launch_failed",
+                        details: expect.stringMatching(/Only dev mode/),
+                    });
+                } finally {
+                    settings.devMode = true;
+                }
+            });
         });
 
         it("refuses when the install lacks the game the archive depends on", async () => {
