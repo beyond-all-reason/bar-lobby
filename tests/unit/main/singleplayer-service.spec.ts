@@ -5,10 +5,11 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { decodeModoptionValue } from "@shared/startbox-modoptions";
+import { fakeEngineSave } from "./fake-engine-save";
 
-const paths = vi.hoisted(() => ({ saves: "", roots: [] as { source: "custom"; rootId: string; path: string }[] }));
+const paths = vi.hoisted(() => ({ saves: "", devArchive: "", suspended: "", engineSaves: "", roots: [] as { source: "custom"; rootId: string; path: string }[] }));
 // What a Steam install with the outpost-strike example's engine, game and map would offer.
 const launching = vi.hoisted(() => ({
     launchMission: vi.fn(async () => undefined),
@@ -24,6 +25,15 @@ vi.mock("@main/config/app", () => ({
     get SAVES_PATH() {
         return paths.saves;
     },
+    get DEV_MISSION_ARCHIVE_PATH() {
+        return paths.devArchive;
+    },
+    get SUSPENDED_MISSIONS_PATH() {
+        return paths.suspended;
+    },
+    get ENGINE_SAVES_PATH() {
+        return paths.engineSaves;
+    },
 }));
 
 vi.mock("@main/game/game", () => ({ gameAPI: { launchMission: launching.launchMission } }));
@@ -37,9 +47,22 @@ vi.mock("@main/content/content-api", () => ({
 vi.mock("@main/config/install-defaults", () => ({ getInstallDefaults: () => ({}), getDefaultEngineVersion: () => "2026.07.04" }));
 
 // The real settings service reads its file from the mocked config paths.
-vi.mock("@main/services/settings.service", () => ({ settingsService: { getSettings: () => ({ devMode: false }) } }));
+const settings = vi.hoisted(() => ({ devMode: false }));
+vi.mock("@main/services/settings.service", () => ({ settingsService: { getSettings: () => settings } }));
 
 const { singleplayerService } = await import("@main/services/singleplayer.service");
+
+let suspendedRoot: string;
+
+beforeAll(async () => {
+    suspendedRoot = await fs.mkdtemp(path.join(os.tmpdir(), "singleplayer-service-suspended-"));
+    paths.suspended = path.join(suspendedRoot, "missions");
+    paths.engineSaves = path.join(suspendedRoot, "Saves");
+});
+
+afterAll(async () => {
+    await fs.rm(suspendedRoot, { recursive: true, force: true });
+});
 
 const custom = (id: string) => ({ source: "custom" as const, rootId: "custom", id });
 
@@ -135,7 +158,8 @@ describe("singleplayer IPC handlers", () => {
 
     describe("launching", () => {
         const sdz = path.resolve("tests/fixtures/content-sdz");
-        const launchOverIpc = (kind: string, rootId: string, id: string, missionId?: string) => ipc.handlers.get("singleplayer:launch")!({}, kind, "custom", rootId, id, missionId, "Commander");
+        const launchOverIpc = (kind: string, rootId: string, id: string, missionId?: string, chosenVersions?: unknown) =>
+            ipc.handlers.get("singleplayer:launch")!({}, kind, "custom", rootId, id, missionId, "Commander", chosenVersions);
 
         beforeAll(async () => {
             paths.roots = [{ source: "custom", rootId: "sdz", path: sdz }];
@@ -156,6 +180,7 @@ describe("singleplayer IPC handlers", () => {
                 mapSpringName: "Quicksilver Remake 1.24",
                 script: expect.stringContaining("gametype=bar-scenario-outpost-strike 1.0;"),
                 dataDirs: [path.join(sdz, "scenarios", "outpost-strike")],
+                onProcessClosed: expect.any(Function),
             });
         });
 
@@ -210,6 +235,68 @@ describe("singleplayer IPC handlers", () => {
             }
         });
 
+        describe("with an engine and game chosen in dev mode", () => {
+            const OTHER_GAME = "Beyond All Reason test-28000-aaaaaaa";
+            const installedGames = launching.installed.game;
+
+            beforeAll(async () => {
+                paths.devArchive = await fs.mkdtemp(path.join(os.tmpdir(), "dev-mission-archive-"));
+                launching.installed.game = [...installedGames, OTHER_GAME];
+                settings.devMode = true;
+            });
+
+            afterAll(async () => {
+                settings.devMode = false;
+                launching.installed.game = installedGames;
+                await fs.rm(paths.devArchive, { recursive: true, force: true });
+            });
+
+            it("launches a renamed copy of the archive that depends on the chosen game, beside the item's folder", async () => {
+                const { run7za } = await import("@main/content/singleplayer/mission-archive");
+                const { readModInfo } = await import("@main/content/singleplayer/modinfo");
+                launching.launchMission.mockClear();
+
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { gameVersion: OTHER_GAME })).toEqual({ status: "success", data: undefined });
+                expect(launching.launchMission).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        engineVersion: "2026.07.04",
+                        gameVersion: OTHER_GAME,
+                        script: expect.stringContaining("gametype=bar-scenario-outpost-strike-dev 1.0;"),
+                        dataDirs: [path.join(sdz, "scenarios", "outpost-strike"), paths.devArchive],
+                    })
+                );
+
+                const copy = path.join(paths.devArchive, "games", "bar-scenario-outpost-strike-dev.sdz");
+                const modInfo = await run7za(["e", "-so", copy, "modinfo.lua"]);
+                expect("stdout" in modInfo && readModInfo(modInfo.stdout)).toEqual({ modInfo: { name: "bar-scenario-outpost-strike-dev", version: "1.0", depend: [OTHER_GAME] } });
+                const listing = await run7za(["l", "-ba", copy]);
+                expect("stdout" in listing && listing.stdout.toString()).toMatch(/scenarios[\\/]outpost-strike[\\/]mission\.lua/);
+            });
+
+            it("launches the archive itself when the chosen game is the one it depends on", async () => {
+                launching.launchMission.mockClear();
+
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { engineVersion: "2026.07.04", gameVersion: installedGames[0] })).toMatchObject({ status: "success" });
+                expect(launching.launchMission).toHaveBeenCalledWith(
+                    expect.objectContaining({ script: expect.stringContaining("gametype=bar-scenario-outpost-strike 1.0;"), dataDirs: [path.join(sdz, "scenarios", "outpost-strike")] })
+                );
+            });
+
+            it("refuses a choice outside dev mode, or one that isn't a version", async () => {
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { engineVersion: 7 })).toMatchObject({ status: "failed", reason: "launch_failed" });
+                settings.devMode = false;
+                try {
+                    expect(await launchOverIpc("scenario", "sdz", "outpost-strike", undefined, { gameVersion: OTHER_GAME })).toEqual({
+                        status: "failed",
+                        reason: "launch_failed",
+                        details: expect.stringMatching(/Only dev mode/),
+                    });
+                } finally {
+                    settings.devMode = true;
+                }
+            });
+        });
+
         it("refuses when the install lacks the game the archive depends on", async () => {
             const games = launching.installed.game;
             launching.installed.game = ["Beyond All Reason test-1-abc"];
@@ -218,6 +305,69 @@ describe("singleplayer IPC handlers", () => {
             } finally {
                 launching.installed.game = games;
             }
+        });
+
+        describe("saved games", () => {
+            type Launched = { engineVersion: string; gameVersion: string; script: string; onProcessClosed: () => void };
+            const lastLaunch = () => (launching.launchMission.mock.calls.at(-1) as unknown as [Launched])[0];
+            const getSuspended = () => ipc.handlers.get("singleplayer:getSuspended")!({});
+            const continueOverIpc = () => ipc.handlers.get("singleplayer:continueMission")!({}, "scenario", "custom", "sdz", "outpost-strike");
+
+            // Plays outpost-strike and saves part way: the engine writes the save with the script it was launched
+            // with, under a name the player chose, and then the game closes.
+            async function playAndSave() {
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toMatchObject({ status: "success" });
+                const launched = lastLaunch();
+                await fs.mkdir(paths.engineSaves, { recursive: true });
+                await fs.writeFile(path.join(paths.engineSaves, "20261123_185816.ssf"), fakeEngineSave(launched.engineVersion, launched.script, "Quicksilver Remake 1.24", 1024));
+                launched.onProcessClosed();
+                await vi.waitFor(async () => expect(await getSuspended()).toMatchObject({ status: "success", data: [expect.anything()] }));
+            }
+
+            afterEach(async () => {
+                await ipc.handlers.get("singleplayer:deleteSave")!({}, "scenario", "custom", "sdz", "outpost-strike");
+            });
+
+            it("keeps the save made in the game, and continues it on the engine and game it was played on, as the player it was played as", async () => {
+                await playAndSave();
+                expect(await getSuspended()).toEqual({
+                    status: "success",
+                    data: [{ item: { kind: "scenario", ...outpostStrike }, missionId: "outpost-strike", savedAt: expect.any(String) }],
+                });
+
+                expect(await continueOverIpc()).toEqual({ status: "success", data: undefined });
+                expect(lastLaunch()).toMatchObject({
+                    engineVersion: "2026.07.04",
+                    gameVersion: "Beyond All Reason test-31820-45ea098",
+                    script: expect.stringMatching(/savefile=.*\/missions\/scenario-[0-9a-f]{32}\.ssf;[\s\S]*myplayername=Commander;/),
+                });
+                // Quitting without saving again leaves it to be continued from the same point.
+                expect(await getSuspended()).toMatchObject({ data: [expect.anything()] });
+            });
+
+            it("discards it when the scenario is played from the start, or a result is recorded for it", async () => {
+                await playAndSave();
+                expect(await launchOverIpc("scenario", "sdz", "outpost-strike")).toMatchObject({ status: "success" });
+                expect(await getSuspended()).toEqual({ status: "success", data: [] });
+
+                await playAndSave();
+                await ipc.handlers.get("singleplayer:recordResult")!({}, "scenario", "custom", "sdz", "outpost-strike", { missionId: "outpost-strike", outcome: "victory" });
+                expect(await getSuspended()).toEqual({ status: "success", data: [] });
+            });
+
+            it("won't continue it on an install without the engine it was played on", async () => {
+                await playAndSave();
+                const engines = launching.installed.engine;
+                launching.installed.engine = ["2026.11.04"];
+                try {
+                    expect(await getSuspended()).toMatchObject({ data: [{ unusable: "engine_unavailable" }] });
+                    launching.launchMission.mockClear();
+                    expect(await continueOverIpc()).toMatchObject({ status: "failed", reason: "suspended_unusable" });
+                    expect(launching.launchMission).not.toHaveBeenCalled();
+                } finally {
+                    launching.installed.engine = engines;
+                }
+            });
         });
     });
 });

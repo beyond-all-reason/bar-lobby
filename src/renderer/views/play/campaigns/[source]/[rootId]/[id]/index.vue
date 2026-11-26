@@ -71,6 +71,12 @@ graph: content does not say which missions are alternatives to each other.
                         :status="missionStatus(campaign.config, state, mission.id)"
                         :unplayable="singleplayerLogic.missionUnplayable(campaign, mission)"
                         :launch="() => singleplayerLogic.launch('campaign', campaign!, mission.id)"
+                        :versions="singleplayerLogic.chosenVersions('campaign', campaign, mission.id)"
+                        @update:versions="(versions) => singleplayerLogic.chooseVersions('campaign', campaign!, mission.id, versions)"
+                        :suspended="suspended?.missionId === mission.id ? suspended : undefined"
+                        :discards-suspended="!!suspended"
+                        :continue-launch="() => singleplayerLogic.continueMission('campaign', campaign!)"
+                        :delete-suspended="() => singleplayerLogic.deleteSuspended('campaign', campaign!)"
                         @pass="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'victory')"
                         @fail="singleplayerLogic.recordCampaignResult(campaign, mission.id, 'failure')"
                     />
@@ -117,6 +123,8 @@ const state = computed(() => campaign.value && singleplayerLogic.campaignState(c
 const saveStatus = computed(() => (campaign.value ? singleplayerLogic.campaignSaveStatus(campaign.value) : "compatible"));
 const variables = computed(() => (campaign.value ? singleplayerLogic.variablesOf(campaign.value) : {}));
 const saveError = computed(() => campaign.value && singleplayerLogic.saveErrorOf("campaign", campaign.value));
+// A campaign keeps one saved game, of whichever mission it was; starting any of its missions discards it.
+const suspended = computed(() => campaign.value && singleplayerLogic.suspendedOf("campaign", campaign.value));
 
 onMounted(() => {
     if (!singleplayerStore.content) {

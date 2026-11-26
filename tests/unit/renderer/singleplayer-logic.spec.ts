@@ -7,6 +7,7 @@ import { applyResult, countPlay } from "@shared/content/campaign-progress";
 import { saveKey, type SaveChange, type ReportedResult, type SingleplayerSave, type SingleplayerSaves } from "@shared/content/save";
 import type { CampaignConfig } from "@shared/content/schema/campaign-config";
 import type { SingleplayerCampaign, SingleplayerContent, SingleplayerItemRef, SingleplayerKind, SingleplayerScenario } from "@shared/content/singleplayer";
+import type { SuspendedChange, SuspendedMission } from "@shared/content/suspended-mission";
 import sampleCampaign from "../../fixtures/content/campaigns/sample-campaign/campaignConfig.json";
 
 const api = vi.hoisted(() => ({
@@ -18,11 +19,16 @@ const api = vi.hoisted(() => ({
     deleteAllSaves: vi.fn(),
     onSaveChanged: vi.fn(),
     launch: vi.fn(),
+    getSuspended: vi.fn(),
+    continueMission: vi.fn(),
+    deleteSuspended: vi.fn(),
+    onSuspendedChanged: vi.fn(),
 }));
 vi.mock("@renderer/api/singleplayer", () => ({ singleplayerApi: api }));
 
 const { singleplayerStore, singleplayerActions } = await import("@renderer/store/singleplayer.store");
 const { initSingleplayerLogic, singleplayerLogic } = await import("@renderer/logic/singleplayer");
+const { settingsActions } = await import("@renderer/store/settings.store");
 
 // Stands in for main, which keeps the saves, applies each result under the item's rules and returns the save
 // as written. Every campaign here is the sample campaign.
@@ -61,6 +67,7 @@ function fakeMain() {
         disk.clear();
         return { status: "success", data: undefined };
     });
+    api.getSuspended.mockResolvedValue(succeeded([]));
 }
 
 function makeCampaign(source: "official" | "custom"): SingleplayerCampaign {
@@ -94,6 +101,7 @@ function content(tutorials: SingleplayerScenario[]): SingleplayerContent {
 const official = makeCampaign("official");
 const custom = makeCampaign("custom");
 const officialItem = { kind: "campaign", source: "official", rootId: "official", id: "sample-campaign" } as const;
+const suspendedMission: SuspendedMission = { item: officialItem, missionId: "mission02", savedAt: "2026-11-23T18:58:16.000Z" };
 
 async function winThroughToFinal(campaign: SingleplayerCampaign) {
     for (const missionId of ["mission01", "mission02", "missionA", "missionB"]) {
@@ -423,6 +431,28 @@ describe("singleplayer logic", () => {
         });
     });
 
+    describe("chosen engine and game", () => {
+        it("are kept for each mission and launched with only in dev mode", async () => {
+            const versions = { engineVersion: "2025.04.10", gameVersion: "Beyond All Reason test-28000-aaaaaaa" };
+            singleplayerLogic.chooseVersions("campaign", official, "mission01", versions);
+            api.launch.mockResolvedValue(succeeded(undefined));
+            try {
+                expect(singleplayerLogic.chosenVersions("campaign", official, "mission01")).toEqual(versions);
+                expect(singleplayerLogic.chosenVersions("campaign", official, "mission02")).toEqual({});
+
+                await singleplayerLogic.launch("campaign", official, "mission01");
+                expect(api.launch).toHaveBeenLastCalledWith("campaign", official, "mission01", expect.any(String), {});
+
+                settingsActions.changed({ devMode: true });
+                await singleplayerLogic.launch("campaign", official, "mission01");
+                expect(api.launch).toHaveBeenLastCalledWith("campaign", official, "mission01", expect.any(String), versions);
+            } finally {
+                settingsActions.changed({ devMode: false });
+                api.launch.mockReset();
+            }
+        });
+    });
+
     describe("saves from a newer version", () => {
         it("deletes only the tutorial saves of one root that main refused as newer", async () => {
             const [newer, played, other] = [makeTutorial("newer"), makeTutorial("played"), makeTutorial("newer", "custom")];
@@ -466,14 +496,54 @@ describe("singleplayer logic", () => {
         });
     });
 
+    describe("suspended missions", () => {
+        it("reads them with every content load, as whether one can be continued depends on what is installed", async () => {
+            api.getSuspended.mockResolvedValueOnce(succeeded([suspendedMission]));
+            await singleplayerLogic.loadContent();
+            expect(singleplayerLogic.suspendedOf("campaign", official)).toEqual(suspendedMission);
+            expect(singleplayerLogic.suspendedOf("campaign", custom)).toBeUndefined();
+
+            api.getSuspended.mockResolvedValueOnce(succeeded([{ ...suspendedMission, unusable: "engine_unavailable" }]));
+            await singleplayerLogic.loadContent();
+            expect(singleplayerLogic.suspendedOf("campaign", official)?.unusable).toBe("engine_unavailable");
+        });
+
+        it("reads them again when main won't continue one, and says why", async () => {
+            api.getSuspended.mockResolvedValueOnce(succeeded([suspendedMission]));
+            await singleplayerLogic.loadContent();
+            api.continueMission.mockResolvedValueOnce({ status: "failed", reason: "suspended_unusable", details: "engine_unavailable" });
+            api.getSuspended.mockResolvedValueOnce(succeeded([{ ...suspendedMission, unusable: "engine_unavailable" }]));
+
+            expect(await singleplayerLogic.continueMission("campaign", official)).toBe("lobby.logic.singleplayer.launchFailures.suspendedUnusable");
+            expect(singleplayerLogic.suspendedOf("campaign", official)?.unusable).toBe("engine_unavailable");
+        });
+
+        it("continues one main can launch, with nothing to say", async () => {
+            api.continueMission.mockResolvedValueOnce(succeeded(undefined));
+
+            expect(await singleplayerLogic.continueMission("campaign", official)).toBeUndefined();
+            expect(api.continueMission).toHaveBeenCalledWith("campaign", official);
+        });
+    });
+
     describe("save changes from main", () => {
         // Subscribed once for the whole file, the same as at startup, so the handler is caught here.
         // Gives the change's turn in the queue of changes to the saves, so a test can wait for it.
         let reportChange: (change: SaveChange) => unknown;
+        let reportSuspended: (change: SuspendedChange) => unknown;
 
         beforeEach(() => {
             api.onSaveChanged.mockImplementation((handler) => (reportChange = handler));
+            api.onSuspendedChanged.mockImplementation((handler) => (reportSuspended = handler));
             initSingleplayerLogic();
+        });
+
+        it("shows a mission main kept when a game closed, and drops one main discarded", () => {
+            reportSuspended({ item: officialItem, suspended: suspendedMission });
+            expect(singleplayerLogic.suspendedOf("campaign", official)).toEqual(suspendedMission);
+
+            reportSuspended({ item: officialItem, suspended: undefined });
+            expect(singleplayerLogic.suspendedOf("campaign", official)).toBeUndefined();
         });
 
         const recordedByMain: SingleplayerSave = {

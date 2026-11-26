@@ -19,12 +19,14 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
-import { logLevels } from "@main/services/log.service";
+import { logLevels } from "@shared/log-levels";
 import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
-import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
+import type { SuspendedChange, SuspendedMission } from "@shared/content/suspended-mission";
+import type { EngineSettingsView } from "@shared/engine-settings/view";
+import type { ChosenVersions, ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 
 function subscribe<K extends keyof IPCEvents>(channel: K, callback: (...args: Parameters<IPCEvents[K]>) => void): () => void {
     const listener = (_event: IpcRendererEvent, ...args: Parameters<IPCEvents[K]>) => callback(...args);
@@ -190,7 +192,6 @@ contextBridge.exposeInMainWorld("game", gameApi);
 
 const mapsApi = {
     // Content
-    downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
     downloadMaps: (springNames: string[]): Promise<void> => ipcRenderer.invoke("maps:downloadMaps", springNames),
     getInstalledMapNames: (): Promise<string[]> => ipcRenderer.invoke("maps:getInstalledMapNames"),
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
@@ -216,13 +217,28 @@ const singleplayerApi = {
         ipcRenderer.invoke("singleplayer:setDifficulty", kind, source, rootId, id, difficulty),
     deleteSave: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSave", kind, source, rootId, id),
     deleteAllSaves: (): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteAllSaves"),
-    launch: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string): Promise<IpcResult> =>
-        ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName),
+    launch: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string, chosenVersions: ChosenVersions): Promise<IpcResult> =>
+        ipcRenderer.invoke("singleplayer:launch", kind, source, rootId, id, missionId, playerName, chosenVersions),
     // Every change to a save, including ones main made itself.
     onSaveChanged: (callback: (change: SaveChange) => void) => subscribe("singleplayer:saveChanged", callback),
+    getSuspended: (): Promise<IpcResult<SuspendedMission[]>> => ipcRenderer.invoke("singleplayer:getSuspended"),
+    continueMission: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:continueMission", kind, source, rootId, id),
+    deleteSuspended: (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string): Promise<IpcResult> => ipcRenderer.invoke("singleplayer:deleteSuspended", kind, source, rootId, id),
+    // Every change to a suspended mission, such as one kept when a game closes.
+    onSuspendedChanged: (callback: (change: SuspendedChange) => void) => subscribe("singleplayer:suspendedChanged", callback),
 };
 export type SingleplayerApi = typeof singleplayerApi;
 contextBridge.exposeInMainWorld("singleplayer", singleplayerApi);
+
+const engineSettingsApi = {
+    get: (): Promise<IpcResult<EngineSettingsView>> => ipcRenderer.invoke("engineSettings:get"),
+    set: (key: string, value: string): Promise<IpcResult<EngineSettingsView>> => ipcRenderer.invoke("engineSettings:set", key, value),
+    reset: (key: string): Promise<IpcResult<EngineSettingsView>> => ipcRenderer.invoke("engineSettings:reset", key),
+    // Every change, including ones a game made.
+    onChanged: (callback: (view: EngineSettingsView) => void) => subscribe("engineSettings:changed", callback),
+};
+export type EngineSettingsApi = typeof engineSettingsApi;
+contextBridge.exposeInMainWorld("engineSettings", engineSettingsApi);
 
 const miscApi = {
     getNewsRssFeed: (numberOfNews: number) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),

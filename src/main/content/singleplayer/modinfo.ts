@@ -101,6 +101,42 @@ export function readModInfo(lua: Buffer): ModInfoResult {
     return readTable(statement.arguments[0]);
 }
 
+// Written back in the bytes readModInfo decodes, so a value comes back as it went in.
+function luaString(value: string) {
+    const escapes: Record<string, string> = { "\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r" };
+
+    return `"${Buffer.from(value, "utf8")
+        .toString("latin1")
+        .replace(/[\\"\n\r]/g, (char) => escapes[char])}"`;
+}
+
+// Parsing with `ranges: true` gives every node its start and end, which luaparse's types leave out.
+type Ranged = Expression & { range: [number, number] };
+
+/**
+ * The same modinfo.lua with its name and depend replaced and everything else as written, for a dev launch on a
+ * game the archive doesn't depend on. The file must be one readModInfo accepts.
+ */
+export function rewriteModInfo(lua: Buffer, { name, depend }: { name: string; depend: string[] }): Buffer {
+    const source = lua.toString("latin1");
+    const statement = luaparse.parse(source, { comments: false, encodingMode: "pseudo-latin1", ranges: true }).body[0];
+    const table = statement?.type === "ReturnStatement" ? statement.arguments[0] : undefined;
+    if (table?.type !== "TableConstructorExpression") {
+        throw new Error(`${PLAIN_TABLE}, returned by its only statement`);
+    }
+
+    const values: Record<string, string> = { name: luaString(name), depend: `{ ${depend.map(luaString).join(", ")} }` };
+    const edits = table.fields.flatMap((field) => (field.type === "TableKeyString" && field.key.name in values ? [{ range: (field.value as Ranged).range, text: values[field.key.name] }] : []));
+    if (edits.length !== Object.keys(values).length) {
+        throw new Error("modinfo.lua must set name and depend once each");
+    }
+
+    // From the end, so each range is still where it was parsed.
+    const rewritten = edits.sort((a, b) => b.range[0] - a.range[0]).reduce((text, { range: [start, end], text: value }) => text.slice(0, start) + value + text.slice(end), source);
+
+    return Buffer.from(rewritten, "latin1");
+}
+
 // The game name the engine gives the archive, and so the one a start script names it by. As RecoilEngine's
 // ArchiveData constructor (ArchiveScanner.cpp) builds it: the version is left off when the name already
 // contains it anywhere, and a start script's gametype must match the result exactly.

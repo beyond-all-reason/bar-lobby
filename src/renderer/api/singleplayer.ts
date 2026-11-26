@@ -5,7 +5,8 @@
 import { ipcCall } from "@renderer/api/ipc-call";
 import type { SaveChange, ReportedResult } from "@shared/content/save";
 import type { Difficulty } from "@shared/content/schema/common";
-import type { SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
+import type { ChosenVersions, SingleplayerItemRef, SingleplayerKind } from "@shared/content/singleplayer";
+import type { SuspendedChange } from "@shared/content/suspended-mission";
 
 export const singleplayerApi = {
     // Rescans the content roots, so content added since the last call shows up.
@@ -19,9 +20,16 @@ export const singleplayerApi = {
         ipcCall("singleplayer:setDifficulty", () => window.singleplayer.setDifficulty(kind, source, rootId, id, difficulty)),
     deleteAllSaves: () => ipcCall("singleplayer:deleteAllSaves", () => window.singleplayer.deleteAllSaves()),
     // A campaign mission names its mission; a scenario or tutorial is one mission.
-    launch: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, missionId: string | undefined, playerName: string) =>
-        ipcCall("singleplayer:launch", () => window.singleplayer.launch(kind, source, rootId, id, missionId, playerName)),
+    launch: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef, missionId: string | undefined, playerName: string, chosenVersions: ChosenVersions) =>
+        ipcCall("singleplayer:launch", () => window.singleplayer.launch(kind, source, rootId, id, missionId, playerName, chosenVersions)),
     // Every change to a save, including ones main made itself. Gives the function that unsubscribes.
     onSaveChanged: (handler: (change: SaveChange) => void) => window.singleplayer.onSaveChanged(handler),
     deleteSave: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) => ipcCall("singleplayer:deleteSave", () => window.singleplayer.deleteSave(kind, source, rootId, id)),
+    getSuspended: () => ipcCall("singleplayer:getSuspended", () => window.singleplayer.getSuspended()),
+    continueMission: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) =>
+        ipcCall("singleplayer:continueMission", () => window.singleplayer.continueMission(kind, source, rootId, id)),
+    deleteSuspended: (kind: SingleplayerKind, { source, rootId, id }: SingleplayerItemRef) =>
+        ipcCall("singleplayer:deleteSuspended", () => window.singleplayer.deleteSuspended(kind, source, rootId, id)),
+    // Every change to a suspended mission, such as one kept when a game closes. Gives the function that unsubscribes.
+    onSuspendedChanged: (handler: (change: SuspendedChange) => void) => window.singleplayer.onSuspendedChanged(handler),
 };

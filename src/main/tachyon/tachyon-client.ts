@@ -68,6 +68,7 @@ export class TachyonClient {
                 return;
             }
             let serverProtocol: string | undefined;
+            let disconnectReason: string | undefined;
 
             // A handshake can be aborted before it ever opens or errors, so the
             // promise has to be settled from the close path too.
@@ -105,16 +106,23 @@ export class TachyonClient {
             };
             socket.on("ping", expectMoreFromServer);
 
-            this.socket.on("unexpected-response", async (req, res) => {
-                res.on("data", (chunk: Buffer) => {
-                    const error = chunk.toString();
+            this.socket.on("unexpected-response", (req, res) => {
+                const chunks: Buffer[] = [];
+                res.on("data", (chunk: Buffer) => chunks.push(chunk));
+                res.on("error", (err) => log.warn(`Error reading HTTP ${res.statusCode} response body: ${err.message}`));
+                res.on("close", () => {
+                    const error = Buffer.concat(chunks).toString();
                     log.error(`HTTP Error ${res.statusCode}: ${error}`);
+                    let message = "Unknown error";
                     try {
                         const errorObject = JSON.parse(error);
-                        fail(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
+                        message = errorObject.error_description || errorObject.error || message;
                     } catch {
-                        fail(new Error("Unknown error"));
+                        // Not JSON, keep the generic message
                     }
+                    disconnectReason = `Server rejected the connection with HTTP ${res.statusCode}: ${message}`;
+                    fail(new Error(message));
+                    socket.terminate();
                 });
             });
             this.socket.on("upgrade", (response) => {
@@ -135,7 +143,6 @@ export class TachyonClient {
                 this.onSocketOpen.dispatch();
                 succeed();
             });
-            let disconnectReason: string;
             this.socket.addEventListener("close", (event) => {
                 if (!disconnectReason) {
                     if (event.reason.toString()) {
@@ -167,6 +174,11 @@ export class TachyonClient {
                 this.onSocketClose.dispatch();
             });
             this.socket.addEventListener("error", (err) => {
+                // terminate() after a rejected handshake reports its own generic abort error
+                if (disconnectReason) {
+                    fail(disconnectReason);
+                    return;
+                }
                 if (err.message.includes("invalid subprotocol")) {
                     disconnectReason = `Tachyon server protocol version (${serverProtocol}) is incompatible with this client (tachyon-${tachyonMeta.version})`;
                 } else if (err.message.includes("ECONNREFUSED")) {

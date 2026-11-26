@@ -16,7 +16,8 @@ import { isApiFailure } from "@renderer/api/failures";
 import { gameApi } from "@renderer/api/game";
 import { isTachyonErrorForCommand, onTachyonEvent, tachyonRequest } from "@renderer/api/tachyon";
 import { ui } from "@renderer/logic/ui";
-import { matchmakingStore, matchmakingActions, MatchmakingStatus } from "@renderer/store/matchmaking.store";
+import { matchmakingStore, matchmakingActions, MatchmakingStatus, queueContent } from "@renderer/store/matchmaking.store";
+import { contentRefs } from "@renderer/store/contents.store";
 import { connectionStore } from "@renderer/store/connection.store";
 import { onTachyonConnected } from "@renderer/utils/connection-signal";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -27,7 +28,7 @@ import { onWentOffline } from "@renderer/utils/offline-signal";
 const READY_TIMEOUT_SAFETY_MARGIN_MS = 100;
 
 export class MatchmakingJoinRefused extends Error {
-    readonly reason: "bad_queue_data" | "downloads_required" | "queue_not_found";
+    readonly reason: "downloads_required" | "queue_not_found";
 
     constructor(reason: MatchmakingJoinRefused["reason"]) {
         super(`matchmaking/queue not sent: ${reason}`);
@@ -76,8 +77,6 @@ async function listQueues() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingActions.set({ selectedQueue: matchmakingStore.playlists[0].id });
         }
-
-        await refreshRequiredDownloads();
     } catch (error) {
         matchmakingActions.set({ queueError: "Failed to retrieve available queues" });
 
@@ -99,56 +98,30 @@ async function refreshQueues() {
     }
 }
 
-// TODO: Fix this root cause: the views and DownloadContentButton each run their own content:missing check and can
-// disagree. The views only show the button while downloadsRequired lists something, and the button answers for itself,
-// re-checking whenever contentsStore.revision changes. If this refresh fails after a download (#751), downloadsRequired
-// keeps the finished content while the button has already seen it installed, so it renders as "ready" and shows its
-// placeholder slot ("This string should never be visible"). useMatchmakingActions currently papers over this by
-// re-listing queues on failure, which still leaves the stale entries if that refresh fails too. One check should decide
-// whether a queue needs downloads: either the views hide the button from its downloads-complete event, or the button owns
-// that decision.
-/**
- * Refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
- * Rejects with an IpcCallError when the content check fails, so callers must catch it or it reaches Error.vue.
- */
-async function refreshRequiredDownloads() {
-    for (const queue of matchmakingStore.playlists) {
-        const missing = await contentApi.missing([
-            ...queue.engines.map((engine) => ({ type: "engine" as const, id: engine.version })),
-            ...queue.games.map((game) => ({ type: "game" as const, id: game.springName })),
-            ...queue.maps.map((map) => ({ type: "map" as const, id: map.springName })),
-        ]);
-
-        matchmakingActions.setDownloadsRequired(queue.id, {
-            engines: missing.filter((ref) => ref.type === "engine").map((ref) => ref.id),
-            games: missing.filter((ref) => ref.type === "game").map((ref) => ref.id),
-            maps: missing.filter((ref) => ref.type === "map").map((ref) => ref.id),
-        });
-    }
-}
-
 /**
  * Sends a Tachyon 'matchmaking/queue' request, specifically using the matchmakingStore.selectedQueue
  */
 async function joinQueue() {
-    const required = matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue];
-    if (required == undefined) {
-        refreshQueues();
-
-        throw new MatchmakingJoinRefused("bad_queue_data");
-    }
-    if (required.maps.length > 0 || required.engines.length > 0 || required.games.length > 0) {
-        throw new MatchmakingJoinRefused("downloads_required");
-    }
-
-    // Initial state, likely short-lived.
-    matchmakingActions.set({ status: MatchmakingStatus.JoinRequested, errorMessage: null });
-
     const playlist = matchmakingStore.playlists.find((p) => p.id === matchmakingStore.selectedQueue);
     if (!playlist) {
-        refreshQueues().then(() => matchmakingActions.set({ status: MatchmakingStatus.Idle }));
+        refreshQueues();
 
         throw new MatchmakingJoinRefused("queue_not_found");
+    }
+
+    // Initial state, likely short-lived. Set before anything is awaited, since leaving Idle is what takes the join
+    // button away, so a second click cannot send a second request.
+    matchmakingActions.set({ status: MatchmakingStatus.JoinRequested, errorMessage: null });
+
+    try {
+        // Asked now rather than read from earlier answers, which go stale as content is installed.
+        if ((await contentApi.missing(contentRefs(queueContent(playlist)))).length > 0) {
+            throw new MatchmakingJoinRefused("downloads_required");
+        }
+    } catch (error) {
+        matchmakingActions.set({ status: MatchmakingStatus.Idle });
+
+        throw error;
     }
 
     try {
@@ -338,5 +311,4 @@ export const matchmakingLogic = {
     cancel,
     ready,
     selectQueue,
-    refreshRequiredDownloads,
 };

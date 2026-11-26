@@ -28,6 +28,7 @@ const ui = {
     queueListFailed: vi.fn(),
     userSubscribeFailed: vi.fn(),
     userUnsubscribeFailed: vi.fn(),
+    friendListFailed: vi.fn(),
 };
 const list = Symbol("test");
 
