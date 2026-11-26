@@ -29,7 +29,7 @@ import type { Member } from "@renderer/components/lobbies/lobby.types";
 import { computed, inject, Ref, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
-import ContextMenu from "primevue/contextmenu";
+import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import { useRouter } from "vue-router";
 import { me } from "@renderer/store/me.store";
 import { computedAsync } from "@vueuse/core";
