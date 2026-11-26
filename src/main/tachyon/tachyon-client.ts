@@ -4,6 +4,7 @@
 
 import { Signal } from "$/jaz-ts-utils/signal";
 import { getWSServerURL } from "@main/config/server";
+import { getTachyonSubprotocol } from "@main/tachyon/subprotocol";
 import { logger } from "@main/utils/logger";
 import { randomUUID } from "node:crypto";
 
@@ -84,7 +85,7 @@ export class TachyonClient {
                 reject(reason);
             };
 
-            this.socket = new WebSocket(getWSServerURL(), `v0.tachyon`, {
+            this.socket = new WebSocket(getWSServerURL(), getTachyonSubprotocol(), {
                 headers: {
                     authorization: `Bearer ${token}`,
                 },
