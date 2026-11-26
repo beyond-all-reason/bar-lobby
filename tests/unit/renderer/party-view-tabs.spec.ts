@@ -12,7 +12,8 @@ vi.mock("@renderer/store/me.store", () => ({ me: { userId: "me" } }));
 vi.mock("@renderer/logic/party", () => ({ partyLogic: { markSeen: vi.fn() } }));
 vi.mock("@renderer/store/chat.store", () => ({ chatStore: { partyChats: new Map() } }));
 vi.mock("@renderer/store/matchmaking.store", () => ({
-    matchmakingStore: { playlists: [], downloadsRequired: {}, selectedQueue: "" },
+    matchmakingStore: { playlists: [], selectedQueue: "" },
+    queueContent: () => ({ engines: [], games: [], maps: [] }),
     matchmaking: {},
     MatchmakingStatus: { Idle: "Idle" },
     getPlaylistName: () => "",

@@ -13,6 +13,7 @@ export const preloadNamespaces = [
     "content",
     "customLobbies",
     "engine",
+    "engineSettings",
     "game",
     "info",
     "log",

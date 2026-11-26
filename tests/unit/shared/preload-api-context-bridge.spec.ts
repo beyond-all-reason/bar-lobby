@@ -215,13 +215,11 @@ describe("Preload API Context Bridge", () => {
     it("should expose maps API", async () => {
         await import("@preload/preload");
 
-        mockWindow.maps.downloadMap("map1");
         mockWindow.maps.downloadMaps(["map1", "map2"]);
         mockWindow.maps.isVersionInstalled("map1");
         mockWindow.maps.fetchAllMaps();
         mockWindow.maps.fetchMapImages("imgsrc");
 
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMap", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMaps", ["map1", "map2"]);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:isVersionInstalled", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchAllMaps");
@@ -285,6 +283,30 @@ describe("Preload API Context Bridge", () => {
         dispatch({}, change);
 
         expect(callback).toHaveBeenCalledWith(change);
+    });
+
+    it("should expose engineSettings API", async () => {
+        await import("@preload/preload");
+
+        mockWindow.engineSettings.get();
+        mockWindow.engineSettings.set("snd_volmaster", "48");
+        mockWindow.engineSettings.reset("ui_scale");
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("engineSettings:get");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("engineSettings:set", "snd_volmaster", "48");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("engineSettings:reset", "ui_scale");
+    });
+
+    it("should pass engine settings changes from main to the callback", async () => {
+        await import("@preload/preload");
+        const callback = vi.fn();
+        const view = { status: { usable: true }, overrides: {}, clientDefaults: {}, engineDefaults: {} };
+
+        mockWindow.engineSettings.onChanged(callback);
+        const [dispatch] = listenersFor("engineSettings:changed");
+        dispatch({}, view);
+
+        expect(callback).toHaveBeenCalledWith(view);
     });
 
     it("should expose barNavigation API", async () => {

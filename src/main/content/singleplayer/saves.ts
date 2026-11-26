@@ -11,6 +11,7 @@ import { ReportedResult, SAVE_FORMAT_VERSION, SAVE_LIMITS, saveCompatibility, sa
 import type { Difficulty } from "../../../shared/content/schema/common";
 import type { ContentProblem, SingleplayerItemRef, SingleplayerKind } from "../../../shared/content/singleplayer";
 import { describeError, relevantErrors } from "./files";
+import { queued } from "../../utils/file-queue";
 
 // A change to a save that was refused, with the code the renderer words it by. The message is for the log.
 export class SaveFailureError extends Error {
@@ -146,22 +147,6 @@ export async function readUsableSave(dir: string, kind: SingleplayerKind, ref: S
     return usableSave(path.join(dir, saveFileName(kind, ref)), saveVersion);
 }
 
-// Changes to one file run one after another, so two results recorded close together both land, in order.
-const queues = new Map<string, Promise<unknown>>();
-
-function queued<T>(filePath: string, task: () => Promise<T>): Promise<T> {
-    const run = (queues.get(filePath) ?? Promise.resolve()).then(task);
-    const settled = run.catch(() => {});
-    queues.set(filePath, settled);
-    settled.then(() => {
-        if (queues.get(filePath) === settled) {
-            queues.delete(filePath);
-        }
-    });
-
-    return run;
-}
-
 // Without the values, which may be long: a result comes from a mission, not from a file someone can open.
 function checkResult(result: ReportedResult) {
     if (!validateResult(result)) {
@@ -245,6 +230,41 @@ async function writeSave(filePath: string, save: SingleplayerSave) {
     const tempPath = `${filePath}.tmp`;
     await fs.writeFile(tempPath, JSON.stringify(save, null, 4));
     await fs.rename(tempPath, filePath);
+}
+
+export type LegacySavesMove = "moved" | "nothing-to-move" | "both-present" | { failed: string };
+
+/**
+ * Moves the saves folder from before profiles into the first profile, once. When both exist, which one is
+ * right can't be told, so both are left as they are. Never throws.
+ */
+export async function moveLegacySaves(from: string, to: string): Promise<LegacySavesMove> {
+    try {
+        if (!(await exists(from))) {
+            return "nothing-to-move";
+        }
+        if (await exists(to)) {
+            return "both-present";
+        }
+        await fs.mkdir(path.dirname(to), { recursive: true });
+        await fs.rename(from, to);
+
+        return "moved";
+    } catch (err) {
+        return { failed: err instanceof Error ? err.message : String(err) };
+    }
+}
+
+async function exists(p: string) {
+    try {
+        await fs.stat(p);
+        return true;
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+            return false;
+        }
+        throw err;
+    }
 }
 
 // Deletes an item's save, whatever state it is in. Deleting a save that doesn't exist does nothing.

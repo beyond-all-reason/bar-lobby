@@ -70,7 +70,7 @@ const emits = defineEmits<{
 
 const form: Ref<HTMLFormElement | null> = ref(null);
 const isOpen = toRef(props, "modelValue");
-const isBaseModal = useModalStack(isOpen);
+const { isBottom: isBaseModal, isTop } = useModalStack(isOpen);
 
 defineExpose({
     open: () => emits("update:modelValue", true),
@@ -90,10 +90,13 @@ watch(isOpen, (open) => {
     }
 });
 
+// Every modal listens on document, so stopPropagation() can't keep the others from hearing the
+// same keypress. Only the top one acts; the stack changes after the parent updates modelValue,
+// so the one underneath still isn't on top while this event is being handled.
 onKeyDown(
     "Escape",
     (e) => {
-        if (isOpen.value) {
+        if (isOpen.value && isTop.value) {
             e.preventDefault();
             e.stopPropagation();
             close();

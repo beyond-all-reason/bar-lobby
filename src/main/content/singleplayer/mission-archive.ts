@@ -10,7 +10,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { DEV_COMPATIBILITY, type ItemCompatibility } from "../../../shared/content/schema/common";
 import type { SingleplayerKind } from "../../../shared/content/singleplayer";
-import { archiveGameName, type ModInfoResult, readModInfo } from "./modinfo";
+import { archiveGameName, type ModInfoResult, readModInfo, rewriteModInfo } from "./modinfo";
 import type { Problems } from "./problems";
 
 // Not vendor/7zip-min, which mixes require() with ESM and so cannot load in tools/validate-content.ts. The
@@ -185,4 +185,39 @@ export async function checkMissionArchive({ folder, kind, id, missionLuaPaths, c
     }
 
     return failed || !modInfo ? undefined : { archivePath, archiveName: archiveGameName(modInfo), archiveDepend: modInfo.depend };
+}
+
+/**
+ * Copies the archive into `folder`'s games/, depending on `gameVersion` alone, for a dev launch on a game the
+ * archive doesn't depend on. The copy's name gets a suffix, so it never shadows the real archive. Empties
+ * `folder` first, and gives the copy's name as a start script names it.
+ */
+export async function devArchiveCopy(archivePath: string, gameVersion: string, folder: string): Promise<string> {
+    const extracted = await run7za(["e", "-so", archivePath, MODINFO_FILE]);
+    if ("error" in extracted) {
+        throw new Error(`${MODINFO_FILE} could not be read from ${archivePath}: ${extracted.error}`);
+    }
+    const read = readModInfo(extracted.stdout);
+    if ("error" in read) {
+        throw new Error(`${archivePath}: ${read.error}`);
+    }
+    const modInfo = { ...read.modInfo, name: `${read.modInfo.name}-dev` };
+
+    await fs.rm(folder, { recursive: true, force: true });
+    const staging = path.join(folder, "staging");
+    const games = path.join(folder, ARCHIVE_FOLDER);
+    await fs.mkdir(staging, { recursive: true });
+    await fs.mkdir(games, { recursive: true });
+
+    // 7-Zip stores a file given by its full path under its name alone, which puts it at the archive's root.
+    const modInfoPath = path.join(staging, MODINFO_FILE);
+    await fs.writeFile(modInfoPath, rewriteModInfo(extracted.stdout, { name: modInfo.name, depend: [gameVersion] }));
+    const copy = path.join(games, `${modInfo.name}.sdz`);
+    await fs.copyFile(archivePath, copy);
+    const updated = await run7za(["a", "-tzip", copy, modInfoPath]);
+    if ("error" in updated) {
+        throw new Error(`${copy} could not be given a new ${MODINFO_FILE}: ${updated.error}`);
+    }
+
+    return archiveGameName(modInfo);
 }

@@ -46,4 +46,10 @@ describe("appUi", () => {
 
         expect(notificationsApi.alert).toHaveBeenCalledWith({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
     });
+
+    it("alerts when the friend list fails to load", () => {
+        appUi.friendListFailed();
+
+        expect(notificationsApi.alert).toHaveBeenCalledWith({ severity: "error", text: "Failed to fetch friend list." });
+    });
 });

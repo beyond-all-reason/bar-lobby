@@ -109,3 +109,21 @@ export async function missionStartScript({ archiveName, mapName, config, entryPo
 
     return startScriptConverter.generateScriptString(restrictions.length > 0 ? Object.assign(game, { restrict }) : game);
 }
+
+/**
+ * The start script that continues a saved game. The engine takes the rest of the game's setup from the script
+ * inside the save, so the player's name has to be the one the game was saved under.
+ *
+ * That includes RecordDemo, so a continued game always records a demo, and such a demo doesn't play back
+ * correctly: it lacks everything before the save. See https://github.com/beyond-all-reason/RecoilEngine/issues/1388.
+ */
+export function savedGameStartScript(savePath: string, playerName: string): string {
+    const value = (text: string) => {
+        if (/[;{}[\]\r\n]/.test(text)) {
+            throw new Error(`Can't be written into a start script: ${JSON.stringify(text)}`);
+        }
+        return text;
+    };
+
+    return `[game]\n{\n\tsavefile=${value(savePath.replaceAll("\\", "/"))};\n\tishost=1;\n\tmyplayername=${value(playerName)};\n}\n`;
+}

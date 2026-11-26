@@ -23,6 +23,10 @@ export default class RedirectHandler {
     private server: http.Server | null = null;
     private callbackUrl?: URL;
 
+    // Only callbacks carrying this state are accepted (CSRF protection),
+    // https://www.rfc-editor.org/rfc/rfc6749#section-10.12
+    constructor(private readonly expectedState: string) {}
+
     public close() {
         if (!this.server) return;
         this.server.close();
@@ -60,6 +64,13 @@ export default class RedirectHandler {
         const url = new URL(req.url!, `http://${req.headers.host}`);
         if (url.pathname !== PATH) {
             res.writeHead(404);
+            res.end();
+            return;
+        }
+        // Ignore foreign requests so they can neither inject a code nor abort the pending flow.
+        if (this.callbackUrl || url.searchParams.get("state") !== this.expectedState) {
+            log.warn("Ignoring OAuth2 callback with missing or invalid state");
+            res.writeHead(400);
             res.end();
             return;
         }

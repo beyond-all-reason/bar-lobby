@@ -17,6 +17,7 @@ import type {
     ReplaysApi,
     SettingsApi,
     SingleplayerApi,
+    EngineSettingsApi,
     CustomLobbiesApi,
     ConfigApi,
     ShellApi,
@@ -41,6 +42,7 @@ declare global {
         maps: MapsApi;
         misc: MiscApi;
         singleplayer: SingleplayerApi;
+        engineSettings: EngineSettingsApi;
         tachyon: TachyonApi;
         log: LogApi;
         autoUpdater: AutoUpdaterApi;

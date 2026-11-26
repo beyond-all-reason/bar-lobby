@@ -5,7 +5,7 @@
 import * as path from "path";
 import { spawn } from "child_process";
 import { logger } from "@main/utils/logger";
-import { getEnginePath, WRITE_DATA_PATH, getAssetsPath } from "@main/config/app";
+import { getEnginePath, WRITE_DATA_PATH, getAssetsPath, ENGINE_SCRATCH_PATH } from "@main/config/app";
 
 const log = logger("checksums.ts");
 
@@ -40,7 +40,11 @@ function runChecksumProcess(engineVersion: string, archiveName: string): Promise
     const binaryPath = path.join(enginePath, process.platform === "win32" ? "spring-headless.exe" : "spring-headless");
     // --calc-checksum does not return a value to us; it causes the engine to write a checksum cache
     // file to disk that speeds up subsequent archive loading (avoids re-scanning on next launch).
-    const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", "--calc-checksum", archiveName];
+    // Without --config every engine start rewrites the user's springsettings.cfg, and on Windows nothing
+    // locks it, so a checksum running beside a game corrupts it. The engine reads and writes only this file
+    // instead, and copes with its folder not existing.
+    const configPath = path.join(ENGINE_SCRATCH_PATH, "checksum-springsettings.cfg");
+    const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", "--config", configPath, "--calc-checksum", archiveName];
 
     log.debug(`Calculating checksum for: ${archiveName}`);
     return new Promise<void>((resolve) => {

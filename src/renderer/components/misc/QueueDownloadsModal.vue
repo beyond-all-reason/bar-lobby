@@ -66,7 +66,9 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 import Modal from "@renderer/components/common/Modal.vue";
-import { matchmakingStore } from "@renderer/store/matchmaking.store";
+import { matchmakingStore, queueContent } from "@renderer/store/matchmaking.store";
+import { contentRefs } from "@renderer/store/contents.store";
+import { useMissingContent } from "@renderer/composables/useMissingContent";
 import { Icon } from "@iconify/vue";
 import documentRemoveIcon from "@iconify-icons/mdi/file-document-remove-outline";
 import documentCheckIcon from "@iconify-icons/mdi/file-document-check-outline";
@@ -86,8 +88,12 @@ const queueDetails = computed(() => {
     return matchmakingStore.playlists.find((q) => q.id === props.queue);
 });
 
+const missing = useMissingContent(computed(() => contentRefs(queueContent(queueDetails.value))));
+
 function checkIfNeeded(type: "engines" | "games" | "maps", id: string): boolean {
-    return matchmakingStore.downloadsRequired[props.queue][type].includes(id);
+    const refType = { engines: "engine", games: "game", maps: "map" }[type];
+
+    return missing.value?.some((ref) => ref.type === refType && ref.id === id) ?? false;
 }
 
 async function onMapSelected(springName: string) {

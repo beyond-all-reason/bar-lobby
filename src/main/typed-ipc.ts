@@ -13,7 +13,7 @@ import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
 import type { Info } from "@main/services/info.service";
 import type { IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
-import type { logLevels } from "@main/services/log.service";
+import type { logLevels } from "@shared/log-levels";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";
@@ -22,17 +22,16 @@ import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { SaveChange, ReportedResult, SingleplayerSave, SingleplayerSaves } from "@shared/content/save";
-import type { ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
+import type { SuspendedChange, SuspendedMission } from "@shared/content/suspended-mission";
+import type { EngineSettingsView } from "@shared/engine-settings/view";
+import type { ChosenVersions, ContentSource, SingleplayerContent, SingleplayerKind } from "@shared/content/singleplayer";
 import type { CustomLobbiesPreferences } from "@main/services/custom-lobbies.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 import { Config } from "@main/services/config.service";
+import type { IpcResult } from "@shared/ipc-result";
 
-// Errors thrown in main arrive in the renderer stripped of everything but a message, so failures a
-// caller needs to act on have to travel as data instead. Mirrors the shape tachyon-protocol uses for
-// its own responses, which can't be reused here because it's keyed on tachyon command ids.
-// `reason` is a stable code to branch on or translate; `details` carries any raw text behind it.
-export type IpcResult<T = void> = { status: "success"; data: T } | { status: "failed"; reason: string; details?: string };
+export type { IpcResult };
 
 export type IPCEvents = {
     "content:changed": (state: ContentState[]) => void;
@@ -60,6 +59,8 @@ export type IPCEvents = {
     "tachyon:event": (event: TachyonEvent) => void;
     "auth:changed": (state: AuthState) => void;
     "singleplayer:saveChanged": (change: SaveChange) => void;
+    "singleplayer:suspendedChanged": (change: SuspendedChange) => void;
+    "engineSettings:changed": (view: EngineSettingsView) => void;
 };
 
 export type IPCCommands = {
@@ -114,7 +115,6 @@ export type IPCCommands = {
     "mainWindow:setDisplay": (id: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;
-    "maps:downloadMap": (springName: string) => void;
     "maps:downloadMaps": (springNames: string[]) => void;
     "maps:getInstalledMapNames": () => string[];
     "maps:isVersionInstalled": (springName: string) => boolean;
@@ -140,7 +140,13 @@ export type IPCCommands = {
     "singleplayer:setDifficulty": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, difficulty: string) => IpcResult<SingleplayerSave>;
     "singleplayer:deleteSave": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
     "singleplayer:deleteAllSaves": () => IpcResult;
-    "singleplayer:launch": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string) => IpcResult;
+    "singleplayer:launch": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string, missionId: string | undefined, playerName: string, chosenVersions: ChosenVersions) => IpcResult;
+    "singleplayer:getSuspended": () => IpcResult<SuspendedMission[]>;
+    "singleplayer:continueMission": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
+    "singleplayer:deleteSuspended": (kind: SingleplayerKind, source: ContentSource, rootId: string, id: string) => IpcResult;
+    "engineSettings:get": () => IpcResult<EngineSettingsView>;
+    "engineSettings:set": (key: string, value: string) => IpcResult<EngineSettingsView>;
+    "engineSettings:reset": (key: string) => IpcResult<EngineSettingsView>;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "customLobbies:get": () => CustomLobbiesPreferences;
     "customLobbies:update": (data: Partial<CustomLobbiesPreferences>) => Partial<CustomLobbiesPreferences>;

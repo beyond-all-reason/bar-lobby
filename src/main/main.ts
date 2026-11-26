@@ -21,7 +21,9 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, SCENARIO_IMAGE_PATH, getContentRoots, setAssetsPath } from "./config/app";
+import { APP_NAME, LEGACY_SAVES_PATH, SAVES_PATH, SCENARIO_IMAGE_PATH, getContentRoots, setAssetsPath } from "./config/app";
+import { moveLegacySaves } from "@main/content/singleplayer/saves";
+import { engineConfig } from "@main/game/engine-config/engine-config";
 import { shellService } from "@main/services/shell.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
@@ -32,6 +34,7 @@ import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
 import { singleplayerService } from "@main/services/singleplayer.service";
+import { engineSettingsService } from "@main/services/engine-settings.service";
 import { configService } from "./services/config.service";
 import { EDITION_FEATURES } from "@main/config/edition";
 import { reconcileCustomServers } from "@shared/lobby-server";
@@ -169,6 +172,14 @@ app.whenReady().then(async () => {
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH && EDITION_FEATURES.changeAssetsPath) {
         setAssetsPath(savedAssetsPath);
     }
+    const savesMove = await moveLegacySaves(LEGACY_SAVES_PATH, SAVES_PATH);
+    if (savesMove === "moved") {
+        log.info(`Moved singleplayer saves from ${LEGACY_SAVES_PATH} to ${SAVES_PATH}`);
+    } else if (savesMove === "both-present") {
+        log.warn(`Singleplayer saves exist in both ${LEGACY_SAVES_PATH} and ${SAVES_PATH}; using ${SAVES_PATH} and leaving the other alone`);
+    } else if (typeof savesMove === "object") {
+        log.error(`Could not move singleplayer saves from ${LEGACY_SAVES_PATH} to ${SAVES_PATH}: ${savesMove.failed}`);
+    }
     // A saved assets path can point somewhere unavailable, and the screen that lets the user repoint it
     // cannot appear if this throws on the way to creating the window.
     try {
@@ -176,6 +187,8 @@ app.whenReady().then(async () => {
     } catch (err) {
         log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
     }
+    // After content, which lists the installed engines. Not awaited: launches and the settings view wait for it.
+    void engineConfig.init();
     await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
@@ -199,4 +212,5 @@ app.whenReady().then(async () => {
     navigationService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
     singleplayerService.registerIpcHandlers(webContents);
+    engineSettingsService.registerIpcHandlers(webContents);
 });

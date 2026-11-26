@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { archiveGameName, readModInfo } from "@main/content/singleplayer/modinfo";
+import { archiveGameName, readModInfo, rewriteModInfo } from "@main/content/singleplayer/modinfo";
 
 const read = (lua: string) => readModInfo(Buffer.from(lua, "utf8"));
 
@@ -100,5 +100,31 @@ describe("archiveGameName", () => {
 
     it("leaves the name alone without a version", () => {
         expect(named("bar-scenario-outpost-strike", "")).toBe("bar-scenario-outpost-strike");
+    });
+});
+
+describe("rewriteModInfo", () => {
+    const rewritten = (lua: string, name: string, depend: string[]) => rewriteModInfo(Buffer.from(lua, "utf8"), { name, depend }).toString("utf8");
+
+    it("replaces the name and depend and keeps everything else as written", () => {
+        const lua = rewritten(OUTPOST_STRIKE, "bar-scenario-outpost-strike-dev", ["Beyond All Reason test-28000-aaaaaaa"]);
+
+        expect(lua).toBe(
+            OUTPOST_STRIKE.replace('"bar-scenario-outpost-strike"', '"bar-scenario-outpost-strike-dev"').replace(
+                '{ "Beyond All Reason test-31820-45ea098" }',
+                '{ "Beyond All Reason test-28000-aaaaaaa" }'
+            )
+        );
+        expect(read(lua)).toEqual({ modInfo: { name: "bar-scenario-outpost-strike-dev", version: "1.0", depend: ["Beyond All Reason test-28000-aaaaaaa"] } });
+    });
+
+    it("writes values readModInfo reads back unchanged", () => {
+        const name = 'bar-scenario-"quoted"\\path-é';
+
+        expect(read(rewritten(OUTPOST_STRIKE, name, ["Game ü 1.0"]))).toMatchObject({ modInfo: { name, depend: ["Game ü 1.0"] } });
+    });
+
+    it("refuses a file without a name or depend to replace", () => {
+        expect(() => rewritten('return { name = "a", version = "1" }', "b", ["Game"])).toThrow(/name and depend once each/);
     });
 });

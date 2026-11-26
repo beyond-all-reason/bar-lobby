@@ -19,10 +19,10 @@ vi.mock("@renderer/api/tachyon", async (importOriginal) => ({
         return () => {};
     },
 }));
-vi.mock("@renderer/store/me.store", () => ({ me: { userId: "me" } }));
+const me = vi.hoisted(() => ({ userId: "me" }));
+vi.mock("@renderer/store/me.store", () => ({ me }));
 vi.mock("@renderer/store/users.store", () => ({ subsManager: { setList: vi.fn(), clearAllFromList: vi.fn() } }));
 
-const { me } = await import("@renderer/store/me.store");
 const { subsManager } = await import("@renderer/store/users.store");
 const { partyStore, partyActions, PlayersPartyState } = await import("@renderer/store/party.store");
 const { partyLogic, initPartyLogic } = await import("@renderer/logic/party");
