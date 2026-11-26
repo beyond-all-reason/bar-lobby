@@ -140,9 +140,7 @@ function toggleMapFavorite() {
     if (map.value) map.value.isFavorite = !map.value.isFavorite;
 }
 
-// Always go to the maps list instead of router.back(). This page can be opened from outside
-// Library (e.g. matchmaking), and the Library navbar button reopens the last Library page,
-// so router.back() would bounce the user between matchmaking and this page forever.
+// Opened from matchmaking, router.back() returned there, and Library reopened this page (#706).
 function routerBack() {
     goBackTo(router, "/library/maps/maps");
 }
